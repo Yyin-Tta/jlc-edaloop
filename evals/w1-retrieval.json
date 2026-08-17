@@ -1,0 +1,39 @@
+{
+  "metric": "recall@5: 每个 (需求, 标注块) 对,块出现在 Top-5 即命中;聚合命中率 >= 0.80 为 Go",
+  "note": "每份需求标注 <=5 个关键块(客户正文明确支撑的块);查询文本=需求正文(剔除 evals 标注区与 blockquote 提示行)",
+  "req-01-esp32s3-mini-2layer.md": [
+    "usb-c-power-entry",
+    "usb-serial-ch340n",
+    "ldo-ams1117-3v3",
+    "mcu-esp32s3-wroom1-min",
+    "buttons-boot-reset"
+  ],
+  "req-02-esp32s3-industrial-4layer.md": [
+    "mcu-esp32s3-wroom1-min",
+    "usb-serial-ch340n",
+    "ldo-ams1117-3v3",
+    "rs485-max485",
+    "dc-terminal-5v-input"
+  ],
+  "req-03-power-board.md": [
+    "charger-tp4056",
+    "boost-mt3608",
+    "ldo-ams1117-3v3",
+    "dc-terminal-wide-input",
+    "led-indicator"
+  ],
+  "req-04-interface-board.md": [
+    "rs485-max485",
+    "isolator-pc817",
+    "driver-uln2003",
+    "ldo-ams1117-3v3",
+    "isolated-dc-b0505s"
+  ],
+  "req-05-hybrid-dual-mcu-gateway.md": [
+    "mcu-stm32f103c8-min",
+    "mcu-esp32s3-wroom1-min",
+    "usb-serial-ch340n",
+    "ldo-ams1117-3v3",
+    "eeprom-24c02"
+  ]
+}
