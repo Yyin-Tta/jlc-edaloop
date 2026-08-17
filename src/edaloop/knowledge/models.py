@@ -9,6 +9,12 @@ class PartRef(BaseModel):
     note: str = ""
 
 
+class UpstreamRef(BaseModel):
+    id: str
+    ports: dict[str, str] = Field(default_factory=dict)
+    status: str = ""
+
+
 class BlockRecord(BaseModel):
     block_id: str
     name: str
@@ -18,6 +24,7 @@ class BlockRecord(BaseModel):
     parts: list[PartRef] = Field(default_factory=list)
     ports: list[str] = Field(default_factory=list)
     provenance: str = ""
+    upstream: UpstreamRef | None = None
 
 
 class RetrievedBlock(BaseModel):
@@ -29,6 +36,7 @@ class RetrievedBlock(BaseModel):
     parts: list[PartRef]
     ports: list[str]
     provenance: str
+    upstream: UpstreamRef | None = None
     score: float
     channels: list[str]
     rank: int = 0

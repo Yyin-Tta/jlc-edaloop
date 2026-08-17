@@ -1,0 +1,106 @@
+from __future__ import annotations
+
+import json
+import re
+
+from pydantic import ValidationError
+
+from edaloop.generate.models import BlockPlan
+from edaloop.intent.ir import DesignIR
+from edaloop.knowledge.models import RetrievedBlock
+from edaloop.llm.base import ChatMessage, LLMProvider
+
+
+class PlanError(Exception):
+    def __init__(self, reason: str, raw: str = "") -> None:
+        super().__init__(reason)
+        self.reason = reason
+        self.raw = raw
+
+
+_SYSTEM = """你是电路块规划器。给定 DesignIR(设计意图)和候选块目录,产出 BlockPlan JSON,只输出 JSON。
+
+输出 schema:
+{
+  "blocks": [
+    {"block_id": "...", "upstream_id": "block.xxx", "instance": "唯一实例名",
+     "ports_binding": {"PORT名": "网络名"}, "params": {}, "provenance": "检索分数或选择理由"}
+  ],
+  "nets": [{"name": "3V3", "class": "power"}],
+  "confidence": 0.0-1.0,
+  "provenance": ["整体理由"]
+}
+
+规则:
+- 只能使用目录中带 upstream 字段的块;block_id/upstream_id/ports 照抄目录,不要改写
+- 覆盖 DesignIR 的 functions/power/interfaces;目录中无对应块的功能,跳过并在 provenance 里注明"未覆盖:<功能>"
+- 电源网络命名:3V3/5V/GND;信号网络用大写下划线(MCU_TX/RS485_DE 等)
+- 端口绑定必须逐块完整:每个 PORT 都要给 net;块间互联靠相同 net 名汇合(如 LDO 的 3V3 口与 MCU 的 3V3 口都绑 "3V3")
+- 串口交叉:USB 串口块的 TXD 与主控 RX 同网,RXD 与主控 TX 同网
+- 需要多个相同块(如多路 LED)时,生成多个实例,instance 命名不同(led1/led2)
+- 器件型号以目录 parts 为准,不要发明器件"""
+
+
+def _strip_fences(text: str) -> str:
+    t = text.strip()
+    if t.startswith("```"):
+        t = re.sub(r"^```[a-zA-Z]*\n?", "", t)
+        t = re.sub(r"\n?```$", "", t)
+    return t.strip()
+
+
+def make_plan(
+    ir: DesignIR,
+    candidates: list[RetrievedBlock],
+    llm: LLMProvider,
+    *,
+    attempts: int = 2,
+) -> BlockPlan:
+    appliable = [b for b in candidates if b.parts and b.block_id]
+    catalog_lines = []
+    for b in candidates:
+        entry = {
+            "block_id": b.block_id,
+            "name": b.name,
+            "desc": b.desc,
+            "parts": [p.ref for p in b.parts],
+        }
+        if b.category:
+            entry["category"] = b.category
+        if b.upstream:
+            entry["upstream"] = {"id": b.upstream.id, "ports": dict(b.upstream.ports)}
+        catalog_lines.append(json.dumps(entry, ensure_ascii=False))
+    user = (
+        "DesignIR:\n"
+        + json.dumps(json.loads(ir.model_dump_json()), ensure_ascii=False, indent=1)
+        + "\n\n候选块目录:\n"
+        + "\n".join(catalog_lines)
+    )
+    last: Exception | None = None
+    for _ in range(attempts):
+        reply = llm.chat(
+            [
+                ChatMessage(role="system", content=_SYSTEM),
+                ChatMessage(role="user", content=user),
+            ]
+        )
+        raw = _strip_fences(reply)
+        try:
+            data = json.loads(raw)
+        except json.JSONDecodeError as e:
+            last = PlanError(f"planner 输出不是合法 JSON: {e}", raw=raw)
+            continue
+        try:
+            plan = BlockPlan.model_validate(
+                {"design_ir_id": ir.id, "source": ir.source, **data}
+            )
+        except ValidationError as e:
+            last = PlanError(f"BlockPlan 校验失败: {e}", raw=raw)
+            continue
+        valid_ids = {b.block_id for b in candidates}
+        bad = [b.block_id for b in plan.blocks if b.block_id not in valid_ids]
+        if bad:
+            last = PlanError(f"plan 引用了目录外的块: {bad}", raw=raw)
+            continue
+        return plan
+    raise last if last else PlanError("planner 失败")

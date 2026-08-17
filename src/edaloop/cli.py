@@ -38,6 +38,16 @@ def build_parser() -> argparse.ArgumentParser:
     p_ret.add_argument("--top-k", type=int, default=5)
     p_ret.add_argument("--db", default=None, help="知识库路径(默认 EDALOOP_KB_PATH 或 runs/knowledge.db)")
 
+    p_plan = sub.add_parser("plan", help="M3a:需求 → DesignIR → 检索 → BlockPlan(不出图)")
+    p_plan.add_argument("input", help="需求文件路径(md/txt)")
+    p_plan.add_argument("--out", default=None, help="BlockPlan 输出路径(默认 runs/plan-<id>.json)")
+    p_plan.add_argument("--top-k", type=int, default=12)
+    p_plan.add_argument("--db", default=None)
+
+    p_apply = sub.add_parser("apply", help="M3b:BlockPlan → block-apply 落图 → sch gate(真机)")
+    p_apply.add_argument("plan", help="plan 命令产出的 BlockPlan JSON 路径")
+    p_apply.add_argument("--seeds", default="seeds/blocks.jsonl")
+
     return parser
 
 
@@ -87,6 +97,44 @@ def _cmd_eval(args: argparse.Namespace) -> int:
     raise NotImplementedError(f"eval subset '{args.subset}' 尚未实现")
 
 
+def _cmd_plan(args: argparse.Namespace) -> int:
+    from edaloop.generate.pipeline import stage_plan
+
+    md = Path(args.input).read_text(encoding="utf-8")
+    ir, plan = stage_plan(
+        md,
+        source=Path(args.input).name,
+        db_path=_db_path(args.db),
+        top_k=args.top_k,
+    )
+    out = args.out or f"runs/plan-{plan.id}.json"
+    Path(out).parent.mkdir(parents=True, exist_ok=True)
+    Path(out).write_text(plan.model_dump_json(indent=2), encoding="utf-8")
+    print(f"plan {plan.id}: {len(plan.blocks)} blocks, confidence={plan.confidence}")
+    for b in plan.blocks:
+        print(f"  - {b.instance}: {b.block_id} -> {b.upstream_id}")
+    for line in plan.provenance:
+        print(f"  note: {line}")
+    print(f"saved -> {out}")
+    return 0
+
+
+def _cmd_apply(args: argparse.Namespace) -> int:
+    from edaloop.generate.models import BlockPlan
+    from edaloop.generate.pipeline import load_catalog, stage_apply
+
+    plan = BlockPlan.model_validate_json(Path(args.plan).read_text(encoding="utf-8"))
+    summary = stage_apply(plan, catalog=load_catalog(args.seeds))
+    print(f"gate verdict: {summary['gate_verdict']}")
+    for r in summary["results"]:
+        if r["kind"] == "block-apply":
+            print(f"  apply {r.get('instance')}: {r.get('status')}")
+    if summary["apply_failures"]:
+        print(f"apply failures: {len(summary['apply_failures'])}")
+    print(f"audit -> {summary['audit_dir']}")
+    return 0 if summary["gate_verdict"] == "pass" and not summary["apply_failures"] else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     load_dotenv()
     parser = build_parser()
@@ -100,7 +148,11 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_retrieve(args)
     if args.command == "eval":
         return _cmd_eval(args)
-    raise NotImplementedError(f"command '{args.command}' 尚未实现(W1:seed/retrieve/eval 已可用)")
+    if args.command == "plan":
+        return _cmd_plan(args)
+    if args.command == "apply":
+        return _cmd_apply(args)
+    raise NotImplementedError(f"command '{args.command}' 尚未实现(W1/W2:seed/retrieve/eval/plan/apply 已可用)")
 
 
 if __name__ == "__main__":
