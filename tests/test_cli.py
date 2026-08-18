@@ -32,4 +32,4 @@ def test_no_command_prints_help(capsys: pytest.CaptureFixture[str]) -> None:
 
 def test_unimplemented_command_raises(tmp_path) -> None:
     with pytest.raises(NotImplementedError):
-        main(["ingest", "x.pdf"])
+        main(["replay"])

@@ -169,6 +169,27 @@ def _cmd_run(args: argparse.Namespace) -> int:
     return 0 if result.status == "PASS" else 1
 
 
+def _cmd_ingest(args: argparse.Namespace) -> int:
+    from edaloop.ingest.pipeline import ingest_pdf
+    from edaloop.llm.openai_compat import get_llm
+
+    for pdf in args.pdf:
+        try:
+            table, report = ingest_pdf(pdf, get_llm())
+        except Exception as e:
+            print(f"{pdf}: FAILED - {e}")
+            return 1
+        print(
+            f"{pdf}: {table.part} pins={report.pin_count} pages={report.evidence_pages} "
+            f"llm/rule={report.llm_pins}/{report.rule_pins} verdict={report.verdict}"
+        )
+        for d in report.disagreements[:5]:
+            print(f"  disagree: {d}")
+        for v in report.internal_violations[:5]:
+            print(f"  violation: {v}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     load_dotenv()
     parser = build_parser()
@@ -188,6 +209,8 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_apply(args)
     if args.command == "run":
         return _cmd_run(args)
+    if args.command == "ingest":
+        return _cmd_ingest(args)
     raise NotImplementedError(f"command '{args.command}' 尚未实现")
 
 

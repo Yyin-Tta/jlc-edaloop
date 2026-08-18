@@ -13,9 +13,10 @@ class _Strict(BaseModel):
 
 class PlannedBlock(_Strict):
     block_id: str
-    upstream_id: str
+    upstream_id: str = ""
     instance: str
     ports_binding: dict[str, str] = Field(default_factory=dict)
+    pins_binding: dict[str, str] = Field(default_factory=dict)
     params: dict[str, str] = Field(default_factory=dict)
     provenance: str = ""
     at: str = ""
@@ -51,5 +52,6 @@ class Action(_Strict):
     kind: str
     block_instance: str = ""
     upstream_id: str = ""
+    lcsc: str = ""
     args: list[str] = Field(default_factory=list)
     desc: str = ""

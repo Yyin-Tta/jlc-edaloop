@@ -69,7 +69,7 @@ class KnowledgeStore:
 
     def _ensure_schema(self) -> None:
         dim = getattr(self.embedder, "dim", 1024)
-        self.conn.execute("CREATE TABLE IF NOT EXISTS blocks (rowid INTEGER PRIMARY KEY, block_id TEXT UNIQUE NOT NULL, name TEXT NOT NULL, desc TEXT NOT NULL, category TEXT DEFAULT 'general', tags TEXT DEFAULT '[]', parts TEXT DEFAULT '[]', ports TEXT DEFAULT '[]', provenance TEXT DEFAULT '', upstream TEXT DEFAULT '')")
+        self.conn.execute("CREATE TABLE IF NOT EXISTS blocks (rowid INTEGER PRIMARY KEY, block_id TEXT UNIQUE NOT NULL, name TEXT NOT NULL, desc TEXT NOT NULL, category TEXT DEFAULT 'general', tags TEXT DEFAULT '[]', parts TEXT DEFAULT '[]', ports TEXT DEFAULT '[]', provenance TEXT DEFAULT '', upstream TEXT DEFAULT '', lcsc TEXT DEFAULT '', pinout TEXT DEFAULT '')")
         self.conn.execute(f"CREATE VIRTUAL TABLE IF NOT EXISTS blocks_vec USING vec0(embedding float[{dim}])")
         self.conn.execute("CREATE VIRTUAL TABLE IF NOT EXISTS blocks_fts USING fts5(text, content='', tokenize='trigram')")
 
@@ -82,7 +82,7 @@ class KnowledgeStore:
         vectors = self.embedder.embed_documents(texts)
         for b, v in zip(blocks, vectors):
             cur = self.conn.execute(
-                "INSERT INTO blocks(block_id, name, desc, category, tags, parts, ports, provenance, upstream) VALUES(?,?,?,?,?,?,?,?,?)",
+                "INSERT INTO blocks(block_id, name, desc, category, tags, parts, ports, provenance, upstream, lcsc, pinout) VALUES(?,?,?,?,?,?,?,?,?,?,?)",
                 (
                     b.block_id,
                     b.name,
@@ -93,6 +93,8 @@ class KnowledgeStore:
                     json.dumps(b.ports, ensure_ascii=False),
                     b.provenance,
                     b.upstream.model_dump_json() if b.upstream else "",
+                    b.lcsc or "",
+                    json.dumps(b.pinout, ensure_ascii=False) if b.pinout else "",
                 ),
             )
             rowid = cur.lastrowid
@@ -191,6 +193,8 @@ class KnowledgeStore:
                     upstream = UpstreamRef.model_validate_json(upstream_raw)
                 except Exception:
                     upstream = None
+            pinout_raw = m["pinout"]
+            pinout = json.loads(pinout_raw) if pinout_raw else None
             results.append(
                 RetrievedBlock(
                     block_id=m["block_id"],
@@ -202,6 +206,8 @@ class KnowledgeStore:
                     ports=json.loads(m["ports"]),
                     provenance=m["provenance"],
                     upstream=upstream,
+                    lcsc=m["lcsc"] or None,
+                    pinout=pinout,
                     score=round(fused.get(rowid, 0.0), 6),
                     channels=sorted(channels.get(rowid, set())),
                     rank=i + 1,
@@ -228,7 +234,7 @@ class KnowledgeStore:
             return {}
         marks = ",".join("?" * len(rowids))
         rows = self.conn.execute(
-            f"SELECT rowid, block_id, name, desc, category, tags, parts, ports, provenance, upstream FROM blocks WHERE rowid IN ({marks})",
+            f"SELECT rowid, block_id, name, desc, category, tags, parts, ports, provenance, upstream, lcsc, pinout FROM blocks WHERE rowid IN ({marks})",
             rowids,
         ).fetchall()
         return {r["rowid"]: r for r in rows}

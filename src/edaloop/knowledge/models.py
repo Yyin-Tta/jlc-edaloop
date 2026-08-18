@@ -25,6 +25,8 @@ class BlockRecord(BaseModel):
     ports: list[str] = Field(default_factory=list)
     provenance: str = ""
     upstream: UpstreamRef | None = None
+    lcsc: str | None = None
+    pinout: dict[str, str] | None = None
 
 
 class RetrievedBlock(BaseModel):
@@ -37,6 +39,8 @@ class RetrievedBlock(BaseModel):
     ports: list[str]
     provenance: str
     upstream: UpstreamRef | None = None
+    lcsc: str | None = None
+    pinout: dict[str, str] | None = None
     score: float
     channels: list[str]
     rank: int = 0

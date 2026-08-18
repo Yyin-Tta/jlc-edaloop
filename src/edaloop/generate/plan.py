@@ -24,7 +24,7 @@ _SYSTEM = """你是电路块规划器。给定 DesignIR(设计意图)和候选�
 {
   "blocks": [
     {"block_id": "...", "upstream_id": "block.xxx", "instance": "唯一实例名",
-     "ports_binding": {"PORT名": "网络名"}, "params": {}, "provenance": "检索分数或选择理由"}
+     "ports_binding": {"PORT名": "网络名"}, "pins_binding": {}, "params": {}, "provenance": "检索分数或选择理由"}
   ],
   "nets": [{"name": "3V3", "class": "power"}],
   "uncovered": ["<目录无法覆盖的功能,简述>"],
@@ -33,7 +33,8 @@ _SYSTEM = """你是电路块规划器。给定 DesignIR(设计意图)和候选�
 }
 
 规则:
-- 只能使用目录中带 upstream 字段的块;block_id/upstream_id/ports 照抄目录,不要改写
+- 只能使用目录中带 upstream 字段的块(block-apply 通道:照抄 upstream.id,端口绑定用 ports_binding)或带 lcsc+pinout 的库外器件(place 通道:upstream_id 留空,逐引脚绑定用 pins_binding,key 是 pinout 里的引脚号)
+- place 通道的未用引脚一律不绑(pins_binding 省略该键),不要发明 NC 网络去接闲置脚
 - 目录覆盖不了的功能逐条列入 uncovered(不要静默省略,也不要发明器件);provenance 只写整体理由
 - 覆盖 DesignIR 的 functions/power/interfaces;目录中无对应块的功能,跳过并在 provenance 里注明"未覆盖:<功能>"
 - 电源网络命名:3V3/5V/GND;信号网络用大写下划线(MCU_TX/RS485_DE 等)
@@ -72,6 +73,10 @@ def make_plan(
             entry["category"] = b.category
         if b.upstream:
             entry["upstream"] = {"id": b.upstream.id, "ports": dict(b.upstream.ports)}
+        if b.lcsc:
+            entry["lcsc"] = b.lcsc
+            if b.pinout:
+                entry["pinout"] = dict(b.pinout)
         catalog_lines.append(json.dumps(entry, ensure_ascii=False))
     user = (
         "DesignIR:\n"

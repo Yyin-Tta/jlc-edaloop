@@ -136,15 +136,95 @@ class LoopController:
         self._warmup()
         ok_all = True
         gate_report = None
+        uuids: dict[str, tuple[str, str]] = {}
+        failed: set[str] = set()
         for act in actions:
             try:
                 if act.kind == "sch-gate":
                     gate_report = self._run_json_retry(act.args)
+                    verdict = gate_report.get("verdict", "unknown")
+                    stage_summary = [
+                        f"{s.get('stage') or s.get('name')}:{s.get('verdict') or s.get('status')}"
+                        for s in gate_report.get("stages", [])
+                    ]
                     self.audit.event(
-                        "gate", round_no=round_no, verdict=gate_report.get("verdict")
+                        "gate",
+                        round_no=round_no,
+                        verdict=verdict,
+                        stages=stage_summary,
                     )
                     continue
-                manifest = self._run_json_retry(act.args)
+                if act.kind == "lib-search":
+                    resp = self._run_json_retry(act.args)
+                    lib, uuid = self._first_uuid(resp)
+                    if not lib:
+                        ok_all = False
+                        failed.add(act.block_instance)
+                        self.audit.event(
+                            "apply-fatal",
+                            round_no=round_no,
+                            instance=act.block_instance,
+                            error=f"lib search 无结果: {act.lcsc}",
+                        )
+                        continue
+                    uuids[act.block_instance] = (lib, uuid)
+                    self.audit.event(
+                        "lib-search", round_no=round_no, instance=act.block_instance, lib=lib, uuid=uuid
+                    )
+                    continue
+                if act.block_instance in failed:
+                    continue
+                if act.kind == "sch-place":
+                    lib, uuid = uuids.get(act.block_instance, ("", ""))
+                    if not lib:
+                        ok_all = False
+                        failed.add(act.block_instance)
+                        continue
+                    args = []
+                    holes = iter((lib, uuid))
+                    for x in act.args:
+                        args.append(next(holes) if x == "" else x)
+                    resp = self._run_json_retry(args)
+                    comp = (resp.get("result", {}) or {}).get("component", {}) or {}
+                    ok = bool(comp.get("designator"))
+                    if not ok:
+                        ok_all = False
+                        failed.add(act.block_instance)
+                    self.audit.event(
+                        "sch-place",
+                        round_no=round_no,
+                        instance=act.block_instance,
+                        designator=comp.get("designator", "?"),
+                        ok=ok,
+                    )
+                    continue
+                rc, out, err = self.adapter.run(act.args)
+                manifest: dict = {}
+                if act.kind == "sch-autoconnect":
+                    status = "applied" if rc == 0 else "failed"
+                else:
+                    try:
+                        manifest = self._run_json_retry(act.args)
+                    except AdapterError as e:
+                        ok_all = False
+                        self.audit.event(
+                            "apply-fatal",
+                            round_no=round_no,
+                            instance=act.block_instance,
+                            error=str(e)[:2000],
+                        )
+                        continue
+                    status = manifest.get("ok") or manifest.get("status") or "unknown"
+                self.audit.event(
+                    act.kind, round_no=round_no, instance=act.block_instance, status=status
+                )
+                if status != "applied":
+                    ok_all = False
+                    if str(status).startswith("failed-partial"):
+                        survivors = manifest.get("rollback", {}).get("survivedPrimitiveIds", [])
+                        if survivors:
+                            self.adapter.delete_primitives(survivors)
+                            self.audit.event("cleanup", round_no=round_no, deleted=survivors)
             except AdapterError as e:
                 ok_all = False
                 self.audit.event(
@@ -153,19 +233,18 @@ class LoopController:
                     instance=act.block_instance,
                     error=str(e)[:2000],
                 )
-                continue
-            status = manifest.get("ok") or manifest.get("status") or "unknown"
-            self.audit.event(
-                "block-apply", round_no=round_no, instance=act.block_instance, status=status
-            )
-            if status != "applied":
-                ok_all = False
-                if str(status).startswith("failed-partial"):
-                    survivors = manifest.get("rollback", {}).get("survivedPrimitiveIds", [])
-                    if survivors:
-                        self.adapter.delete_primitives(survivors)
-                        self.audit.event("cleanup", round_no=round_no, deleted=survivors)
         return ok_all, gate_report
+
+    @staticmethod
+    def _first_uuid(resp: dict) -> tuple[str, str]:
+        res = resp.get("result", {}) or {}
+        comps = res.get("components") or res.get("results") or []
+        for r in comps:
+            lib = r.get("libraryUuid") or r.get("lib") or ""
+            uuid = r.get("uuid") or r.get("deviceUuid") or ""
+            if lib and uuid:
+                return lib, uuid
+        return "", ""
 
     def _warmup(self, attempts: int = 3, delay: float = 5.0) -> None:
         """廉价读命令预热连接器 WS,把空闲重连竞态消化在 block-apply 之前。"""
