@@ -84,7 +84,16 @@ def check_gauge(gate_report: dict) -> list[Finding]:
         err = stage.get("error") or ""
         if sv == "pass" or sv == "skipped":
             continue
-        items = stage.get("findings") or stage.get("blockers") or []
+        detail = stage.get("detail") if isinstance(stage.get("detail"), dict) else {}
+        items = (
+            stage.get("findings")
+            or stage.get("blockers")
+            or detail.get("findings")
+            or detail.get("blockers")
+            or detail.get("overlaps")
+            or detail.get("items")
+            or []
+        )
         if err:
             findings.append(
                 Finding(

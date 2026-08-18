@@ -130,6 +130,40 @@ class LoopController:
         self.audit.event("loop-done", status="FAIL", rounds=self.max_rounds)
         return result
 
+    def _verify_pins(self, round_no: int, designator: str, pinout: dict[str, str] | None) -> bool:
+        """place 后回读符号 pin 集合,与库 pinout diff(三方校验的落地端)。"""
+        if not pinout:
+            return True
+        try:
+            read = self._run_json_retry(["sch", "read"])
+        except AdapterError as e:
+            self.audit.event("pin-verify", round_no=round_no, designator=designator, error=str(e)[:500])
+            return True
+        placed = next(
+            (c for c in read.get("result", {}).get("components", []) if c.get("designator") == designator),
+            None,
+        )
+        if not placed:
+            self.audit.event("pin-verify", round_no=round_no, designator=designator, error="回读未找到器件")
+            return False
+        symbol_pins = {p.get("number"): p.get("name") for p in placed.get("pins", [])}
+        diff = {
+            k: (symbol_pins.get(k), pinout.get(k))
+            for k in set(symbol_pins) | set(pinout)
+            if symbol_pins.get(k) != pinout.get(k)
+        }
+        ok = not diff and len(symbol_pins) == len(pinout)
+        self.audit.event(
+            "pin-verify",
+            round_no=round_no,
+            designator=designator,
+            symbol=len(symbol_pins),
+            expected=len(pinout),
+            ok=ok,
+            diff={k: v for k, v in list(diff.items())[:10]},
+        )
+        return ok
+
     def _apply(self, actions, round_no: int) -> tuple[bool, dict | None]:
         from edaloop.generate.adapter import AdapterError
 
@@ -138,6 +172,8 @@ class LoopController:
         gate_report = None
         uuids: dict[str, tuple[str, str]] = {}
         failed: set[str] = set()
+        place_pinouts: dict[str, dict[str, str]] = {}
+        designators: dict[str, str] = {}
         for act in actions:
             try:
                 if act.kind == "sch-gate":
@@ -186,15 +222,21 @@ class LoopController:
                         args.append(next(holes) if x == "" else x)
                     resp = self._run_json_retry(args)
                     comp = (resp.get("result", {}) or {}).get("component", {}) or {}
-                    ok = bool(comp.get("designator"))
+                    desig = comp.get("designator", "")
+                    ok = bool(desig)
+                    if ok and act.pinout:
+                        ok = self._verify_pins(round_no, desig, act.pinout)
+                        if not ok:
+                            failed.add(act.block_instance)
                     if not ok:
                         ok_all = False
-                        failed.add(act.block_instance)
+                        if not desig:
+                            failed.add(act.block_instance)
                     self.audit.event(
                         "sch-place",
                         round_no=round_no,
                         instance=act.block_instance,
-                        designator=comp.get("designator", "?"),
+                        designator=desig or "?",
                         ok=ok,
                     )
                     continue
@@ -219,12 +261,30 @@ class LoopController:
                     act.kind, round_no=round_no, instance=act.block_instance, status=status
                 )
                 if status != "applied":
-                    ok_all = False
                     if str(status).startswith("failed-partial"):
                         survivors = manifest.get("rollback", {}).get("survivedPrimitiveIds", [])
                         if survivors:
                             self.adapter.delete_primitives(survivors)
                             self.audit.event("cleanup", round_no=round_no, deleted=survivors)
+                        try:
+                            manifest = self._run_json_retry(act.args)
+                            status = manifest.get("ok") or manifest.get("status") or "unknown"
+                            self.audit.event(
+                                act.kind,
+                                round_no=round_no,
+                                instance=act.block_instance,
+                                status=status,
+                                retry=True,
+                            )
+                        except AdapterError as e:
+                            self.audit.event(
+                                "apply-fatal",
+                                round_no=round_no,
+                                instance=act.block_instance,
+                                error=str(e)[:1500],
+                            )
+                if status != "applied":
+                    ok_all = False
             except AdapterError as e:
                 ok_all = False
                 self.audit.event(

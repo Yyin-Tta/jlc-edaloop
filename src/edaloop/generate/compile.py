@@ -63,6 +63,7 @@ def compile_actions(
 ) -> list[Action]:
     plan = _fill_bindings(plan, catalog)
     actions: list[Action] = []
+    place_idx = 0
     for b in plan.blocks:
         rec = catalog[b.block_id]
         if rec.upstream is not None:
@@ -91,6 +92,10 @@ def compile_actions(
             )
         else:
             designator = _sanitize_designator(b.instance)
+            if "x" not in b.params or "y" not in b.params:
+                b.params["x"] = str(2000 + (place_idx % 3) * 700)
+                b.params["y"] = str(300 + (place_idx // 3) * 700)
+            place_idx += 1
             place = [
                 "sch",
                 "place",
@@ -119,6 +124,7 @@ def compile_actions(
                     kind="sch-place",
                     block_instance=b.instance,
                     args=place,
+                    pinout=dict(rec.pinout) if rec.pinout else None,
                     desc=f"{rec.name}({rec.lcsc}) 直放",
                 )
             )

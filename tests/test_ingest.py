@@ -128,3 +128,13 @@ def test_run_gate_verdicts() -> None:
     assert run_gate(llm, rule).verdict == "pass"
     rule[0] = PinInfo(number="1", name="WRONG", page=1, channel="rule")
     assert run_gate(llm, rule).verdict == "low-confidence"
+
+
+def test_run_gate_empty_rule_degrades() -> None:
+    llm = PinTable(
+        part="X",
+        source_pdf="x.pdf",
+        pages=[1],
+        pins=[PinInfo(number=str(i), name=f"P{i}", page=1, channel="llm") for i in range(1, 9)],
+    )
+    assert run_gate(llm, []).verdict == "low-confidence"

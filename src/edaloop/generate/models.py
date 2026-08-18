@@ -55,3 +55,4 @@ class Action(_Strict):
     lcsc: str = ""
     args: list[str] = Field(default_factory=list)
     desc: str = ""
+    pinout: dict[str, str] | None = None

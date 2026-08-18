@@ -32,6 +32,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("replay", help="按审计日志重放一轮迭代")
 
+    p_q = sub.add_parser("questions", help="弱门禁确认队列:DesignIR open_questions + uncovered 项")
+    p_q.add_argument("input", help="需求文件路径(md/txt)")
+    p_q.add_argument("--plan", default=None, help="BlockPlan JSON(供 uncovered 列表)")
+    p_q.add_argument("--answer", default=None, help="答案文件(JSON: {Q1: 'A', ...}),省略则交互式提问")
+
     p_seed = sub.add_parser("seed", help="M2:种子块库入库(全量重建,含向量索引)")
     p_seed.add_argument("--db", default=None, help="知识库路径(默认 EDALOOP_KB_PATH 或 runs/knowledge.db)")
     p_seed.add_argument("--seeds", default="seeds/blocks.jsonl", help="种子块 jsonl 路径")
@@ -190,6 +195,63 @@ def _cmd_ingest(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_questions(args: argparse.Namespace) -> int:
+    import sys as _sys
+
+    from edaloop.intent.ir import DesignIR
+    from edaloop.intent.parse import requirement_to_ir
+    from edaloop.llm.openai_compat import get_llm
+
+    md = Path(args.input).read_text(encoding="utf-8")
+    body = md.split("## 期望指标")[0]
+    answers: dict[str, str] = {}
+    if args.answer:
+        answers = json.loads(Path(args.answer).read_text(encoding="utf-8"))
+
+    questions: list[tuple[str, str, list[str]]] = []
+    try:
+        ir = requirement_to_ir(body, get_llm(), source=Path(args.input).name)
+        Path("runs").mkdir(exist_ok=True)
+        Path("runs/last-ir.json").write_text(ir.model_dump_json(indent=2), encoding="utf-8")
+        questions += [(q.id, q.question, q.options) for q in ir.open_questions]
+    except Exception as e:
+        print(f"(DesignIR 解析失败,跳过 open_questions: {type(e).__name__})", file=_sys.stderr)
+
+    if args.plan:
+        from edaloop.generate.models import BlockPlan
+
+        plan = BlockPlan.model_validate_json(Path(args.plan).read_text(encoding="utf-8"))
+        for i, item in enumerate(plan.uncovered, 1):
+            questions.append((f"U{i}", f"未覆盖项: {item[:120]}", ["确认接受(知识库缺口)", "人工补块"]))
+
+    if not questions:
+        print("无需确认的弱门禁项。")
+        return 0
+
+    out_path = Path("runs/confirmations.json")
+    resolved: dict[str, str] = dict(answers)
+    print(f"弱门禁确认队列({len(questions)} 项)")
+    for qid, text, options in questions:
+        print(f"\n[{qid}] {text}")
+        for i, opt in enumerate(options, 1):
+            print(f"  {i}. {opt}")
+        if qid in answers:
+            print(f"  -> 已由答案文件给定: {answers[qid]}")
+            continue
+        while True:
+            raw = input("选择编号(回车=待定): ").strip()
+            if not raw:
+                resolved[qid] = "PENDING"
+                break
+            if raw.isdigit() and 1 <= int(raw) <= len(options):
+                resolved[qid] = options[int(raw) - 1]
+                break
+            print("  无效输入")
+    out_path.write_text(json.dumps(resolved, ensure_ascii=False, indent=1), encoding="utf-8")
+    print(f"\n已保存 -> {out_path}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     load_dotenv()
     parser = build_parser()
@@ -211,6 +273,8 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_run(args)
     if args.command == "ingest":
         return _cmd_ingest(args)
+    if args.command == "questions":
+        return _cmd_questions(args)
     raise NotImplementedError(f"command '{args.command}' 尚未实现")
 
 

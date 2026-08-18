@@ -46,9 +46,18 @@ def compare_channels(llm: PinTable, rule: list[PinInfo]) -> list[str]:
 def run_gate(llm: PinTable, rule: list[PinInfo]) -> IngestReport:
     disagreements = compare_channels(llm, rule)
     violations = check_internal(llm)
-    verdict = "pass" if not disagreements and not violations else "fail"
-    if disagreements and len(disagreements) <= max(2, len(llm.pins) // 8):
+    if not rule:
+        if violations:
+            verdict = "fail"
+        else:
+            verdict = "low-confidence"
+            disagreements = []
+    elif not disagreements and not violations:
+        verdict = "pass"
+    elif disagreements and len(disagreements) <= max(2, len(llm.pins) // 8):
         verdict = "low-confidence"
+    else:
+        verdict = "fail"
     return IngestReport(
         part=llm.part,
         pdf=llm.source_pdf,

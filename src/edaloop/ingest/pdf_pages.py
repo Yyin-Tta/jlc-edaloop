@@ -10,7 +10,9 @@ _PIN_PAGE_MARKERS = (
     "pin functions",
     "pin definition",
     "pin assignments",
+    "pin connection",
     "terminal functions",
+    "pin configuration",
 )
 
 
