@@ -27,12 +27,14 @@ _SYSTEM = """你是电路块规划器。给定 DesignIR(设计意图)和候选�
      "ports_binding": {"PORT名": "网络名"}, "params": {}, "provenance": "检索分数或选择理由"}
   ],
   "nets": [{"name": "3V3", "class": "power"}],
+  "uncovered": ["<目录无法覆盖的功能,简述>"],
   "confidence": 0.0-1.0,
   "provenance": ["整体理由"]
 }
 
 规则:
 - 只能使用目录中带 upstream 字段的块;block_id/upstream_id/ports 照抄目录,不要改写
+- 目录覆盖不了的功能逐条列入 uncovered(不要静默省略,也不要发明器件);provenance 只写整体理由
 - 覆盖 DesignIR 的 functions/power/interfaces;目录中无对应块的功能,跳过并在 provenance 里注明"未覆盖:<功能>"
 - 电源网络命名:3V3/5V/GND;信号网络用大写下划线(MCU_TX/RS485_DE 等)
 - 端口绑定必须逐块完整:每个 PORT 都要给 net;块间互联靠相同 net 名汇合(如 LDO 的 3V3 口与 MCU 的 3V3 口都绑 "3V3")
@@ -54,7 +56,8 @@ def make_plan(
     candidates: list[RetrievedBlock],
     llm: LLMProvider,
     *,
-    attempts: int = 2,
+    attempts: int = 3,
+    feedback: str = "",
 ) -> BlockPlan:
     appliable = [b for b in candidates if b.parts and b.block_id]
     catalog_lines = []
@@ -76,6 +79,10 @@ def make_plan(
         + "\n\n候选块目录:\n"
         + "\n".join(catalog_lines)
     )
+    if feedback:
+        user += (
+            "\n\n上一轮验证反馈(修正要求,优先级高于你的默认选择):\n" + feedback
+        )
     last: Exception | None = None
     for _ in range(attempts):
         reply = llm.chat(

@@ -11,6 +11,7 @@ from edaloop.llm.base import ChatMessage, EmbeddingProvider, LLMProvider, Rerank
 
 _RETRY_STATUS = {429, 500, 502, 503, 504}
 _RETRY_DELAYS = (5, 15, 30)
+_RETRY_EXC = (httpx.ReadTimeout, httpx.ConnectTimeout, httpx.RemoteProtocolError)
 
 
 def _post_with_retry(url: str, headers: dict[str, str], payload: dict, timeout: float) -> dict:
@@ -27,6 +28,8 @@ def _post_with_retry(url: str, headers: dict[str, str], payload: dict, timeout: 
         except httpx.HTTPStatusError as e:
             if e.response.status_code not in _RETRY_STATUS:
                 raise
+            last_exc = e
+        except _RETRY_EXC as e:
             last_exc = e
         if delay is not None:
             time.sleep(delay)
@@ -102,7 +105,7 @@ class OpenAICompatChat(LLMProvider):
             f"{self._base}/chat/completions",
             {"Authorization": f"Bearer {self._key}"},
             payload,
-            120,
+            300,
         )
         return data["choices"][0]["message"]["content"]
 

@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from typing import Any
 from uuid import uuid4
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class _Strict(BaseModel):
@@ -18,6 +19,13 @@ class PlannedBlock(_Strict):
     params: dict[str, str] = Field(default_factory=dict)
     provenance: str = ""
     at: str = ""
+
+    @field_validator("params", mode="before")
+    @classmethod
+    def _coerce_params(cls, v: Any) -> dict[str, str]:
+        if not isinstance(v, dict):
+            return {}
+        return {str(k): str(val) for k, val in v.items()}
 
 
 class NetDecl(_Strict):
@@ -34,6 +42,7 @@ class BlockPlan(_Strict):
     created: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     blocks: list[PlannedBlock] = Field(default_factory=list)
     nets: list[NetDecl] = Field(default_factory=list)
+    uncovered: list[str] = Field(default_factory=list)
     confidence: float = 0.0
     provenance: list[str] = Field(default_factory=list)
 

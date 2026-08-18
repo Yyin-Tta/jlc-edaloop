@@ -30,6 +30,6 @@ def test_no_command_prints_help(capsys: pytest.CaptureFixture[str]) -> None:
         assert cmd in out
 
 
-def test_unimplemented_command_raises() -> None:
+def test_unimplemented_command_raises(tmp_path) -> None:
     with pytest.raises(NotImplementedError):
-        main(["run", "req.md"])
+        main(["ingest", "x.pdf"])

@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -20,6 +21,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_run = sub.add_parser("run", help="M5 全链路:需求 → 检索 → 生成 → 校验迭代 → 交付")
     p_run.add_argument("input", help="需求文件路径(md/txt),或 '-' 表示 stdin")
+    p_run.add_argument("--max-rounds", type=int, default=5)
+    p_run.add_argument("--dry-run", action="store_true", help="只跑 plan+validate,不落图(无 EasyEDA)")
 
     p_ingest = sub.add_parser("ingest", help="M6:datasheet PDF 入库(提取 + 交叉校验)")
     p_ingest.add_argument("pdf", nargs="+", help="datasheet PDF 路径(可多个)")
@@ -94,6 +97,11 @@ def _cmd_eval(args: argparse.Namespace) -> int:
 
         rate, _ = run_w1_retrieval_eval()
         return 0 if rate >= 0.8 else 1
+    if args.subset == "w3-loop":
+        from edaloop.evals_w3 import run_w3_loop_eval
+
+        summary = run_w3_loop_eval()
+        return 0 if summary["go3"] and summary["go5"] else 1
     raise NotImplementedError(f"eval subset '{args.subset}' 尚未实现")
 
 
@@ -135,6 +143,32 @@ def _cmd_apply(args: argparse.Namespace) -> int:
     return 0 if summary["gate_verdict"] == "pass" and not summary["apply_failures"] else 1
 
 
+def _cmd_run(args: argparse.Namespace) -> int:
+    from edaloop.generate.pipeline import stage_run
+
+    if args.input == "-":
+        md = sys.stdin.read()
+        source = "stdin"
+    else:
+        md = Path(args.input).read_text(encoding="utf-8")
+        source = Path(args.input).name
+    body = md.split("## 期望指标")[0]
+    ir, result = stage_run(
+        body, source=source, max_rounds=args.max_rounds, dry_run=args.dry_run
+    )
+    print(f"run {ir.id}: status={result.status}")
+    for r in result.rounds:
+        blocking = [f for f in r.findings if not f.weak]
+        print(
+            f"  round {r.round_no}: gate={r.gate_verdict} blocking={len(blocking)}"
+            + (f" halted={r.halted}" if r.halted else "")
+        )
+    if result.status == "PASS" and result.converged_round:
+        print(f"converged in {result.converged_round} round(s)")
+    print(f"audit -> {result.audit_dir}")
+    return 0 if result.status == "PASS" else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     load_dotenv()
     parser = build_parser()
@@ -152,7 +186,9 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_plan(args)
     if args.command == "apply":
         return _cmd_apply(args)
-    raise NotImplementedError(f"command '{args.command}' 尚未实现(W1/W2:seed/retrieve/eval/plan/apply 已可用)")
+    if args.command == "run":
+        return _cmd_run(args)
+    raise NotImplementedError(f"command '{args.command}' 尚未实现")
 
 
 if __name__ == "__main__":

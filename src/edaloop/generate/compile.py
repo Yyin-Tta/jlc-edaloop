@@ -27,7 +27,10 @@ def _fill_bindings(plan: BlockPlan, catalog: dict[str, BlockRecord]) -> BlockPla
 
 
 def compile_actions(
-    plan: BlockPlan, catalog: dict[str, BlockRecord]
+    plan: BlockPlan,
+    catalog: dict[str, BlockRecord],
+    *,
+    spacing_default: str = "400",
 ) -> list[Action]:
     plan = _fill_bindings(plan, catalog)
     actions: list[Action] = []
@@ -40,7 +43,7 @@ def compile_actions(
             "--instance",
             b.instance,
             "--spacing",
-            b.params.get("spacing", "400"),
+            b.params.get("spacing", spacing_default),
         ]
         if b.at:
             args += ["--at", b.at]

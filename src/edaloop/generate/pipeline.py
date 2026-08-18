@@ -25,6 +25,66 @@ def load_catalog(seeds_path: str | Path = "seeds/blocks.jsonl") -> dict[str, Blo
     return {b.block_id: b for b in blocks}
 
 
+def make_retriever(db_path: str = "runs/knowledge.db", top_k: int = 12):
+    def retrieve(query: str):
+        store = KnowledgeStore(db_path, get_embedder(), get_reranker())
+        try:
+            return store.retrieve(query or "power mcu interface", top_k=top_k)
+        finally:
+            store.close()
+
+    return retrieve
+
+
+def _parse_ir_with_retry(md_text: str, llm, source: str, attempts: int = 3) -> DesignIR:
+    from edaloop.intent.parse import IRParseError
+
+    last: Exception | None = None
+    for _ in range(attempts):
+        try:
+            return requirement_to_ir(md_text, llm, source=source)
+        except IRParseError as e:
+            last = e
+    raise last if last else RuntimeError("ir parse failed")
+
+
+def stage_run(
+    md_text: str,
+    *,
+    source: str,
+    max_rounds: int = 5,
+    dry_run: bool = False,
+    db_path: str = "runs/knowledge.db",
+    seeds_path: str | Path = "seeds/blocks.jsonl",
+):
+    from edaloop.generate.adapter import EasyedaAdapter
+    from edaloop.loop.controller import LoopController
+
+    llm = get_llm()
+    ir = _parse_ir_with_retry(md_text, llm, source=source)
+    audit = AuditLog(f"runs/run-{ir.id}")
+    audit.event("ir", source=source, ir=json.loads(ir.model_dump_json()))
+    controller = LoopController(
+        ir,
+        load_catalog(seeds_path),
+        make_retriever(db_path),
+        llm,
+        EasyedaAdapter(),
+        audit,
+        max_rounds=max_rounds,
+        dry_run=dry_run,
+    )
+    result = controller.run()
+    audit.save_json(
+        "loop-result.json",
+        {
+            "status": result.status,
+            "rounds": [r.__dict__ for r in result.rounds],
+        },
+    )
+    return ir, result
+
+
 def stage_plan(
     md_text: str,
     *,

@@ -88,7 +88,11 @@ class EasyedaAdapter:
         try:
             return json.loads(out)
         except json.JSONDecodeError as e:
-            raise AdapterError(f"JSON 解析失败(rc={rc}): {e}\nstdout={out[:400]}\nstderr={err[:400]}") from e
+            raise AdapterError(
+                f"JSON 解析失败(rc={rc}): {e}\n"
+                f"stdout(len={len(out)})={out[-1500:] if len(out) < 1500 else out[:1500]}\n"
+                f"stderr(len={len(err)})={err[-3000:]}"
+            ) from e
 
     def apply_and_gate(self, actions: list) -> list[dict]:
         results = []
