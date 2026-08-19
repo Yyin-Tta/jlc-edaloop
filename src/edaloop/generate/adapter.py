@@ -27,12 +27,69 @@ class EasyedaAdapter:
 
         self._bin = bin_path or self._discover()
         self._runner = runner or self._subprocess_run
+        self._project = project or os.environ.get("EDALOOP_PROJECT", "")
         self._window = os.environ.get("EDALOOP_WINDOW", "")
-        self._project = "" if self._window else (project or os.environ.get("EDALOOP_PROJECT", ""))
+        self._window_resolved = bool(self._window)
+
+    def _resolve_window(self) -> None:
+        """同工程多窗口:按 windowId 稳定排序,探活(sch pages)择第一个健康窗口并粘滞。
+        lastSeen 排序会随心跳翻转导致进程间打到不同窗口,禁止用于选择。"""
+        self._window_resolved = True
+        if self._window or not self._project:
+            return
+        try:
+            health = self.daemon_health()
+        except AdapterError:
+            return
+        cands = sorted(
+            (w.get("windowId", "") for w in health.get("found", {}).get("raw", {}).get("windows", [])
+             if (w.get("context", {}) or {}).get("projectName") == self._project)
+        )
+        for wid in cands:
+            try:
+                rc, _, _ = self._runner(["sch", "pages", "--window", wid])
+                if rc == 0:
+                    self._window = wid
+                    return
+            except Exception:
+                continue
+
+    def project_windows(self) -> list[str]:
+        try:
+            health = self.daemon_health()
+        except AdapterError:
+            return []
+        return sorted(
+            w.get("windowId", "")
+            for w in health.get("found", {}).get("raw", {}).get("windows", [])
+            if (w.get("context", {}) or {}).get("projectName") == self._project
+        )
+
+    def clear_all_pages(self) -> None:
+        """清空所有同工程窗口的页面(双开窗口残留互访会污染布局校验)。"""
+        for wid in self.project_windows():
+            try:
+                self._runner(["sch", "clear", "--window", wid])
+            except Exception:
+                continue
+
+    def refresh_window(self) -> None:
+        """连接器抖动后重新解析窗口(丢弃旧钉扎)。"""
+        self._window = ""
+        self._window_resolved = False
+        self._resolve_window()
+
+    @property
+    def window_id(self) -> str:
+        if not self._window_resolved:
+            self._resolve_window()
+        return self._window
 
     def _pinned(self, args: list[str]) -> list[str]:
-        if args and args[0] not in ("sch", "pcb"):
+        if args and args[0] not in ("sch", "pcb", "lib"):
             return args
+        if not self._window_resolved:
+            self._resolve_window()
         if self._window and "--window" not in args:
             return [*args, "--window", self._window]
         if self._project and "--project" not in args and "--window" not in args:

@@ -3,8 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 
 from edaloop.generate.audit import AuditLog
-from edaloop.ingest.extract import llm_extract, rule_channel
-from edaloop.ingest.models import IngestReport, PinTable
+from edaloop.ingest.extract import llm_extract, llm_extract_suggestions, rule_channel
+from edaloop.ingest.models import IngestReport, PinTable, Suggestion
 from edaloop.ingest.pdf_pages import find_pin_pages, page_text
 from edaloop.ingest.store import DatasheetStore
 from edaloop.ingest.validate import run_gate
@@ -38,6 +38,14 @@ def ingest_pdf(
         if len(table.pins) >= 4:
             rule = rule_channel(text, page_no)
             report = run_gate(table, rule)
+            try:
+                extra = next((p for p in pages if p != page_no), None)
+                sug_pages = {p for p in (page_no, extra) if p}
+                for sp in sorted(sug_pages):
+                    for s in llm_extract_suggestions(page_text(pdf_path, sp), llm, sp):
+                        report.suggestions.append(Suggestion.model_validate(s))
+            except Exception as e:
+                audit.event("suggestions-error", pdf=pdf_name, error=str(e)[:200])
             audit.event(
                 "ingest-gate",
                 pdf=pdf_name,
@@ -47,6 +55,7 @@ def ingest_pdf(
                 rule=report.rule_pins,
                 disagreements=report.disagreements[:10],
                 violations=report.internal_violations[:10],
+                suggestions=len(report.suggestions),
             )
             break
     if table is None or report is None:

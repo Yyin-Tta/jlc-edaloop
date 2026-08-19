@@ -54,6 +54,6 @@ def test_parse_bad_json() -> None:
 
 
 def test_parse_schema_violation() -> None:
-    bad = {"source": "x", "rails": "not-a-list"}
+    bad = {"source": "x", "power": {"rails": "not-a-list"}}
     with pytest.raises(IRParseError):
         requirement_to_ir("# 需求", FakeChat(json.dumps(bad)))

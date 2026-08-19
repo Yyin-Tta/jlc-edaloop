@@ -24,6 +24,13 @@ class PinTable(_Strict):
     pins: list[PinInfo] = Field(default_factory=list)
 
 
+class Suggestion(_Strict):
+    text: str
+    page: int = 0
+    quote: str = ""
+    kind: str = "general"
+
+
 class IngestReport(_Strict):
     part: str
     pdf: str
@@ -33,6 +40,7 @@ class IngestReport(_Strict):
     rule_pins: int
     disagreements: list[str] = Field(default_factory=list)
     internal_violations: list[str] = Field(default_factory=list)
+    suggestions: list[Suggestion] = Field(default_factory=list)
     verdict: str = "fail"
 
     @property

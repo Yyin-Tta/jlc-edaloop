@@ -63,6 +63,8 @@ def make_plan(
     appliable = [b for b in candidates if b.parts and b.block_id]
     catalog_lines = []
     for b in candidates:
+        if b.upstream is None and not b.lcsc:
+            continue
         entry = {
             "block_id": b.block_id,
             "name": b.name,

@@ -55,6 +55,19 @@ def _fill_bindings(plan: BlockPlan, catalog: dict[str, BlockRecord]) -> BlockPla
     return plan
 
 
+_GRID_X0 = 400
+_GRID_Y0 = 300
+_GRID_DX = 2200
+_GRID_DY = 1800
+_GRID_COLS = 4
+
+
+def _grid_at(index: int) -> str:
+    col = index % _GRID_COLS
+    row = index // _GRID_COLS
+    return f"{_GRID_X0 + col * _GRID_DX},{_GRID_Y0 + row * _GRID_DY}"
+
+
 def compile_actions(
     plan: BlockPlan,
     catalog: dict[str, BlockRecord],
@@ -63,9 +76,12 @@ def compile_actions(
 ) -> list[Action]:
     plan = _fill_bindings(plan, catalog)
     actions: list[Action] = []
-    place_idx = 0
+    grid_idx = 0
     for b in plan.blocks:
         rec = catalog[b.block_id]
+        if not b.at:
+            b.at = _grid_at(grid_idx)
+        grid_idx += 1
         if rec.upstream is not None:
             args = [
                 "sch",
@@ -74,10 +90,10 @@ def compile_actions(
                 "--instance",
                 b.instance,
                 "--spacing",
-                b.params.get("spacing", spacing_default),
+                spacing_default,
+                "--at",
+                b.at,
             ]
-            if b.at:
-                args += ["--at", b.at]
             for port, net in b.ports_binding.items():
                 args += ["--bind", f"{port}={net}"]
             args.append("--json")
@@ -87,15 +103,13 @@ def compile_actions(
                     block_instance=b.instance,
                     upstream_id=b.upstream_id,
                     args=args,
-                    desc=f"{rec.name} -> {b.ports_binding}",
+                    desc=f"{rec.name} @ {b.at} -> {b.ports_binding}",
                 )
             )
         else:
             designator = _sanitize_designator(b.instance)
-            if "x" not in b.params or "y" not in b.params:
-                b.params["x"] = str(2000 + (place_idx % 3) * 700)
-                b.params["y"] = str(300 + (place_idx // 3) * 700)
-            place_idx += 1
+            x, y = b.at.split(",")
+            b.params["x"], b.params["y"] = x, y
             place = [
                 "sch",
                 "place",
@@ -115,8 +129,9 @@ def compile_actions(
                     kind="lib-search",
                     block_instance=b.instance,
                     lcsc=rec.lcsc or "",
-                    args=["lib", "search", "--query", rec.lcsc or "", "--limit", "1"],
-                    desc=f"查 {rec.lcsc} 的库 uuid(place 前置)",
+                    mpn=(rec.parts[0].ref if rec.parts else ""),
+                    args=["lib", "search", "--query", rec.lcsc or "", "--limit", "3"],
+                    desc=f"查 {rec.lcsc} 的库 uuid(place 前置,C 号无映射时回退 MPN)",
                 )
             )
             actions.append(

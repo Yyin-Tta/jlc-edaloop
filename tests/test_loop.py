@@ -109,6 +109,16 @@ class _FakeAdapter:
         self.calls.append(args)
         return 0, "{}", ""
 
+    def clear_all_pages(self):
+        self.calls.append(["sch", "clear", "--all-windows"])
+
+    def refresh_window(self):
+        pass
+
+    @property
+    def window_id(self):
+        return "fake"
+
     def run_json(self, args):
         self.calls.append(args)
         if args[1] == "gate":

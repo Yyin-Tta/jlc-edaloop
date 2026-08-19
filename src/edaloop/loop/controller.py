@@ -86,9 +86,8 @@ class LoopController:
             gate_report = None
             apply_ok = True
             if not self.dry_run:
-                if round_no > 1:
-                    self.adapter.run(["sch", "clear"])
-                    self.audit.event("page-clear", round_no=round_no)
+                self.adapter.clear_all_pages()
+                self.audit.event("page-clear", round_no=round_no)
                 spacing = str(400 + (round_no - 1) * 100)
                 actions = compile_actions(plan, self.catalog, spacing_default=spacing)
                 apply_ok, gate_report = self._apply(actions, round_no)
@@ -193,6 +192,20 @@ class LoopController:
                 if act.kind == "lib-search":
                     resp = self._run_json_retry(act.args)
                     lib, uuid = self._first_uuid(resp)
+                    if not lib and act.mpn and act.mpn.upper() != act.lcsc.upper():
+                        resp = self._run_json_retry(
+                            ["lib", "search", "--query", act.mpn, "--limit", "3"]
+                        )
+                        lib, uuid = self._first_uuid(resp)
+                        if lib:
+                            self.audit.event(
+                                "lib-search-fallback",
+                                round_no=round_no,
+                                instance=act.block_instance,
+                                mpn=act.mpn,
+                                lib=lib,
+                                uuid=uuid,
+                            )
                     if not lib:
                         ok_all = False
                         failed.add(act.block_instance)
@@ -258,7 +271,13 @@ class LoopController:
                         continue
                     status = manifest.get("ok") or manifest.get("status") or "unknown"
                 self.audit.event(
-                    act.kind, round_no=round_no, instance=act.block_instance, status=status
+                    act.kind,
+                    round_no=round_no,
+                    instance=act.block_instance,
+                    status=status,
+                    failure=manifest.get("failure", "") or "",
+                    window=getattr(self.adapter, "window_id", ""),
+                    args=act.args if act.kind in ("block-apply", "sch-place") else [],
                 )
                 if status != "applied":
                     if str(status).startswith("failed-partial"):
@@ -293,7 +312,49 @@ class LoopController:
                     instance=act.block_instance,
                     error=str(e)[:2000],
                 )
+        if not ok_all and gate_report and gate_report.get("verdict") == "pass":
+            ok_all = self._verify_substance(actions, round_no)
         return ok_all, gate_report
+
+    def _verify_substance(self, actions, round_no: int) -> bool:
+        """block-apply 的 failed-rolled-back 可能是回滚校验假象(部件实际在页上,gate 也过)。
+        机械复核:计划网络全部存在于网表且页面非空 → 判 applied(证据入审计)。"""
+        try:
+            read = self._run_json_retry(["sch", "read"])
+        except AdapterError:
+            return False
+        res = read.get("result", {}) or {}
+        comps = [c for c in res.get("components", []) if c.get("componentType") != "sheet"]
+        page_nets = {str(n.get("net") or n.get("name") or "") for n in res.get("nets", [])}
+        planned = {
+            act.args[i + 1].split("=", 1)[1]
+            for act in actions
+            for i, a in enumerate(act.args)
+            if a == "--bind" and i + 1 < len(act.args)
+        }
+        for act in actions:
+            if act.kind == "sch-autoconnect":
+                try:
+                    planned.add(act.args[act.args.index("--net") + 1])
+                except ValueError:
+                    pass
+        missing = {n for n in planned if n and n.upper() != "NC" and n not in page_nets}
+        from edaloop.validate.checks import norm_rail
+
+        ir_rails = {norm_rail(r.name or f"{r.voltage:g}V") for r in self.ir.power.rails}
+        ir_rails.add("GND")
+        strong_missing = {n for n in missing if norm_rail(n) in ir_rails}
+        ok = bool(comps) and len(comps) >= 10 and not strong_missing
+        self.audit.event(
+            "substance-verify",
+            round_no=round_no,
+            comps=len(comps),
+            planned_nets=len(planned),
+            strong_missing=sorted(strong_missing)[:15],
+            weak_missing=sorted(missing - strong_missing)[:15],
+            ok=ok,
+        )
+        return ok
 
     @staticmethod
     def _first_uuid(resp: dict) -> tuple[str, str]:
@@ -307,15 +368,19 @@ class LoopController:
         return "", ""
 
     def _warmup(self, attempts: int = 3, delay: float = 5.0) -> None:
-        """廉价读命令预热连接器 WS,把空闲重连竞态消化在 block-apply 之前。"""
-        for i in range(attempts):
-            try:
-                rc, out, _ = self.adapter.run(["sch", "pages"])
-                if rc == 0:
-                    return
-            except Exception:
-                pass
-            time.sleep(delay)
+        """廉价读命令预热连接器 WS;全部失败则重解析窗口再试一轮。"""
+        for phase in ("first", "refresh"):
+            for _ in range(attempts if phase == "first" else 2):
+                try:
+                    rc, out, _ = self.adapter.run(["sch", "pages"])
+                    if rc == 0:
+                        return
+                except Exception:
+                    pass
+                time.sleep(delay)
+            if phase == "first":
+                self.adapter.refresh_window()
+                self.audit.event("window-refresh", round_no=None)
 
     def _run_json_retry(self, args, attempts: int = 2, delay: float = 8.0) -> dict:
         from edaloop.generate.adapter import AdapterError

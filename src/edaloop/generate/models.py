@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import json
 from datetime import datetime, timezone
 from typing import Any
 from uuid import uuid4
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class _Strict(BaseModel):
@@ -21,12 +22,20 @@ class PlannedBlock(_Strict):
     provenance: str = ""
     at: str = ""
 
+    @model_validator(mode="before")
+    @classmethod
+    def _drop_unknown_keys(cls, v: Any) -> Any:
+        if isinstance(v, dict):
+            known = {"block_id", "upstream_id", "instance", "ports_binding", "pins_binding", "params", "provenance", "at"}
+            return {k: val for k, val in v.items() if k in known}
+        return v
+
     @field_validator("params", mode="before")
     @classmethod
     def _coerce_params(cls, v: Any) -> dict[str, str]:
         if not isinstance(v, dict):
             return {}
-        return {str(k): str(val) for k, val in v.items()}
+        return {str(k): (val if isinstance(val, str) else json.dumps(val, ensure_ascii=False)) for k, val in v.items()}
 
 
 class NetDecl(_Strict):
@@ -47,12 +56,22 @@ class BlockPlan(_Strict):
     confidence: float = 0.0
     provenance: list[str] = Field(default_factory=list)
 
+    @field_validator("uncovered", "provenance", mode="before")
+    @classmethod
+    def _coerce_str_lists(cls, v: Any) -> list[str]:
+        if isinstance(v, str):
+            return [v] if v.strip() else []
+        if v is None:
+            return []
+        return [str(x) for x in v]
+
 
 class Action(_Strict):
     kind: str
     block_instance: str = ""
     upstream_id: str = ""
     lcsc: str = ""
+    mpn: str = ""
     args: list[str] = Field(default_factory=list)
     desc: str = ""
     pinout: dict[str, str] | None = None

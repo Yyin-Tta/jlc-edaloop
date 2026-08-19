@@ -3,58 +3,57 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
-class Function(BaseModel):
+class _Tolerant(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
+    @model_validator(mode="before")
+    @classmethod
+    def _drop_unknown(cls, v):
+        if isinstance(v, dict):
+            return {k: val for k, val in v.items() if k in cls.model_fields}
+        return v
+
+
+class Function(_Tolerant):
     name: str
     desc: str = ""
     constraints: list[str] = Field(default_factory=list)
 
 
-class Interface(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
+class Interface(_Tolerant):
     type: str
     spec: str = ""
 
 
-class PowerRail(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
+class PowerRail(_Tolerant):
     name: str | None = None
     voltage: float
     imax: float | None = None
 
 
-class Power(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
+class Power(_Tolerant):
     inputs: list[str] = Field(default_factory=list)
     rails: list[PowerRail] = Field(default_factory=list)
     protection: str | None = None
 
 
-class Env(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
+class Env(_Tolerant):
     temp: str | None = None
     size: str | None = None
     cost_target: str | None = None
 
 
-class OpenQuestion(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
+class OpenQuestion(_Tolerant):
     id: str
     question: str
     options: list[str] = Field(default_factory=list)
 
 
 class DesignIR(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="ignore")
 
     id: str = Field(default_factory=lambda: uuid4().hex[:12])
     source: str

@@ -192,6 +192,8 @@ def _cmd_ingest(args: argparse.Namespace) -> int:
             print(f"  disagree: {d}")
         for v in report.internal_violations[:5]:
             print(f"  violation: {v}")
+        for s in report.suggestions[:8]:
+            print(f"  suggest[{s.kind}] p{s.page}: {s.text}  «{s.quote[:50]}»")
     return 0
 
 

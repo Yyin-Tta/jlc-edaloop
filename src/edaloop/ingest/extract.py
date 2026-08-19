@@ -61,6 +61,38 @@ def llm_extract(text: str, pdf_name: str, llm: LLMProvider, page_no: int, *, att
     raise last if last else ExtractError("llm_extract failed")
 
 
+_SUGGEST_SYSTEM = """你是 datasheet 外围电路建议提取器。从给定文本中提取对原理图设计有执行价值的建议,只输出 JSON 数组:
+[{"kind": "decoupling|pull-up|series|protection|layout|other", "text": "建议(中文,含参数值)", "quote": "原文摘录(<=80字符)"}]
+只收录原文明确写出的具体建议(带数值:电容容值/电阻阻值/走线要求);泛泛而谈的不要;没有则输出 []"""
+
+
+def llm_extract_suggestions(
+    text: str, llm: LLMProvider, page_no: int, *, attempts: int = 2
+) -> list[dict]:
+    last: Exception | None = None
+    for _ in range(attempts):
+        reply = llm.chat(
+            [
+                ChatMessage(role="system", content=_SUGGEST_SYSTEM),
+                ChatMessage(role="user", content=text[:9000]),
+            ]
+        )
+        raw = _strip_fences(reply)
+        try:
+            data = json.loads(raw)
+            if isinstance(data, list):
+                return [
+                    {"kind": str(s.get("kind", "other")), "text": str(s.get("text", ""))[:200], "quote": str(s.get("quote", ""))[:100], "page": page_no}
+                    for s in data
+                    if s.get("text")
+                ]
+        except json.JSONDecodeError as e:
+            last = ExtractError(f"建议提取输出无效: {e}")
+    if last:
+        raise last
+    return []
+
+
 def rule_channel(text: str, page_no: int) -> list[PinInfo]:
     pins = rule_extract(text, page_no)
     if len(pins) < 4:
