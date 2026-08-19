@@ -39,9 +39,14 @@ def ingest_pdf(
             rule = rule_channel(text, page_no)
             report = run_gate(table, rule)
             try:
+                from edaloop.ingest.pdf_pages import page_count
+
                 extra = next((p for p in pages if p != page_no), None)
-                sug_pages = {p for p in (page_no, extra) if p}
+                front = [p for p in range(1, min(7, page_count(pdf_path)) + 1) if p != page_no][:5]
+                sug_pages = {p for p in [page_no, extra, *front] if p}
                 for sp in sorted(sug_pages):
+                    if sp == page_no:
+                        continue
                     for s in llm_extract_suggestions(page_text(pdf_path, sp), llm, sp):
                         report.suggestions.append(Suggestion.model_validate(s))
             except Exception as e:

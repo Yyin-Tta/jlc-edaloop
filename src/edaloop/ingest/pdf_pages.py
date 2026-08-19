@@ -27,6 +27,11 @@ def find_pin_pages(pdf_path: str) -> list[int]:
     return hits
 
 
+def page_count(pdf_path: str) -> int:
+    with pymupdf.open(pdf_path) as doc:
+        return len(doc)
+
+
 def page_text(pdf_path: str, page_no: int) -> str:
     with pymupdf.open(pdf_path) as doc:
         return doc[page_no - 1].get_text()
