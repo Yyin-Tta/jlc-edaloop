@@ -367,11 +367,13 @@ class LoopController:
                 except ValueError:
                     pass
         missing = {n for n in planned if n and n.upper() != "NC" and n not in page_nets}
-        from edaloop.validate.checks import norm_rail
+        from edaloop.validate.checks import _rail_family
 
-        ir_rails = {norm_rail(r.name or f"{r.voltage:g}V") for r in self.ir.power.rails}
-        ir_rails.add("GND")
-        strong_missing = {n for n in missing if norm_rail(n) in ir_rails}
+        ir_families = {_rail_family(r.name or f"{r.voltage:g}V") for r in self.ir.power.rails}
+        ir_families.add("GND|main")
+        strong_missing = {
+            n for n in missing if _rail_family(n) in ir_families or _rail_family(n).split("|")[0] == "GND"
+        }
         ok = bool(comps) and len(comps) >= 10 and not strong_missing
         self.audit.event(
             "substance-verify",

@@ -43,6 +43,16 @@ def test_check_rails_pass_with_alias() -> None:
     assert check_rails(ir, plan) == []
 
 
+def test_check_rails_iso_family() -> None:
+    ir = _ir_with_rails(("5V_ISO", 5.0))
+    plan = _plan_with_nets("VISO")
+    assert check_rails(ir, plan) == []
+    plan2 = _plan_with_nets("+VO")
+    assert check_rails(ir, plan2) == []
+    plan3 = _plan_with_nets("5V")
+    assert check_rails(ir, plan3) != []
+
+
 def test_check_rails_missing() -> None:
     ir = _ir_with_rails(("3V3", 3.3), ("5V", 5.0))
     plan = _plan_with_nets("3V3")

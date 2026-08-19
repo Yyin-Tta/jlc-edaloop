@@ -30,20 +30,56 @@ def norm_rail(name: str) -> str:
     return _RAIL_ALIASES.get(n, name.strip().upper())
 
 
+_ISO_RE = re.compile(r"(_?ISO|_?VIS[O_]|\+VO\b)", re.IGNORECASE)
+_VOLT_WORDS = {"VIS": "5", "VO": "5", "VISO": "5", "VBAT": "3.7", "BAT": "3.7"}
+
+
+def _norm_volts(key: str) -> str:
+    """数值归一:'3'=='3.3'(3V3 惯例),'3.0'=='3'。"""
+    try:
+        f = float(key)
+    except ValueError:
+        return key
+    if abs(f - 3.3) < 0.05:
+        return "3.3"
+    return f"{f:g}"
+
+
+def _rail_family(name: str) -> str:
+    """轨名归一到家族(5V_ISO/VISO/+VO → '5|iso');隔离侧惯用名按 5V。"""
+    n = name.strip().upper()
+    iso = bool(_ISO_RE.search(n))
+    base = n
+    for strip_re in (r"^[\+\-]", r"_?ISO\w*$", r"^VIS[O_]_?", r"^\+VO_?"):
+        base = re.sub(strip_re, "", base)
+    m3 = re.fullmatch(r"(\d)V(\d)", base)
+    if m3:
+        key = f"{m3.group(1)}.{m3.group(2)}"
+    else:
+        volts = re.search(r"(\d+(?:\.\d+)?)\s*V", base)
+        if volts:
+            key = volts.group(1)
+        else:
+            word = base.rstrip("_") or n
+            key = _VOLT_WORDS.get(word, _VOLT_WORDS.get(n, word))
+    return f"{_norm_volts(key)}|{'iso' if iso else 'main'}"
+
+
 def check_rails(ir: DesignIR, plan: BlockPlan) -> list[Finding]:
     findings: list[Finding] = []
-    bound = {norm_rail(net) for b in plan.blocks for net in b.ports_binding.values()}
+    bound_families = {_rail_family(net) for b in plan.blocks for net in b.ports_binding.values()}
+    bound_families |= {_rail_family(net) for b in plan.blocks for net in b.pins_binding.values()}
     for rail in ir.power.rails:
         name = rail.name or f"{rail.voltage:g}V"
-        want = norm_rail(name)
-        if want == "GND":
+        want_family = _rail_family(name)
+        if want_family.endswith("|main") and _rail_family(name).split("|")[0] == "GND":
             continue
-        if want not in bound:
+        if want_family not in bound_families:
             findings.append(
                 Finding(
                     code="MISSING_RAIL",
-                    where=Where(net=want),
-                    evidence=f"DesignIR 电源轨 {name}({rail.voltage:g}V) 在 BlockPlan 任何端口绑定中都未出现",
+                    where=Where(net=name),
+                    evidence=f"DesignIR 电源轨 {name}({rail.voltage:g}V) 在 BlockPlan 任何端口绑定中都未出现(按轨家族 {_rail_family(name)} 归一比对)",
                     severity="error",
                     suggested_fix_class="REBIND_NET",
                 )
