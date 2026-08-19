@@ -18,7 +18,7 @@ def test_subcommands_parse() -> None:
     assert parser.parse_args(["run", "req.md"]).command == "run"
     assert parser.parse_args(["ingest", "a.pdf", "b.pdf"]).pdf == ["a.pdf", "b.pdf"]
     assert parser.parse_args(["eval", "--subset", "w1-retrieval"]).subset == "w1-retrieval"
-    assert parser.parse_args(["replay"]).command == "replay"
+    assert parser.parse_args(["replay", "runs/run-x"]).audit_dir == "runs/run-x"
     assert parser.parse_args(["seed", "--db", "x.db"]).db == "x.db"
     assert parser.parse_args(["retrieve", "TP4056 充电", "--top-k", "3"]).top_k == 3
 
@@ -30,6 +30,6 @@ def test_no_command_prints_help(capsys: pytest.CaptureFixture[str]) -> None:
         assert cmd in out
 
 
-def test_unimplemented_command_raises(tmp_path) -> None:
-    with pytest.raises(NotImplementedError):
-        main(["replay"])
+def test_unknown_command_exits(tmp_path) -> None:
+    with pytest.raises(SystemExit):
+        main(["frobnicate"])

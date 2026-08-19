@@ -75,11 +75,13 @@ def stage_run(
         dry_run=dry_run,
     )
     result = controller.run()
+    delivery = controller.deliver(result)
     audit.save_json(
         "loop-result.json",
         {
             "status": result.status,
             "rounds": [r.__dict__ for r in result.rounds],
+            "delivery": delivery,
         },
     )
     return ir, result

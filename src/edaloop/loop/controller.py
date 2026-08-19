@@ -129,6 +129,31 @@ class LoopController:
         self.audit.event("loop-done", status="FAIL", rounds=self.max_rounds)
         return result
 
+    def deliver(self, result) -> dict:
+        """PASS 后交付打包:SVG + 网表 + 摘要落 run 目录(§1 交付链路)。"""
+        if result.status != "PASS" or self.dry_run:
+            return {}
+        import hashlib
+
+        arts = {}
+        try:
+            rc, out, _ = self.adapter.run(["sch", "export-image", "--out", "delivery.svg", "--format", "svg"])
+            if rc == 0:
+                arts["svg"] = str(self.audit.dir / "delivery.svg")
+        except Exception:
+            pass
+        try:
+            rc, out, _ = self.adapter.run(["sch", "netlist"])
+            if rc == 0:
+                net = out
+                (self.audit.dir / "delivery.net.json").write_text(net, encoding="utf-8")
+                arts["netlist"] = str(self.audit.dir / "delivery.net.json")
+                arts["netlist_sha256_16"] = hashlib.sha256(net.encode()).hexdigest()[:16]
+        except Exception:
+            pass
+        self.audit.event("delivery", artifacts=arts)
+        return arts
+
     def _verify_pins(self, round_no: int, designator: str, pinout: dict[str, str] | None) -> bool:
         """place 后回读符号 pin 集合,与库 pinout diff(三方校验的落地端)。"""
         if not pinout:
@@ -187,6 +212,7 @@ class LoopController:
                         round_no=round_no,
                         verdict=verdict,
                         stages=stage_summary,
+                        args=act.args,
                     )
                     continue
                 if act.kind == "lib-search":

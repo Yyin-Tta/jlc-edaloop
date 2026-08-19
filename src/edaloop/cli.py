@@ -30,12 +30,14 @@ def build_parser() -> argparse.ArgumentParser:
     p_eval = sub.add_parser("eval", help="跑 evals 金标准集")
     p_eval.add_argument("--subset", default=None, help="仅跑指定子集(如 w1-retrieval)")
 
-    sub.add_parser("replay", help="按审计日志重放一轮迭代")
-
     p_q = sub.add_parser("questions", help="弱门禁确认队列:DesignIR open_questions + uncovered 项")
     p_q.add_argument("input", help="需求文件路径(md/txt)")
     p_q.add_argument("--plan", default=None, help="BlockPlan JSON(供 uncovered 列表)")
     p_q.add_argument("--answer", default=None, help="答案文件(JSON: {Q1: 'A', ...}),省略则交互式提问")
+
+    p_rp = sub.add_parser("replay", help="按审计日志重放最终轮的落图动作(不重算 LLM)")
+    p_rp.add_argument("audit_dir", help="run 的审计目录(如 runs/run-xxxx)")
+    p_rp.add_argument("--dry-run", action="store_true", help="只统计可重放动作,不落图")
 
     p_seed = sub.add_parser("seed", help="M2:种子块库入库(全量重建,含向量索引)")
     p_seed.add_argument("--db", default=None, help="知识库路径(默认 EDALOOP_KB_PATH 或 runs/knowledge.db)")
@@ -170,6 +172,9 @@ def _cmd_run(args: argparse.Namespace) -> int:
         )
     if result.status == "PASS" and result.converged_round:
         print(f"converged in {result.converged_round} round(s)")
+    lr = json.loads((Path(result.audit_dir) / "loop-result.json").read_text(encoding="utf-8"))
+    for k, v in (lr.get("delivery") or {}).items():
+        print(f"  deliver {k}: {v}")
     print(f"audit -> {result.audit_dir}")
     return 0 if result.status == "PASS" else 1
 
@@ -254,6 +259,23 @@ def _cmd_questions(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_replay(args: argparse.Namespace) -> int:
+    from edaloop.replay import replay_run
+
+    try:
+        result = replay_run(args.audit_dir, dry_run=args.dry_run)
+    except Exception as e:
+        print(f"replay 失败: {e}")
+        return 1
+    print(
+        f"replayed {result['replayed']} action(s) from round {result['final_round']} "
+        f"-> gate {result['gate_verdict']}"
+    )
+    for err in result.get("errors", [])[:5]:
+        print(f"  error: {err}")
+    return 0 if result["gate_verdict"] == "pass" else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     load_dotenv()
     parser = build_parser()
@@ -277,6 +299,8 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_ingest(args)
     if args.command == "questions":
         return _cmd_questions(args)
+    if args.command == "replay":
+        return _cmd_replay(args)
     raise NotImplementedError(f"command '{args.command}' 尚未实现")
 
 
