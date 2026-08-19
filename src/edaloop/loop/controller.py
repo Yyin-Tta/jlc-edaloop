@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import time
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from edaloop.generate.adapter import EasyedaAdapter
 from edaloop.generate.audit import AuditLog
@@ -137,9 +138,10 @@ class LoopController:
 
         arts = {}
         try:
-            rc, out, _ = self.adapter.run(["sch", "export-image", "--out", "delivery.svg", "--format", "svg"])
-            if rc == 0:
-                arts["svg"] = str(self.audit.dir / "delivery.svg")
+            svg_path = str((self.audit.dir / "delivery.svg").resolve())
+            rc, out, _ = self.adapter.run(["sch", "export-image", "--out", svg_path, "--format", "svg"])
+            if rc == 0 and Path(svg_path).exists():
+                arts["svg"] = svg_path
         except Exception:
             pass
         try:
