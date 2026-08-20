@@ -107,8 +107,20 @@ class LoopController:
         if pat is None:
             return plan
         prefix = pat["id"].split("-")[0]
-        already = any(b.instance.startswith(prefix) for b in plan.blocks)
-        if already:
+        needed = {part["block_id"] for part in pat["parts"]}
+        plan_ids = {b.block_id for b in plan.blocks}
+        if needed <= plan_ids:
+            return plan
+        # 功能等价判重:LLM 已用 upstream 整块覆盖同功能时不高边注入
+        # (如 up-pmos_highside_softstart 覆盖 highside-switch 模式)
+        func_tokens = {
+            "highside-switch": ("highside", "高边", "负载开关"),
+            "reverse-polarity": ("reverse", "防反接", "xl1509", "vehicle_input"),
+            "usb-esd": ("usblc", "esd"),
+            "lowvolt-alarm": ("tl431", "lowbat", "alarm"),
+        }
+        func_words = func_tokens.get(pat["id"], ())
+        if func_words and any(w in bid for bid in plan_ids for w in func_words):
             return plan
         cand_map = {b.block_id: b for b in candidates}
         blocks, notes = decompose(pat, cand_map, prefix)

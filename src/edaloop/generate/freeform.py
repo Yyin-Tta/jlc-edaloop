@@ -63,6 +63,66 @@ PATTERNS: list[dict] = [
         ],
         "notes": "CANH/CANL 差分对(120R 终端可选);5V 侧或 SN65HVD230 3V3 侧按电源域选块",
     },
+    {
+        "id": "highside-switch",
+        "keywords": ["高边开关", "负载开关", "电源门控", "high-side", "软启动开关"],
+        "parts": [
+            {
+                "block_id": "pmos-ao3401",
+                "suffix": "hs",
+                "pins": {"1": "{p}_GATE", "2": "{p}_VIN", "3": "{p}_VOUT"},
+            },
+            {
+                "block_id": "nmos-2n7002",
+                "suffix": "drv",
+                "pins": {"1": "{p}_EN", "2": "GND", "3": "{p}_GATE"},
+            },
+        ],
+        "notes": "NPN 式高边:2N7002 电平驱动 P-MOS 栅极(GATE 上拉 100k 到 VIN);RC 软启动可选",
+    },
+    {
+        "id": "usb-esd",
+        "keywords": ["usb esd", "usb 保护", "usb静电", "usb 静电", "数据线保护", "usb防静电", "usb 防静电", "esd 保护"],
+        "parts": [
+            {
+                "block_id": "esd-usblc6",
+                "suffix": "esd",
+                "pins": {
+                    "1": "{p}_DP",
+                    "2": "GND",
+                    "3": "{p}_DM",
+                    "4": "{p}_DM",
+                    "5": "5V",
+                    "6": "{p}_DP",
+                },
+            }
+        ],
+        "notes": "I/O1 双脚并接 D+,I/O2 并接 D-(双向低钳位);VBUS 直通",
+    },
+    {
+        "id": "reverse-polarity",
+        "keywords": ["防反接", "反接保护", "reverse protection", "电源防反"],
+        "parts": [
+            {
+                "block_id": "pmos-ao3401",
+                "suffix": "rev",
+                "pins": {"1": "{p}_VIN", "2": "{p}_VIN", "3": "{p}_VSYS"},
+            }
+        ],
+        "notes": "P-MOS 防反接:G/S 并联到输入侧(栅极串稳压管可选),D 出 VSYS;压降远低于肖特基",
+    },
+    {
+        "id": "lowvolt-alarm",
+        "keywords": ["低压告警", "欠压检测", "低电量告警", "low battery", "电压监测告警"],
+        "parts": [
+            {
+                "block_id": "low-battery-alarm-tl431",
+                "suffix": "alm",
+                "pins": {"1": "{p}_SENSE", "2": "{p}_ALM", "3": "GND"},
+            }
+        ],
+        "notes": "TL431 基准比较:SENSE 分压自 VBAT(阈值由外分压定,见 sizing:divider),ALM 下拉点亮红 LED",
+    },
 ]
 
 

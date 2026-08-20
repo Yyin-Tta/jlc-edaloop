@@ -73,3 +73,42 @@ def test_decompose_can() -> None:
     assert b.pins_binding["3"] == "5V"
     assert b.pins_binding["2"] == "GND"
     assert "CANH" in b.pins_binding["8"]
+
+
+def test_match_new_patterns() -> None:
+    assert match_pattern("电源输入防反接保护")["id"] == "reverse-polarity"
+    assert match_pattern("高边负载开关 软启动")["id"] == "highside-switch"
+    assert match_pattern("USB 数据线 ESD 保护")["id"] == "usb-esd"
+    assert match_pattern("电池低压告警 欠压检测")["id"] == "lowvolt-alarm"
+
+
+def test_decompose_highside_wiring() -> None:
+    pat = match_pattern("高边开关")
+    cands = {
+        "pmos-ao3401": _cand("pmos-ao3401", "C15127"),
+        "nmos-2n7002": _cand("nmos-2n7002", "C8545"),
+    }
+    blocks, _ = decompose(pat, cands, "hs")
+    assert len(blocks) == 2
+    pmos = next(b for b in blocks if b.instance == "hs_hs")
+    drv = next(b for b in blocks if b.instance == "hs_drv")
+    # 2N7002 漏极接 P-MOS 栅极:同网名互联
+    assert drv.pins_binding["3"] == pmos.pins_binding["1"]
+    assert drv.pins_binding["2"] == "GND"
+
+
+def test_decompose_reverse_polarity() -> None:
+    pat = match_pattern("防反接")
+    cands = {"pmos-ao3401": _cand("pmos-ao3401", "C15127")}
+    blocks, notes = decompose(pat, cands, "rev")
+    assert len(blocks) == 1
+    b = blocks[0]
+    assert b.pins_binding["1"] == "rev_VIN" and b.pins_binding["2"] == "rev_VIN"
+    assert b.pins_binding["3"] == "rev_VSYS"
+    assert notes
+
+
+def test_pattern_priority_first_match() -> None:
+    # 多关键词同时命中时取第一个匹配(确定性:按 PATTERNS 声明顺序)
+    pat = match_pattern("锂电保护 带低压告警")
+    assert pat["id"] == "liion-protection"
