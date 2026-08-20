@@ -62,6 +62,8 @@ def fetch_cost(lcsc: str, *, timeout: float = 15.0) -> PartCost:
         pass
     if pc.price is None and pc.stock is None:
         pc.error = "no price/stock fields"
+    elif pc.price is None:
+        pc.error = pc.error or "api ok but no price (C99xx 延展号段常见,基础库未挂商务数据)"
     return pc
 
 

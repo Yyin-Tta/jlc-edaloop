@@ -216,10 +216,19 @@ class LoopController:
         try:
             from edaloop.generate.bomcost import summarize_bom
 
-            placed = [
-                {"instance": b.instance, "block_id": b.block_id, "lcsc": (self.catalog.get(b.block_id).lcsc if self.catalog.get(b.block_id) else "")}
-                for b in (result.final_plan.blocks if result.final_plan else [])
-            ]
+            placed: list[dict] = []
+            for b in result.final_plan.blocks if result.final_plan else []:
+                rec = self.catalog.get(b.block_id)
+                part_refs = [
+                    {"instance": f"{b.instance}:{p.ref}", "block_id": b.block_id, "lcsc": p.lcsc or ""}
+                    for p in (rec.parts if rec else [])
+                ]
+                if part_refs:
+                    placed.extend(part_refs)
+                else:
+                    placed.append(
+                        {"instance": b.instance, "block_id": b.block_id, "lcsc": (rec.lcsc if rec else "") or ""}
+                    )
             if placed:
                 bom = summarize_bom(placed)
                 (self.audit.dir / "delivery.bom.json").write_text(
