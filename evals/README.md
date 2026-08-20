@@ -1,6 +1,6 @@
 # evals 金标准集 v0
 
-对应 `docs/DEVELOPMENT.md` §8.1 W0 checklist：5 份需求文档 + 10 份 datasheet。
+5 份需求文档 + 10 份 datasheet。
 
 ## requirements/（5 份）
 

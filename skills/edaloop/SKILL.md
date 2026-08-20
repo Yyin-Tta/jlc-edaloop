@@ -36,7 +36,7 @@ uv run edaloop eval --subset w1-retrieval
 uv run edaloop eval --subset w3-loop       # 真机,断点续跑
 ```
 
-## 工作流(对齐 docs/DEVELOPMENT.md 愿景链路)
+## 工作流(意图 → 检索 → 规划 → 落图 → 校验迭代 → 交付)
 
 1. **需求澄清**:跑 `questions` 收集 open_questions 答案;歧义不擅自决定
 2. **`run` 一把梭**:上限 5 轮迭代,同错 2 轮自动升级人工(HALT);产物在 `runs/run-<id>/`(audit.jsonl + delivery.svg/net.json)
@@ -47,6 +47,5 @@ uv run edaloop eval --subset w3-loop       # 真机,断点续跑
 ## 纪律(违反会破坏项目根基)
 
 - LLM/embedding 全走 provider 抽象层,禁止业务代码直连 SDK
-- easyeda-agent 版本钉死 v0.25.1,升级须独立 PR + 全量 evals 回归
-- 每次实质变更回写 `docs/DEVELOPMENT.md` 变更记录
-- 金标准(evals/)不回退:每个 PR 必跑 pytest + evals 子集
+- easyeda-agent 版本钉死 v0.25.1,升级须独立验证
+- 金标准(evals/)不回退:每次变更必跑 pytest + evals 子集

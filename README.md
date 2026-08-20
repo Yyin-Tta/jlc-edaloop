@@ -24,7 +24,7 @@ PoC 战绩(W0-W4,2026-08):检索 recall@5=88%;真机落图 5 需求 ≥3 过 `sc
 
 ## 安装
 
-前置:Python 3.12+、[uv](https://docs.astral.sh/uv/)、Windows + EasyEDA Pro(开启「设置 → 系统 → 允许外部交互」)、[easyeda-agent](https://github.com/zhoushoujianwork/easyeda-agent) 四件套(本项目钉 **v0.25.1**,见 `docs/adr/0002`)。
+前置:Python 3.12+、[uv](https://docs.astral.sh/uv/)、Windows + EasyEDA Pro(开启「设置 → 系统 → 允许外部交互」)、[easyeda-agent](https://github.com/zhoushoujianwork/easyeda-agent) 四件套(本项目钉 **v0.25.1**,见 `pyproject.toml [tool.edaloop]`)。
 
 ```powershell
 uv sync
@@ -33,7 +33,7 @@ uv run edaloop seed           # 种子块库入库(含向量索引)
 uv run edaloop --help
 ```
 
-环境变量(.env):`EDALOOP_LLM_*`(GLM/DeepSeek/任意 OpenAI 兼容端点)、`EDALOOP_EMBED_*`(PoC 走硅基流动 BGE-M3,ADR-0006)、`EDALOOP_PROJECT`(EasyEDA 工程名路由)。
+环境变量(.env):`EDALOOP_LLM_*`(GLM/DeepSeek/任意 OpenAI 兼容端点)、`EDALOOP_EMBED_*`(硅基流动 BGE-M3,接口抽象可换本地)、`EDALOOP_PROJECT`(EasyEDA 工程名路由)。
 
 ## 使用
 
@@ -65,8 +65,6 @@ uv run edaloop eval --subset w3-loop        # 迭代收敛(真机,断点续跑)
 ## 仓库结构
 
 ```
-docs/DEVELOPMENT.md   # 开发总纲(living document,架构决策/进度/经验教训)
-docs/adr/             # 架构决策记录
 src/edaloop/
   intent/    # M1 需求 → DesignIR
   knowledge/ # M2 四通道混合检索 + 案例回写
