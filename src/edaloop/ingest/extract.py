@@ -62,7 +62,8 @@ def llm_extract(text: str, pdf_name: str, llm: LLMProvider, page_no: int, *, att
 
 
 _SUGGEST_SYSTEM = """你是 datasheet 外围电路建议提取器。从给定文本中提取对原理图设计有执行价值的建议,只输出 JSON 数组:
-[{"kind": "decoupling|pull-up|series|protection|layout|other", "text": "建议(中文,含参数值)", "quote": "原文摘录(<=80字符)"}]
+[{"kind": "decoupling|pull-up|series|protection|layout|sizing|other", "text": "建议(中文,含参数值)", "quote": "原文摘录(<=80字符)"}]
+kind 判定:含具体阻值/容值/计算式的参数建议标 sizing;电容放置标 decoupling;上拉/下拉标 pull-up;串联电阻/电感标 series;TVS/保险丝标 protection;走线/铺铜标 layout。
 只收录原文明确写出的具体建议(带数值:电容容值/电阻阻值/走线要求);泛泛而谈的不要;没有则输出 []"""
 
 

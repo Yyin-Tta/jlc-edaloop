@@ -238,6 +238,22 @@ class LoopController:
                 arts["bom_total"] = bom.get("total")
         except Exception as e:
             self.audit.event("bom-cost-error", error=str(e)[:200])
+        try:
+            from edaloop.generate.sizing import size_for_plan
+
+            blocks_dicts = [
+                {"block_id": b.block_id, "instance": b.instance, "ports_binding": b.ports_binding}
+                for b in (result.final_plan.blocks if result.final_plan else [])
+            ]
+            advices = size_for_plan(blocks_dicts)
+            if advices:
+                (self.audit.dir / "delivery.sizing.txt").write_text(
+                    "\n\n".join(a.render() for a in advices), encoding="utf-8"
+                )
+                arts["sizing"] = str(self.audit.dir / "delivery.sizing.txt")
+                arts["sizing_count"] = len(advices)
+        except Exception as e:
+            self.audit.event("sizing-error", error=str(e)[:200])
         self.audit.event("delivery", artifacts=arts)
         return arts
 
