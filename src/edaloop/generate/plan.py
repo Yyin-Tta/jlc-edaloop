@@ -111,10 +111,18 @@ def make_plan(
         except ValidationError as e:
             last = PlanError(f"BlockPlan 校验失败: {e}", raw=raw)
             continue
-        valid_ids = {b.block_id for b in candidates}
+        valid_ids = {b.block_id: (b.upstream.id if b.upstream else "") for b in candidates}
         bad = [b.block_id for b in plan.blocks if b.block_id not in valid_ids]
         if bad:
             last = PlanError(f"plan 引用了目录外的块: {bad}", raw=raw)
+            continue
+        mismatched = [
+            (b.block_id, b.upstream_id, want)
+            for b in plan.blocks
+            if (want := valid_ids.get(b.block_id)) and b.upstream_id != want
+        ]
+        if mismatched:
+            last = PlanError(f"upstream_id 与目录不一致(照抄目录,不要截断): {mismatched[:3]}", raw=raw)
             continue
         return plan
     raise last if last else PlanError("planner 失败")

@@ -89,7 +89,7 @@ class LoopController:
             if not self.dry_run:
                 self.adapter.clear_all_pages()
                 self.audit.event("page-clear", round_no=round_no)
-                spacing = str(400 + (round_no - 1) * 100)
+                spacing = str(600 + (round_no - 1) * 150)
                 actions = compile_actions(plan, self.catalog, spacing_default=spacing)
                 apply_ok, gate_report = self._apply(actions, round_no)
                 rec.gate_verdict = gate_report.get("verdict", "unknown") if gate_report else "not-run"
@@ -189,6 +189,18 @@ class LoopController:
             diff={k: v for k, v in list(diff.items())[:10]},
         )
         return ok
+
+    @staticmethod
+    def _jitter_at(args: list[str], delta: int = 350) -> list[str]:
+        """轮内重试时对 --at 坐标做确定性偏移(避开原冲突几何)。"""
+        try:
+            i = args.index("--at")
+            x, y = args[i + 1].split(",")
+            args = list(args)
+            args[i + 1] = f"{int(x) + delta},{int(y) + delta}"
+        except (ValueError, IndexError):
+            pass
+        return args
 
     def _apply(self, actions, round_no: int) -> tuple[bool, dict | None]:
         from edaloop.generate.adapter import AdapterError
@@ -314,7 +326,8 @@ class LoopController:
                             self.adapter.delete_primitives(survivors)
                             self.audit.event("cleanup", round_no=round_no, deleted=survivors)
                         try:
-                            manifest = self._run_json_retry(act.args)
+                            retry_args = self._jitter_at(act.args)
+                            manifest = self._run_json_retry(retry_args)
                             status = manifest.get("ok") or manifest.get("status") or "unknown"
                             self.audit.event(
                                 act.kind,
@@ -322,6 +335,7 @@ class LoopController:
                                 instance=act.block_instance,
                                 status=status,
                                 retry=True,
+                                args=retry_args if act.kind == "block-apply" else [],
                             )
                         except AdapterError as e:
                             self.audit.event(

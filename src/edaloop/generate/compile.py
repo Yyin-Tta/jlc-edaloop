@@ -57,31 +57,60 @@ def _fill_bindings(plan: BlockPlan, catalog: dict[str, BlockRecord]) -> BlockPla
 
 _GRID_X0 = 400
 _GRID_Y0 = 300
-_GRID_DX = 2200
-_GRID_DY = 1800
 _GRID_COLS = 4
 
+# 上游块的保守占位估计(格距, 与块内器件数×spacing 成正比;v2 布局策略的输入)
+# 数据源:721 次 block-apply 审计分析——spacing 400 失败率 70%,600 仅 3%(见 P1 八批变更记录)
+_BLOCK_CELL = {
+    "block.esp32s3_wroom1_module": 2800,
+    "block.ch340c_usb_serial": 2800,
+    "block.lgs4056_liion_charge_path": 2800,
+    "block.vehicle_input_tps54360_5v": 2800,
+    "block.usbc_ufp_power_or": 2400,
+    "block.usbc_dual_orientation_data": 2400,
+    "block.sp3485_rs485_halfduplex": 2600,
+    "block.ams1117_ldo_3v3": 1600,
+    "block.tactile_boot_reset": 1400,
+    "block.led_indicator_gpio": 1200,
+    "block.esp32_autodownload": 1600,
+    "block.sy7088_boost_5v": 1800,
+}
+_CELL_DEFAULT = 2200
+_CELL_PLACE = 900
+_CELL_ROW_EXTRA = 400
 
-def _grid_at(index: int) -> str:
-    col = index % _GRID_COLS
-    row = index // _GRID_COLS
-    return f"{_GRID_X0 + col * _GRID_DX},{_GRID_Y0 + row * _GRID_DY}"
+
+def _cell_for(rec: BlockRecord) -> tuple[int, int]:
+    if rec.upstream is not None:
+        cell = _BLOCK_CELL.get(rec.upstream.id, _CELL_DEFAULT)
+        return cell + _CELL_ROW_EXTRA, cell
+    return _CELL_PLACE, _CELL_PLACE
 
 
 def compile_actions(
     plan: BlockPlan,
     catalog: dict[str, BlockRecord],
     *,
-    spacing_default: str = "400",
+    spacing_default: str = "600",
 ) -> list[Action]:
     plan = _fill_bindings(plan, catalog)
     actions: list[Action] = []
-    grid_idx = 0
+    col = 0
+    row = 0
+    col_x = _GRID_X0
+    row_y = _GRID_Y0
     for b in plan.blocks:
         rec = catalog[b.block_id]
+        cell_dx, cell_dy = _cell_for(rec)
         if not b.at:
-            b.at = _grid_at(grid_idx)
-        grid_idx += 1
+            b.at = f"{col_x},{row_y}"
+        col += 1
+        col_x += cell_dx
+        if col >= _GRID_COLS:
+            col = 0
+            col_x = _GRID_X0
+            row += 1
+            row_y += cell_dy
         if rec.upstream is not None:
             args = [
                 "sch",
