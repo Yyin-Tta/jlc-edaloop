@@ -60,6 +60,7 @@ def make_plan(
     *,
     attempts: int = 3,
     feedback: str = "",
+    cost_hint: str = "",
 ) -> BlockPlan:
     appliable = [b for b in candidates if b.parts and b.block_id]
     catalog_lines = []
@@ -91,6 +92,8 @@ def make_plan(
         user += (
             "\n\n上一轮验证反馈(修正要求,优先级高于你的默认选择):\n" + feedback
         )
+    if cost_hint:
+        user += "\n\n成本参考(实时价格,仅当需求有成本诉求时参考,不要为省钱牺牲功能):\n" + cost_hint
     last: Exception | None = None
     for _ in range(attempts):
         reply = llm.chat(

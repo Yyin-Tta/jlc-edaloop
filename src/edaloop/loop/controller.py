@@ -66,6 +66,37 @@ class LoopController:
         self.max_rounds = max_rounds
         self.dry_run = dry_run
 
+    def _cost_hint(self, candidates) -> str:
+        """同功能可互换块的价格对比(实时查询,弱信号;仅 IR 有 cost_target 时生成,无诉求不查)。"""
+        try:
+            from edaloop.generate.bomcost import cost_hint_for_planner
+
+            if not (self.ir.env and self.ir.env.cost_target):
+                return ""
+            groups: dict[str, list[dict]] = {}
+            by_cat: dict[str, list] = {}
+            for b in candidates:
+                if b.lcsc:
+                    by_cat.setdefault(b.category or "misc", []).append(b)
+            interchangeable = {
+                "interface": ("can", "rs485", "usb"),
+                "power": ("ldo", "buck", "boost"),
+            }
+            for cat, keys in interchangeable.items():
+                for key in keys:
+                    parts = [
+                        {"block_id": b.block_id, "lcsc": b.lcsc}
+                        for b in by_cat.get(cat, [])
+                        if key in b.block_id.lower() or key in b.name.lower()
+                    ]
+                    if len(parts) >= 2:
+                        groups[f"{cat}:{key}"] = parts
+            if not groups:
+                return ""
+            return cost_hint_for_planner(groups)
+        except Exception:
+            return ""
+
     def _augment_freeform(self, plan: BlockPlan, candidates, round_no: int) -> BlockPlan:
         """确定性拓扑模式增强:plan 中该功能仍是 uncovered 且模式原料在检索候选中时,
         用模式库分解结果替换(LLM 兜底失败时的可靠通道;LLM 已分解则不重复)。"""
@@ -100,7 +131,9 @@ class LoopController:
             rec = RoundRecord(round_no=round_no)
             query = self.ir.query_text()
             candidates = self.retrieve(query)
-            plan = make_plan(self.ir, candidates, self.llm, feedback=feedback)
+            plan = make_plan(
+                self.ir, candidates, self.llm, feedback=feedback, cost_hint=self._cost_hint(candidates)
+            )
             plan = self._augment_freeform(plan, candidates, round_no)
             rec.plan_id = plan.id
             self.audit.event(
@@ -158,7 +191,7 @@ class LoopController:
         return result
 
     def deliver(self, result) -> dict:
-        """PASS 后交付打包:SVG + 网表 + 摘要落 run 目录(§1 交付链路)。"""
+        """PASS 后交付打包:SVG + 网表 + BOM 成本 + 摘要落 run 目录(§1 交付链路)。"""
         if result.status != "PASS" or self.dry_run:
             return {}
         import hashlib
@@ -180,6 +213,22 @@ class LoopController:
                 arts["netlist_sha256_16"] = hashlib.sha256(net.encode()).hexdigest()[:16]
         except Exception:
             pass
+        try:
+            from edaloop.generate.bomcost import summarize_bom
+
+            placed = [
+                {"instance": b.instance, "block_id": b.block_id, "lcsc": (self.catalog.get(b.block_id).lcsc if self.catalog.get(b.block_id) else "")}
+                for b in (result.final_plan.blocks if result.final_plan else [])
+            ]
+            if placed:
+                bom = summarize_bom(placed)
+                (self.audit.dir / "delivery.bom.json").write_text(
+                    json.dumps(bom, ensure_ascii=False, indent=1), encoding="utf-8"
+                )
+                arts["bom"] = str(self.audit.dir / "delivery.bom.json")
+                arts["bom_total"] = bom.get("total")
+        except Exception as e:
+            self.audit.event("bom-cost-error", error=str(e)[:200])
         self.audit.event("delivery", artifacts=arts)
         return arts
 
