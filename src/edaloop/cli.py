@@ -28,7 +28,8 @@ def build_parser() -> argparse.ArgumentParser:
     p_ingest.add_argument("pdf", nargs="+", help="datasheet PDF 路径(可多个)")
 
     p_eval = sub.add_parser("eval", help="跑 evals 金标准集")
-    p_eval.add_argument("--subset", default=None, help="仅跑指定子集(如 w1-retrieval)")
+    p_eval.add_argument("--subset", default=None, help="子集:w1-retrieval / w3-loop")
+    p_eval.add_argument("--tier", default=None, help="w3-loop 回归级:smoke(3 需求~7min)/daily(8)/all(23,发版用)")
 
     p_q = sub.add_parser("questions", help="弱门禁确认队列:DesignIR open_questions + uncovered 项")
     p_q.add_argument("input", help="需求文件路径(md/txt)")
@@ -107,7 +108,7 @@ def _cmd_eval(args: argparse.Namespace) -> int:
     if args.subset == "w3-loop":
         from edaloop.evals_w3 import run_w3_loop_eval
 
-        summary = run_w3_loop_eval()
+        summary = run_w3_loop_eval(tier=args.tier)
         return 0 if summary["go3"] and summary["go5"] else 1
     raise NotImplementedError(f"eval subset '{args.subset}' 尚未实现")
 

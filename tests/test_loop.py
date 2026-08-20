@@ -9,7 +9,12 @@ from edaloop.knowledge.models import BlockRecord, RetrievedBlock, UpstreamRef
 from edaloop.llm.fake import FakeChat
 from edaloop.loop.attribution import attribute
 from edaloop.loop.controller import LoopController
-from edaloop.validate.checks import check_gauge, check_rails, check_uncovered
+from edaloop.validate.checks import (
+    check_gauge,
+    check_rails,
+    check_topology_sanity,
+    check_uncovered,
+)
 from edaloop.validate.models import Finding, Where
 
 
@@ -60,6 +65,62 @@ def test_check_rails_missing() -> None:
     assert len(findings) == 1
     assert findings[0].code == "MISSING_RAIL"
     assert findings[0].where.net == "5V"
+
+
+def test_check_topology_sanity_power_gnd_bound() -> None:
+    catalog = {
+        "raw-part": BlockRecord(
+            block_id="raw-part",
+            name="X",
+            desc="x",
+            lcsc="C123",
+            pinout={"1": "VCC", "2": "GND", "3": "OUT"},
+        )
+    }
+    ok = BlockPlan.model_validate(
+        {
+            "blocks": [
+                {
+                    "block_id": "raw-part",
+                    "upstream_id": "",
+                    "instance": "x1",
+                    "pins_binding": {"1": "5V", "2": "GND", "3": "SIG"},
+                }
+            ]
+        }
+    )
+    assert check_topology_sanity(ok, catalog) == []
+    bad = BlockPlan.model_validate(
+        {
+            "blocks": [
+                {
+                    "block_id": "raw-part",
+                    "upstream_id": "",
+                    "instance": "x1",
+                    "pins_binding": {"3": "SIG"},
+                }
+            ]
+        }
+    )
+    findings = check_topology_sanity(bad, catalog)
+    assert len(findings) == 2
+    assert all(f.code == "PIN_MISMATCH" for f in findings)
+
+
+def test_check_topology_sanity_skips_upstream_blocks() -> None:
+    plan = BlockPlan.model_validate(
+        {
+            "blocks": [
+                {
+                    "block_id": "ldo-ams1117-3v3",
+                    "upstream_id": "block.ams1117_ldo_3v3",
+                    "instance": "ldo1",
+                    "ports_binding": {},
+                }
+            ]
+        }
+    )
+    assert check_topology_sanity(plan, {}) == []
 
 
 def test_check_uncovered_weak() -> None:

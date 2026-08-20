@@ -183,12 +183,60 @@ def _fix_class(stage: str, f: object) -> str:
     return "REPLAN"
 
 
+_PWR_PIN_HINTS = ("VCC", "VDD", "VIN", "VBAT", "VBUS", "VDDIO", "VDDA", "VSYS", "5V", "3V3")
+_GND_PIN_HINTS = ("GND", "VSS", "AGND", "DGND", "PGND")
+
+
+def check_topology_sanity(
+    plan: BlockPlan, catalog: dict | None = None
+) -> list[Finding]:
+    """自由拓扑 sanity(强门禁):每个 place 通道器件的电源/地引脚必须已绑定到网。"""
+    findings: list[Finding] = []
+    for b in plan.blocks:
+        if b.upstream_id:
+            continue
+        pinout = (b.params or {}).get("_pinout") or {}
+        if not pinout:
+            pinout = _catalog_pinout(b.block_id) if catalog is None else (catalog.get(b.block_id).pinout if catalog.get(b.block_id) else {})
+        if not pinout:
+            continue
+        bound = set(b.pins_binding)
+        for pin_no, pin_name in pinout.items():
+            n = str(pin_name).upper()
+            if any(h in n for h in _PWR_PIN_HINTS) and pin_no not in bound:
+                findings.append(
+                    Finding(
+                        code="PIN_MISMATCH",
+                        where=Where(ref=b.instance, pin=pin_no),
+                        evidence=f"自由拓扑器件 {b.instance} 的电源脚 {pin_no}({pin_name}) 未绑定网络",
+                        severity="error",
+                        suggested_fix_class="REBIND_NET",
+                    )
+                )
+            if any(h in n for h in _GND_PIN_HINTS) and pin_no not in bound:
+                findings.append(
+                    Finding(
+                        code="PIN_MISMATCH",
+                        where=Where(ref=b.instance, pin=pin_no),
+                        evidence=f"自由拓扑器件 {b.instance} 的地脚 {pin_no}({pin_name}) 未绑定网络",
+                        severity="error",
+                        suggested_fix_class="REBIND_NET",
+                    )
+                )
+    return findings
+
+
+def _catalog_pinout(block_id: str) -> dict:
+    return {}
+
+
 def validate(
-    ir: DesignIR, plan: BlockPlan, gate_report: dict | None
+    ir: DesignIR, plan: BlockPlan, gate_report: dict | None, *, catalog: dict | None = None
 ) -> list[Finding]:
     findings: list[Finding] = []
     findings += check_rails(ir, plan)
     findings += check_uncovered(plan)
+    findings += check_topology_sanity(plan, catalog)
     if gate_report is not None:
         findings += check_gauge(gate_report)
     return findings

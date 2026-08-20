@@ -66,6 +66,32 @@ class LoopController:
         self.max_rounds = max_rounds
         self.dry_run = dry_run
 
+    def _augment_freeform(self, plan: BlockPlan, candidates, round_no: int) -> BlockPlan:
+        """确定性拓扑模式增强:plan 中该功能仍是 uncovered 且模式原料在检索候选中时,
+        用模式库分解结果替换(LLM 兜底失败时的可靠通道;LLM 已分解则不重复)。"""
+        from edaloop.generate.freeform import decompose, match_pattern
+
+        text = self.ir.query_text() + " " + (self.ir.source or "")
+        pat = match_pattern(text)
+        if pat is None:
+            return plan
+        prefix = pat["id"].split("-")[0]
+        already = any(b.instance.startswith(prefix) for b in plan.blocks)
+        if already:
+            return plan
+        cand_map = {b.block_id: b for b in candidates}
+        blocks, notes = decompose(pat, cand_map, prefix)
+        if not blocks:
+            self.audit.event("freeform-miss", round_no=round_no, pattern=pat["id"], notes=notes)
+            return plan
+        plan.blocks.extend(blocks)
+        plan.uncovered = [
+            u for u in plan.uncovered if not any(k in u.lower() for k in pat["keywords"])
+        ] + [f"[自由拓扑:{pat['id']}] {n}" if n else "" for n in notes]
+        plan.uncovered = [u for u in plan.uncovered if u]
+        self.audit.event("freeform-augment", round_no=round_no, pattern=pat["id"], added=[b.instance for b in blocks])
+        return plan
+
     def run(self) -> LoopResult:
         result = LoopResult(status="FAIL", audit_dir=str(self.audit.dir))
         feedback = ""
@@ -75,6 +101,7 @@ class LoopController:
             query = self.ir.query_text()
             candidates = self.retrieve(query)
             plan = make_plan(self.ir, candidates, self.llm, feedback=feedback)
+            plan = self._augment_freeform(plan, candidates, round_no)
             rec.plan_id = plan.id
             self.audit.event(
                 "round-plan",
@@ -93,7 +120,7 @@ class LoopController:
                 actions = compile_actions(plan, self.catalog, spacing_default=spacing)
                 apply_ok, gate_report = self._apply(actions, round_no)
                 rec.gate_verdict = gate_report.get("verdict", "unknown") if gate_report else "not-run"
-            findings = validate(self.ir, plan, gate_report)
+            findings = validate(self.ir, plan, gate_report, catalog=self.catalog)
             if not apply_ok:
                 findings = [
                     Finding(

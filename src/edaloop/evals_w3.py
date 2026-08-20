@@ -7,6 +7,33 @@ from edaloop.generate.pipeline import stage_run
 
 _REQ_DIR = Path("evals/requirements")
 _REQS = sorted(p.name for p in _REQ_DIR.glob("req-*.md"))
+# 分级回归:smoke(改动的最快验证)/daily(常规 PR)/all(仅发版或大改)
+# smoke/daily 选取原则:覆盖两通道(block-apply+place)、历史难例(布局/隔离)、自由拓扑
+_TIER = {
+    "smoke": [
+        "req-01-esp32s3-mini-2layer.md",
+        "req-04-interface-board.md",
+        "req-23-liion-protection-freeform.md",
+    ],
+    "daily": [
+        "req-01-esp32s3-mini-2layer.md",
+        "req-02-esp32s3-industrial-4layer.md",
+        "req-04-interface-board.md",
+        "req-05-hybrid-dual-mcu-gateway.md",
+        "req-08-isolated-dido-module.md",
+        "req-11-audio-recorder-node.md",
+        "req-19-env-sensor-motherboard.md",
+        "req-23-liion-protection-freeform.md",
+    ],
+}
+
+
+def _pick(tier: str | None) -> list[str]:
+    if tier in (None, "all"):
+        return _REQS
+    if tier not in _TIER:
+        raise ValueError(f"未知回归级 '{tier}',可选: smoke/daily/all")
+    return [r for r in _TIER[tier] if (_REQ_DIR / r).exists()]
 
 
 def _clear_page() -> None:
@@ -33,20 +60,25 @@ def _clear_page() -> None:
 _STATE = Path("runs/w3-loop-state.json")
 
 
-def _load_state() -> dict:
-    if _STATE.exists():
-        return json.loads(_STATE.read_text(encoding="utf-8"))
+def _load_state(path: Path) -> dict:
+    if path.exists():
+        return json.loads(path.read_text(encoding="utf-8"))
     return {"rows": {}}
 
 
-def _save_state(state: dict) -> None:
-    _STATE.parent.mkdir(parents=True, exist_ok=True)
-    _STATE.write_text(json.dumps(state, ensure_ascii=False, indent=1), encoding="utf-8")
+def _save_state(state: dict, path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(state, ensure_ascii=False, indent=1), encoding="utf-8")
 
 
-def run_w3_loop_eval(max_rounds: int = 5, dry_run: bool = False, resume: bool = True) -> dict:
-    state = _load_state() if resume else {"rows": {}}
-    for name in _REQS:
+def run_w3_loop_eval(max_rounds: int = 5, dry_run: bool = False, resume: bool = True, tier: str | None = None) -> dict:
+    reqs = _pick(tier)
+    if tier not in (None, "all"):
+        state_path = Path(f"runs/w3-loop-state-{tier}.json")
+    else:
+        state_path = Path("runs/w3-loop-state.json")
+    state = _load_state(state_path) if resume else {"rows": {}}
+    for name in reqs:
         if name in state["rows"]:
             print(f"skip(done) {name}: {state['rows'][name]}", flush=True)
             continue
@@ -70,7 +102,7 @@ def run_w3_loop_eval(max_rounds: int = 5, dry_run: bool = False, resume: bool = 
             )
             row = {"req": name, "status": f"ERROR:{type(e).__name__}", "rounds": None, "n_rounds": 0}
         state["rows"][name] = row
-        _save_state(state)
+        _save_state(state, state_path)
         print(row, flush=True)
     rows = list(state["rows"].values())
     n = len(rows)

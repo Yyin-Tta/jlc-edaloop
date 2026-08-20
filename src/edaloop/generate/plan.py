@@ -35,6 +35,7 @@ _SYSTEM = """你是电路块规划器。给定 DesignIR(设计意图)和候选�
 规则:
 - 只能使用目录中带 upstream 字段的块(block-apply 通道:照抄 upstream.id,端口绑定用 ports_binding)或带 lcsc+pinout 的库外器件(place 通道:upstream_id 留空,逐引脚绑定用 pins_binding,key 是 pinout 里的引脚号)
 - place 通道的未用引脚一律不绑(pins_binding 省略该键),不要发明 NC 网络去接闲置脚
+- **自由拓扑分解**:某功能目录无整块时,若能由目录中 ≤5 个带 lcsc+pinout 的器件组合实现(如"锂电保护"=DW01A+FS8205A),则为每个器件生成一个 place 通道实例(instance 加功能后缀如 prot_dw01/prot_fs),用 pins_binding 接线实现互联;器件间互联靠相同网名(与块通道同规则);不可行或需要运放反馈/补偿类模拟拓扑时仍列入 uncovered
 - 目录覆盖不了的功能逐条列入 uncovered(不要静默省略,也不要发明器件);provenance 只写整体理由
 - 覆盖 DesignIR 的 functions/power/interfaces;目录中无对应块的功能,跳过并在 provenance 里注明"未覆盖:<功能>"
 - 电源网络命名:3V3/5V/GND;信号网络用大写下划线(MCU_TX/RS485_DE 等)
@@ -123,6 +124,25 @@ def make_plan(
         ]
         if mismatched:
             last = PlanError(f"upstream_id 与目录不一致(照抄目录,不要截断): {mismatched[:3]}", raw=raw)
+            continue
+        lcsc_pinouts = {
+            b.block_id: (b.lcsc, b.pinout or {})
+            for b in candidates
+            if b.lcsc and b.pinout
+        }
+        bad_place = []
+        for b in plan.blocks:
+            if b.upstream_id:
+                continue
+            lcsc, pinout = lcsc_pinouts.get(b.block_id, ("", {}))
+            if not lcsc:
+                bad_place.append(f"{b.block_id}: 无 lcsc+pinout,不可 place")
+                continue
+            unknown_pins = [p for p in b.pins_binding if p not in pinout]
+            if unknown_pins:
+                bad_place.append(f"{b.block_id}: 引脚号 {unknown_pins[:4]} 不在 pinout {list(pinout)[:6]}")
+        if bad_place:
+            last = PlanError("place 通道块校验失败(引脚号必须来自目录 pinout): " + "; ".join(bad_place[:3]), raw=raw)
             continue
         return plan
     raise last if last else PlanError("planner 失败")
