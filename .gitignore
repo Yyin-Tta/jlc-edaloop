@@ -15,3 +15,5 @@ build/
 runs/
 *.sqlite3
 *.db
+
+dist/
