@@ -1,0 +1,1931 @@
+{
+    "version": "2.0.0",
+    "components": {
+        "gge1": {
+            "props": {
+                "Unique ID": "gge1",
+                "Add into BOM": "yes",
+                "Convert to PCB": "yes",
+                "Symbol": "54a285ddce56d520",
+                "Designator": "C1",
+                "Device": "8cb2ba5e711e651c",
+                "LCSC Part Name": "",
+                "Supplier Part": "C1525",
+                "Manufacturer": "SAMSUNG(三星)",
+                "Manufacturer Part": "CL05B104KO5NNNC",
+                "Supplier Footprint": "",
+                "JLCPCB Part Class": "",
+                "Datasheet": "",
+                "Supplier": "LCSC",
+                "Footprint": "fbb2cd7cfda99c89",
+                "3D Model": "36a51122f27c49738f86b3bfa98863e0|0819f05c4eef4c71ace90d822a990e87",
+                "3D Model Title": "C0402_L1.0-W0.5-H0.5",
+                "3D Model Transform": "39.37,19.685,0,0,0,0,0,0,0",
+                "Value": "",
+                "Tolerance": "",
+                "Voltage Rating": "",
+                "Temperature Coefficient": "",
+                "Name": "={Value}",
+                "Description": "",
+                "Reuse Block": "",
+                "Group ID": "",
+                "Channel ID": "$1I26907",
+                "DeviceName": "CL05B104KO5NNNC",
+                "FootprintName": "C0402"
+            },
+            "pinInfoMap": {
+                "1": {
+                    "name": "1",
+                    "number": "1",
+                    "net": "3V3",
+                    "props": {
+                        "Pin Number": "1"
+                    }
+                },
+                "2": {
+                    "name": "2",
+                    "number": "2",
+                    "net": "GND",
+                    "props": {
+                        "Pin Number": "2"
+                    }
+                }
+            }
+        },
+        "gge2": {
+            "props": {
+                "Unique ID": "gge2",
+                "Add into BOM": "yes",
+                "Convert to PCB": "yes",
+                "Symbol": "5eadc8ef7f2893ba",
+                "Designator": "C2",
+                "Device": "5e07688c5c9930c3",
+                "LCSC Part Name": "",
+                "Supplier Part": "C440198",
+                "Manufacturer": "muRata(村田)",
+                "Manufacturer Part": "GRM21BR61H106KE43L",
+                "Supplier Footprint": "",
+                "JLCPCB Part Class": "",
+                "Datasheet": "",
+                "Supplier": "LCSC",
+                "Footprint": "5e558d2f3648655a",
+                "3D Model": "1ba041120af144c991958decab20d241|0819f05c4eef4c71ace90d822a990e87",
+                "3D Model Title": "C0805_L2.0-W1.3-H1.3",
+                "3D Model Transform": "78.74,51.181,0,0,0,0,0,0.0005,0",
+                "Value": "",
+                "Tolerance": "",
+                "Voltage Rating": "",
+                "Temperature Coefficient": "",
+                "Name": "={Value}",
+                "Description": "",
+                "Reuse Block": "",
+                "Group ID": "",
+                "Channel ID": "$1I26908",
+                "DeviceName": "GRM21BR61H106KE43L",
+                "FootprintName": "C0805"
+            },
+            "pinInfoMap": {
+                "1": {
+                    "name": "1",
+                    "number": "1",
+                    "net": "5V",
+                    "props": {
+                        "Pin Number": "1"
+                    }
+                },
+                "2": {
+                    "name": "2",
+                    "number": "2",
+                    "net": "GND",
+                    "props": {
+                        "Pin Number": "2"
+                    }
+                }
+            }
+        },
+        "gge3": {
+            "props": {
+                "Unique ID": "gge3",
+                "Add into BOM": "yes",
+                "Convert to PCB": "yes",
+                "Symbol": "be0e7e82d21d37b5",
+                "Designator": "C3",
+                "Device": "81b14679fc832446",
+                "LCSC Part Name": "",
+                "Supplier Part": "C45783",
+                "Manufacturer": "SAMSUNG(三星)",
+                "Manufacturer Part": "CL21A226MAQNNNE",
+                "Supplier Footprint": "",
+                "JLCPCB Part Class": "",
+                "Datasheet": "",
+                "Supplier": "LCSC",
+                "Footprint": "5e558d2f3648655a",
+                "3D Model": "1ba041120af144c991958decab20d241|0819f05c4eef4c71ace90d822a990e87",
+                "3D Model Title": "C0805_L2.0-W1.3-H1.3",
+                "3D Model Transform": "78.74,51.181,0,0,0,0,0,0.0005,0",
+                "Value": "",
+                "Tolerance": "",
+                "Voltage Rating": "",
+                "Temperature Coefficient": "",
+                "Name": "={Value}",
+                "Description": "",
+                "Reuse Block": "",
+                "Group ID": "",
+                "Channel ID": "$1I26909",
+                "DeviceName": "CL21A226MAQNNNE",
+                "FootprintName": "C0805"
+            },
+            "pinInfoMap": {
+                "1": {
+                    "name": "1",
+                    "number": "1",
+                    "net": "3V3",
+                    "props": {
+                        "Pin Number": "1"
+                    }
+                },
+                "2": {
+                    "name": "2",
+                    "number": "2",
+                    "net": "GND",
+                    "props": {
+                        "Pin Number": "2"
+                    }
+                }
+            }
+        },
+        "gge4": {
+            "props": {
+                "Unique ID": "gge4",
+                "Add into BOM": "yes",
+                "Convert to PCB": "yes",
+                "Name": "={Manufacturer Part}",
+                "Designator": "U1",
+                "Symbol": "7ef91bc8e271ffed",
+                "Device": "71fe866b5cdcdf3a",
+                "LCSC Part Name": "",
+                "Supplier Part": "C6186",
+                "Manufacturer": "Advanced Monolithic Systems",
+                "Manufacturer Part": "AMS1117-3.3",
+                "Supplier Footprint": "",
+                "JLCPCB Part Class": "",
+                "Datasheet": "",
+                "Supplier": "LCSC",
+                "Footprint": "b8809bf8c0ff6a52",
+                "3D Model": "925194bf9823436183a3e0b978a8d076|0819f05c4eef4c71ace90d822a990e87",
+                "3D Model Title": "SOT-223-4P_L6.5-W3.5-H1.6-LS7.0-P2.30",
+                "3D Model Transform": "279.89794,255.905,0,180,0,0,-3.9385,-0.0005,0",
+                "Output Configuration": "",
+                "Voltage - Supply": "",
+                "Output Voltage": "",
+                "Output Current": "",
+                "Power Supply Rejection Ratio (PSRR)": "",
+                "Voltage Dropout": "",
+                "standby current": "",
+                "Noise": "",
+                "Features": "",
+                "Operating Temperature": "",
+                "Output Type": "",
+                "Number of Outputs": "",
+                "Description": "",
+                "Reuse Block": "",
+                "Group ID": "",
+                "Channel ID": "$1I26910",
+                "DeviceName": "AMS1117-3.3_C6186",
+                "FootprintName": "SOT-223-3_L6.5-W3.4-P2.30-LS7.0-BR"
+            },
+            "pinInfoMap": {
+                "1": {
+                    "name": "GND",
+                    "number": "1",
+                    "net": "GND",
+                    "props": {
+                        "Pin Number": "1"
+                    }
+                },
+                "2": {
+                    "name": "VOUT",
+                    "number": "2",
+                    "net": "3V3",
+                    "props": {
+                        "Pin Number": "2"
+                    }
+                },
+                "3": {
+                    "name": "VIN",
+                    "number": "3",
+                    "net": "5V",
+                    "props": {
+                        "Pin Number": "3"
+                    }
+                },
+                "4": {
+                    "name": "VOUT",
+                    "number": "4",
+                    "net": "3V3",
+                    "props": {
+                        "Pin Number": "4"
+                    }
+                }
+            }
+        },
+        "gge5": {
+            "props": {
+                "Unique ID": "gge5",
+                "Add into BOM": "yes",
+                "Convert to PCB": "yes",
+                "Symbol": "54a285ddce56d520",
+                "Designator": "C4",
+                "Device": "8cb2ba5e711e651c",
+                "LCSC Part Name": "",
+                "Supplier Part": "C1525",
+                "Manufacturer": "SAMSUNG(三星)",
+                "Manufacturer Part": "CL05B104KO5NNNC",
+                "Supplier Footprint": "",
+                "JLCPCB Part Class": "",
+                "Datasheet": "",
+                "Supplier": "LCSC",
+                "Footprint": "fbb2cd7cfda99c89",
+                "3D Model": "36a51122f27c49738f86b3bfa98863e0|0819f05c4eef4c71ace90d822a990e87",
+                "3D Model Title": "C0402_L1.0-W0.5-H0.5",
+                "3D Model Transform": "39.37,19.685,0,0,0,0,0,0,0",
+                "Value": "",
+                "Tolerance": "",
+                "Voltage Rating": "",
+                "Temperature Coefficient": "",
+                "Name": "={Value}",
+                "Description": "",
+                "Reuse Block": "",
+                "Group ID": "",
+                "Channel ID": "$1I26925",
+                "DeviceName": "CL05B104KO5NNNC",
+                "FootprintName": "C0402"
+            },
+            "pinInfoMap": {
+                "1": {
+                    "name": "1",
+                    "number": "1",
+                    "net": "3V3",
+                    "props": {
+                        "Pin Number": "1"
+                    }
+                },
+                "2": {
+                    "name": "2",
+                    "number": "2",
+                    "net": "GND",
+                    "props": {
+                        "Pin Number": "2"
+                    }
+                }
+            }
+        },
+        "gge6": {
+            "props": {
+                "Unique ID": "gge6",
+                "Add into BOM": "yes",
+                "Convert to PCB": "yes",
+                "Symbol": "5eadc8ef7f2893ba",
+                "Designator": "C5",
+                "Device": "5e07688c5c9930c3",
+                "LCSC Part Name": "",
+                "Supplier Part": "C440198",
+                "Manufacturer": "muRata(村田)",
+                "Manufacturer Part": "GRM21BR61H106KE43L",
+                "Supplier Footprint": "",
+                "JLCPCB Part Class": "",
+                "Datasheet": "",
+                "Supplier": "LCSC",
+                "Footprint": "5e558d2f3648655a",
+                "3D Model": "1ba041120af144c991958decab20d241|0819f05c4eef4c71ace90d822a990e87",
+                "3D Model Title": "C0805_L2.0-W1.3-H1.3",
+                "3D Model Transform": "78.74,51.181,0,0,0,0,0,0.0005,0",
+                "Value": "",
+                "Tolerance": "",
+                "Voltage Rating": "",
+                "Temperature Coefficient": "",
+                "Name": "={Value}",
+                "Description": "",
+                "Reuse Block": "",
+                "Group ID": "",
+                "Channel ID": "$1I26926",
+                "DeviceName": "GRM21BR61H106KE43L",
+                "FootprintName": "C0805"
+            },
+            "pinInfoMap": {
+                "1": {
+                    "name": "1",
+                    "number": "1",
+                    "net": "5V",
+                    "props": {
+                        "Pin Number": "1"
+                    }
+                },
+                "2": {
+                    "name": "2",
+                    "number": "2",
+                    "net": "GND",
+                    "props": {
+                        "Pin Number": "2"
+                    }
+                }
+            }
+        },
+        "gge7": {
+            "props": {
+                "Unique ID": "gge7",
+                "Add into BOM": "yes",
+                "Convert to PCB": "yes",
+                "Symbol": "be0e7e82d21d37b5",
+                "Designator": "C6",
+                "Device": "81b14679fc832446",
+                "LCSC Part Name": "",
+                "Supplier Part": "C45783",
+                "Manufacturer": "SAMSUNG(三星)",
+                "Manufacturer Part": "CL21A226MAQNNNE",
+                "Supplier Footprint": "",
+                "JLCPCB Part Class": "",
+                "Datasheet": "",
+                "Supplier": "LCSC",
+                "Footprint": "5e558d2f3648655a",
+                "3D Model": "1ba041120af144c991958decab20d241|0819f05c4eef4c71ace90d822a990e87",
+                "3D Model Title": "C0805_L2.0-W1.3-H1.3",
+                "3D Model Transform": "78.74,51.181,0,0,0,0,0,0.0005,0",
+                "Value": "",
+                "Tolerance": "",
+                "Voltage Rating": "",
+                "Temperature Coefficient": "",
+                "Name": "={Value}",
+                "Description": "",
+                "Reuse Block": "",
+                "Group ID": "",
+                "Channel ID": "$1I26927",
+                "DeviceName": "CL21A226MAQNNNE",
+                "FootprintName": "C0805"
+            },
+            "pinInfoMap": {
+                "1": {
+                    "name": "1",
+                    "number": "1",
+                    "net": "3V3",
+                    "props": {
+                        "Pin Number": "1"
+                    }
+                },
+                "2": {
+                    "name": "2",
+                    "number": "2",
+                    "net": "GND",
+                    "props": {
+                        "Pin Number": "2"
+                    }
+                }
+            }
+        },
+        "gge8": {
+            "props": {
+                "Unique ID": "gge8",
+                "Add into BOM": "yes",
+                "Convert to PCB": "yes",
+                "Name": "={Manufacturer Part}",
+                "Designator": "U2",
+                "Symbol": "7ef91bc8e271ffed",
+                "Device": "71fe866b5cdcdf3a",
+                "LCSC Part Name": "",
+                "Supplier Part": "C6186",
+                "Manufacturer": "Advanced Monolithic Systems",
+                "Manufacturer Part": "AMS1117-3.3",
+                "Supplier Footprint": "",
+                "JLCPCB Part Class": "",
+                "Datasheet": "",
+                "Supplier": "LCSC",
+                "Footprint": "b8809bf8c0ff6a52",
+                "3D Model": "925194bf9823436183a3e0b978a8d076|0819f05c4eef4c71ace90d822a990e87",
+                "3D Model Title": "SOT-223-4P_L6.5-W3.5-H1.6-LS7.0-P2.30",
+                "3D Model Transform": "279.89794,255.905,0,180,0,0,-3.9385,-0.0005,0",
+                "Output Configuration": "",
+                "Voltage - Supply": "",
+                "Output Voltage": "",
+                "Output Current": "",
+                "Power Supply Rejection Ratio (PSRR)": "",
+                "Voltage Dropout": "",
+                "standby current": "",
+                "Noise": "",
+                "Features": "",
+                "Operating Temperature": "",
+                "Output Type": "",
+                "Number of Outputs": "",
+                "Description": "",
+                "Reuse Block": "",
+                "Group ID": "",
+                "Channel ID": "$1I26928",
+                "DeviceName": "AMS1117-3.3_C6186",
+                "FootprintName": "SOT-223-3_L6.5-W3.4-P2.30-LS7.0-BR"
+            },
+            "pinInfoMap": {
+                "1": {
+                    "name": "GND",
+                    "number": "1",
+                    "net": "GND",
+                    "props": {
+                        "Pin Number": "1"
+                    }
+                },
+                "2": {
+                    "name": "VOUT",
+                    "number": "2",
+                    "net": "3V3",
+                    "props": {
+                        "Pin Number": "2"
+                    }
+                },
+                "3": {
+                    "name": "VIN",
+                    "number": "3",
+                    "net": "5V",
+                    "props": {
+                        "Pin Number": "3"
+                    }
+                },
+                "4": {
+                    "name": "VOUT",
+                    "number": "4",
+                    "net": "3V3",
+                    "props": {
+                        "Pin Number": "4"
+                    }
+                }
+            }
+        },
+        "gge9": {
+            "props": {
+                "Unique ID": "gge9",
+                "Add into BOM": "yes",
+                "Convert to PCB": "yes",
+                "Symbol": "922a467552764c6d",
+                "Designator": "DCDCISOB",
+                "Device": "f989608ea07c94c7",
+                "LCSC Part Name": "",
+                "Supplier Part": "C382171",
+                "Manufacturer": "Taisko(台思科)",
+                "Manufacturer Part": "B0505S-1WR2",
+                "Supplier Footprint": "",
+                "JLCPCB Part Class": "",
+                "Datasheet": "",
+                "Supplier": "LCSC",
+                "Footprint": "f36bf72baacf17bc",
+                "3D Model": "2d832978aac44072876c6a9ebb5e1a29|0819f05c4eef4c71ace90d822a990e87",
+                "3D Model Title": "PWRM-TH_BXXXXS-1WR2",
+                "3D Model Transform": "456.692,236.25937,0,0,0,0,0,-82.677,-157.48",
+                "Type": "",
+                "Number of Outputs": "",
+                "Output Power": "",
+                "Voltage - Supply": "",
+                "Conversion Efficiency": "",
+                "Output Voltage": "",
+                "Output Current(Max)": "",
+                "Capacitive Load(Max)": "",
+                "Isolation Voltage(Vrms)": "",
+                "Features": "",
+                "Operating Temperature": "",
+                "Value": "",
+                "Quiescent Supply Current": "",
+                "Ripple Noise": "",
+                "Length": "",
+                "Width": "",
+                "Height": "",
+                "Voltage Regulation": "",
+                "Name": "={Value}",
+                "Description": "",
+                "Reuse Block": "",
+                "Group ID": "",
+                "Channel ID": "$1I26939",
+                "DeviceName": "B0505S-1WR2",
+                "FootprintName": "PWRM-TH_BXXXXS-1WR2"
+            },
+            "pinInfoMap": {
+                "1": {
+                    "name": "-VIN",
+                    "number": "1",
+                    "net": "GND",
+                    "props": {
+                        "Pin Number": "1"
+                    }
+                },
+                "2": {
+                    "name": "+VIN",
+                    "number": "2",
+                    "net": "5V",
+                    "props": {
+                        "Pin Number": "2"
+                    }
+                },
+                "3": {
+                    "name": "0V",
+                    "number": "3",
+                    "net": "GND_ISO",
+                    "props": {
+                        "Pin Number": "3"
+                    }
+                },
+                "4": {
+                    "name": "+VO",
+                    "number": "4",
+                    "net": "5V_ISO",
+                    "props": {
+                        "Pin Number": "4"
+                    }
+                }
+            }
+        },
+        "gge10": {
+            "props": {
+                "Unique ID": "gge10",
+                "Add into BOM": "yes",
+                "Convert to PCB": "yes",
+                "Symbol": "54a285ddce56d520",
+                "Designator": "C7",
+                "Device": "8cb2ba5e711e651c",
+                "LCSC Part Name": "",
+                "Supplier Part": "C1525",
+                "Manufacturer": "SAMSUNG(三星)",
+                "Manufacturer Part": "CL05B104KO5NNNC",
+                "Supplier Footprint": "",
+                "JLCPCB Part Class": "",
+                "Datasheet": "",
+                "Supplier": "LCSC",
+                "Footprint": "fbb2cd7cfda99c89",
+                "3D Model": "36a51122f27c49738f86b3bfa98863e0|0819f05c4eef4c71ace90d822a990e87",
+                "3D Model Title": "C0402_L1.0-W0.5-H0.5",
+                "3D Model Transform": "39.37,19.685,0,0,0,0,0,0,0",
+                "Value": "",
+                "Tolerance": "",
+                "Voltage Rating": "",
+                "Temperature Coefficient": "",
+                "Name": "={Value}",
+                "Description": "",
+                "Reuse Block": "",
+                "Group ID": "",
+                "Channel ID": "$1I26944",
+                "DeviceName": "CL05B104KO5NNNC",
+                "FootprintName": "C0402"
+            },
+            "pinInfoMap": {
+                "1": {
+                    "name": "1",
+                    "number": "1",
+                    "net": "5V_ISO",
+                    "props": {
+                        "Pin Number": "1"
+                    }
+                },
+                "2": {
+                    "name": "2",
+                    "number": "2",
+                    "net": "GND_ISO",
+                    "props": {
+                        "Pin Number": "2"
+                    }
+                }
+            }
+        },
+        "gge11": {
+            "props": {
+                "Unique ID": "gge11",
+                "Add into BOM": "yes",
+                "Convert to PCB": "yes",
+                "Symbol": "6ebb610dd208e2c6",
+                "Designator": "D1",
+                "Device": "cf07c05d49698612",
+                "LCSC Part Name": "",
+                "Supplier Part": "C32677",
+                "Manufacturer": "PROTEK",
+                "Manufacturer Part": "PSM712-LF-T7",
+                "Supplier Footprint": "",
+                "JLCPCB Part Class": "",
+                "Datasheet": "",
+                "Supplier": "LCSC",
+                "Footprint": "dc7e0c38f3d43c1c",
+                "3D Model": "89cb27a44ab2466697082bb9fd73a7d0|0819f05c4eef4c71ace90d822a990e87",
+                "3D Model Title": "SOT-23-3L_L2.9-W1.6-H1.1-LS2.8-P0.95",
+                "3D Model Transform": "114.173,110.236,0,90,0,0,0,0,0",
+                "Polarity": "",
+                "Reverse Stand-Off Voltage (Vrwm)": "",
+                "Clamping Voltage": "",
+                "Peak Pulse Current (Ipp)": "",
+                "Peak Pulse Power Dissipation (Ppp)": "",
+                "Voltage - Breakdown": "",
+                "Reverse Leakage Current (Ir)": "",
+                "Operating Temperature": "",
+                "level of protection": "",
+                "Type": "",
+                "Junction Capacitance": "",
+                "Name": "={Manufacturer Part}",
+                "Description": "",
+                "Reuse Block": "",
+                "Group ID": "",
+                "Channel ID": "$1I26945",
+                "DeviceName": "PSM712-LF-T7",
+                "FootprintName": "SOT-23-3_L3.0-W1.7-P0.95-LS2.9-BR"
+            },
+            "pinInfoMap": {
+                "1": {
+                    "name": "A1",
+                    "number": "1",
+                    "net": "RS485_A",
+                    "props": {
+                        "Pin Number": "1"
+                    }
+                },
+                "2": {
+                    "name": "A1",
+                    "number": "2",
+                    "net": "RS485_B",
+                    "props": {
+                        "Pin Number": "2"
+                    }
+                },
+                "3": {
+                    "name": "K",
+                    "number": "3",
+                    "net": "GND_ISO",
+                    "props": {
+                        "Pin Number": "3"
+                    }
+                }
+            }
+        },
+        "gge12": {
+            "props": {
+                "Unique ID": "gge12",
+                "Add into BOM": "yes",
+                "Convert to PCB": "yes",
+                "Symbol": "308508584978114c",
+                "Designator": "J1",
+                "Device": "7398780eaf8c367a",
+                "LCSC Part Name": "",
+                "Supplier Part": "C9900019072",
+                "Manufacturer": "",
+                "Manufacturer Part": "LC-3P-S-5.08-W",
+                "Supplier Footprint": "",
+                "JLCPCB Part Class": "",
+                "Datasheet": "",
+                "Supplier": "LCSC",
+                "Footprint": "21e06149f3ddc01c",
+                "3D Model": "d7481718c663417fb0e048b0abd4dc75|0819f05c4eef4c71ace90d822a990e87",
+                "3D Model Title": "CONN-TH_3P-P5.08_2EHDR-03P",
+                "3D Model Transform": "595.2744,472.44,0,0,0,0,0,-167.283,-157.48",
+                "Name": "={Manufacturer Part}",
+                "Description": "",
+                "Reuse Block": "",
+                "Group ID": "",
+                "Channel ID": "$1I26946",
+                "DeviceName": "LC-3P-S-5.08-W",
+                "FootprintName": "CONN-TH_3P-P5.08_2EHDR-03P"
+            },
+            "pinInfoMap": {
+                "1": {
+                    "name": "1",
+                    "number": "1",
+                    "net": "RS485_A",
+                    "props": {
+                        "Pin Number": "1"
+                    }
+                },
+                "2": {
+                    "name": "2",
+                    "number": "2",
+                    "net": "RS485_B",
+                    "props": {
+                        "Pin Number": "2"
+                    }
+                },
+                "3": {
+                    "name": "3",
+                    "number": "3",
+                    "net": "GND_ISO",
+                    "props": {
+                        "Pin Number": "3"
+                    }
+                }
+            }
+        },
+        "gge13": {
+            "props": {
+                "Unique ID": "gge13",
+                "Add into BOM": "yes",
+                "Convert to PCB": "yes",
+                "Symbol": "8f2dc0e02d2b8f08",
+                "Designator": "J2",
+                "Device": "96c427bb769f8158",
+                "LCSC Part Name": "",
+                "Supplier Part": "C9900009052",
+                "Manufacturer": "",
+                "Manufacturer Part": "SIP2-2.54mm单排针",
+                "Supplier Footprint": "",
+                "JLCPCB Part Class": "",
+                "Datasheet": "",
+                "Supplier": "LCSC",
+                "Footprint": "af1fd8f9fab1ef05",
+                "3D Model": "79b2e9f2d70a4d68a1b7098f27c6d4c5|0819f05c4eef4c71ace90d822a990e87",
+                "3D Model Title": "HDR-M-2.54_1x2",
+                "3D Model Transform": "200,100,0,0,0,0,0,0,-118.11",
+                "Name": "={Manufacturer Part}",
+                "Description": "",
+                "Reuse Block": "",
+                "Group ID": "",
+                "Channel ID": "$1I26947",
+                "DeviceName": "SIP2-2.54mm单排针",
+                "FootprintName": "HDR-TH_2P-P2.54-V-M-1"
+            },
+            "pinInfoMap": {
+                "1": {
+                    "name": "1",
+                    "number": "1",
+                    "net": "RS485_A",
+                    "props": {
+                        "Pin Number": "1"
+                    }
+                },
+                "2": {
+                    "name": "2",
+                    "number": "2",
+                    "net": "RS485_XCVR_N5",
+                    "props": {
+                        "Pin Number": "2"
+                    }
+                }
+            }
+        },
+        "gge14": {
+            "props": {
+                "Unique ID": "gge14",
+                "Add into BOM": "yes",
+                "Convert to PCB": "yes",
+                "Symbol": "5cd8784c01de6404",
+                "Designator": "R1",
+                "Device": "546e7ca40ba9b71f",
+                "LCSC Part Name": "",
+                "Supplier Part": "C25130",
+                "Manufacturer": "UNI-ROYAL(厚声)",
+                "Manufacturer Part": "0402WGF6800TCE",
+                "Supplier Footprint": "",
+                "JLCPCB Part Class": "",
+                "Datasheet": "",
+                "Supplier": "LCSC",
+                "Footprint": "875bcc1990663929",
+                "3D Model": "98c88bc2b9094f218f3a3e30a7012738|0819f05c4eef4c71ace90d822a990e87",
+                "3D Model Title": "R0402_L1.0-W0.5-H0.4",
+                "3D Model Transform": "39.37,19.685,0,0,0,0,0,0,0",
+                "Type": "",
+                "Value": "",
+                "Tolerance": "",
+                "Power(Watts)": "",
+                "Voltage-Supply(Max)": "",
+                "Temperature Coefficient": "",
+                "Operating Temperature": "",
+                "Name": "={Value}",
+                "Description": "",
+                "Reuse Block": "",
+                "Group ID": "",
+                "Channel ID": "$1I26948",
+                "DeviceName": "0402WGF6800TCE",
+                "FootprintName": "R0402"
+            },
+            "pinInfoMap": {
+                "1": {
+                    "name": "1",
+                    "number": "1",
+                    "net": "5V_ISO",
+                    "props": {
+                        "Pin Number": "1"
+                    }
+                },
+                "2": {
+                    "name": "2",
+                    "number": "2",
+                    "net": "RS485_A",
+                    "props": {
+                        "Pin Number": "2"
+                    }
+                }
+            }
+        },
+        "gge15": {
+            "props": {
+                "Unique ID": "gge15",
+                "Add into BOM": "yes",
+                "Convert to PCB": "yes",
+                "Symbol": "5cd8784c01de6404",
+                "Designator": "R2",
+                "Device": "546e7ca40ba9b71f",
+                "LCSC Part Name": "",
+                "Supplier Part": "C25130",
+                "Manufacturer": "UNI-ROYAL(厚声)",
+                "Manufacturer Part": "0402WGF6800TCE",
+                "Supplier Footprint": "",
+                "JLCPCB Part Class": "",
+                "Datasheet": "",
+                "Supplier": "LCSC",
+                "Footprint": "875bcc1990663929",
+                "3D Model": "98c88bc2b9094f218f3a3e30a7012738|0819f05c4eef4c71ace90d822a990e87",
+                "3D Model Title": "R0402_L1.0-W0.5-H0.4",
+                "3D Model Transform": "39.37,19.685,0,0,0,0,0,0,0",
+                "Type": "",
+                "Value": "",
+                "Tolerance": "",
+                "Power(Watts)": "",
+                "Voltage-Supply(Max)": "",
+                "Temperature Coefficient": "",
+                "Operating Temperature": "",
+                "Name": "={Value}",
+                "Description": "",
+                "Reuse Block": "",
+                "Group ID": "",
+                "Channel ID": "$1I26949",
+                "DeviceName": "0402WGF6800TCE",
+                "FootprintName": "R0402"
+            },
+            "pinInfoMap": {
+                "1": {
+                    "name": "1",
+                    "number": "1",
+                    "net": "RS485_B",
+                    "props": {
+                        "Pin Number": "1"
+                    }
+                },
+                "2": {
+                    "name": "2",
+                    "number": "2",
+                    "net": "GND_ISO",
+                    "props": {
+                        "Pin Number": "2"
+                    }
+                }
+            }
+        },
+        "gge16": {
+            "props": {
+                "Unique ID": "gge16",
+                "Add into BOM": "yes",
+                "Convert to PCB": "yes",
+                "Symbol": "b3f63d085d0e4011",
+                "Designator": "R3",
+                "Device": "86ac3dc0c1d9381b",
+                "LCSC Part Name": "",
+                "Supplier Part": "C17909",
+                "Manufacturer": "UNI-ROYAL(厚声)",
+                "Manufacturer Part": "1206W4F1200T5E",
+                "Supplier Footprint": "",
+                "JLCPCB Part Class": "",
+                "Datasheet": "",
+                "Supplier": "LCSC",
+                "Footprint": "29dee8add8f845dc",
+                "3D Model": "89a1f13db2384da588040e0b3c55bf66|0819f05c4eef4c71ace90d822a990e87",
+                "3D Model Title": "R1206_L3.2-W1.6-H0.6",
+                "3D Model Transform": "125.984,62.992,0,0,0,0,0,0,0",
+                "Type": "",
+                "Value": "",
+                "Tolerance": "",
+                "Power(Watts)": "",
+                "Voltage-Supply(Max)": "",
+                "Temperature Coefficient": "",
+                "Operating Temperature": "",
+                "Name": "={Value}",
+                "Description": "",
+                "Reuse Block": "",
+                "Group ID": "",
+                "Channel ID": "$1I26950",
+                "DeviceName": "1206W4F1200T5E",
+                "FootprintName": "R1206"
+            },
+            "pinInfoMap": {
+                "1": {
+                    "name": "1",
+                    "number": "1",
+                    "net": "RS485_XCVR_N5",
+                    "props": {
+                        "Pin Number": "1"
+                    }
+                },
+                "2": {
+                    "name": "2",
+                    "number": "2",
+                    "net": "RS485_B",
+                    "props": {
+                        "Pin Number": "2"
+                    }
+                }
+            }
+        },
+        "gge17": {
+            "props": {
+                "Unique ID": "gge17",
+                "Add into BOM": "yes",
+                "Convert to PCB": "yes",
+                "Symbol": "7e86a9e4c393403f",
+                "Designator": "R4",
+                "Device": "ad9eec07ab46b237",
+                "LCSC Part Name": "",
+                "Supplier Part": "C25744",
+                "Manufacturer": "UNI-ROYAL(厚声)",
+                "Manufacturer Part": "0402WGF1002TCE",
+                "Supplier Footprint": "",
+                "JLCPCB Part Class": "",
+                "Datasheet": "",
+                "Supplier": "LCSC",
+                "Footprint": "875bcc1990663929",
+                "3D Model": "98c88bc2b9094f218f3a3e30a7012738|0819f05c4eef4c71ace90d822a990e87",
+                "3D Model Title": "R0402_L1.0-W0.5-H0.4",
+                "3D Model Transform": "39.37,19.685,0,0,0,0,0,0,0",
+                "Type": "",
+                "Value": "",
+                "Tolerance": "",
+                "Power(Watts)": "",
+                "Voltage-Supply(Max)": "",
+                "Temperature Coefficient": "",
+                "Operating Temperature": "",
+                "Name": "={Value}",
+                "Description": "",
+                "Reuse Block": "",
+                "Group ID": "",
+                "Channel ID": "$1I26951",
+                "DeviceName": "0402WGF1002TCE",
+                "FootprintName": "R0402"
+            },
+            "pinInfoMap": {
+                "1": {
+                    "name": "1",
+                    "number": "1",
+                    "net": "DE_ISO",
+                    "props": {
+                        "Pin Number": "1"
+                    }
+                },
+                "2": {
+                    "name": "2",
+                    "number": "2",
+                    "net": "GND_ISO",
+                    "props": {
+                        "Pin Number": "2"
+                    }
+                }
+            }
+        },
+        "gge18": {
+            "props": {
+                "Unique ID": "gge18",
+                "Add into BOM": "yes",
+                "Convert to PCB": "yes",
+                "Symbol": "c7960b3a2b2432c2",
+                "Designator": "U3",
+                "Device": "9be8850313edb610",
+                "LCSC Part Name": "",
+                "Supplier Part": "C8963",
+                "Manufacturer": "MaxLinear(迈凌)",
+                "Manufacturer Part": "SP3485EN-L/TR",
+                "Supplier Footprint": "",
+                "JLCPCB Part Class": "",
+                "Datasheet": "",
+                "Supplier": "LCSC",
+                "Footprint": "78856ea9e6af98af",
+                "3D Model": "7abc64c95a1a4a04a4ef38f9097c870b|0819f05c4eef4c71ace90d822a990e87",
+                "3D Model Title": "SOIC-8_L5.0-W4.0-P1.27-LS6.0-BL",
+                "3D Model Transform": "192.913,236.22,0,0,0,0,0,0,0",
+                "Type": "",
+                "Number of Drivers": "",
+                "Number of Receivers": "",
+                "Voltage - Supply": "",
+                "Data Rate": "",
+                "Number of Nodes": "",
+                "ESD Protect": "",
+                "Operating Temperature": "",
+                "Quiescent Supply Current": "",
+                "Communication Mode": "",
+                "Features": "",
+                "Name": "={Manufacturer Part}",
+                "Description": "",
+                "Reuse Block": "",
+                "Group ID": "",
+                "Channel ID": "$1I26952",
+                "DeviceName": "SP3485EN-L/TR",
+                "FootprintName": "SOIC-8_L5.0-W4.0-P1.27-LS6.0-BL"
+            },
+            "pinInfoMap": {
+                "1": {
+                    "name": "RO",
+                    "number": "1",
+                    "net": "RXD_ISO",
+                    "props": {
+                        "Pin Number": "1"
+                    }
+                },
+                "2": {
+                    "name": "RE#",
+                    "number": "2",
+                    "net": "DE_ISO",
+                    "props": {
+                        "Pin Number": "2"
+                    }
+                },
+                "3": {
+                    "name": "DE",
+                    "number": "3",
+                    "net": "DE_ISO",
+                    "props": {
+                        "Pin Number": "3"
+                    }
+                },
+                "4": {
+                    "name": "DI",
+                    "number": "4",
+                    "net": "TXD_ISO",
+                    "props": {
+                        "Pin Number": "4"
+                    }
+                },
+                "5": {
+                    "name": "GND",
+                    "number": "5",
+                    "net": "GND_ISO",
+                    "props": {
+                        "Pin Number": "5"
+                    }
+                },
+                "6": {
+                    "name": "A",
+                    "number": "6",
+                    "net": "RS485_A",
+                    "props": {
+                        "Pin Number": "6"
+                    }
+                },
+                "7": {
+                    "name": "B",
+                    "number": "7",
+                    "net": "RS485_B",
+                    "props": {
+                        "Pin Number": "7"
+                    }
+                },
+                "8": {
+                    "name": "VCC",
+                    "number": "8",
+                    "net": "5V_ISO",
+                    "props": {
+                        "Pin Number": "8"
+                    }
+                }
+            }
+        },
+        "gge19": {
+            "props": {
+                "Unique ID": "gge19",
+                "Add into BOM": "yes",
+                "Convert to PCB": "yes",
+                "Symbol": "abdf40f1151b0dc7",
+                "Designator": "OPTOTXD",
+                "Device": "4b35f22a60c8f791",
+                "LCSC Part Name": "",
+                "Supplier Part": "C4075",
+                "Manufacturer": "SHARP(夏普)",
+                "Manufacturer Part": "PC817X3NSZW(C档）",
+                "Supplier Footprint": "",
+                "JLCPCB Part Class": "",
+                "Datasheet": "",
+                "Supplier": "LCSC",
+                "Footprint": "289dc110c6e2ffcc",
+                "3D Model": "3336c52d5161474da8242cad6f1674ce|0819f05c4eef4c71ace90d822a990e87",
+                "3D Model Title": "DIP-4_L6.4-W4.6-P2.54-LS7.6-BL",
+                "3D Model Transform": "181.102,307.8734,0,0,0,0,0,0.001,-118.11",
+                "Name": "={Manufacturer Part}",
+                "Description": "",
+                "Reuse Block": "",
+                "Group ID": "",
+                "Channel ID": "$1I26988",
+                "DeviceName": "PC817X3NSZW(C档）",
+                "FootprintName": "DIP-4_L6.4-W4.6-P2.54-LS7.6-BL"
+            },
+            "pinInfoMap": {
+                "1": {
+                    "name": "1",
+                    "number": "1",
+                    "net": "TXD",
+                    "props": {
+                        "Pin Number": "1"
+                    }
+                },
+                "2": {
+                    "name": "2",
+                    "number": "2",
+                    "net": "GND",
+                    "props": {
+                        "Pin Number": "2"
+                    }
+                },
+                "3": {
+                    "name": "3",
+                    "number": "3",
+                    "net": "GND_ISO",
+                    "props": {
+                        "Pin Number": "3"
+                    }
+                },
+                "4": {
+                    "name": "4",
+                    "number": "4",
+                    "net": "TXD_ISO",
+                    "props": {
+                        "Pin Number": "4"
+                    }
+                }
+            }
+        },
+        "gge20": {
+            "props": {
+                "Unique ID": "gge20",
+                "Add into BOM": "yes",
+                "Convert to PCB": "yes",
+                "Symbol": "abdf40f1151b0dc7",
+                "Designator": "OPTORXD",
+                "Device": "4b35f22a60c8f791",
+                "LCSC Part Name": "",
+                "Supplier Part": "C4075",
+                "Manufacturer": "SHARP(夏普)",
+                "Manufacturer Part": "PC817X3NSZW(C档）",
+                "Supplier Footprint": "",
+                "JLCPCB Part Class": "",
+                "Datasheet": "",
+                "Supplier": "LCSC",
+                "Footprint": "289dc110c6e2ffcc",
+                "3D Model": "3336c52d5161474da8242cad6f1674ce|0819f05c4eef4c71ace90d822a990e87",
+                "3D Model Title": "DIP-4_L6.4-W4.6-P2.54-LS7.6-BL",
+                "3D Model Transform": "181.102,307.8734,0,0,0,0,0,0.001,-118.11",
+                "Name": "={Manufacturer Part}",
+                "Description": "",
+                "Reuse Block": "",
+                "Group ID": "",
+                "Channel ID": "$1I26993",
+                "DeviceName": "PC817X3NSZW(C档）",
+                "FootprintName": "DIP-4_L6.4-W4.6-P2.54-LS7.6-BL"
+            },
+            "pinInfoMap": {
+                "1": {
+                    "name": "1",
+                    "number": "1",
+                    "net": "RXD_ISO",
+                    "props": {
+                        "Pin Number": "1"
+                    }
+                },
+                "2": {
+                    "name": "2",
+                    "number": "2",
+                    "net": "GND_ISO",
+                    "props": {
+                        "Pin Number": "2"
+                    }
+                },
+                "3": {
+                    "name": "3",
+                    "number": "3",
+                    "net": "GND",
+                    "props": {
+                        "Pin Number": "3"
+                    }
+                },
+                "4": {
+                    "name": "4",
+                    "number": "4",
+                    "net": "RXD",
+                    "props": {
+                        "Pin Number": "4"
+                    }
+                }
+            }
+        },
+        "gge21": {
+            "props": {
+                "Unique ID": "gge21",
+                "Add into BOM": "yes",
+                "Convert to PCB": "yes",
+                "Symbol": "abdf40f1151b0dc7",
+                "Designator": "OPTODE",
+                "Device": "4b35f22a60c8f791",
+                "LCSC Part Name": "",
+                "Supplier Part": "C4075",
+                "Manufacturer": "SHARP(夏普)",
+                "Manufacturer Part": "PC817X3NSZW(C档）",
+                "Supplier Footprint": "",
+                "JLCPCB Part Class": "",
+                "Datasheet": "",
+                "Supplier": "LCSC",
+                "Footprint": "289dc110c6e2ffcc",
+                "3D Model": "3336c52d5161474da8242cad6f1674ce|0819f05c4eef4c71ace90d822a990e87",
+                "3D Model Title": "DIP-4_L6.4-W4.6-P2.54-LS7.6-BL",
+                "3D Model Transform": "181.102,307.8734,0,0,0,0,0,0.001,-118.11",
+                "Name": "={Manufacturer Part}",
+                "Description": "",
+                "Reuse Block": "",
+                "Group ID": "",
+                "Channel ID": "$1I26998",
+                "DeviceName": "PC817X3NSZW(C档）",
+                "FootprintName": "DIP-4_L6.4-W4.6-P2.54-LS7.6-BL"
+            },
+            "pinInfoMap": {
+                "1": {
+                    "name": "1",
+                    "number": "1",
+                    "net": "DE",
+                    "props": {
+                        "Pin Number": "1"
+                    }
+                },
+                "2": {
+                    "name": "2",
+                    "number": "2",
+                    "net": "GND",
+                    "props": {
+                        "Pin Number": "2"
+                    }
+                },
+                "3": {
+                    "name": "3",
+                    "number": "3",
+                    "net": "GND_ISO",
+                    "props": {
+                        "Pin Number": "3"
+                    }
+                },
+                "4": {
+                    "name": "4",
+                    "number": "4",
+                    "net": "DE_ISO",
+                    "props": {
+                        "Pin Number": "4"
+                    }
+                }
+            }
+        },
+        "gge22": {
+            "props": {
+                "Unique ID": "gge22",
+                "Add into BOM": "yes",
+                "Convert to PCB": "yes",
+                "Symbol": "e4f32d0fa66a392b",
+                "Designator": "ULN2003D",
+                "Device": "bda69c2f3624563a",
+                "LCSC Part Name": "",
+                "Supplier Part": "C7512",
+                "Manufacturer": "TI(德州仪器)",
+                "Manufacturer Part": "ULN2003ADR",
+                "Supplier Footprint": "",
+                "JLCPCB Part Class": "",
+                "Datasheet": "",
+                "Supplier": "LCSC",
+                "Footprint": "6f2f7aac820ac87c",
+                "3D Model": "c21ec766ec2643efb3352f8441994f4e|0819f05c4eef4c71ace90d822a990e87",
+                "3D Model Title": "SOIC-16_L9.9-W3.9-H1.8-LS6.0-P1.27",
+                "3D Model Transform": "389.763,236.454,0,0,0,0,0,0,0",
+                "number of channels": "",
+                "Collector - Emitter Voltage VCEO": "",
+                "Current - Collector(Ic)": "",
+                "Voltage - Input(Max)": "",
+                "Operating Temperature": "",
+                "Output Leakage Current(Icex)": "",
+                "Vce Saturation(VCE(sat))": "",
+                "Input Current(on)": "",
+                "Input Current(off)": "",
+                "Voltage - Forward(Vf)": "",
+                "Reverse Leakage Current (Ir)": "",
+                "Input Capacitiance(Ci)": "",
+                "Type": "",
+                "Name": "={Manufacturer Part}",
+                "Description": "",
+                "Reuse Block": "",
+                "Group ID": "",
+                "Channel ID": "$1I27003",
+                "DeviceName": "ULN2003ADR",
+                "FootprintName": "SOIC-16_L9.9-W3.9-P1.27-LS6.0-BL"
+            },
+            "pinInfoMap": {
+                "1": {
+                    "name": "1B",
+                    "number": "1",
+                    "net": "OUT1_IN",
+                    "props": {
+                        "Pin Number": "1"
+                    }
+                },
+                "2": {
+                    "name": "2B",
+                    "number": "2",
+                    "net": "OUT2_IN",
+                    "props": {
+                        "Pin Number": "2"
+                    }
+                },
+                "3": {
+                    "name": "3B",
+                    "number": "3",
+                    "net": "OUT3_IN",
+                    "props": {
+                        "Pin Number": "3"
+                    }
+                },
+                "4": {
+                    "name": "4B",
+                    "number": "4",
+                    "net": "OUT4_IN",
+                    "props": {
+                        "Pin Number": "4"
+                    }
+                },
+                "5": {
+                    "name": "5B",
+                    "number": "5",
+                    "net": "",
+                    "props": {
+                        "Pin Number": "5"
+                    }
+                },
+                "6": {
+                    "name": "6B",
+                    "number": "6",
+                    "net": "",
+                    "props": {
+                        "Pin Number": "6"
+                    }
+                },
+                "7": {
+                    "name": "7B",
+                    "number": "7",
+                    "net": "",
+                    "props": {
+                        "Pin Number": "7"
+                    }
+                },
+                "8": {
+                    "name": "E",
+                    "number": "8",
+                    "net": "GND",
+                    "props": {
+                        "Pin Number": "8"
+                    }
+                },
+                "9": {
+                    "name": "COM",
+                    "number": "9",
+                    "net": "5V",
+                    "props": {
+                        "Pin Number": "9"
+                    }
+                },
+                "10": {
+                    "name": "7C",
+                    "number": "10",
+                    "net": "",
+                    "props": {
+                        "Pin Number": "10"
+                    }
+                },
+                "11": {
+                    "name": "6C",
+                    "number": "11",
+                    "net": "",
+                    "props": {
+                        "Pin Number": "11"
+                    }
+                },
+                "12": {
+                    "name": "5C",
+                    "number": "12",
+                    "net": "",
+                    "props": {
+                        "Pin Number": "12"
+                    }
+                },
+                "13": {
+                    "name": "4C",
+                    "number": "13",
+                    "net": "OUT4",
+                    "props": {
+                        "Pin Number": "13"
+                    }
+                },
+                "14": {
+                    "name": "3C",
+                    "number": "14",
+                    "net": "OUT3",
+                    "props": {
+                        "Pin Number": "14"
+                    }
+                },
+                "15": {
+                    "name": "2C",
+                    "number": "15",
+                    "net": "OUT2",
+                    "props": {
+                        "Pin Number": "15"
+                    }
+                },
+                "16": {
+                    "name": "1C",
+                    "number": "16",
+                    "net": "OUT1",
+                    "props": {
+                        "Pin Number": "16"
+                    }
+                }
+            }
+        },
+        "gge23": {
+            "props": {
+                "Unique ID": "gge23",
+                "Add into BOM": "yes",
+                "Convert to PCB": "yes",
+                "Symbol": "122b6d0f93b2a17d",
+                "Designator": "HDR1",
+                "Device": "9f5a5267f73b70a5",
+                "LCSC Part Name": "",
+                "Supplier Part": "C9900019920",
+                "Manufacturer": "",
+                "Manufacturer Part": "2.54-4PWT卧贴",
+                "Supplier Footprint": "",
+                "JLCPCB Part Class": "",
+                "Datasheet": "",
+                "Supplier": "LCSC",
+                "Footprint": "850276469c0861ff",
+                "3D Model": "3783e1d0e4c44579b7dac4a093bea4ca|0819f05c4eef4c71ace90d822a990e87",
+                "3D Model Title": "COMM-SMD_4P-P2.50_SHOUHAN_2.54-4PWT",
+                "3D Model Transform": "590.55,401.57404,0,0,0,0,0,-6.378,0",
+                "Name": "={Manufacturer Part}",
+                "Description": "",
+                "Reuse Block": "",
+                "Group ID": "",
+                "Channel ID": "$1I27014",
+                "DeviceName": "2.54-4PWT卧贴",
+                "FootprintName": "COMM-SMD_4P-P2.50_SHOUHAN_2.54-4PWT"
+            },
+            "pinInfoMap": {
+                "1": {
+                    "name": "1",
+                    "number": "1",
+                    "net": "5V",
+                    "props": {
+                        "Pin Number": "1"
+                    }
+                },
+                "2": {
+                    "name": "2",
+                    "number": "2",
+                    "net": "3V3",
+                    "props": {
+                        "Pin Number": "2"
+                    }
+                },
+                "3": {
+                    "name": "3",
+                    "number": "3",
+                    "net": "GND",
+                    "props": {
+                        "Pin Number": "3"
+                    }
+                },
+                "4": {
+                    "name": "4",
+                    "number": "4",
+                    "net": "GND",
+                    "props": {
+                        "Pin Number": "4"
+                    }
+                },
+                "5": {
+                    "name": "5",
+                    "number": "5",
+                    "net": "",
+                    "props": {
+                        "Pin Number": "5"
+                    }
+                },
+                "6": {
+                    "name": "6",
+                    "number": "6",
+                    "net": "",
+                    "props": {
+                        "Pin Number": "6"
+                    }
+                }
+            }
+        },
+        "gge24": {
+            "props": {
+                "Unique ID": "gge24",
+                "Add into BOM": "yes",
+                "Convert to PCB": "yes",
+                "Symbol": "122b6d0f93b2a17d",
+                "Designator": "HDR2",
+                "Device": "9f5a5267f73b70a5",
+                "LCSC Part Name": "",
+                "Supplier Part": "C9900019920",
+                "Manufacturer": "",
+                "Manufacturer Part": "2.54-4PWT卧贴",
+                "Supplier Footprint": "",
+                "JLCPCB Part Class": "",
+                "Datasheet": "",
+                "Supplier": "LCSC",
+                "Footprint": "850276469c0861ff",
+                "3D Model": "3783e1d0e4c44579b7dac4a093bea4ca|0819f05c4eef4c71ace90d822a990e87",
+                "3D Model Title": "COMM-SMD_4P-P2.50_SHOUHAN_2.54-4PWT",
+                "3D Model Transform": "590.55,401.57404,0,0,0,0,0,-6.378,0",
+                "Name": "={Manufacturer Part}",
+                "Description": "",
+                "Reuse Block": "",
+                "Group ID": "",
+                "Channel ID": "$1I27019",
+                "DeviceName": "2.54-4PWT卧贴",
+                "FootprintName": "COMM-SMD_4P-P2.50_SHOUHAN_2.54-4PWT"
+            },
+            "pinInfoMap": {
+                "1": {
+                    "name": "1",
+                    "number": "1",
+                    "net": "TXD",
+                    "props": {
+                        "Pin Number": "1"
+                    }
+                },
+                "2": {
+                    "name": "2",
+                    "number": "2",
+                    "net": "RXD",
+                    "props": {
+                        "Pin Number": "2"
+                    }
+                },
+                "3": {
+                    "name": "3",
+                    "number": "3",
+                    "net": "DE",
+                    "props": {
+                        "Pin Number": "3"
+                    }
+                },
+                "4": {
+                    "name": "4",
+                    "number": "4",
+                    "net": "RE",
+                    "props": {
+                        "Pin Number": "4"
+                    }
+                },
+                "5": {
+                    "name": "5",
+                    "number": "5",
+                    "net": "",
+                    "props": {
+                        "Pin Number": "5"
+                    }
+                },
+                "6": {
+                    "name": "6",
+                    "number": "6",
+                    "net": "",
+                    "props": {
+                        "Pin Number": "6"
+                    }
+                }
+            }
+        },
+        "gge25": {
+            "props": {
+                "Unique ID": "gge25",
+                "Add into BOM": "yes",
+                "Convert to PCB": "yes",
+                "Symbol": "122b6d0f93b2a17d",
+                "Designator": "HDR3",
+                "Device": "9f5a5267f73b70a5",
+                "LCSC Part Name": "",
+                "Supplier Part": "C9900019920",
+                "Manufacturer": "",
+                "Manufacturer Part": "2.54-4PWT卧贴",
+                "Supplier Footprint": "",
+                "JLCPCB Part Class": "",
+                "Datasheet": "",
+                "Supplier": "LCSC",
+                "Footprint": "850276469c0861ff",
+                "3D Model": "3783e1d0e4c44579b7dac4a093bea4ca|0819f05c4eef4c71ace90d822a990e87",
+                "3D Model Title": "COMM-SMD_4P-P2.50_SHOUHAN_2.54-4PWT",
+                "3D Model Transform": "590.55,401.57404,0,0,0,0,0,-6.378,0",
+                "Name": "={Manufacturer Part}",
+                "Description": "",
+                "Reuse Block": "",
+                "Group ID": "",
+                "Channel ID": "$1I27024",
+                "DeviceName": "2.54-4PWT卧贴",
+                "FootprintName": "COMM-SMD_4P-P2.50_SHOUHAN_2.54-4PWT"
+            },
+            "pinInfoMap": {
+                "1": {
+                    "name": "1",
+                    "number": "1",
+                    "net": "OUT1",
+                    "props": {
+                        "Pin Number": "1"
+                    }
+                },
+                "2": {
+                    "name": "2",
+                    "number": "2",
+                    "net": "OUT2",
+                    "props": {
+                        "Pin Number": "2"
+                    }
+                },
+                "3": {
+                    "name": "3",
+                    "number": "3",
+                    "net": "OUT3",
+                    "props": {
+                        "Pin Number": "3"
+                    }
+                },
+                "4": {
+                    "name": "4",
+                    "number": "4",
+                    "net": "OUT4",
+                    "props": {
+                        "Pin Number": "4"
+                    }
+                },
+                "5": {
+                    "name": "5",
+                    "number": "5",
+                    "net": "",
+                    "props": {
+                        "Pin Number": "5"
+                    }
+                },
+                "6": {
+                    "name": "6",
+                    "number": "6",
+                    "net": "",
+                    "props": {
+                        "Pin Number": "6"
+                    }
+                }
+            }
+        },
+        "gge26": {
+            "props": {
+                "Unique ID": "gge26",
+                "Add into BOM": "yes",
+                "Convert to PCB": "yes",
+                "Symbol": "122b6d0f93b2a17d",
+                "Designator": "HDR4",
+                "Device": "9f5a5267f73b70a5",
+                "LCSC Part Name": "",
+                "Supplier Part": "C9900019920",
+                "Manufacturer": "",
+                "Manufacturer Part": "2.54-4PWT卧贴",
+                "Supplier Footprint": "",
+                "JLCPCB Part Class": "",
+                "Datasheet": "",
+                "Supplier": "LCSC",
+                "Footprint": "850276469c0861ff",
+                "3D Model": "3783e1d0e4c44579b7dac4a093bea4ca|0819f05c4eef4c71ace90d822a990e87",
+                "3D Model Title": "COMM-SMD_4P-P2.50_SHOUHAN_2.54-4PWT",
+                "3D Model Transform": "590.55,401.57404,0,0,0,0,0,-6.378,0",
+                "Name": "={Manufacturer Part}",
+                "Description": "",
+                "Reuse Block": "",
+                "Group ID": "",
+                "Channel ID": "$1I27029",
+                "DeviceName": "2.54-4PWT卧贴",
+                "FootprintName": "COMM-SMD_4P-P2.50_SHOUHAN_2.54-4PWT"
+            },
+            "pinInfoMap": {
+                "1": {
+                    "name": "1",
+                    "number": "1",
+                    "net": "OUT1_IN",
+                    "props": {
+                        "Pin Number": "1"
+                    }
+                },
+                "2": {
+                    "name": "2",
+                    "number": "2",
+                    "net": "OUT2_IN",
+                    "props": {
+                        "Pin Number": "2"
+                    }
+                },
+                "3": {
+                    "name": "3",
+                    "number": "3",
+                    "net": "OUT3_IN",
+                    "props": {
+                        "Pin Number": "3"
+                    }
+                },
+                "4": {
+                    "name": "4",
+                    "number": "4",
+                    "net": "OUT4_IN",
+                    "props": {
+                        "Pin Number": "4"
+                    }
+                },
+                "5": {
+                    "name": "5",
+                    "number": "5",
+                    "net": "",
+                    "props": {
+                        "Pin Number": "5"
+                    }
+                },
+                "6": {
+                    "name": "6",
+                    "number": "6",
+                    "net": "",
+                    "props": {
+                        "Pin Number": "6"
+                    }
+                }
+            }
+        }
+    },
+    "designRule": {
+        "trackPhysics": {
+            "copperThickness1oz": {
+                "name": "copperThickness1oz",
+                "isDefault": true,
+                "unit": "mm",
+                "strokeValue": {
+                    "common": {
+                        "min": 0.127,
+                        "max": 2.54,
+                        "default": 0.254
+                    }
+                }
+            },
+            "copperThickness2oz": {
+                "name": "copperThickness2oz",
+                "isDefault": false,
+                "unit": "mm",
+                "strokeValue": {
+                    "common": {
+                        "min": 0.203,
+                        "max": 2.54,
+                        "default": 0.254
+                    }
+                }
+            }
+        },
+        "netRule": {
+            "5V": {
+                "net": "5V",
+                "ruleMap": {
+                    "TrackPhysics": ""
+                }
+            },
+            "3V3": {
+                "net": "3V3",
+                "ruleMap": {
+                    "TrackPhysics": ""
+                }
+            },
+            "GND": {
+                "net": "GND",
+                "ruleMap": {
+                    "TrackPhysics": ""
+                }
+            },
+            "GND_ISO": {
+                "net": "GND_ISO",
+                "ruleMap": {
+                    "TrackPhysics": ""
+                }
+            },
+            "5V_ISO": {
+                "net": "5V_ISO",
+                "ruleMap": {
+                    "TrackPhysics": ""
+                }
+            },
+            "TXD_ISO": {
+                "net": "TXD_ISO",
+                "ruleMap": {
+                    "TrackPhysics": ""
+                }
+            },
+            "RXD_ISO": {
+                "net": "RXD_ISO",
+                "ruleMap": {
+                    "TrackPhysics": ""
+                }
+            },
+            "DE_ISO": {
+                "net": "DE_ISO",
+                "ruleMap": {
+                    "TrackPhysics": ""
+                }
+            },
+            "RS485_A": {
+                "net": "RS485_A",
+                "ruleMap": {
+                    "TrackPhysics": ""
+                }
+            },
+            "RS485_XCVR_N5": {
+                "net": "RS485_XCVR_N5",
+                "ruleMap": {
+                    "TrackPhysics": ""
+                }
+            },
+            "RS485_B": {
+                "net": "RS485_B",
+                "ruleMap": {
+                    "TrackPhysics": ""
+                }
+            },
+            "TXD": {
+                "net": "TXD",
+                "ruleMap": {
+                    "TrackPhysics": ""
+                }
+            },
+            "RXD": {
+                "net": "RXD",
+                "ruleMap": {
+                    "TrackPhysics": ""
+                }
+            },
+            "DE": {
+                "net": "DE",
+                "ruleMap": {
+                    "TrackPhysics": ""
+                }
+            },
+            "OUT1_IN": {
+                "net": "OUT1_IN",
+                "ruleMap": {
+                    "TrackPhysics": ""
+                }
+            },
+            "OUT2_IN": {
+                "net": "OUT2_IN",
+                "ruleMap": {
+                    "TrackPhysics": ""
+                }
+            },
+            "OUT3_IN": {
+                "net": "OUT3_IN",
+                "ruleMap": {
+                    "TrackPhysics": ""
+                }
+            },
+            "OUT4_IN": {
+                "net": "OUT4_IN",
+                "ruleMap": {
+                    "TrackPhysics": ""
+                }
+            },
+            "OUT1": {
+                "net": "OUT1",
+                "ruleMap": {
+                    "TrackPhysics": ""
+                }
+            },
+            "OUT2": {
+                "net": "OUT2",
+                "ruleMap": {
+                    "TrackPhysics": ""
+                }
+            },
+            "OUT3": {
+                "net": "OUT3",
+                "ruleMap": {
+                    "TrackPhysics": ""
+                }
+            },
+            "OUT4": {
+                "net": "OUT4",
+                "ruleMap": {
+                    "TrackPhysics": ""
+                }
+            },
+            "RE": {
+                "net": "RE",
+                "ruleMap": {
+                    "TrackPhysics": ""
+                }
+            }
+        }
+    },
+    "differentialPair": {},
+    "netClass": {},
+    "equalLengthNetGroup": {}
+}
