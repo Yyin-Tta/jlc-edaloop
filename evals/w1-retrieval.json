@@ -1,39 +1,39 @@
 {
-  "metric": "recall@5: 每个 (需求, 标注块) 对,块出现在 Top-5 即命中;聚合命中率 >= 0.80 为 Go",
-  "note": "每份需求标注 <=5 个关键块(客户正文明确支撑的块);查询文本=需求正文(剔除 evals 标注区与 blockquote 提示行)",
-  "req-01-esp32s3-mini-2layer.md": [
-    "usb-c-power-entry",
-    "usb-serial-ch340n",
-    "ldo-ams1117-3v3",
-    "mcu-esp32s3-wroom1-min",
-    "buttons-boot-reset"
-  ],
-  "req-02-esp32s3-industrial-4layer.md": [
-    "mcu-esp32s3-wroom1-min",
-    "usb-serial-ch340n",
-    "ldo-ams1117-3v3",
-    "rs485-max485",
-    "dc-terminal-5v-input"
-  ],
-  "req-03-power-board.md": [
-    "charger-tp4056",
-    "boost-mt3608",
-    "ldo-ams1117-3v3",
-    "dc-terminal-wide-input",
-    "led-indicator"
-  ],
-  "req-04-interface-board.md": [
-    "rs485-max485",
-    "isolator-pc817",
-    "driver-uln2003",
-    "ldo-ams1117-3v3",
-    "isolated-dc-b0505s"
-  ],
-  "req-05-hybrid-dual-mcu-gateway.md": [
-    "mcu-stm32f103c8-min",
-    "mcu-esp32s3-wroom1-min",
-    "usb-serial-ch340n",
-    "ldo-ams1117-3v3",
-    "eeprom-24c02"
-  ]
+ "metric": "recall@8: 每个 (需求, 标注块) 对,块或其功能等价类成员出现在 Top-8 即命中;聚合 >= 0.80 为 Go。top-k=8 因块库 20→95(密度 4.75x)",
+ "note": "每份需求标注 <=5 个关键块(存等价类代表);等价类:usb-c-power-entry={usb-c-power-entry,usb-c-16p,up-usbc_dual_orientation_data}, dc-terminal-5v-input={dc-terminal-5v-input,terminal-kf301-2p};电压/功能不同不并类",
+ "req-01-esp32s3-mini-2layer.md": [
+  "buttons-boot-reset",
+  "ldo-ams1117-3v3",
+  "mcu-esp32s3-wroom1-min",
+  "usb-c-power-entry",
+  "usb-serial-ch340n"
+ ],
+ "req-02-esp32s3-industrial-4layer.md": [
+  "dc-terminal-5v-input",
+  "ldo-ams1117-3v3",
+  "mcu-esp32s3-wroom1-min",
+  "rs485-max485",
+  "usb-serial-ch340n"
+ ],
+ "req-03-power-board.md": [
+  "boost-mt3608",
+  "charger-tp4056",
+  "dc-terminal-wide-input",
+  "ldo-ams1117-3v3",
+  "led-indicator"
+ ],
+ "req-04-interface-board.md": [
+  "driver-uln2003",
+  "isolated-dc-b0505s",
+  "isolator-pc817",
+  "ldo-ams1117-3v3",
+  "rs485-max485"
+ ],
+ "req-05-hybrid-dual-mcu-gateway.md": [
+  "eeprom-24c02",
+  "ldo-ams1117-3v3",
+  "mcu-esp32s3-wroom1-min",
+  "mcu-stm32f103c8-min",
+  "usb-serial-ch340n"
+ ]
 }
