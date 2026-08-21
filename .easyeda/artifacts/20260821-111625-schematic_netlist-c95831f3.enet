@@ -1,0 +1,249 @@
+{
+    "version": "2.0.0",
+    "components": {
+        "gge1": {
+            "props": {
+                "Unique ID": "gge1",
+                "Add into BOM": "yes",
+                "Convert to PCB": "yes",
+                "Symbol": "e29727bdbf51a590",
+                "Designator": "PROTDW01",
+                "Device": "7b38016698a49fc7",
+                "LCSC Part Name": "",
+                "Supplier Part": "C2927799",
+                "Manufacturer": "YONGYUTAI(永裕泰)",
+                "Manufacturer Part": "DW01A",
+                "Supplier Footprint": "",
+                "JLCPCB Part Class": "",
+                "Datasheet": "",
+                "Supplier": "LCSC",
+                "Footprint": "c824905de513d160",
+                "3D Model": "18da8f6c14a34920b3e136b5c401a119|0819f05c4eef4c71ace90d822a990e87",
+                "3D Model Title": "SOT-23-6_L2.9-W1.6-H1.5-LS2.8-P0.95",
+                "3D Model Transform": "110.236,113.364,0,90,0,0,0.0005,0.0005,0",
+                "The Chip Type": "",
+                "Voltage - Supply": "",
+                "Charge Current - Max": "",
+                "Charging Saturation Voltage": "",
+                "End-Off Voltage": "",
+                "Type of Battery": "",
+                "Number of Cells": "",
+                "Operating Temperature": "",
+                "Battery Temperature Detection": "",
+                "0V Battery Charge": "",
+                "Supply Current (Iq)": "",
+                "Balance Current": "",
+                "Interface": "",
+                "Name": "={Manufacturer Part}",
+                "Description": "",
+                "Reuse Block": "",
+                "Group ID": "",
+                "Channel ID": "$1I33288",
+                "DeviceName": "DW01A",
+                "FootprintName": "SOT-23-6_L2.9-W1.6-P0.95-LS2.8-BL"
+            },
+            "pinInfoMap": {
+                "1": {
+                    "name": "OD",
+                    "number": "1",
+                    "net": "OD",
+                    "props": {
+                        "Pin Number": "1"
+                    }
+                },
+                "2": {
+                    "name": "CSI",
+                    "number": "2",
+                    "net": "CSI",
+                    "props": {
+                        "Pin Number": "2"
+                    }
+                },
+                "3": {
+                    "name": "OC",
+                    "number": "3",
+                    "net": "OC",
+                    "props": {
+                        "Pin Number": "3"
+                    }
+                },
+                "4": {
+                    "name": "NC",
+                    "number": "4",
+                    "net": "",
+                    "props": {
+                        "Pin Number": "4"
+                    }
+                },
+                "5": {
+                    "name": "VDD",
+                    "number": "5",
+                    "net": "VDD",
+                    "props": {
+                        "Pin Number": "5"
+                    }
+                },
+                "6": {
+                    "name": "VSS",
+                    "number": "6",
+                    "net": "B-",
+                    "props": {
+                        "Pin Number": "6"
+                    }
+                }
+            }
+        },
+        "gge2": {
+            "props": {
+                "Unique ID": "gge2",
+                "Add into BOM": "yes",
+                "Convert to PCB": "yes",
+                "Symbol": "7d5bb0161f1b5b71",
+                "Designator": "PROTFS82",
+                "Device": "3dbdf6c1bb5a2266",
+                "LCSC Part Name": "",
+                "Supplier Part": "C2830320",
+                "Manufacturer": "TECH PUBLIC(台舟)",
+                "Manufacturer Part": "FS8205A",
+                "Supplier Footprint": "",
+                "JLCPCB Part Class": "",
+                "Datasheet": "",
+                "Supplier": "LCSC",
+                "Footprint": "2287d60160f59952",
+                "3D Model": "18da8f6c14a34920b3e136b5c401a119|0819f05c4eef4c71ace90d822a990e87",
+                "3D Model Title": "SOT-23-6_L2.9-W1.6-H1.5-LS2.8-P0.95",
+                "3D Model Transform": "110.73671,114.173,0,180,0,0,0.001,-0.003,0",
+                "Type": "",
+                "Drain Source Voltage (Vdss)": "",
+                "Continuous Drain Current (Id)": "",
+                "Drain Source On Resistance (RDS(on)@Vgs,Id)": "",
+                "Power Dissipation (Pd)": "",
+                "Gate Threshold Voltage (Vgs(th)@Id)": "",
+                "Total Gate Charge (Qg@Vgs)": "",
+                "Input Capacitance (Ciss@Vds)": "",
+                "Reverse Transfer Capacitance (Crss@Vds)": "",
+                "Operating Temperature": "",
+                "Name": "={Manufacturer Part}",
+                "Description": "",
+                "Reuse Block": "",
+                "Group ID": "",
+                "Channel ID": "$1I33294",
+                "DeviceName": "FS8205A",
+                "FootprintName": "SOT-23-6_L2.9-W1.6-P0.95-LS2.8-BR"
+            },
+            "pinInfoMap": {
+                "1": {
+                    "name": "S1",
+                    "number": "1",
+                    "net": "B-",
+                    "props": {
+                        "Pin Number": "1"
+                    }
+                },
+                "2": {
+                    "name": "D1/D2",
+                    "number": "2",
+                    "net": "",
+                    "props": {
+                        "Pin Number": "2"
+                    }
+                },
+                "3": {
+                    "name": "S2",
+                    "number": "3",
+                    "net": "CSI",
+                    "props": {
+                        "Pin Number": "3"
+                    }
+                },
+                "4": {
+                    "name": "G2",
+                    "number": "4",
+                    "net": "OD",
+                    "props": {
+                        "Pin Number": "4"
+                    }
+                },
+                "5": {
+                    "name": "D1/D2",
+                    "number": "5",
+                    "net": "",
+                    "props": {
+                        "Pin Number": "5"
+                    }
+                },
+                "6": {
+                    "name": "G1",
+                    "number": "6",
+                    "net": "OC",
+                    "props": {
+                        "Pin Number": "6"
+                    }
+                }
+            }
+        }
+    },
+    "designRule": {
+        "trackPhysics": {
+            "copperThickness1oz": {
+                "name": "copperThickness1oz",
+                "isDefault": true,
+                "unit": "mm",
+                "strokeValue": {
+                    "common": {
+                        "min": 0.127,
+                        "max": 2.54,
+                        "default": 0.254
+                    }
+                }
+            },
+            "copperThickness2oz": {
+                "name": "copperThickness2oz",
+                "isDefault": false,
+                "unit": "mm",
+                "strokeValue": {
+                    "common": {
+                        "min": 0.203,
+                        "max": 2.54,
+                        "default": 0.254
+                    }
+                }
+            }
+        },
+        "netRule": {
+            "OD": {
+                "net": "OD",
+                "ruleMap": {
+                    "TrackPhysics": ""
+                }
+            },
+            "CSI": {
+                "net": "CSI",
+                "ruleMap": {
+                    "TrackPhysics": ""
+                }
+            },
+            "OC": {
+                "net": "OC",
+                "ruleMap": {
+                    "TrackPhysics": ""
+                }
+            },
+            "VDD": {
+                "net": "VDD",
+                "ruleMap": {
+                    "TrackPhysics": ""
+                }
+            },
+            "B-": {
+                "net": "B-",
+                "ruleMap": {
+                    "TrackPhysics": ""
+                }
+            }
+        }
+    },
+    "differentialPair": {},
+    "netClass": {},
+    "equalLengthNetGroup": {}
+}

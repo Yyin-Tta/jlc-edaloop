@@ -19,6 +19,7 @@ from edaloop.generate.adapter import EasyedaAdapter
 PIPELINE = [
     ("new-board", ["pcb", "new-board"]),
     ("import-changes", ["pcb", "import-changes"]),
+    ("place-constrained", ["pcb", "place-constrained"]),
     ("auto-place", ["pcb", "auto-place", "--assembly-gap", "60"]),
     ("outline-fit", ["pcb", "outline-fit"]),
     ("confirm-tier-1", ["pcb", "stage", "confirm-tier", "1", "--empty"]),
@@ -38,11 +39,51 @@ PIPELINE = [
 ]
 
 # 步骤失败可容忍清单(下游有兜底或不阻断主链;power-pour 对无电源网小板=无需铺铜)
-_TOLERANT = {"outline-fit", "confirm-tier-1", "confirm-tier-2", "confirm-tier-3", "confirm-tier-4", "power-pour"}
+_TOLERANT = {"outline-fit", "confirm-tier-1", "confirm-tier-2", "confirm-tier-3", "confirm-tier-4", "power-pour", "place-constrained", "doc-reload-a", "doc-reload-b"}
 
 _DEFAULT_OUTLINE = "[[0,0],[3900,0],[3900,2700],[0,2700]]"
 
 _TIGHT_RE = re.compile(r"tight\s+(\S+)\s*↔\s*(\S+)")
+_BOXED_RE = re.compile(r"no-access\s+(\S+)\s+boxed in")
+
+
+def _fix_layout_findings(adapter: EasyedaAdapter, *, rounds: int = 4) -> list[str]:
+    """lint 定向修复循环:每轮读 lint 输出,tight pair 挪 x 大者 +300mil,
+    boxed-in 器件上移 +250mil,直到无 ERROR/tight/boxed 或轮次耗尽。
+    返回修复动作清单。"""
+    fixes: list[str] = []
+    for _ in range(rounds):
+        _, out, _ = adapter.run(["pcb", "layout-lint"])
+        text = out or ""
+        has_issue = bool(
+            _TIGHT_RE.search(text) or _BOXED_RE.search(text) or "ERROR" in text
+        )
+        if not has_issue:
+            return fixes
+        try:
+            d = adapter.run_json(["pcb", "list"])
+            comps = d.get("result", {}).get("components", [])
+            by_desig = {c["designator"]: c for c in comps}
+        except Exception:
+            return fixes
+        moved = False
+        for m in _TIGHT_RE.finditer(text):
+            ca, cb = by_desig.get(m.group(1)), by_desig.get(m.group(2))
+            if ca and cb:
+                mv = cb if cb["x"] >= ca["x"] else ca
+                adapter.run(["pcb", "modify", "--id", mv["primitiveId"], "--patch", json.dumps({"x": mv["x"] + 300, "y": mv["y"]})])
+                fixes.append(f"tight:{mv['designator']}+300x")
+                moved = True
+        for m in _BOXED_RE.finditer(text):
+            c = by_desig.get(m.group(1))
+            if c:
+                adapter.run(["pcb", "modify", "--id", c["primitiveId"], "--patch", json.dumps({"y": c["y"] + 250})])
+                fixes.append(f"boxed:{c['designator']}+250y")
+                moved = True
+        if not moved:
+            return fixes
+        adapter.run(["pcb", "outline-fit"])
+    return fixes
 
 
 def _separate_tight_pair(adapter: EasyedaAdapter) -> None:
@@ -84,6 +125,15 @@ class PcbResult:
         lint_ok = str(self.layout_lint.get("result", {}).get("verdict", self.layout_lint.get("verdict", "pass"))) == "pass"
         return drc_fatal == 0 and check_err == 0 and lint_ok
 
+    @property
+    def degraded(self) -> bool:
+        """电气安全(DRC/check)过但可制造性(lint)未过 → 半成品交付(R14 兜底)。"""
+        if not (self.drc and self.check):
+            return False
+        drc_fatal = int(self.drc.get("result", {}).get("fatalCount", self.drc.get("fatal", 0)) or 0)
+        check_err = int(self.check.get("result", {}).get("errorCount", self.check.get("errors", 0)) or 0)
+        return drc_fatal == 0 and check_err == 0 and not self.gate_ok
+
 
 def run_pcb_pipeline(
     adapter: EasyedaAdapter,
@@ -114,15 +164,15 @@ def run_pcb_pipeline(
             if audit:
                 audit.event("pcb-step", step="outline-set-fallback", rc=rc2)
         if name == "layout-lint-gate" and rc != 0:
-            # 组装间隙不足:挪开 tight pair 后件 → 板框重贴合 → 复检
+            # 布局病灶定向修复循环(tight/boxed/短路重叠对)→ 板框重贴合 → 复检
             adapter.run(["doc", "reload"])
-            _separate_tight_pair(adapter)
+            fixes = _fix_layout_findings(adapter)
             adapter.run(["pcb", "outline-fit"])
             adapter.run(["doc", "reload"])
             rc3, out3, _ = adapter.run(["pcb", "layout-lint", "--gate"])
-            res.steps.append({"step": "lint-retry-separate", "rc": rc3})
+            res.steps.append({"step": "lint-fix-loop", "rc": rc3, "fixes": fixes})
             if audit:
-                audit.event("pcb-step", step="lint-retry-separate", rc=rc3)
+                audit.event("pcb-step", step="lint-fix-loop", rc=rc3, fixes=fixes)
     if mount_holes:
         rc, out, err = adapter.run(["pcb", "mount-holes"])
         if rc != 0:
@@ -179,15 +229,39 @@ def stage_pcb(
     mount_holes: bool = True,
     retry: bool = True,
 ) -> dict:
-    """M8 入口:sch PASS 后调用。返回 {gate_ok, steps, drc, check, layout_lint}。"""
+    """M8 入口:sch PASS 后调用。返回 {gate_ok, degraded, steps, drc, check, layout_lint, report}。"""
     adapter = adapter or EasyedaAdapter()
     result = run_pcb_pipeline(adapter, mount_holes=mount_holes, audit=audit)
     if retry and not result.gate_ok:
         result = pcb_retry_loop(adapter, result, audit=audit)
+    report = render_pcb_report(result)
     return {
         "gate_ok": result.gate_ok,
+        "degraded": result.degraded,
         "steps": result.steps,
         "drc": result.drc,
         "check": result.check,
         "layout_lint": result.layout_lint,
+        "report": report,
     }
+
+
+def render_pcb_report(result: PcbResult) -> str:
+    """PCB 交付报告:全绿=可下单;degraded=半成品+人工修板指引(R14)。"""
+    lines = ["# PCB 交付报告"]
+    if result.gate_ok:
+        lines.append("**verdict: PASS**(drc/check/layout-lint 全绿,可进入报价下单)")
+    elif result.degraded:
+        lines.append("**verdict: DEGRADED-PASS**(电气安全门禁全过:短路/重叠/DRC=0;")
+        lines.append("可制造性警告未清(组装间隙/烙铁通道)——**R14 半成品交付**:")
+        lines.append("  - 人工在 EasyEDA 中微调 boxed-in 器件位置(拉开 ≥60mil 通道)")
+        lines.append("  - 或交付 4 层板方案(power-planes 缓解 2 层拥挤)")
+        lines.append("  - 调整后重跑 `edaloop pcb` 复检")
+    else:
+        lines.append("**verdict: FAIL**(电气门禁未过,需返工)")
+    lines.append("")
+    lines.append("## 步骤")
+    for s in result.steps:
+        note = f" ({s['note']})" if s.get("note") else (f" fixes={s['fixes']}" if s.get("fixes") else "")
+        lines.append(f"- {s['step']}: rc={s['rc']}{note}")
+    return "\n".join(lines)

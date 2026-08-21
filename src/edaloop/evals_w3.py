@@ -31,9 +31,34 @@ _TIER = {
 def _pick(tier: str | None) -> list[str]:
     if tier in (None, "all"):
         return _REQS
+    if tier == "rest":
+        # 增量层:全量减去 smoke/daily 已覆盖的(发版时先跑 daily 再跑 rest,零重复)
+        covered = set(_TIER["daily"])
+        return [r for r in _REQS if r not in covered and (_REQ_DIR / r).exists()]
     if tier not in _TIER:
-        raise ValueError(f"未知回归级 '{tier}',可选: smoke/daily/all")
+        raise ValueError(f"未知回归级 '{tier}',可选: smoke/daily/rest/all(全量重跑)")
     return [r for r in _TIER[tier] if (_REQ_DIR / r).exists()]
+
+
+def _health_check() -> None:
+    """需求间健康检查:连接器假死时显式中断(断点已存,重启 EasyEDA 后续跑),
+    而不是每个需求空转重试浪费数十分钟。"""
+    import time
+
+    from dotenv import load_dotenv
+
+    load_dotenv()
+    from edaloop.generate.adapter import AdapterError, EasyedaAdapter
+
+    adapter = EasyedaAdapter()
+    for attempt in range(3):
+        rc, _, _ = adapter.run(["sch", "pages"])
+        if rc == 0:
+            return
+        time.sleep(8)
+    raise RuntimeError(
+        "连接器无响应(EasyEDA 可能假死):请重启 EasyEDA Pro 并打开工程,然后重跑同一命令——断点已保存,将从剩余需求继续"
+    )
 
 
 def _clear_page() -> None:
@@ -85,6 +110,7 @@ def run_w3_loop_eval(max_rounds: int = 5, dry_run: bool = False, resume: bool = 
         md = (_REQ_DIR / name).read_text(encoding="utf-8")
         body = md.split("## 期望指标")[0]
         if not dry_run:
+            _health_check()
             _clear_page()
         try:
             ir, result = stage_run(body, source=name, max_rounds=max_rounds, dry_run=dry_run)

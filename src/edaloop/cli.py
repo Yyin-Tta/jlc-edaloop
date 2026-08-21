@@ -31,7 +31,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_eval = sub.add_parser("eval", help="跑 evals 金标准集")
     p_eval.add_argument("--subset", default=None, help="子集:w1-retrieval / w3-loop")
-    p_eval.add_argument("--tier", default=None, help="w3-loop 回归级:smoke(3 需求~7min)/daily(8)/all(23,发版用)")
+    p_eval.add_argument("--tier", default=None, help="w3-loop 回归级:smoke(3~7min)/daily(8)/rest(全量减 daily,发版增量)/all(真全量重跑)")
 
     p_q = sub.add_parser("questions", help="弱门禁确认队列:DesignIR open_questions + uncovered 项")
     p_q.add_argument("input", help="需求文件路径(md/txt)")
@@ -348,9 +348,11 @@ def _cmd_pcb(args: argparse.Namespace) -> int:
     result = stage_pcb(audit=audit, mount_holes=not args.no_mount_holes, retry=not args.no_retry)
     for s in result["steps"]:
         print(f"  {s['step']}: rc={s['rc']}")
-    print(f"gate_ok: {result['gate_ok']}")
-    print("audit -> runs/pcb")
-    return 0 if result["gate_ok"] else 1
+    print(f"gate_ok: {result['gate_ok']}  degraded: {result['degraded']}")
+    rep = Path("runs/pcb/pcb-report.md")
+    rep.write_text(result["report"], encoding="utf-8")
+    print(f"report -> {rep}")
+    return 0 if result["gate_ok"] or result["degraded"] else 1
 
 
 def _cmd_quote(args: argparse.Namespace) -> int:
