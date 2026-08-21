@@ -390,9 +390,41 @@ class _ZoneFakeAdapter(_FakeAdapter):
 def _zones_calls(adapter) -> dict[str, list]:
     out: dict[str, list] = {}
     for c in adapter.calls:
-        if c and c[0] == "sch" and c[1] in ("zones", "zone-draw", "zone-plan", "note"):
+        if c and c[0] == "sch" and c[1] in ("zones", "zone-draw", "zone-plan", "zone-arrange", "note"):
             out.setdefault(c[1], []).append(c)
     return out
+
+
+class _ZoneArrangeFakeAdapter(_ZoneFakeAdapter):
+    """zone-plan 首报 partitionOverlap=2(两区互压),zone-arrange --apply 后清零。"""
+
+    def __init__(self, gate_verdict: str) -> None:
+        super().__init__(gate_verdict)
+        self.plans = 0
+
+    def run(self, args):
+        if args[1] == "zone-arrange":
+            self.calls.append(args)
+            return 0, "verdict: pass", ""
+        return super().run(args)
+
+    def run_json(self, args):
+        if args[1] == "zone-plan":
+            self.calls.append(args)
+            self.plans += 1
+            overlap = 2 if self.plans == 1 else 0
+            return {
+                "validation": {
+                    "sheetOverflow": 0,
+                    "partitionOverlap": overlap,
+                    "titleBlockHits": 0,
+                    "moduleOutsideZone": 0,
+                    "labelCollisions": 0,
+                    "sheetMarginHits": 0,
+                },
+                "partitions": [{"name": "PWR"}, {"name": "MCU"}],
+            }
+        return super().run_json(args)
 
 
 def test_zone_frames_off_by_default(tmp_path) -> None:
@@ -427,6 +459,23 @@ def test_zone_frames_sequence_when_enabled(tmp_path) -> None:
     assert note_call[note_call.index("--zone") + 1] == "PWR"
     gate_i = next(i for i, c in enumerate(flat) if c[:2] == ["sch", "gate"])
     assert set_i < gate_i and next(i for i, c in enumerate(flat) if c[:2] == ["sch", "note"]) < gate_i
+
+
+def test_zone_arrange_repairs_partition_overlap(tmp_path) -> None:
+    """zone-plan 报可重排违规(两区体积互压)→ zone-arrange --apply 修复 →
+    重 plan 确认 → zone-draw 才画(run8 残留:4/6 页 zone-draw rc=1 没框)。"""
+    chat = FakeChat(json.dumps(_PLAN_OK, ensure_ascii=False))
+    adapter = _ZoneArrangeFakeAdapter("pass")
+    lc = _loop(chat, adapter, tmp=str(tmp_path))
+    lc.zones_enabled = True
+    result = lc.run()
+    assert result.status == "PASS"
+    seq = [
+        c[1] for c in adapter.calls if c and c[0] == "sch" and c[1] in ("zone-plan", "zone-arrange", "zone-draw")
+    ]
+    assert seq == ["zone-plan", "zone-arrange", "zone-plan", "zone-draw"]
+    za = adapter.calls[[i for i, c in enumerate(adapter.calls) if c[1] == "zone-arrange"][0]]
+    assert za[2] == "--apply"
 
 
 # ---- P4-b2:多页编排(页流超 A4 → 建页 + --doc 钉扎 + 逐页 gate/zones) ----
@@ -566,6 +615,8 @@ class _ArrangeFakeAdapter(_ZoneFakeAdapter):
         placed: tuple[str, ...] = ("D3", "J1", "D1", "R9"),
         errors: tuple[tuple[str, str, str], ...] = (("overlap", "D3", "J1"), ("overlap", "J1", "R1")),
         clamp_clean: bool = False,
+        extra_clusters: dict[str, dict] | None = None,
+        refuse_first: int = 0,
     ) -> None:
         super().__init__(gate_verdict)
         self.arranges = 0
@@ -574,7 +625,10 @@ class _ArrangeFakeAdapter(_ZoneFakeAdapter):
         self.placed = list(placed)
         self.errors = list(errors)
         self.clamp_clean = clamp_clean
+        self.extra_clusters = extra_clusters or {}
         self.clamps = 0
+        self.ok_moves = 0
+        self.refuse_first = refuse_first
 
     def run(self, args):
         if args[1] == "block-apply":
@@ -584,7 +638,7 @@ class _ArrangeFakeAdapter(_ZoneFakeAdapter):
             ), ""
         if args[1] == "clusters":
             self.calls.append(args)
-            dirty = self.clamps < 1 if self.clamp_clean else self.arranges < self.dirty_arranges
+            dirty = self.ok_moves < 1 if self.clamp_clean else self.arranges < self.dirty_arranges
             if dirty:
                 findings = [
                     {"type": t, "a": a, "b": b or None, "level": "ERROR"} for t, a, b in self.errors
@@ -595,6 +649,8 @@ class _ArrangeFakeAdapter(_ZoneFakeAdapter):
                     clusters.append({"designator": a, "primitiveId": f"p-{a}", "box": box})
                     if b:
                         clusters.append({"designator": b, "primitiveId": f"p-{b}", "box": dict(box)})
+                for d, box in self.extra_clusters.items():
+                    clusters.append({"designator": d, "primitiveId": f"p-{d}", "box": dict(box)})
                 return (
                     1,
                     json.dumps(
@@ -610,6 +666,9 @@ class _ArrangeFakeAdapter(_ZoneFakeAdapter):
         if args[:2] == ["sch", "group-move"]:
             self.calls.append(args)
             self.clamps += 1
+            if self.clamps <= self.refuse_first:  # 内核拒移(keepout 钳 Δ0 / 共享连线树)
+                return 1, "appliedΔ=(0,-0) group-move 未执行", ""
+            self.ok_moves += 1
             return 0, "moved", ""
         if args[:3] == ["sch", "group", "list"]:
             self.calls.append(args)
@@ -720,6 +779,58 @@ def test_arrange_closeout_clamps_strays_when_arrange_refuses(tmp_path) -> None:
     assert [e["remaining"] for e in events if e.get("kind") == "arrange-result"] == [0]
 
 
+def test_arrange_closeout_clamp_prefers_own_zone(tmp_path) -> None:
+    """钳回落点优先本 zone 包络(run7 残留 partitionOverlap=3 的根因:裸钳把
+    件甩进邻居分区):多个空位可行时取离本 zone 其他成员联合包络中心最近
+    的落位,而不是最小位移的第一个空位。无 zone 认领时保持最小位移。"""
+    chat = FakeChat(json.dumps(_PLAN_OK, ensure_ascii=False))
+    adapter = _ArrangeFakeAdapter(
+        "pass",
+        dirty_arranges=99,
+        arrange_rc=1,
+        placed=("D3", "J1", "R3", "R9"),  # 同一块 → 同认领 PWR
+        errors=(("out-of-sheet", "R3", ""),),
+        clamp_clean=True,
+        extra_clusters={  # PWR 其余成员的箱(zone 包络 100,100-600,200)
+            "D3": {"minX": 100.0, "minY": 100.0, "maxX": 200.0, "maxY": 200.0},
+            "J1": {"minX": 300.0, "minY": 100.0, "maxX": 400.0, "maxY": 200.0},
+            "R9": {"minX": 500.0, "minY": 100.0, "maxX": 600.0, "maxY": 200.0},
+        },
+    )
+    lc = _loop(chat, adapter, tmp=str(tmp_path))
+    result = lc.run()
+    assert result.status == "PASS"
+    mv = [c for c in adapter.calls if c[:2] == ["sch", "group-move"]]
+    # 6 个扫描空位(s=0..5 → dx -145..-445)全部可行且都远离成员箱;
+    # zone 中心 x=350 → 最近 = 最深一步 dx=-445(无 zone 时应取 s=0 的 -145)
+    assert mv and mv[0][mv[0].index("--dx") + 1] == "-445"
+
+
+def test_arrange_closeout_never_repeats_refused_clamp(tmp_path) -> None:
+    """内核拒过的位移绝不重发(run8 P1/P2 实证:同 finding 反复推导同一被拒
+    下推,4 次空转):首选 b 下推被拒 → 换下一候选(a 下推)而不是原地复读。"""
+    chat = FakeChat(json.dumps(_PLAN_OK, ensure_ascii=False))
+    adapter = _ArrangeFakeAdapter(
+        "pass",
+        dirty_arranges=99,
+        arrange_rc=1,
+        placed=("D3", "J2", "D1", "R9"),
+        errors=(("overlap", "D3", "J2"),),
+        clamp_clean=True,
+        refuse_first=1,  # 第一发(J2 下推)被内核拒
+    )
+    lc = _loop(chat, adapter, tmp=str(tmp_path))
+    result = lc.run()
+    assert result.status == "PASS"
+    mv = [c for c in adapter.calls if c[:2] == ["sch", "group-move"]]
+    # 候选序:J2 下推(-140) 被拒 → D3 下推(-140);同位移不同件不混淆
+    assert [(c[c.index("--dx") + 1], c[c.index("--dy") + 1]) for c in mv] == [("0", "-140"), ("0", "-140")]
+    events = [json.loads(line) for line in Path(str(tmp_path), "audit.jsonl").read_text().splitlines()]
+    clamp = [e for e in events if e.get("kind") == "arrange-clamp"]
+    assert [(e["designator"], e["rc"]) for e in clamp] == [("J2", 1), ("D3", 0)]
+    assert [e["remaining"] for e in events if e.get("kind") == "arrange-result"] == [0]
+
+
 def test_arrange_closeout_separates_overlaps_when_arrange_refuses(tmp_path) -> None:
     """拒排页的 overlap(双方都在带内,钳回不动它)→ b 沿 y 下推 40 分离
     (下方不够再上推;再无解归反馈域)。"""
@@ -803,3 +914,41 @@ def test_titleblock_writes_discovered_key(tmp_path) -> None:
     payload = json.loads(data[0][data[0].index("--data") + 1])
     assert payload == {"Title": {"value": "t · P1"}}  # ir.source=t.md → stem t
     assert data[0][data[0].index("--doc") + 1] == "P1"
+
+
+class _TitleRealShapeAdapter(_ZoneFakeAdapter):
+    """真机形态(run7 实探):键表在 result.titleBlockData,Name 是标题格;
+    写返回 rc=1 nothing-applied 假失败(写后即时回读撞图签重建 stale 窗口),
+    但值已落——控制器按值回读判真伪。"""
+
+    def __init__(self, gate_verdict: str) -> None:
+        super().__init__(gate_verdict)
+        self.tb: dict[str, dict] = {"Name": {"value": ""}, "Size": {"value": "A4"}}
+
+    def run(self, args):
+        if args[1] == "titleblock-get":
+            self.calls.append(args)
+            return 0, json.dumps({"result": {"titleBlockData": self.tb}}), ""
+        if args[1] == "titleblock" and "--data" in args:
+            self.calls.append(args)
+            patch = json.loads(args[args.index("--data") + 1])
+            for k, v in patch.items():
+                self.tb[k] = {"value": v["value"]}
+            return 1, "nothing was applied", ""
+        return super().run(args)
+
+
+def test_titleblock_real_shape_and_false_negative_verified(tmp_path) -> None:
+    """键表在 titleBlockData(旧解析漏这层→key 恒 None);写 rc=1 假失败时
+    按值回读判真伪(verified=True),不冤枉也不轻信。"""
+    chat = FakeChat(json.dumps(_PLAN_OK, ensure_ascii=False))
+    adapter = _TitleRealShapeAdapter("pass")
+    lc = _loop(chat, adapter, tmp=str(tmp_path))
+    result = lc.run()
+    assert result.status == "PASS"
+    data = [c for c in adapter.calls if "--data" in c]
+    assert len(data) == 1
+    assert json.loads(data[0][data[0].index("--data") + 1]) == {"Name": {"value": "t · P1"}}
+    events = [json.loads(line) for line in Path(str(tmp_path), "audit.jsonl").read_text().splitlines()]
+    tb = [e for e in events if e.get("kind") == "titleblock"]
+    assert [(e["key"], e["rc"], e["verified"]) for e in tb] == [("Name", 1, True)]

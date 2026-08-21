@@ -570,8 +570,11 @@ class LoopController:
                     claims={c: len(v) for c, v in claims.items()},
                     out=(out or "")[:300],
                 )
+                validation: dict = {}
+                plan_ok = False
                 try:
                     plan = self._run_json_retry(["sch", "zone-plan", "--json", *doc])
+                    plan_ok = True
                     validation = plan.get("validation") or {}
                     self.audit.event(
                         "zone-plan",
@@ -582,6 +585,33 @@ class LoopController:
                     )
                 except AdapterError as e:
                     self.audit.event("zone-plan-error", round_no=round_no, page=page, error=str(e)[:500])
+                # partitionOverlap 非 0 = 两区体积真互压(上游定论)→ zone-draw 必拒。
+                # zone-arrange --apply 是上游专用解(断言①删除=重建 → 落位重连 →
+                # 断言② 曾连 pin 仍连 → lint+bridge-check,任一红逐步回滚);重排后
+                # 重 plan 再画,仍脏则 draw 照旧拒、归反馈域(弱信号不判负)。
+                fixable = ("sheetOverflow", "partitionOverlap", "titleBlockHits", "sheetMarginHits")
+                if plan_ok and any(validation.get(k) for k in fixable):
+                    rc_za, out_za, err_za = self.adapter.run(["sch", "zone-arrange", "--apply", *doc])
+                    self.audit.event(
+                        "zone-arrange",
+                        round_no=round_no,
+                        page=page,
+                        rc=rc_za,
+                        out=(out_za or "")[-300:],
+                        error=(err_za or "")[-300:],
+                    )
+                    try:
+                        plan = self._run_json_retry(["sch", "zone-plan", "--json", *doc])
+                        validation = plan.get("validation") or {}
+                        self.audit.event(
+                            "zone-plan",
+                            round_no=round_no,
+                            page=page,
+                            validation=validation,
+                            partitions=len(plan.get("partitions", []) or []),
+                        )
+                    except AdapterError as e:
+                        self.audit.event("zone-plan-error", round_no=round_no, page=page, error=str(e)[:500])
                 rc, _, _ = self.adapter.run(["sch", "zone-draw", "--mode", "partition", *doc])
                 self.audit.event("zone-draw", round_no=round_no, page=page, rc=rc)
                 for i, claim in enumerate(sorted(claims)):
@@ -614,7 +644,12 @@ class LoopController:
         rep = self._clusters_report(page)
         return [f for f in (rep.get("findings") or []) if f.get("level") == "ERROR"]
 
-    def _arrange_closeout(self, round_no: int, placed_by_page: dict[str, dict[str, list[str]]]) -> None:
+    def _arrange_closeout(
+        self,
+        round_no: int,
+        placed_by_page: dict[str, dict[str, list[str]]],
+        zone_by_page: dict[str, dict[str, list[str]]] | None = None,
+    ) -> None:
         """P4-b3 布局收口(逐页,仅 clusters ERROR 页):拆问题块组 → 逐件单件组
         → group-arrange 刚体平移(网表逐 pin 不变)→ 复查,仍 ERROR 换大 gap 重排一次。
 
@@ -671,12 +706,14 @@ class LoopController:
                         break
                     gap = nxt
                 if errs:
-                    errs = self._clamp_into_band(round_no, page)
+                    errs = self._clamp_into_band(round_no, page, (zone_by_page or {}).get(page))
                 self.audit.event("arrange-result", round_no=round_no, page=page, remaining=len(errs))
             except AdapterError as e:
                 self.audit.event("arrange-fatal", round_no=round_no, page=page, error=str(e)[:800])
 
-    def _clamp_into_band(self, round_no: int, page: str) -> list[dict]:
+    def _clamp_into_band(
+        self, round_no: int, page: str, zone_map: dict[str, list[str]] | None = None
+    ) -> list[dict]:
         """拒排兜底:按 clusters 可用带把 ERROR 件刚移到空位。
 
         为什么这条路成立:gate/clusters 的 sheetUsable 含图签带(实测
@@ -685,8 +722,15 @@ class LoopController:
         它什么都没动,点名件还在带外,刚移(group-move 挂线跟随)即可。
 
         一次一动:每步后重探再决策(实测 P6 三件连钳,J4 落在 J3 上、R10 压
-        R9——钳回带内 ≠ 钳到空位)。落点沿钳回轴向带内扫 60 步进避邻居;
-        overlap 双方都在带内 → b 沿 y 下推/上推 40 分离。无解就停,归反馈域。"""
+        R9——钳回带内 ≠ 钳到空位)。落点沿钳回轴向带内扫 60 步进避邻居,
+        有 zone 认领时优先落本 zone 包络旁(run7 残留 partitionOverlap=3 实证
+        裸钳会把件甩进邻居分区);overlap 双方都在带内 → b 沿 y 下推/上推 40
+        分离。内核拒过的 (位号,dx,dy) 不再重发(run8 P1/P2 实证:clusters
+        带含图签条,按带查可行的下推目标仍撞图签 keepout 被钳成 Δ0,同
+        finding 反复推导同一被拒位移 = 4 次空转)。无解就停,归反馈域。"""
+        zone_map = zone_map or {}
+        claim_of = {d: claim for claim, ds in zone_map.items() for d in ds}
+        refused: set[tuple[str, int, int]] = set()
         for _ in range(4):
             rep = self._clusters_report(page)
             errs = [f for f in (rep.get("findings") or []) if f.get("level") == "ERROR"]
@@ -717,14 +761,32 @@ class LoopController:
                     if d and gid and d not in gid_of:
                         gid_of[d] = gid
             acted = False
+
+            def _zone_bbox(finding: dict) -> tuple[float, float, float, float] | None:
+                """点名件同 zone 其他成员的联合包络(自身除外;无箱或独居 → None)。"""
+                d = finding.get("a") or ""
+                members = zone_map.get(claim_of.get(d, ""), [])
+                bb = [boxes[m] for m in members if m != d and boxes.get(m)]
+                if not bb:
+                    return None
+                return (
+                    min(x["minX"] for x in bb),
+                    min(x["minY"] for x in bb),
+                    max(x["maxX"] for x in bb),
+                    max(x["maxY"] for x in bb),
+                )
+
             for f in errs:
-                move = self._clamp_move_for(f, boxes, gid_of, ux1, uy1, ux2, uy2)
+                cands = self._clamp_moves_for(f, boxes, gid_of, ux1, uy1, ux2, uy2, _zone_bbox(f))
+                move = next((c for c in cands if (c[0], c[2], c[3]) not in refused), None)
                 if not move:
                     continue
                 d, gid, dx, dy = move
                 rc, _, err = self.adapter.run(
                     ["sch", "group-move", "--group", gid, "--dx", str(dx), "--dy", str(dy), "--doc", page]
                 )
+                if rc != 0:
+                    refused.add((d, dx, dy))
                 acted = True
                 self.audit.event(
                     "arrange-clamp",
@@ -744,7 +806,7 @@ class LoopController:
         rep = self._clusters_report(page)
         return [f for f in (rep.get("findings") or []) if f.get("level") == "ERROR"]
 
-    def _clamp_move_for(
+    def _clamp_moves_for(
         self,
         finding: dict,
         boxes: dict[str, dict],
@@ -753,11 +815,17 @@ class LoopController:
         uy1: float,
         ux2: float,
         uy2: float,
-    ) -> tuple[str, str, int, int] | None:
-        """一条 ERROR → 一个刚移动作(位号,组id,dx,dy);无解返回 None。
+        zone_bbox: tuple[float, float, float, float] | None = None,
+    ) -> list[tuple[str, str, int, int]]:
+        """一条 ERROR → 候选刚移序列 [(位号,组id,dx,dy)] 按偏好序;无解 []。
 
-        out-of-sheet:钳回带内,落点沿移动轴向内扫 60 步进避邻居;
-        overlap:把 b 沿 y 下推(留 40 间距)分离,下方不够再上推。"""
+        内核才是落点权威(run8 P1/P2 实证:clusters 带含图签条,按带查可行
+        的下推目标仍可撞图签 keepout 被钳成 Δ0;连线树共享邻件 pin 则整组
+        拒移、与方向无关),所以这里交全序候选,调用方逐个试、拒过的不再发。
+        out-of-sheet:钳回带内,落点沿移动轴向内扫 60 步进避邻居,zone 认领
+        时按离包络中心最近排序(无认领保持最小位移优先);
+        overlap:先 b 后 a,各先下推 40 再上推(下推可行性按新 minY 整箱
+        查——旧版查 maxY 会放过半出带的目标,keepout 拒移即源于此)。"""
         margin = 15.0
 
         def occupied(d: str, b: dict) -> bool:
@@ -774,12 +842,13 @@ class LoopController:
             d = finding.get("a")
             b = boxes.get(d or "")
             if not b or d not in gid_of:
-                return None
+                return []
             dx = _clamp_delta(b.get("minX"), b.get("maxX"), ux1, ux2)
             dy = _clamp_delta(b.get("minY"), b.get("maxY"), uy1, uy2)
             if dx == dy == 0:
-                return None
+                return []
             step = -60 if dx < 0 else (60 if dx > 0 else 0)
+            free: list[tuple[tuple[int, int], dict]] = []
             for s in range(6):
                 cand = (dx + s * step, dy) if step else (dx, dy + s * (-60 if dy < 0 else 60))
                 tb = {
@@ -795,21 +864,35 @@ class LoopController:
                     and tb["maxY"] <= uy2
                     and not occupied(d, tb)
                 ):
-                    return d, gid_of[d], cand[0], cand[1]
-            return None
+                    free.append((cand, tb))
+            if not free:
+                return []
+            if zone_bbox:
+                zx = (zone_bbox[0] + zone_bbox[2]) / 2
+                zy = (zone_bbox[1] + zone_bbox[3]) / 2
+                free.sort(
+                    key=lambda ct: ((ct[1]["minX"] + ct[1]["maxX"]) / 2 - zx) ** 2
+                    + ((ct[1]["minY"] + ct[1]["maxY"]) / 2 - zy) ** 2
+                )
+            return [(d, gid_of[d], c[0], c[1]) for c, _ in free]
         if finding.get("type") == "overlap":
             a, b_ = finding.get("a"), finding.get("b")
             ba, bb = boxes.get(a or ""), boxes.get(b_ or "")
-            if not ba or not bb or b_ not in gid_of:
-                return None
-            down = _snap5(ba.get("minY", 0) - 40 - bb.get("maxY", 0))  # b 下移到 a 下方 40
-            if bb["maxY"] + down < uy1:
-                up = _snap5(ba.get("maxY", 0) + 40 - bb.get("minY", 0))
-                if bb["maxY"] + up > uy2:
-                    return None
-                return b_, gid_of[b_], 0, up
-            return b_, gid_of[b_], 0, down
-        return None
+            if not ba or not bb:
+                return []
+            moves: list[tuple[str, str, int, int]] = []
+            for p, q in ((b_, a), (a, b_)):  # 先动 b;b 不可动再动 a
+                if p not in gid_of:
+                    continue
+                bp, bq = boxes[p], boxes[q]
+                down = _snap5(bq["minY"] - 40 - bp["maxY"])  # p 下移到 q 下方 40
+                if down and bp["minY"] + down >= uy1:
+                    moves.append((p, gid_of[p], 0, down))
+                up = _snap5(bq["maxY"] + 40 - bp["minY"])  # p 上移到 q 上方 40
+                if up and bp["maxY"] + up <= uy2:
+                    moves.append((p, gid_of[p], 0, up))
+            return list(dict.fromkeys(moves))  # 同(位号,dx,dy)去重保序
+        return []
 
     def _shatter_groups(
         self, round_no: int, page: str, insts: dict[str, list[str]], err_desigs: set[str]
@@ -879,24 +962,45 @@ class LoopController:
                     _, out, _ = self.adapter.run(["sch", "titleblock-get", *doc])
                     rep = json.loads(out) if (out or "").strip() else {}
                     res = rep.get("result") if isinstance(rep.get("result"), dict) else rep
-                    for src in (res, (res or {}).get("fields"), (res or {}).get("items")):
+                    # 真机形态(run7 实探):键表在 result.titleBlockData
+                    # (Name=标题格现值空、@Page Name=平台自管页名),顶层
+                    # result 只有元数据——旧解析漏了这层,key 恒 None。
+                    for src in (
+                        res,
+                        (res or {}).get("fields"),
+                        (res or {}).get("items"),
+                        (res or {}).get("titleBlockData"),
+                    ):
                         if isinstance(src, dict):
                             keys |= {str(k) for k in src}
                 except ValueError:
                     pass
                 rc_show, _, _ = self.adapter.run(["sch", "titleblock", "--show", *doc])
                 key = next((k for k in ("Title", "Name", "名称", "标题") if k in keys), "")
-                rc, out = 0, ""
+                rc, out, verified = 0, "", True
                 if key:
+                    want = f"{stem} · {page}"
                     rc, out, _ = self.adapter.run(
                         [
                             "sch",
                             "titleblock",
                             "--data",
-                            json.dumps({key: {"value": f"{stem} · {page}"}}, ensure_ascii=False),
+                            json.dumps({key: {"value": want}}, ensure_ascii=False),
                             *doc,
                         ]
                     )
+                    if rc != 0:
+                        # 平台写图签会触发图签重建,连接器写后即时回读常撞 stale
+                        # 窗口,把真成功报成 nothing-applied(run7 交付态实探:报
+                        # 拒但值已落)。控制器侧按值回读判真伪,不信单次 rc。
+                        verified = False
+                        try:
+                            _, out2, _ = self.adapter.run(["sch", "titleblock-get", *doc])
+                            rep2 = json.loads(out2) if (out2 or "").strip() else {}
+                            td = (rep2.get("result") or {}).get("titleBlockData") or {}
+                            verified = (td.get(key) or {}).get("value") == want
+                        except ValueError:
+                            pass
                 self.audit.event(
                     "titleblock",
                     round_no=round_no,
@@ -904,6 +1008,7 @@ class LoopController:
                     key=key or None,
                     show_rc=rc_show,
                     rc=rc,
+                    verified=verified,
                     out=(out or "")[-200:],
                 )
             except AdapterError as e:
@@ -928,7 +1033,7 @@ class LoopController:
                     # P4-b3 收口次序:拆组重排 → 分区框 → 明细表,全部先于 gate
                     # (zone-draw 按落图后几何画框、明细表作用前台页,重排必须最先)
                     if not self.dry_run:
-                        self._arrange_closeout(round_no, placed_by_page)
+                        self._arrange_closeout(round_no, placed_by_page, zone_designators)
                         if self.zones_enabled and zone_designators:
                             self._apply_zone_frames(round_no, zone_designators, actions)
                         self._apply_titleblocks(round_no, actions)
