@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class _Tolerant(BaseModel):
@@ -25,6 +25,17 @@ class Spec(_Tolerant):
     unit: str = ""
     tolerance: str | None = None
     source: str | None = None
+
+    @field_validator("param", "value", "unit", "tolerance", "source", mode="before")
+    @classmethod
+    def _coerce_num_to_str(cls, v):
+        # parse LLM 偶发吐 JSON 数值(value=5 而非 "5",daily req-03 实锤)——数值裹胁成字符串,
+        # bool/None 原样走(既有类型校验兜底)。
+        if isinstance(v, bool) or v is None:
+            return v
+        if isinstance(v, (int, float)):
+            return f"{v:g}"
+        return v
 
 
 class Function(_Tolerant):
