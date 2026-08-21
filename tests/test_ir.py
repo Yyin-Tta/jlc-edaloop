@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from edaloop.intent.ir import DesignIR, Power, PowerRail
+from edaloop.intent.ir import DesignIR, Function, Power, PowerRail, Spec
 from edaloop.intent.parse import IRParseError, requirement_to_ir
 from edaloop.llm.fake import FakeChat
 
@@ -74,3 +74,45 @@ def test_parse_schema_violation() -> None:
     bad = {"source": "x", "power": {"rails": "not-a-list"}}
     with pytest.raises(IRParseError):
         requirement_to_ir("# 需求", FakeChat(json.dumps(bad)))
+
+
+# ---- P4-0① IR v2:宽压轨/结构化约束/env.fab ----
+
+
+def test_rail_v_range_text() -> None:
+    r = PowerRail(name="VBAT", v_min=3.0, v_max=4.2, source="锂电池")
+    assert r.v_text() == "3-4.2V"
+    assert r.voltage is None
+
+
+def test_rail_nominal_text() -> None:
+    assert PowerRail(name="3V3", voltage=3.3, imax=0.5).v_text() == "3.3V"
+
+
+def test_rail_no_voltage_falls_back_to_name() -> None:
+    assert PowerRail(name="5V").v_text() == "5V"
+
+
+def test_query_text_range_rail_no_crash() -> None:
+    ir = DesignIR.model_validate(
+        {"source": "t", "power": {"rails": [{"name": "VBAT", "v_min": 3.0, "v_max": 4.2}]}}
+    )
+    q = ir.query_text()
+    assert "3-4.2V" in q and "VBAT" in q
+
+
+def test_constraints_union_spec_and_str() -> None:
+    f = Function(
+        name="供电",
+        constraints=[
+            {"param": "纹波", "value": "<50", "unit": "mV", "tolerance": None},
+            "低静态电流",
+        ],
+    )
+    assert isinstance(f.constraints[0], Spec)
+    assert f.constraints_digest() == "纹波=<50mV; 低静态电流"
+
+
+def test_env_fab_field() -> None:
+    ir = DesignIR.model_validate({"source": "t", "env": {"fab": "jlc 经济板"}})
+    assert ir.env.fab == "jlc 经济板"

@@ -101,3 +101,48 @@ def test_provenance_preserved(tmp_path) -> None:
     assert results[0].parts[0].lcsc == "C16581"
     assert results[0].rank == 1
     store.close()
+
+
+# ---- P4-0②:electrical 列贯通 + 旧库 ALTER 迁移 ----
+
+
+def test_electrical_roundtrip(tmp_path) -> None:
+    from edaloop.knowledge.models import Electrical
+
+    blocks = _blocks()
+    blocks[1].electrical = Electrical(
+        v_supply_min=4.5, v_supply_max=5.5, i_max=1.0, source="wmsc C6186"
+    )
+    store = KnowledgeStore(tmp_path / "kb.db", FakeEmbedding())
+    store.rebuild(blocks)
+    results = store.retrieve("AMS1117", top_k=1)
+    el = results[0].electrical
+    assert el is not None and el.i_max == 1.0 and el.source == "wmsc C6186"
+    store.close()
+
+
+def test_old_db_alter_migration(tmp_path) -> None:
+    import sqlite3
+
+    db = tmp_path / "old.db"
+    conn = sqlite3.connect(db)
+    # 旧 schema:无 electrical 列
+    conn.execute(
+        "CREATE TABLE blocks (rowid INTEGER PRIMARY KEY, block_id TEXT UNIQUE NOT NULL, name TEXT NOT NULL,"
+        " desc TEXT NOT NULL, category TEXT DEFAULT 'general', tags TEXT DEFAULT '[]', parts TEXT DEFAULT '[]',"
+        " ports TEXT DEFAULT '[]', provenance TEXT DEFAULT '', upstream TEXT DEFAULT '', lcsc TEXT DEFAULT '',"
+        " pinout TEXT DEFAULT '')"
+    )
+    conn.execute(
+        "INSERT INTO blocks(block_id, name, desc, lcsc) VALUES('legacy', '旧块', '迁移前数据', 'C1')"
+    )
+    conn.commit()
+    conn.close()
+    store = KnowledgeStore(db, FakeEmbedding())  # _ensure_schema 应触发 ALTER
+    cols = {r[1] for r in store.conn.execute("PRAGMA table_info(blocks)")}
+    assert "electrical" in cols
+    store.rebuild(_blocks())  # 迁移后可正常重建
+    assert store.count() == 4
+    results = store.retrieve("TP4056", top_k=1)
+    assert results[0].block_id == "charger-tp4056"
+    store.close()

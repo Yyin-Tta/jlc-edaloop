@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import json
+import os
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from edaloop.generate.adapter import EasyedaAdapter
 from edaloop.generate.audit import AuditLog
-from edaloop.generate.compile import compile_actions
+from edaloop.generate.compile import CLAIM_ZONE, compile_actions
 from edaloop.generate.models import BlockPlan
 from edaloop.generate.plan import make_plan
 from edaloop.intent.ir import DesignIR
@@ -69,6 +70,8 @@ class LoopController:
         self.dry_run = dry_run
         self.answer_context = answer_context
         self.retry_queries = list(retry_queries or [])
+        # P4-1② 功能分区编排(声明+整页分区框+分区注记),默认关——真机验证过再转默认开(风险 R17)
+        self.zones_enabled = os.environ.get("EDALOOP_ZONES", "") in ("1", "true", "yes")
 
     def _cost_hint(self, candidates) -> str:
         """同功能可互换块的价格对比(实时查询,弱信号;仅 IR 有 cost_target 时生成,无诉求不查)。"""
@@ -375,6 +378,71 @@ class LoopController:
             pass
         return args
 
+    def _apply_zone_frames(self, round_no: int, zone_designators: dict[str, list[str]], actions) -> None:
+        """P4-1② 功能分区编排:zones clear → set(真实位号) → zone-plan(审计) → zone-draw → 分区注记。
+
+        注释层操作,单次执行不走通用重试通道(note 重跑会产生重复注释);失败不判负
+        (分区框是注释不是电气对象,按弱信号处理),全部入审计;zone-plan 五项校验计数
+        留作 P4-4 门禁接线的数据源,本轮只记不拦。
+        """
+        from edaloop.generate.adapter import AdapterError
+
+        try:
+            rc, _, _ = self.adapter.run(["sch", "zones", "clear"])
+            self.audit.event("zones-clear", round_no=round_no, rc=rc)
+            set_args = ["sch", "zones", "set"]
+            for claim, desigs in sorted(zone_designators.items()):
+                zone_vocab = CLAIM_ZONE.get(claim, ("center", claim))[0]
+                uniq = list(dict.fromkeys(d for d in desigs if d))
+                set_args += ["--module", f"{claim}={zone_vocab}:{','.join(uniq)}"]
+            rc, out, _ = self.adapter.run(set_args)
+            self.audit.event(
+                "zones-set",
+                round_no=round_no,
+                rc=rc,
+                claims={c: len(v) for c, v in zone_designators.items()},
+                out=(out or "")[:300],
+            )
+            try:
+                plan = self._run_json_retry(["sch", "zone-plan", "--json"])
+                validation = plan.get("validation") or {}
+                self.audit.event(
+                    "zone-plan",
+                    round_no=round_no,
+                    validation=validation,
+                    partitions=len(plan.get("partitions", []) or []),
+                )
+            except AdapterError as e:
+                self.audit.event("zone-plan-error", round_no=round_no, error=str(e)[:500])
+            rc, _, _ = self.adapter.run(["sch", "zone-draw", "--mode", "partition"])
+            self.audit.event("zone-draw", round_no=round_no, rc=rc)
+            # 每带一条分区注记:带说明 + 块名串;锚点取该带最左块 x,y 贴底(y-UP,内容自 300 起)
+            band_x: dict[str, int] = {}
+            band_names: dict[str, list[str]] = {}
+            for act in actions:
+                if not act.zone or act.kind not in ("block-apply", "sch-place"):
+                    continue
+                try:
+                    if act.kind == "block-apply":
+                        x = int(act.args[act.args.index("--at") + 1].split(",")[0])
+                    else:
+                        x = int(act.args[act.args.index("--x") + 1])
+                except (ValueError, IndexError):
+                    continue
+                band_x[act.zone] = min(band_x.get(act.zone, x), x)
+                band_names.setdefault(act.zone, []).append(
+                    act.desc.split(" @")[0].split("(")[0].strip()
+                )
+            for claim, x in sorted(band_x.items()):
+                label = CLAIM_ZONE.get(claim, ("", claim))[1]
+                text = f"{label}: " + " / ".join(dict.fromkeys(band_names.get(claim, [])))
+                rc, _, _ = self.adapter.run(
+                    ["sch", "note", "--text", text, "--x", str(x), "--y", "150", "--zone", claim]
+                )
+                self.audit.event("zone-note", round_no=round_no, claim=claim, rc=rc, text=text[:200])
+        except AdapterError as e:
+            self.audit.event("zones-fatal", round_no=round_no, error=str(e)[:1000])
+
     def _apply(self, actions, round_no: int) -> tuple[bool, dict | None]:
         from edaloop.generate.adapter import AdapterError
 
@@ -385,9 +453,12 @@ class LoopController:
         failed: set[str] = set()
         place_pinouts: dict[str, dict[str, str]] = {}
         designators: dict[str, str] = {}
+        zone_designators: dict[str, list[str]] = {}  # P4-1②:claim → 本轮落图位号
         for act in actions:
             try:
                 if act.kind == "sch-gate":
+                    if self.zones_enabled and zone_designators and not self.dry_run:
+                        self._apply_zone_frames(round_no, zone_designators, actions)
                     gate_report = self._run_json_retry(act.args)
                     verdict = gate_report.get("verdict", "unknown")
                     stage_summary = [
@@ -450,6 +521,8 @@ class LoopController:
                     comp = (resp.get("result", {}) or {}).get("component", {}) or {}
                     desig = comp.get("designator", "")
                     ok = bool(desig)
+                    if ok and act.zone:
+                        zone_designators.setdefault(act.zone, []).append(desig)
                     if ok and act.pinout:
                         ok = self._verify_pins(round_no, desig, act.pinout)
                         if not ok:
@@ -517,6 +590,10 @@ class LoopController:
                                 instance=act.block_instance,
                                 error=str(e)[:1500],
                             )
+                if status == "applied" and act.zone:
+                    for p in manifest.get("placed", []) or []:
+                        if p.get("designator"):
+                            zone_designators.setdefault(act.zone, []).append(p["designator"])
                 if status != "applied":
                     ok_all = False
             except AdapterError as e:
@@ -556,7 +633,7 @@ class LoopController:
         missing = {n for n in planned if n and n.upper() != "NC" and n not in page_nets}
         from edaloop.validate.checks import _rail_family
 
-        ir_families = {_rail_family(r.name or f"{r.voltage:g}V") for r in self.ir.power.rails}
+        ir_families = {_rail_family(r.name or r.v_text()) for r in self.ir.power.rails}
         ir_families.add("GND|main")
         strong_missing = {
             n for n in missing if _rail_family(n) in ir_families or _rail_family(n).split("|")[0] == "GND"

@@ -70,7 +70,7 @@ def check_rails(ir: DesignIR, plan: BlockPlan) -> list[Finding]:
     bound_families = {_rail_family(net) for b in plan.blocks for net in b.ports_binding.values()}
     bound_families |= {_rail_family(net) for b in plan.blocks for net in b.pins_binding.values()}
     for rail in ir.power.rails:
-        name = rail.name or f"{rail.voltage:g}V"
+        name = rail.name or rail.v_text()
         want_family = _rail_family(name)
         if want_family.endswith("|main") and _rail_family(name).split("|")[0] == "GND":
             continue
@@ -79,7 +79,7 @@ def check_rails(ir: DesignIR, plan: BlockPlan) -> list[Finding]:
                 Finding(
                     code="MISSING_RAIL",
                     where=Where(net=name),
-                    evidence=f"DesignIR 电源轨 {name}({rail.voltage:g}V) 在 BlockPlan 任何端口绑定中都未出现(按轨家族 {_rail_family(name)} 归一比对)",
+                    evidence=f"DesignIR 电源轨 {name}({rail.v_text()}) 在 BlockPlan 任何端口绑定中都未出现(按轨家族 {_rail_family(name)} 归一比对)",
                     severity="error",
                     suggested_fix_class="REBIND_NET",
                 )

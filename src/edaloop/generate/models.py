@@ -21,12 +21,16 @@ class PlannedBlock(_Strict):
     params: dict[str, str] = Field(default_factory=dict)
     provenance: str = ""
     at: str = ""
+    zone: str = ""
 
     @model_validator(mode="before")
     @classmethod
     def _drop_unknown_keys(cls, v: Any) -> Any:
         if isinstance(v, dict):
-            known = {"block_id", "upstream_id", "instance", "ports_binding", "pins_binding", "params", "provenance", "at"}
+            known = {
+                "block_id", "upstream_id", "instance", "ports_binding", "pins_binding",
+                "params", "provenance", "at", "zone",
+            }
             return {k: val for k, val in v.items() if k in known}
         return v
 
@@ -75,3 +79,4 @@ class Action(_Strict):
     args: list[str] = Field(default_factory=list)
     desc: str = ""
     pinout: dict[str, str] | None = None
+    zone: str = ""

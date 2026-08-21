@@ -7,7 +7,7 @@ from pathlib import Path
 
 import sqlite_vec
 
-from edaloop.knowledge.models import BlockRecord, RetrievedBlock, UpstreamRef
+from edaloop.knowledge.models import BlockRecord, Electrical, RetrievedBlock, UpstreamRef
 from edaloop.llm.base import EmbeddingProvider, RerankProvider
 
 _RRF_K = 60
@@ -69,7 +69,12 @@ class KnowledgeStore:
 
     def _ensure_schema(self) -> None:
         dim = getattr(self.embedder, "dim", 1024)
-        self.conn.execute("CREATE TABLE IF NOT EXISTS blocks (rowid INTEGER PRIMARY KEY, block_id TEXT UNIQUE NOT NULL, name TEXT NOT NULL, desc TEXT NOT NULL, category TEXT DEFAULT 'general', tags TEXT DEFAULT '[]', parts TEXT DEFAULT '[]', ports TEXT DEFAULT '[]', provenance TEXT DEFAULT '', upstream TEXT DEFAULT '', lcsc TEXT DEFAULT '', pinout TEXT DEFAULT '')")
+        self.conn.execute("CREATE TABLE IF NOT EXISTS blocks (rowid INTEGER PRIMARY KEY, block_id TEXT UNIQUE NOT NULL, name TEXT NOT NULL, desc TEXT NOT NULL, category TEXT DEFAULT 'general', tags TEXT DEFAULT '[]', parts TEXT DEFAULT '[]', ports TEXT DEFAULT '[]', provenance TEXT DEFAULT '', upstream TEXT DEFAULT '', lcsc TEXT DEFAULT '', pinout TEXT DEFAULT '', electrical TEXT DEFAULT '')")
+        # 旧库迁移(P4-0②):已有 blocks 表补 electrical 列,免全量 rebuild
+        cols = {r[1] for r in self.conn.execute("PRAGMA table_info(blocks)")}
+        if "electrical" not in cols:
+            self.conn.execute("ALTER TABLE blocks ADD COLUMN electrical TEXT DEFAULT ''")
+            self.conn.commit()
         self.conn.execute(f"CREATE VIRTUAL TABLE IF NOT EXISTS blocks_vec USING vec0(embedding float[{dim}])")
         self.conn.execute("CREATE VIRTUAL TABLE IF NOT EXISTS blocks_fts USING fts5(text, content='', tokenize='trigram')")
 
@@ -82,7 +87,7 @@ class KnowledgeStore:
         vectors = self.embedder.embed_documents(texts)
         for b, v in zip(blocks, vectors):
             cur = self.conn.execute(
-                "INSERT INTO blocks(block_id, name, desc, category, tags, parts, ports, provenance, upstream, lcsc, pinout) VALUES(?,?,?,?,?,?,?,?,?,?,?)",
+                "INSERT INTO blocks(block_id, name, desc, category, tags, parts, ports, provenance, upstream, lcsc, pinout, electrical) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
                 (
                     b.block_id,
                     b.name,
@@ -95,6 +100,7 @@ class KnowledgeStore:
                     b.upstream.model_dump_json() if b.upstream else "",
                     b.lcsc or "",
                     json.dumps(b.pinout, ensure_ascii=False) if b.pinout else "",
+                    b.electrical.model_dump_json() if b.electrical else "",
                 ),
             )
             rowid = cur.lastrowid
@@ -195,6 +201,13 @@ class KnowledgeStore:
                     upstream = None
             pinout_raw = m["pinout"]
             pinout = json.loads(pinout_raw) if pinout_raw else None
+            electrical_raw = m["electrical"] if "electrical" in m.keys() else ""
+            electrical = None
+            if electrical_raw:
+                try:
+                    electrical = Electrical.model_validate_json(electrical_raw)
+                except Exception:
+                    electrical = None
             results.append(
                 RetrievedBlock(
                     block_id=m["block_id"],
@@ -208,6 +221,7 @@ class KnowledgeStore:
                     upstream=upstream,
                     lcsc=m["lcsc"] or None,
                     pinout=pinout,
+                    electrical=electrical,
                     score=round(fused.get(rowid, 0.0), 6),
                     channels=sorted(channels.get(rowid, set())),
                     rank=i + 1,
@@ -234,7 +248,7 @@ class KnowledgeStore:
             return {}
         marks = ",".join("?" * len(rowids))
         rows = self.conn.execute(
-            f"SELECT rowid, block_id, name, desc, category, tags, parts, ports, provenance, upstream, lcsc, pinout FROM blocks WHERE rowid IN ({marks})",
+            f"SELECT rowid, block_id, name, desc, category, tags, parts, ports, provenance, upstream, lcsc, pinout, electrical FROM blocks WHERE rowid IN ({marks})",
             rowids,
         ).fetchall()
         return {r["rowid"]: r for r in rows}

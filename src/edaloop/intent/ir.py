@@ -17,10 +17,33 @@ class _Tolerant(BaseModel):
         return v
 
 
+class Spec(_Tolerant):
+    """结构化约束(P4-0①):param/value/unit 可被校核器程序化消费,tolerance/source 留溯源。"""
+
+    param: str
+    value: str
+    unit: str = ""
+    tolerance: str | None = None
+    source: str | None = None
+
+
 class Function(_Tolerant):
     name: str
     desc: str = ""
-    constraints: list[str] = Field(default_factory=list)
+    constraints: list[Spec | str] = Field(default_factory=list)
+
+    def constraints_digest(self) -> str:
+        """constraints 统一转文本(结构化 Spec 展开 param=value+unit,自由文本原样)。"""
+        out: list[str] = []
+        for c in self.constraints:
+            if isinstance(c, Spec):
+                seg = f"{c.param}={c.value}{c.unit or ''}"
+                if c.tolerance:
+                    seg += f" ±{c.tolerance}"
+                out.append(seg)
+            else:
+                out.append(c)
+        return "; ".join(x for x in out if x)
 
 
 class Interface(_Tolerant):
@@ -29,9 +52,25 @@ class Interface(_Tolerant):
 
 
 class PowerRail(_Tolerant):
+    """v_min/v_max(P4-0①):宽压轨(锂电池 3.0-4.2V/USB 4.75-5.25V)不再硬塞标称值;
+    source 记来源(USB-C/锂电池/DC 端子),供电校核用。"""
+
     name: str | None = None
-    voltage: float
+    voltage: float | None = None
+    v_min: float | None = None
+    v_max: float | None = None
     imax: float | None = None
+    source: str | None = None
+
+    def v_text(self) -> str:
+        """轨电压文本:标称 "3.3V" / 范围 "3.0-4.2V" / 无数值回退轨名(三态降级,不抛)。"""
+        if self.voltage is not None:
+            return f"{self.voltage:g}V"
+        if self.v_min is not None or self.v_max is not None:
+            lo = f"{self.v_min:g}" if self.v_min is not None else "?"
+            hi = f"{self.v_max:g}" if self.v_max is not None else "?"
+            return f"{lo}-{hi}V"
+        return self.name or "?"
 
 
 class Power(_Tolerant):
@@ -44,6 +83,7 @@ class Env(_Tolerant):
     temp: str | None = None
     size: str | None = None
     cost_target: str | None = None
+    fab: str | None = None
 
 
 class OpenQuestion(_Tolerant):
@@ -100,10 +140,10 @@ class DesignIR(BaseModel):
         for p in self.power.inputs:
             lines.append(p)
         for r in self.power.rails:
-            rail = f"{r.voltage:g}V"
+            rail = r.v_text()
             if r.imax is not None:
                 rail += f" {r.imax:g}A"
-            if r.name:
+            if r.name and r.name not in rail:
                 rail += f" {r.name}"
             lines.append(rail)
         if self.power.protection:

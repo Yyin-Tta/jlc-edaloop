@@ -212,6 +212,7 @@ def _catalog() -> dict[str, BlockRecord]:
             block_id="ldo-ams1117-3v3",
             name="LDO",
             desc="x",
+            category="power",
             upstream=UpstreamRef(
                 id="block.ams1117_ldo_3v3", ports={"VIN_5V": "+5V", "3V3": "+3V3", "GND": "GND"}
             ),
@@ -357,3 +358,60 @@ def test_loop_gate_fail_blocks(tmp_path) -> None:
     result = lc.run()
     assert result.status == "HALT"
     assert any(f.code == "GATE_FAIL" for f in result.rounds[0].findings if not f.weak)
+
+
+# ---- P4-1②:功能分区编排(zones set/zone-plan/zone-draw/note,EDALOOP_ZONES 门控) ----
+
+
+class _ZoneFakeAdapter(_FakeAdapter):
+    """block-apply manifest 带 placed 位号,其余 rc=0;记录全部调用供断言。"""
+
+    def run_json(self, args):
+        self.calls.append(args)
+        if args[1] == "gate":
+            return {"verdict": self.gate_verdict, "stages": []}
+        if args[1] == "block-apply":
+            return {"ok": "applied", "placed": [{"designator": "U1"}, {"designator": "C1"}]}
+        return {"ok": "applied"}
+
+
+def _zones_calls(adapter) -> dict[str, list]:
+    out: dict[str, list] = {}
+    for c in adapter.calls:
+        if c and c[0] == "sch" and c[1] in ("zones", "zone-draw", "zone-plan", "note"):
+            out.setdefault(c[1], []).append(c)
+    return out
+
+
+def test_zone_frames_off_by_default(tmp_path) -> None:
+    chat = FakeChat(json.dumps(_PLAN_OK, ensure_ascii=False))
+    adapter = _ZoneFakeAdapter("pass")
+    lc = _loop(chat, adapter, tmp=str(tmp_path))
+    result = lc.run()
+    assert result.status == "PASS"
+    assert _zones_calls(adapter) == {}  # 未开 EDALOOP_ZONES 不碰分区命令
+
+
+def test_zone_frames_sequence_when_enabled(tmp_path) -> None:
+    chat = FakeChat(json.dumps(_PLAN_OK, ensure_ascii=False))
+    adapter = _ZoneFakeAdapter("pass")
+    lc = _loop(chat, adapter, tmp=str(tmp_path))
+    lc.zones_enabled = True
+    result = lc.run()
+    assert result.status == "PASS"
+    calls = _zones_calls(adapter)
+    assert set(calls) == {"zones", "zone-plan", "zone-draw", "note"}
+    # zones clear 在 set 前
+    flat = adapter.calls
+    clear_i = next(i for i, c in enumerate(flat) if c[:3] == ["sch", "zones", "clear"])
+    set_i = next(i for i, c in enumerate(flat) if c[:3] == ["sch", "zones", "set"])
+    assert clear_i < set_i
+    # 声明带真实位号:PWR=left:U1,C1(_PLAN_OK 只有 LDO,电源带)
+    set_call = calls["zones"][1]
+    assert "PWR=left:U1,C1" in set_call
+    # 分区框用 partition 模式;注记挂靠 PWR 且在 gate 之前执行
+    assert calls["zone-draw"][0][2:4] == ["--mode", "partition"]
+    note_call = calls["note"][0]
+    assert note_call[note_call.index("--zone") + 1] == "PWR"
+    gate_i = next(i for i, c in enumerate(flat) if c[:2] == ["sch", "gate"])
+    assert set_i < gate_i and next(i for i, c in enumerate(flat) if c[:2] == ["sch", "note"]) < gate_i
