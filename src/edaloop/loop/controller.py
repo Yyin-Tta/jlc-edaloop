@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import re
 import os
 import time
@@ -20,6 +21,26 @@ from edaloop.validate.models import Finding
 
 MAX_ROUNDS = 5
 SAME_CODE_HALT = 2
+
+
+def _snap5(raw: float) -> int:
+    """snap-5 且远离零取整(就近取整可差 1~2 单位仍越界/仍叠)。"""
+    if raw == 0:
+        return 0
+    n = int(math.ceil(abs(raw) / 5.0) * 5)
+    return n if raw > 0 else -n
+
+
+def _clamp_delta(lo, hi, band_lo: float, band_hi: float) -> int:
+    """把 [lo,hi] 钳回 [band_lo,band_hi] 的位移(0=已在带内)。"""
+    if lo is None or hi is None:
+        return 0
+    raw = 0.0
+    if hi > band_hi:
+        raw = band_hi - hi
+    elif lo < band_lo:
+        raw = band_lo - lo
+    return _snap5(raw) if raw else 0
 
 
 @dataclass
@@ -578,6 +599,316 @@ class LoopController:
             except AdapterError as e:
                 self.audit.event("zones-fatal", round_no=round_no, page=page, error=str(e)[:1000])
 
+    def _clusters_report(self, page: str) -> dict:
+        """clusters --json 全量报告(带几何/簇 box/flags),解析失败返回空。
+
+        rc!=0 是常态(ERROR 即非零),解析只认 stdout;不带 --strict:tight 是
+        WARN,属 gap 参数域,不触发拆排。"""
+        _, out, _ = self.adapter.run(["sch", "clusters", "--json", "--doc", page])
+        try:
+            return json.loads(out) if (out or "").strip() else {}
+        except ValueError:
+            return {}
+
+    def _cluster_errors(self, page: str) -> list[dict]:
+        rep = self._clusters_report(page)
+        return [f for f in (rep.get("findings") or []) if f.get("level") == "ERROR"]
+
+    def _arrange_closeout(self, round_no: int, placed_by_page: dict[str, dict[str, list[str]]]) -> None:
+        """P4-b3 布局收口(逐页,仅 clusters ERROR 页):拆问题块组 → 逐件单件组
+        → group-arrange 刚体平移(网表逐 pin 不变)→ 复查,仍 ERROR 换大 gap 重排一次。
+
+        为什么拆到单件:block-apply 封组让整块成为刚体,块内碰撞(usbc J1
+        netport 翼展压 D3,校准 A 实测)任何整块平移都修不掉;单件化后
+        arrange 按耦合逐件落位(usbc 结构死局实证 2 ERROR→0)。干净块保持
+        整组刚体、干净页整页不动(重排会把已达标几何重洗,收益为负)。
+        副作用已知并接受:snap-5 平移可产生 marker 微叠(大 gap 重排兜底);
+        移动内核清扫不重建 NC 标(floating=warn 弱门禁;no-connect 有引入
+        真短路的实锤,绝不自动补)。全程非致命:收口失败只审计,gate 是最终权威。"""
+        from edaloop.generate.adapter import AdapterError
+
+        for page, insts in sorted(placed_by_page.items()):
+            try:
+                errs = self._cluster_errors(page)
+                if not errs:
+                    continue
+                self.audit.event(
+                    "arrange-probe",
+                    round_no=round_no,
+                    page=page,
+                    errors=[{"type": f.get("type"), "a": f.get("a"), "b": f.get("b")} for f in errs],
+                )
+                # ERROR 位号点名谁拆谁;对不上号(位号漂移/上轮残留)→ 组全拆
+                err_desigs = {d for f in errs for d in (f.get("a"), f.get("b")) if d}
+                self._shatter_groups(round_no, page, insts, err_desigs)
+                # gap 梯子自适应(run5/run6 实证):执行过仍脏(rc=0)是微叠类 → 放大;
+                # 拒排 rc=1 是装不下类(run6 实测 P2 总需仅超带 4~24 单位)→ 逐档缩小
+                # 60→40。仍救不回(P1/P6 类:arrange 的组占地含挂线,拆成单件也不缩
+                # 翼展——run6 现场实验 7 单件仍拒)→ 钳回兜底刚移点名件
+                gap, tried = 80, []
+                for _ in range(3):
+                    rc, out, err = self.adapter.run(
+                        ["sch", "group-arrange", "--annotate=false", "--gap", str(gap), "--doc", page]
+                    )
+                    tried.append(gap)
+                    self.audit.event(
+                        "arrange-apply",
+                        round_no=round_no,
+                        page=page,
+                        gap=gap,
+                        rc=rc,
+                        out=(out or "")[-300:],
+                        error=(err or "")[-300:],
+                    )
+                    errs = self._cluster_errors(page)
+                    if not errs:
+                        break
+                    if rc == 0:
+                        nxt = 140 if 140 not in tried else None
+                    else:
+                        nxt = next((g for g in (60, 40) if g not in tried), None)
+                    if nxt is None:
+                        break
+                    gap = nxt
+                if errs:
+                    errs = self._clamp_into_band(round_no, page)
+                self.audit.event("arrange-result", round_no=round_no, page=page, remaining=len(errs))
+            except AdapterError as e:
+                self.audit.event("arrange-fatal", round_no=round_no, page=page, error=str(e)[:800])
+
+    def _clamp_into_band(self, round_no: int, page: str) -> list[dict]:
+        """拒排兜底:按 clusters 可用带把 ERROR 件刚移到空位。
+
+        为什么这条路成立:gate/clusters 的 sheetUsable 含图签带(实测
+        [12,12]-[1158,813],801 高),比 arrange 的排布带([12,198] 起,615 高)
+        宽——收口的验收是 clusters 零 ERROR,不是过 arrange;arrange 拒排时
+        它什么都没动,点名件还在带外,刚移(group-move 挂线跟随)即可。
+
+        一次一动:每步后重探再决策(实测 P6 三件连钳,J4 落在 J3 上、R10 压
+        R9——钳回带内 ≠ 钳到空位)。落点沿钳回轴向带内扫 60 步进避邻居;
+        overlap 双方都在带内 → b 沿 y 下推/上推 40 分离。无解就停,归反馈域。"""
+        for _ in range(4):
+            rep = self._clusters_report(page)
+            errs = [f for f in (rep.get("findings") or []) if f.get("level") == "ERROR"]
+            if not errs:
+                return []
+            u = rep.get("sheetUsable") or {}
+            try:
+                ux1, uy1, ux2, uy2 = (float(u[k]) for k in ("minX", "minY", "maxX", "maxY"))
+            except (KeyError, TypeError, ValueError):
+                return errs  # 带几何缺失:无证据不动作
+            boxes = {
+                c.get("designator"): c.get("box")
+                for c in (rep.get("clusters") or [])
+                if c.get("designator")
+            }
+            # 位号 → 所在组(shatter 后点名件应为单件组;组=刚移单位,挂线自动跟随)
+            _, out, _ = self.adapter.run(["sch", "group", "list", "--json", "--doc", page])
+            try:
+                grp_rep = json.loads(out) if (out or "").strip() else {}
+                groups = [g for gs in (grp_rep.get("groupsByPage") or {}).values() for g in gs]
+            except ValueError:
+                groups = []
+            gid_of: dict[str, str] = {}
+            for g in groups:
+                gid = g.get("id") or g.get("name") or ""
+                for m in g.get("members") or []:
+                    d = m.get("designator")
+                    if d and gid and d not in gid_of:
+                        gid_of[d] = gid
+            acted = False
+            for f in errs:
+                move = self._clamp_move_for(f, boxes, gid_of, ux1, uy1, ux2, uy2)
+                if not move:
+                    continue
+                d, gid, dx, dy = move
+                rc, _, err = self.adapter.run(
+                    ["sch", "group-move", "--group", gid, "--dx", str(dx), "--dy", str(dy), "--doc", page]
+                )
+                acted = True
+                self.audit.event(
+                    "arrange-clamp",
+                    round_no=round_no,
+                    page=page,
+                    cause=f.get("type"),
+                    designator=d,
+                    group=gid,
+                    dx=dx,
+                    dy=dy,
+                    rc=rc,
+                    error=(err or "")[-200:],
+                )
+                break  # 一次一动,下一步用新鲜几何
+            if not acted:
+                return errs
+        rep = self._clusters_report(page)
+        return [f for f in (rep.get("findings") or []) if f.get("level") == "ERROR"]
+
+    def _clamp_move_for(
+        self,
+        finding: dict,
+        boxes: dict[str, dict],
+        gid_of: dict[str, str],
+        ux1: float,
+        uy1: float,
+        ux2: float,
+        uy2: float,
+    ) -> tuple[str, str, int, int] | None:
+        """一条 ERROR → 一个刚移动作(位号,组id,dx,dy);无解返回 None。
+
+        out-of-sheet:钳回带内,落点沿移动轴向内扫 60 步进避邻居;
+        overlap:把 b 沿 y 下推(留 40 间距)分离,下方不够再上推。"""
+        margin = 15.0
+
+        def occupied(d: str, b: dict) -> bool:
+            return any(
+                d != o
+                and b["minX"] - margin < ob.get("maxX", 1e9)
+                and b["maxX"] + margin > ob.get("minX", -1e9)
+                and b["minY"] - margin < ob.get("maxY", 1e9)
+                and b["maxY"] + margin > ob.get("minY", -1e9)
+                for o, ob in boxes.items()
+            )
+
+        if finding.get("type") == "out-of-sheet":
+            d = finding.get("a")
+            b = boxes.get(d or "")
+            if not b or d not in gid_of:
+                return None
+            dx = _clamp_delta(b.get("minX"), b.get("maxX"), ux1, ux2)
+            dy = _clamp_delta(b.get("minY"), b.get("maxY"), uy1, uy2)
+            if dx == dy == 0:
+                return None
+            step = -60 if dx < 0 else (60 if dx > 0 else 0)
+            for s in range(6):
+                cand = (dx + s * step, dy) if step else (dx, dy + s * (-60 if dy < 0 else 60))
+                tb = {
+                    "minX": b["minX"] + cand[0],
+                    "maxX": b["maxX"] + cand[0],
+                    "minY": b["minY"] + cand[1],
+                    "maxY": b["maxY"] + cand[1],
+                }
+                if (
+                    tb["minX"] >= ux1
+                    and tb["maxX"] <= ux2
+                    and tb["minY"] >= uy1
+                    and tb["maxY"] <= uy2
+                    and not occupied(d, tb)
+                ):
+                    return d, gid_of[d], cand[0], cand[1]
+            return None
+        if finding.get("type") == "overlap":
+            a, b_ = finding.get("a"), finding.get("b")
+            ba, bb = boxes.get(a or ""), boxes.get(b_ or "")
+            if not ba or not bb or b_ not in gid_of:
+                return None
+            down = _snap5(ba.get("minY", 0) - 40 - bb.get("maxY", 0))  # b 下移到 a 下方 40
+            if bb["maxY"] + down < uy1:
+                up = _snap5(ba.get("maxY", 0) + 40 - bb.get("minY", 0))
+                if bb["maxY"] + up > uy2:
+                    return None
+                return b_, gid_of[b_], 0, up
+            return b_, gid_of[b_], 0, down
+        return None
+
+    def _shatter_groups(
+        self, round_no: int, page: str, insts: dict[str, list[str]], err_desigs: set[str]
+    ) -> None:
+        """按 ERROR 点名拆组:问题件的封组解体 → 点名件单件化(arrange 获得逐件
+        自由度),无辜件重新封组保持刚体——块作者标定几何少受扰动,参与 arrange
+        的体积也小(run5 实证整块全拆=6-9 组在 y∈[198,813] 可用带装不下,
+        点名拆能把排布体积压回可容纳)。err_desigs 对不上任何落图位号(位号
+        漂移/上轮残留)→ 该页所有组全拆(拆多不拆错:漏拆=整块仍刚体,块内
+        碰撞永远修不掉)。
+
+        另:place 通道件不自动归组,不属于任何组的落图件补建单件组——
+        否则 arrange 对它们零手段(out-of-sheet 永存,run5 P3/P4 实证)。"""
+        _, out, _ = self.adapter.run(["sch", "group", "list", "--json", "--doc", page])
+        try:
+            rep = json.loads(out) if (out or "").strip() else {}
+            groups = [g for gs in (rep.get("groupsByPage") or {}).values() for g in gs]
+        except ValueError:
+            groups = []
+        all_placed = {d for ds in insts.values() for d in ds}
+        targeted = bool(err_desigs & all_placed)
+        covered: set[str] = set()
+        for g in groups:
+            gid = g.get("id") or g.get("name") or ""
+            members = [m.get("designator", "") for m in (g.get("members") or []) if m.get("designator")]
+            if not gid or not members:
+                continue
+            covered |= set(members)
+            culprits = set(members) & err_desigs if targeted else set(members)
+            if not culprits:
+                continue  # 干净组:整组保持刚体
+            rest = sorted(set(members) - culprits)
+            self.adapter.run(["sch", "group", "ungroup", "--group", gid, "--doc", page])
+            for d in sorted(culprits):
+                self.adapter.run(["sch", "group", "create", "--members", d, "--doc", page])
+            if len(rest) >= 2:
+                self.adapter.run(["sch", "group", "create", "--members", ",".join(rest), "--doc", page])
+            elif rest:
+                self.adapter.run(["sch", "group", "create", "--members", rest[0], "--doc", page])
+            self.audit.event(
+                "arrange-shatter",
+                round_no=round_no,
+                page=page,
+                group=gid,
+                culprits=sorted(culprits),
+                rest=rest,
+            )
+        for d in sorted(all_placed - covered):
+            self.adapter.run(["sch", "group", "create", "--members", d, "--doc", page])
+            self.audit.event("arrange-stray-group", round_no=round_no, page=page, designator=d)
+
+    def _apply_titleblocks(self, round_no: int, actions) -> None:
+        """逐页明细表补齐(sch check 的 missing-titleblock 消除项;注释类非致命)。
+
+        titleblock 修改只作用前台页(官方 API 无 pageUuid,与 get 不对称),
+        --doc 切页后下发;字段 key 随页模板不同,titleblock-get 先探,命中
+        Title/Name/名称/标题 之一才写——写不存在的 key 平台静默丢弃并让
+        rc!=0(notApplied),先探后写省得每轮挂一条假失败审计。"""
+        from edaloop.generate.adapter import AdapterError
+
+        stem = Path(self.ir.source or "design").stem
+        for page in self._plan_pages(actions):
+            doc = ["--doc", page]
+            try:
+                keys: set[str] = set()
+                try:
+                    _, out, _ = self.adapter.run(["sch", "titleblock-get", *doc])
+                    rep = json.loads(out) if (out or "").strip() else {}
+                    res = rep.get("result") if isinstance(rep.get("result"), dict) else rep
+                    for src in (res, (res or {}).get("fields"), (res or {}).get("items")):
+                        if isinstance(src, dict):
+                            keys |= {str(k) for k in src}
+                except ValueError:
+                    pass
+                rc_show, _, _ = self.adapter.run(["sch", "titleblock", "--show", *doc])
+                key = next((k for k in ("Title", "Name", "名称", "标题") if k in keys), "")
+                rc, out = 0, ""
+                if key:
+                    rc, out, _ = self.adapter.run(
+                        [
+                            "sch",
+                            "titleblock",
+                            "--data",
+                            json.dumps({key: {"value": f"{stem} · {page}"}}, ensure_ascii=False),
+                            *doc,
+                        ]
+                    )
+                self.audit.event(
+                    "titleblock",
+                    round_no=round_no,
+                    page=page,
+                    key=key or None,
+                    show_rc=rc_show,
+                    rc=rc,
+                    out=(out or "")[-200:],
+                )
+            except AdapterError as e:
+                self.audit.event("titleblock-error", round_no=round_no, page=page, error=str(e)[:500])
+
     def _apply(self, actions, round_no: int) -> tuple[bool, dict | None]:
         from edaloop.generate.adapter import AdapterError
 
@@ -589,12 +920,18 @@ class LoopController:
         place_pinouts: dict[str, dict[str, str]] = {}
         designators: dict[str, str] = {}
         zone_designators: dict[str, dict[str, list[str]]] = {}  # P4-1②/P4-b2:页 → claim → 本轮落图位号
+        placed_by_page: dict[str, dict[str, list[str]]] = {}  # P4-b3:页 → 实例 → 落图位号(拆组重排用)
         for act in actions:
             try:
                 args = self._doc_args(act)  # P4-b2:非 P1 页追加 --doc 钉扎
                 if act.kind == "sch-gate":
-                    if self.zones_enabled and zone_designators and not self.dry_run:
-                        self._apply_zone_frames(round_no, zone_designators, actions)
+                    # P4-b3 收口次序:拆组重排 → 分区框 → 明细表,全部先于 gate
+                    # (zone-draw 按落图后几何画框、明细表作用前台页,重排必须最先)
+                    if not self.dry_run:
+                        self._arrange_closeout(round_no, placed_by_page)
+                        if self.zones_enabled and zone_designators:
+                            self._apply_zone_frames(round_no, zone_designators, actions)
+                        self._apply_titleblocks(round_no, actions)
                     gate_report = self._gate_all_pages(act.args, actions, round_no)
                     continue
                 if act.kind == "lib-search":
@@ -645,6 +982,8 @@ class LoopController:
                     comp = (resp.get("result", {}) or {}).get("component", {}) or {}
                     desig = comp.get("designator", "")
                     ok = bool(desig)
+                    if ok:
+                        placed_by_page.setdefault(act.page or "P1", {}).setdefault(act.block_instance, []).append(desig)
                     if ok and act.zone:
                         zone_designators.setdefault(act.page or "P1", {}).setdefault(act.zone, []).append(desig)
                     if ok and act.pinout:
@@ -709,10 +1048,12 @@ class LoopController:
                                 instance=act.block_instance,
                                 error=str(e)[:1500],
                             )
-                if status == "applied" and act.zone:
-                    for p in manifest.get("placed", []) or []:
-                        if p.get("designator"):
-                            zone_designators.setdefault(act.page or "P1", {}).setdefault(act.zone, []).append(p["designator"])
+                if status == "applied":
+                    des = [p["designator"] for p in manifest.get("placed", []) or [] if p.get("designator")]
+                    if des:
+                        placed_by_page.setdefault(act.page or "P1", {})[act.block_instance] = des
+                    if act.zone:
+                        zone_designators.setdefault(act.page or "P1", {}).setdefault(act.zone, []).extend(des)
                 if status != "applied":
                     ok_all = False
             except AdapterError as e:

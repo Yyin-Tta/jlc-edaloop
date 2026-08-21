@@ -547,3 +547,259 @@ def test_block_apply_executes_once(tmp_path) -> None:
     # 修复前:adapter.run + _run_json_retry(args) 各发一遍 = 2
     runs = [c for c in adapter.calls if c[:2] == ["sch", "block-apply"]]
     assert len(runs) == 1
+
+
+# ---- P4-b3:布局收口(clusters ERROR 页拆组重排)+ 明细表补齐 ----
+
+
+class _ArrangeFakeAdapter(_ZoneFakeAdapter):
+    """clusters 首查 ERROR(块内 D3↔J1 + 跨块 J1↔R1),第 dirty_arranges 次
+    group-arrange 后清零;group list:g1=问题块(D3,J1,D1,R9)、g2=R1 所在块;
+    block-apply manifest 位号与 g1 对齐(placed_by_page 命中路径)。
+    arrange_rc=1 仿真「装不下拒排」(fit 类),=0 仿真已执行。"""
+
+    def __init__(
+        self,
+        gate_verdict: str,
+        dirty_arranges: int = 1,
+        arrange_rc: int = 0,
+        placed: tuple[str, ...] = ("D3", "J1", "D1", "R9"),
+        errors: tuple[tuple[str, str, str], ...] = (("overlap", "D3", "J1"), ("overlap", "J1", "R1")),
+        clamp_clean: bool = False,
+    ) -> None:
+        super().__init__(gate_verdict)
+        self.arranges = 0
+        self.dirty_arranges = dirty_arranges
+        self.arrange_rc = arrange_rc
+        self.placed = list(placed)
+        self.errors = list(errors)
+        self.clamp_clean = clamp_clean
+        self.clamps = 0
+
+    def run(self, args):
+        if args[1] == "block-apply":
+            self.calls.append(args)
+            return 0, json.dumps(
+                {"ok": "applied", "placed": [{"designator": d} for d in self.placed]}
+            ), ""
+        if args[1] == "clusters":
+            self.calls.append(args)
+            dirty = self.clamps < 1 if self.clamp_clean else self.arranges < self.dirty_arranges
+            if dirty:
+                findings = [
+                    {"type": t, "a": a, "b": b or None, "level": "ERROR"} for t, a, b in self.errors
+                ]
+                clusters = []
+                for t, a, b in self.errors:
+                    box = {"minX": 1200.0, "minY": 600.0, "maxX": 1300.0, "maxY": 700.0}
+                    clusters.append({"designator": a, "primitiveId": f"p-{a}", "box": box})
+                    if b:
+                        clusters.append({"designator": b, "primitiveId": f"p-{b}", "box": dict(box)})
+                return (
+                    1,
+                    json.dumps(
+                        {
+                            "findings": findings,
+                            "clusters": clusters,
+                            "sheetUsable": {"minX": 12, "minY": 12, "maxX": 1158, "maxY": 813},
+                        }
+                    ),
+                    "",
+                )
+            return 0, json.dumps({"findings": []}), ""
+        if args[:2] == ["sch", "group-move"]:
+            self.calls.append(args)
+            self.clamps += 1
+            return 0, "moved", ""
+        if args[:3] == ["sch", "group", "list"]:
+            self.calls.append(args)
+            g1_members = [d for d in self.placed if d != "MCUSTM32"]
+            return (
+                0,
+                json.dumps(
+                    {
+                        "groupsByPage": {
+                            "u1": [
+                                {"id": "g1", "members": [{"designator": d} for d in g1_members]},
+                                {"id": "g2", "members": [{"designator": "R1"}]},
+                            ]
+                        }
+                    }
+                ),
+                "",
+            )
+        if args[1] == "group-arrange":
+            self.calls.append(args)
+            self.arranges += 1
+            return self.arrange_rc, "arranged", ""
+        return super().run(args)
+
+
+def test_arrange_closeout_shatters_named_culprits_only(tmp_path) -> None:
+    """ERROR 点名谁拆谁:D3/J1 单件化 + 无辜件(D1,R9)重封一组保持刚体;
+    跨块命中的 R1 所在组(g2)也点名拆;group-arrange --annotate=false
+    --gap 80 后清零不升档;全链先于 gate。"""
+    chat = FakeChat(json.dumps(_PLAN_OK, ensure_ascii=False))
+    adapter = _ArrangeFakeAdapter("pass")
+    lc = _loop(chat, adapter, tmp=str(tmp_path))
+    result = lc.run()
+    assert result.status == "PASS"
+    flat = adapter.calls
+    assert [c[c.index("--group") + 1] for c in flat if c[:3] == ["sch", "group", "ungroup"]] == ["g1", "g2"]
+    creates = [c[c.index("--members") + 1] for c in flat if c[:4] == ["sch", "group", "create", "--members"]]
+    assert sorted(creates) == ["D1,R9", "D3", "J1", "R1"]  # 2 点名单件 + 1 余件组 + 跨块 R1
+    arr = [c for c in flat if c[:2] == ["sch", "group-arrange"]]
+    assert len(arr) == 1
+    assert arr[0][arr[0].index("--gap") + 1] == "80"
+    assert "--annotate=false" in arr[0]  # 分区框/注记归 zones 管,arrange 不得重复画
+    gate_i = next(i for i, c in enumerate(flat) if c[:2] == ["sch", "gate"])
+    ung_i = next(i for i, c in enumerate(flat) if c[:3] == ["sch", "group", "ungroup"])
+    assert ung_i < gate_i
+
+
+def test_arrange_closeout_escalates_gap(tmp_path) -> None:
+    """gap 80 已执行(rc=0)仍脏 → 微叠类,升 140 重排一次。"""
+    chat = FakeChat(json.dumps(_PLAN_OK, ensure_ascii=False))
+    adapter = _ArrangeFakeAdapter("pass", dirty_arranges=2)
+    lc = _loop(chat, adapter, tmp=str(tmp_path))
+    result = lc.run()
+    assert result.status == "PASS"
+    arr = [c for c in adapter.calls if c[:2] == ["sch", "group-arrange"]]
+    assert [c[c.index("--gap") + 1] for c in arr] == ["80", "140"]
+
+
+def test_arrange_closeout_downsizes_gap_on_fit_refusal(tmp_path) -> None:
+    """拒排(rc=1 装不下,run5 P1/P5 类)→ 梯子向下:80 拒排换 60 硬塞,
+    绝不升 140(更大 gap 只会更装不下)。"""
+    chat = FakeChat(json.dumps(_PLAN_OK, ensure_ascii=False))
+    adapter = _ArrangeFakeAdapter("pass", dirty_arranges=2, arrange_rc=1)
+    lc = _loop(chat, adapter, tmp=str(tmp_path))
+    result = lc.run()
+    assert result.status == "PASS"
+    arr = [c for c in adapter.calls if c[:2] == ["sch", "group-arrange"]]
+    assert [c[c.index("--gap") + 1] for c in arr] == ["80", "60"]
+
+
+def test_arrange_closeout_tries_gap_40_before_split(tmp_path) -> None:
+    """拒排且 60 仍拒(run6 P2 实测总需仅超带 4~24 单位)→ 40 档补刀,
+    不必动组结构。"""
+    chat = FakeChat(json.dumps(_PLAN_OK, ensure_ascii=False))
+    adapter = _ArrangeFakeAdapter("pass", dirty_arranges=3, arrange_rc=1)
+    lc = _loop(chat, adapter, tmp=str(tmp_path))
+    result = lc.run()
+    assert result.status == "PASS"
+    arr = [c for c in adapter.calls if c[:2] == ["sch", "group-arrange"]]
+    assert [c[c.index("--gap") + 1] for c in arr] == ["80", "60", "40"]
+
+
+def test_arrange_closeout_clamps_strays_when_arrange_refuses(tmp_path) -> None:
+    """梯子 80/60/40 全拒(arrange 的组占地含挂线,拆组不缩翼展——run6 P1
+    现场实验 7 单件仍拒)→ 钳回兜底:out-of-sheet 点名件按 sheetUsable(比
+    arrange 带宽,含图签带)刚移回界内,snap-5 远离零取整。"""
+    chat = FakeChat(json.dumps(_PLAN_OK, ensure_ascii=False))
+    adapter = _ArrangeFakeAdapter(
+        "pass",
+        dirty_arranges=99,
+        arrange_rc=1,
+        placed=("D3", "J1", "R3", "R9"),
+        errors=(("out-of-sheet", "R3", ""),),
+        clamp_clean=True,
+    )
+    lc = _loop(chat, adapter, tmp=str(tmp_path))
+    result = lc.run()
+    assert result.status == "PASS"
+    arr = [c for c in adapter.calls if c[:2] == ["sch", "group-arrange"]]
+    assert [c[c.index("--gap") + 1] for c in arr] == ["80", "60", "40"]
+    mv = [c for c in adapter.calls if c[:2] == ["sch", "group-move"]]
+    # R3 在 g1(placed 去 MCUSTM32);box maxX=1300 越界 142 → snap-5 远离零 = -145
+    assert len(mv) == 1 and mv[0][mv[0].index("--group") + 1] == "g1"
+    assert mv[0][mv[0].index("--dx") + 1] == "-145" and mv[0][mv[0].index("--dy") + 1] == "0"
+    events = [json.loads(line) for line in Path(str(tmp_path), "audit.jsonl").read_text().splitlines()]
+    clamp = [e for e in events if e.get("kind") == "arrange-clamp"]
+    assert [(e["designator"], e["dx"], e["dy"]) for e in clamp] == [("R3", -145, 0)]
+    assert [e["remaining"] for e in events if e.get("kind") == "arrange-result"] == [0]
+
+
+def test_arrange_closeout_separates_overlaps_when_arrange_refuses(tmp_path) -> None:
+    """拒排页的 overlap(双方都在带内,钳回不动它)→ b 沿 y 下推 40 分离
+    (下方不够再上推;再无解归反馈域)。"""
+    chat = FakeChat(json.dumps(_PLAN_OK, ensure_ascii=False))
+    adapter = _ArrangeFakeAdapter(
+        "pass",
+        dirty_arranges=99,
+        arrange_rc=1,
+        placed=("D3", "J2", "D1", "R9"),
+        errors=(("overlap", "D3", "J2"),),
+        clamp_clean=True,
+    )
+    lc = _loop(chat, adapter, tmp=str(tmp_path))
+    result = lc.run()
+    assert result.status == "PASS"
+    mv = [c for c in adapter.calls if c[:2] == ["sch", "group-move"]]
+    # D3 箱 (1200,600)-(1300,700),J2 同箱:down = 600-40-700 = -140
+    assert len(mv) == 1 and mv[0][mv[0].index("--dy") + 1] == "-140"
+    events = [json.loads(line) for line in Path(str(tmp_path), "audit.jsonl").read_text().splitlines()]
+    clamp = [e for e in events if e.get("kind") == "arrange-clamp"]
+    assert [(e["designator"], e["dy"]) for e in clamp] == [("J2", -140)]
+
+
+def test_arrange_closeout_groups_place_channel_strays(tmp_path) -> None:
+    """place 通道件(MCUSTM32)不在任何组里 → arrange 对它零手段(run5 P3/P4
+    out-of-sheet 永存实证)→ 补建单件组纳入可动域。"""
+    chat = FakeChat(json.dumps(_PLAN_OK, ensure_ascii=False))
+    adapter = _ArrangeFakeAdapter(
+        "pass",
+        placed=("D3", "J1", "D1", "MCUSTM32"),
+        errors=(("out-of-sheet", "MCUSTM32", ""), ("overlap", "D3", "J1")),
+    )
+    lc = _loop(chat, adapter, tmp=str(tmp_path))
+    result = lc.run()
+    assert result.status == "PASS"
+    flat = adapter.calls
+    creates = [c[c.index("--members") + 1] for c in flat if c[:4] == ["sch", "group", "create", "--members"]]
+    # g1 成员=placed 去掉散件;D3/J1 点名单件,D1 余件单件,MCUSTM32 补建单件
+    assert sorted(creates) == ["D1", "D3", "J1", "MCUSTM32"]
+
+
+def test_arrange_closeout_skips_clean_pages(tmp_path) -> None:
+    """clusters 无 ERROR 的页绝不重排(干净几何重洗=收益为负);
+    明细表仍逐页补(titleblock-get 无字段 → 只 --show,不盲写 --data)。"""
+    chat = FakeChat(json.dumps(_PLAN_OK, ensure_ascii=False))
+    adapter = _ZoneFakeAdapter("pass")  # clusters → "{}" 无 findings
+    lc = _loop(chat, adapter, tmp=str(tmp_path))
+    result = lc.run()
+    assert result.status == "PASS"
+    assert not [c for c in adapter.calls if c[:2] == ["sch", "group-arrange"]]
+    assert not [c for c in adapter.calls if c[:3] == ["sch", "group", "ungroup"]]
+    shows = [c for c in adapter.calls if c[:2] == ["sch", "titleblock"]]
+    assert shows and all("--doc" in c for c in shows)
+    assert not [c for c in shows if "--data" in c]
+
+
+class _TitleFakeAdapter(_ZoneFakeAdapter):
+    def run(self, args):
+        if args[1] == "titleblock-get":
+            self.calls.append(args)
+            return (
+                0,
+                json.dumps(
+                    {"result": {"fields": {"Title": {"value": "old"}, "Size": {"value": "A4"}}}}
+                ),
+                "",
+            )
+        return super().run(args)
+
+
+def test_titleblock_writes_discovered_key(tmp_path) -> None:
+    """titleblock-get 探到 Title → --show + --data Title=<需求·页>;
+    只写存在的 key(写不存在的 key 平台静默丢弃还 rc!=0)。"""
+    chat = FakeChat(json.dumps(_PLAN_OK, ensure_ascii=False))
+    adapter = _TitleFakeAdapter("pass")
+    lc = _loop(chat, adapter, tmp=str(tmp_path))
+    result = lc.run()
+    assert result.status == "PASS"
+    data = [c for c in adapter.calls if "--data" in c]
+    assert len(data) == 1
+    payload = json.loads(data[0][data[0].index("--data") + 1])
+    assert payload == {"Title": {"value": "t · P1"}}  # ir.source=t.md → stem t
+    assert data[0][data[0].index("--doc") + 1] == "P1"
