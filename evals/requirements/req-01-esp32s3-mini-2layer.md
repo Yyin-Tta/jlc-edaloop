@@ -1,6 +1,7 @@
 # ESP32-S3 最小系统板设计要求（改写自 esp32MiniRequire.md · 变体 A：两层经济版）
 
 > 金标准 eval v0 · 需求样本 01
+> 难度层：简单（v2 重设计 2026-08，26→14 分层）
 > 来源：https://github.com/zhoushoujianwork/easyeda-agent `esp32MiniRequire.md` 改写
 > 改写要点：4 层 → 2 层；接线端子 → USB-C 优先供电；CH340 → CH340N（SOP-8）；增加测试点与版本丝印。覆盖相同电路块：MCU 模组 + USB 串口 + LDO + LED + 双按键 + 安装孔。
 

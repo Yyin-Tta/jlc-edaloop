@@ -14,7 +14,14 @@ _REPOS = {
     "seeds": Path("seeds/blocks.jsonl"),
     "annotations": Path("evals/w1-retrieval.json"),
     "requirements": Path("evals/requirements"),
+    "archive": Path("evals/requirements/archive"),
 }
+
+
+def _req_path(req_file: str) -> Path:
+    """标注可指向现行需求或 archive/ 裁撤件(v2 重设计后部分输入被归档,文本仍是有效检索输入)。"""
+    p = _REPOS["requirements"] / req_file
+    return p if p.exists() else _REPOS["archive"] / req_file
 
 
 def _customer_voice(md: str) -> str:
@@ -49,7 +56,7 @@ def run_w1_retrieval_eval(db_path: str = "runs/eval-w1.db") -> tuple[float, dict
     for req_file, expected in annotations.items():
         if req_file in ("metric", "note"):
             continue
-        md = (_REPOS["requirements"] / req_file).read_text(encoding="utf-8")
+        md = _req_path(req_file).read_text(encoding="utf-8")
         body = _customer_voice(md)
         try:
             ir = _parse_ir(body, llm, source=req_file)

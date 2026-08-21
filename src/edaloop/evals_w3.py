@@ -7,25 +7,45 @@ from edaloop.generate.pipeline import stage_run
 
 _REQ_DIR = Path("evals/requirements")
 _REQS = sorted(p.name for p in _REQ_DIR.glob("req-*.md"))
-# 分级回归:smoke(改动的最快验证)/daily(常规 PR)/all(仅发版或大改)
-# smoke/daily 选取原则:覆盖两通道(block-apply+place)、历史难例(布局/隔离)、自由拓扑
+# v2 重设计(26->14):编号即难度顺序 01-04 简单 / 05-09 中等 / 10-14 困难,覆盖矩阵见 evals/README.md
+# 回归级从难度层派生:smoke 每层抽 1 最快(block 基线+自由拓扑+隔离历史难例);daily 保持 8 个规模≈32min
 _TIER = {
+    # 简单:单电源域/小 BOM/块直命中,预期 1 轮
+    "easy": [
+        "req-01-esp32s3-mini-2layer.md",
+        "req-02-rs485-sensor-hub.md",
+        "req-03-ir-remote-hub.md",
+        "req-04-smart-dial-oled.md",
+    ],
+    # 中等:多块组合/电源树>=2级/自由拓扑/refine 歧义
+    "medium": [
+        "req-05-battery-ble-telemetry.md",
+        "req-06-pico-native-usb-gateway.md",
+        "req-07-motor-driver-board.md",
+        "req-08-liion-protection-freeform.md",
+        "req-09-ambiguous-sensor-node.md",
+    ],
+    # 困难:隔离/4层叠层/双MCU/多插槽母板/端到端订单
+    "hard": [
+        "req-10-esp32s3-industrial-4layer.md",
+        "req-11-isolated-dido-module.md",
+        "req-12-hybrid-dual-mcu-gateway.md",
+        "req-13-env-sensor-motherboard.md",
+        "req-14-door-sensor-e2e.md",
+    ],
     "smoke": [
         "req-01-esp32s3-mini-2layer.md",
-        "req-04-interface-board.md",
-        "req-23-liion-protection-freeform.md",
-    ],
-    "daily": [
-        "req-01-esp32s3-mini-2layer.md",
-        "req-02-esp32s3-industrial-4layer.md",
-        "req-04-interface-board.md",
-        "req-05-hybrid-dual-mcu-gateway.md",
-        "req-08-isolated-dido-module.md",
-        "req-11-audio-recorder-node.md",
-        "req-19-env-sensor-motherboard.md",
-        "req-23-liion-protection-freeform.md",
+        "req-08-liion-protection-freeform.md",
+        "req-11-isolated-dido-module.md",
     ],
 }
+# daily = 简单层全部 + 中等抽 3(电源树/自由拓扑/refine 歧义) + 困难抽 1(隔离历史难例) = 8 个
+_TIER["daily"] = _TIER["easy"] + [
+    "req-05-battery-ble-telemetry.md",
+    "req-08-liion-protection-freeform.md",
+    "req-09-ambiguous-sensor-node.md",
+    "req-11-isolated-dido-module.md",
+]
 
 
 def _pick(tier: str | None) -> list[str]:
@@ -36,7 +56,7 @@ def _pick(tier: str | None) -> list[str]:
         covered = set(_TIER["daily"])
         return [r for r in _REQS if r not in covered and (_REQ_DIR / r).exists()]
     if tier not in _TIER:
-        raise ValueError(f"未知回归级 '{tier}',可选: smoke/daily/rest/all(全量重跑)")
+        raise ValueError(f"未知回归级 '{tier}',可选: easy/medium/hard(难度层) smoke/daily/rest(回归级) all(全量重跑)")
     return [r for r in _TIER[tier] if (_REQ_DIR / r).exists()]
 
 

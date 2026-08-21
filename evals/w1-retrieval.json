@@ -8,7 +8,7 @@
   "usb-c-power-entry",
   "usb-serial-ch340n"
  ],
- "req-02-esp32s3-industrial-4layer.md": [
+ "req-10-esp32s3-industrial-4layer.md": [
   "dc-terminal-5v-input",
   "ldo-ams1117-3v3",
   "mcu-esp32s3-wroom1-min",
@@ -29,7 +29,7 @@
   "ldo-ams1117-3v3",
   "rs485-max485"
  ],
- "req-05-hybrid-dual-mcu-gateway.md": [
+ "req-12-hybrid-dual-mcu-gateway.md": [
   "eeprom-24c02",
   "ldo-ams1117-3v3",
   "mcu-esp32s3-wroom1-min",
