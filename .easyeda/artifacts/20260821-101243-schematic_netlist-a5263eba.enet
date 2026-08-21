@@ -1,0 +1,163 @@
+{
+    "version": "2.0.0",
+    "components": {
+        "gge1": {
+            "props": {
+                "Unique ID": "gge1",
+                "Add into BOM": "yes",
+                "Convert to PCB": "yes",
+                "Symbol": "6615fdc90d82762e",
+                "Designator": "CSENSEMC",
+                "Device": "8f0e8ae850887a1e",
+                "LCSC Part Name": "",
+                "Supplier Part": "C706648",
+                "Manufacturer": "",
+                "Manufacturer Part": "MCP6002T-E/MSVAO",
+                "Supplier Footprint": "",
+                "JLCPCB Part Class": "",
+                "Datasheet": "",
+                "Supplier": "LCSC",
+                "Footprint": "0ff721025bc5ab23",
+                "3D Model": "bedc0aeebe0a475e87aaac88bd02a14b|0819f05c4eef4c71ace90d822a990e87",
+                "3D Model Title": "MSOP-8_L3.0-W3.0-H1.1-LS4.9-P0.65",
+                "3D Model Transform": "118.11,192.913,0,0,0,0,0,0,0",
+                "Name": "={Manufacturer Part}",
+                "Description": "",
+                "Reuse Block": "",
+                "Group ID": "",
+                "Channel ID": "$1I32218",
+                "DeviceName": "MCP6002T-E/MSVAO",
+                "FootprintName": "MSOP-8_L3.0-W3.0-P0.65-LS4.9-BL"
+            },
+            "pinInfoMap": {
+                "1": {
+                    "name": "VOUTA",
+                    "number": "1",
+                    "net": "I_SENSE_OUT",
+                    "props": {
+                        "Pin Number": "1"
+                    }
+                },
+                "2": {
+                    "name": "VINA-",
+                    "number": "2",
+                    "net": "AMP_FB",
+                    "props": {
+                        "Pin Number": "2"
+                    }
+                },
+                "3": {
+                    "name": "VINA+",
+                    "number": "3",
+                    "net": "VS_LOAD",
+                    "props": {
+                        "Pin Number": "3"
+                    }
+                },
+                "4": {
+                    "name": "VSS",
+                    "number": "4",
+                    "net": "GND",
+                    "props": {
+                        "Pin Number": "4"
+                    }
+                },
+                "5": {
+                    "name": "VINB+",
+                    "number": "5",
+                    "net": "GND",
+                    "props": {
+                        "Pin Number": "5"
+                    }
+                },
+                "6": {
+                    "name": "VINB-",
+                    "number": "6",
+                    "net": "GND",
+                    "props": {
+                        "Pin Number": "6"
+                    }
+                },
+                "7": {
+                    "name": "VOUTB",
+                    "number": "7",
+                    "net": "GND",
+                    "props": {
+                        "Pin Number": "7"
+                    }
+                },
+                "8": {
+                    "name": "VDD",
+                    "number": "8",
+                    "net": "3V3",
+                    "props": {
+                        "Pin Number": "8"
+                    }
+                }
+            }
+        }
+    },
+    "designRule": {
+        "trackPhysics": {
+            "copperThickness1oz": {
+                "name": "copperThickness1oz",
+                "isDefault": true,
+                "unit": "mm",
+                "strokeValue": {
+                    "common": {
+                        "min": 0.127,
+                        "max": 2.54,
+                        "default": 0.254
+                    }
+                }
+            },
+            "copperThickness2oz": {
+                "name": "copperThickness2oz",
+                "isDefault": false,
+                "unit": "mm",
+                "strokeValue": {
+                    "common": {
+                        "min": 0.203,
+                        "max": 2.54,
+                        "default": 0.254
+                    }
+                }
+            }
+        },
+        "netRule": {
+            "I_SENSE_OUT": {
+                "net": "I_SENSE_OUT",
+                "ruleMap": {
+                    "TrackPhysics": ""
+                }
+            },
+            "AMP_FB": {
+                "net": "AMP_FB",
+                "ruleMap": {
+                    "TrackPhysics": ""
+                }
+            },
+            "VS_LOAD": {
+                "net": "VS_LOAD",
+                "ruleMap": {
+                    "TrackPhysics": ""
+                }
+            },
+            "GND": {
+                "net": "GND",
+                "ruleMap": {
+                    "TrackPhysics": ""
+                }
+            },
+            "3V3": {
+                "net": "3V3",
+                "ruleMap": {
+                    "TrackPhysics": ""
+                }
+            }
+        }
+    },
+    "differentialPair": {},
+    "netClass": {},
+    "equalLengthNetGroup": {}
+}

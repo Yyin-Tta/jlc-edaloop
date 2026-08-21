@@ -50,6 +50,7 @@ class OpenQuestion(_Tolerant):
     id: str
     question: str
     options: list[str] = Field(default_factory=list)
+    answer: str = ""
 
 
 class DesignIR(BaseModel):
@@ -63,6 +64,32 @@ class DesignIR(BaseModel):
     power: Power = Field(default_factory=Power)
     env: Env = Field(default_factory=Env)
     open_questions: list[OpenQuestion] = Field(default_factory=list)
+    revision: int = 1
+    decisions: dict[str, str] = Field(default_factory=dict)
+
+    def apply_answers(self, answers: dict[str, str]) -> int:
+        """把 {Q-id: 答案文本} 应用到 open_questions;已答的从列表移除。
+
+        返回应用数;revision 自增(审计留痕 IR-v1→v2)。
+        答案同时以 decisions 字段保留(planner/refine 可消费结构化决策)。
+        """
+        applied = 0
+        remaining = []
+        decided: dict[str, str] = dict(self.decisions or {})
+        for q in self.open_questions:
+            if q.id in answers and answers[q.id]:
+                applied += 1
+                decided[q.id] = answers[q.id]
+            else:
+                remaining.append(q)
+        if applied:
+            self.open_questions = remaining
+            self.decisions = decided
+            self.revision += 1
+        return applied
+
+    def decisions_digest(self) -> str:
+        return "\n".join(f"[{k}] {v}" for k, v in sorted((self.decisions or {}).items()))
 
     def query_text(self) -> str:
         lines: list[str] = []

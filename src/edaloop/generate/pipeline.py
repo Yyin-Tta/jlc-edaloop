@@ -56,23 +56,46 @@ def stage_run(
     dry_run: bool = False,
     db_path: str = "runs/knowledge.db",
     seeds_path: str | Path = "seeds/blocks.jsonl",
+    answers: dict[str, str] | None = None,
+    ir_path: str | None = None,
+    retry_queries: list[str] | None = None,
 ):
     from edaloop.generate.adapter import EasyedaAdapter
     from edaloop.loop.controller import LoopController
 
     llm = get_llm()
-    ir = _parse_ir_with_retry(md_text, llm, source=source)
+    if ir_path:
+        ir = DesignIR.model_validate_json(Path(ir_path).read_text(encoding="utf-8"))
+    else:
+        ir = _parse_ir_with_retry(md_text, llm, source=source)
+    answer_context = ""
+    if answers:
+        applied = ir.apply_answers(answers)
+        if applied:
+            answer_context = "\n\n用户已确认的决策(优先级高于你的默认选择,不要再问):\n" + "\n".join(
+                f"- [{qid}] {ans}" for qid, ans in answers.items() if ans
+            )
+    retriever = make_retriever(db_path)
     audit = AuditLog(f"runs/run-{ir.id}")
-    audit.event("ir", source=source, ir=json.loads(ir.model_dump_json()))
+    audit.event(
+        "ir",
+        source=source,
+        ir=json.loads(ir.model_dump_json()),
+        revision=ir.revision,
+        answers_applied=len(answers) if answers else 0,
+        from_refine=bool(ir_path),
+    )
     controller = LoopController(
         ir,
         load_catalog(seeds_path),
-        make_retriever(db_path),
+        retriever,
         llm,
         EasyedaAdapter(),
         audit,
         max_rounds=max_rounds,
         dry_run=dry_run,
+        answer_context=answer_context,
+        retry_queries=retry_queries or [],
     )
     result = controller.run()
     delivery = controller.deliver(result)

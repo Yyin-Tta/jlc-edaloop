@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 from edaloop.generate.sizing import (
+    buck_ripple,
     divider_network,
+    fuse_rating,
     led_series_resistor,
     reg_caps,
     size_for_plan,
+    thermal_check,
+    tvs_rating,
     _e24,
     _fmt_ohm,
 )
@@ -76,3 +80,46 @@ def test_fmt_ohm() -> None:
     assert _fmt_ohm(4700) == "4.7k"
     assert _fmt_ohm(270.0) == "270"
     assert _fmt_ohm(1_000_000) == "1M"
+
+
+def test_buck_ripple_solves_inductor() -> None:
+    a = buck_ripple(3.3, 12.0, 1000, 500)
+    assert 5 <= a.result_raw <= 25  # 3.3V/1A/500kHz 典型 10µH 量级
+    assert "µH" in a.result_rec or "H" in a.result_rec
+    assert any("饱和电流" in n for n in a.notes)
+
+
+def test_buck_ripple_invalid() -> None:
+    assert buck_ripple(12.0, 3.3, 1000, 500).result_rec == "n/a"
+
+
+def test_tvs_rating() -> None:
+    a = tvs_rating(24.0)
+    assert abs(a.result_raw - 26.4) < 0.1
+    assert "VRWM" in a.result_rec
+
+
+def test_fuse_rating() -> None:
+    a = fuse_rating(2000)
+    assert abs(a.result_raw - 2.5) < 0.01
+    assert "PPTC" in a.result_rec
+
+
+def test_thermal_check_margin() -> None:
+    ok = thermal_check(0.5, 60.0, 25.0)
+    assert "裕量" in ok.result_rec
+    hot = thermal_check(2.0, 60.0, 55.0)
+    assert any("不足" in n for n in hot.notes)
+
+
+def test_size_for_plan_covers_buck_full() -> None:
+    advices = size_for_plan(
+        [
+            {"block_id": "up-xl1509_buck_12v_5v", "instance": "b1", "ports_binding": {}},
+            {"block_id": "up-vehicle_input_tps54360_5v", "instance": "vin1", "ports_binding": {}},
+        ]
+    )
+    kinds = {a.kind for a in advices}
+    assert "buck-ripple" in kinds
+    assert "tvs-rating" in kinds
+    assert "fuse-rating" in kinds

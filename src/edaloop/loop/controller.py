@@ -56,6 +56,8 @@ class LoopController:
         *,
         max_rounds: int = MAX_ROUNDS,
         dry_run: bool = False,
+        answer_context: str = "",
+        retry_queries: list[str] | None = None,
     ) -> None:
         self.ir = ir
         self.catalog = catalog
@@ -65,6 +67,8 @@ class LoopController:
         self.audit = audit
         self.max_rounds = max_rounds
         self.dry_run = dry_run
+        self.answer_context = answer_context
+        self.retry_queries = list(retry_queries or [])
 
     def _cost_hint(self, candidates) -> str:
         """同功能可互换块的价格对比(实时查询,弱信号;仅 IR 有 cost_target 时生成,无诉求不查)。"""
@@ -142,9 +146,25 @@ class LoopController:
         for round_no in range(1, self.max_rounds + 1):
             rec = RoundRecord(round_no=round_no)
             query = self.ir.query_text()
-            candidates = self.retrieve(query)
+            digest = self.ir.decisions_digest()
+            if digest:
+                query = query + "\n" + digest
+            candidates = list(self.retrieve(query))
+            if self.retry_queries and round_no == 1:
+                seen = {c.block_id for c in candidates}
+                for rq in self.retry_queries:
+                    for c in self.retrieve(rq):
+                        if c.block_id not in seen:
+                            candidates.append(c)
+                            seen.add(c.block_id)
+                self.audit.event("refine-retry", round_no=1, queries=self.retry_queries, candidates=len(candidates))
             plan = make_plan(
-                self.ir, candidates, self.llm, feedback=feedback, cost_hint=self._cost_hint(candidates)
+                self.ir,
+                candidates,
+                self.llm,
+                feedback=feedback,
+                cost_hint=self._cost_hint(candidates),
+                answer_context=self.answer_context,
             )
             plan = self._augment_freeform(plan, candidates, round_no)
             rec.plan_id = plan.id
@@ -170,7 +190,7 @@ class LoopController:
                 findings = [
                     Finding(
                         code="GATE_FAIL",
-                        evidence=f"round {round_no}: block-apply 存在失败(autoconnect 连线失败或环境错误,详见 apply-error 审计);本轮 spacing={400 + (round_no - 1) * 100}",
+                        evidence=f"round {round_no}: block-apply 存在失败(autoconnect 连线失败或环境错误,详见 apply-error 审计);本轮 spacing={600 + (round_no - 1) * 150}",
                         severity="error",
                         suggested_fix_class="RELAYOUT",
                     )
@@ -243,6 +263,16 @@ class LoopController:
                     )
             if placed:
                 bom = summarize_bom(placed)
+                try:
+                    from edaloop.generate.selection import annotate_smt
+
+                    lcscs = sorted({p["lcsc"] for p in placed if p.get("lcsc")})
+                    smt = annotate_smt(lcscs)
+                    for det in bom.get("details", []):
+                        det["smt_type"] = smt.get(det.get("ref"), "unknown")
+                    bom["smt_note"] = "库类型近似判定(JLC SMT API 无公开契约,R13 兜底):basic=基础库(免上料费倾向),extended=扩展库"
+                except Exception as e:
+                    self.audit.event("smt-annotate-error", error=str(e)[:150])
                 (self.audit.dir / "delivery.bom.json").write_text(
                     json.dumps(bom, ensure_ascii=False, indent=1), encoding="utf-8"
                 )
@@ -250,6 +280,21 @@ class LoopController:
                 arts["bom_total"] = bom.get("total")
         except Exception as e:
             self.audit.event("bom-cost-error", error=str(e)[:200])
+        try:
+            from edaloop.generate.selection import proposals_report, propose_swaps
+
+            groups: dict[str, list[dict]] = {}
+            for b in result.final_plan.blocks if result.final_plan else []:
+                rec = self.catalog.get(b.block_id)
+                if rec and rec.lcsc:
+                    key = (rec.category or "misc").lower()
+                    groups.setdefault(key, []).append({"block_id": b.block_id, "lcsc": rec.lcsc})
+            groups = {k: v for k, v in groups.items() if len(v) >= 2}
+            report = proposals_report(propose_swaps(groups)) if groups else "(无等价类组,跳过 swap 分析)"
+            (self.audit.dir / "delivery.swap.txt").write_text(report, encoding="utf-8")
+            arts["swap"] = str(self.audit.dir / "delivery.swap.txt")
+        except Exception as e:
+            self.audit.event("swap-error", error=str(e)[:200])
         try:
             from edaloop.generate.sizing import size_for_plan
 
@@ -266,6 +311,21 @@ class LoopController:
                 arts["sizing_count"] = len(advices)
         except Exception as e:
             self.audit.event("sizing-error", error=str(e)[:200])
+        try:
+            from edaloop.loop.critic import render_report, review_plan
+
+            if result.final_plan and result.final_plan.blocks:
+                catalog_desc = {k: v.desc for k, v in self.catalog.items()}
+                findings = review_plan(result.final_plan, self.llm, catalog_desc=catalog_desc)
+                summary = f"{len(result.final_plan.blocks)} blocks, status={result.status}"
+                (self.audit.dir / "delivery.review.txt").write_text(
+                    render_report(findings, summary), encoding="utf-8"
+                )
+                arts["review"] = str(self.audit.dir / "delivery.review.txt")
+                arts["review_findings"] = len(findings)
+                self.audit.event("critic", findings=[f.model_dump() for f in findings])
+        except Exception as e:
+            self.audit.event("critic-error", error=str(e)[:200])
         self.audit.event("delivery", artifacts=arts)
         return arts
 

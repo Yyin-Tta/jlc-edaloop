@@ -61,6 +61,7 @@ def make_plan(
     attempts: int = 3,
     feedback: str = "",
     cost_hint: str = "",
+    answer_context: str = "",
 ) -> BlockPlan:
     appliable = [b for b in candidates if b.parts and b.block_id]
     catalog_lines = []
@@ -85,13 +86,17 @@ def make_plan(
     user = (
         "DesignIR:\n"
         + json.dumps(json.loads(ir.model_dump_json()), ensure_ascii=False, indent=1)
-        + "\n\n候选块目录:\n"
-        + "\n".join(catalog_lines)
     )
+    digest = ir.decisions_digest()
+    if digest:
+        user += "\n\n已确认决策(必须落实到 blocks 选择:如决策选了双电源方案,就要选出对应电源块):\n" + digest
+    user += "\n\n候选块目录:\n" + "\n".join(catalog_lines)
     if feedback:
         user += (
             "\n\n上一轮验证反馈(修正要求,优先级高于你的默认选择):\n" + feedback
         )
+    if answer_context:
+        user += answer_context
     if cost_hint:
         user += "\n\n成本参考(实时价格,仅当需求有成本诉求时参考,不要为省钱牺牲功能):\n" + cost_hint
     last: Exception | None = None

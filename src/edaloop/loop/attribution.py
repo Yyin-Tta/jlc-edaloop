@@ -4,7 +4,7 @@ from edaloop.validate.models import Finding
 
 _FIX_INSTRUCTION = {
     "REPLAN": "重新规划:按 evidence 调整块选择/端口绑定",
-    "REBIND_NET": "把缺失的网络补进对应块的端口绑定(如 LDO 输出口绑到该轨名)",
+    "REBIND_NET": "把缺失的网络补进对应块的绑定:upstream 块用 ports_binding,place 通道器件用 pins_binding(引脚号→网名);同名引脚族(VSS*/VDD*/EP)都要绑",
     "RELAYOUT": "放置几何问题:给冲突块设置 params.spacing=500,或换 --at 空位",
     "REWIRE": "连线问题:检查悬空/短路网络的重叠与绑定",
     "ADD_BLOCK": "知识库无对应块:确认 uncovered 列表是否已如实登记,不要发明器件",
@@ -21,12 +21,12 @@ def attribute(findings: list[Finding]) -> str:
     lines: list[str] = []
     seen: set[str] = set()
     for f in blocking:
-        k = (f.code, f.suggested_fix_class)
-        if k in seen:
+        key = (f.code, f.where.ref, f.where.net, f.where.pin)
+        if key in seen:
             continue
-        seen.add(k)
+        seen.add(key)
         instr = _FIX_INSTRUCTION.get(f.suggested_fix_class, _FIX_INSTRUCTION["REPLAN"])
-        where = f.where.net or f.where.ref or "-"
+        where = f.where.pin and f"{f.where.ref}:{f.where.pin}" or (f.where.net or f.where.ref or "-")
         lines.append(f"[{f.code}@{where}] {f.evidence} → 修复:{instr}")
     if weak:
         lines.append(f"[IR_UNCOVERED x{len(weak)}] 弱门禁(不阻断):保持 uncovered 如实登记即可")

@@ -23,6 +23,8 @@ def build_parser() -> argparse.ArgumentParser:
     p_run.add_argument("input", help="需求文件路径(md/txt),或 '-' 表示 stdin")
     p_run.add_argument("--max-rounds", type=int, default=5)
     p_run.add_argument("--dry-run", action="store_true", help="只跑 plan+validate,不落图(无 EasyEDA)")
+    p_run.add_argument("--answers", default=None, help="questions 答案文件(JSON: {Q1: 'A 方案...', ...})回灌主链路")
+    p_run.add_argument("--ir", default=None, help="refine 产出的 IR-v2 JSON 路径(跳过解析,直接用增量 IR 跑)")
 
     p_ingest = sub.add_parser("ingest", help="M6:datasheet PDF 入库(提取 + 交叉校验)")
     p_ingest.add_argument("pdf", nargs="+", help="datasheet PDF 路径(可多个)")
@@ -39,6 +41,26 @@ def build_parser() -> argparse.ArgumentParser:
     p_rp = sub.add_parser("replay", help="按审计日志重放最终轮的落图动作(不重算 LLM)")
     p_rp.add_argument("audit_dir", help="run 的审计目录(如 runs/run-xxxx)")
     p_rp.add_argument("--dry-run", action="store_true", help="只统计可重放动作,不落图")
+
+    p_rf = sub.add_parser("refine", help="P3-1 需求细化:从 run 审计收集问题→应用答案→IR-v2+二次检索建议")
+    p_rf.add_argument("audit_dir", help="run 的审计目录(如 runs/run-xxxx)")
+    p_rf.add_argument("--answers", default=None, help="答案文件(JSON: {Q1: '...', U1: '补充...'})")
+    p_rf.add_argument("--list", action="store_true", help="只列问题清单,不应用答案")
+
+    p_pcb = sub.add_parser("pcb", help="P3-5 PCB 编排:当前工程 sch→PCB→布局布线→门禁(需已打开工程)")
+    p_pcb.add_argument("--no-mount-holes", action="store_true", help="跳过 M3 安装孔")
+    p_pcb.add_argument("--no-retry", action="store_true", help="跳过 drc 违规重布环")
+
+    p_qt = sub.add_parser("quote", help="P3-6 报价:BOM 预检+三段报价(PCB/SMT/元件)")
+    p_qt.add_argument("bom", help="delivery.bom.json 路径")
+    p_qt.add_argument("--layers", type=int, default=2, choices=[2, 4])
+    p_qt.add_argument("--qty", type=int, default=5)
+    p_qt.add_argument("--order-draft", action="store_true", help="同时生成订单草稿(仍未提交/无支付)")
+
+    p_od = sub.add_parser("order", help="P3-6 订单草稿生成(显式确认;支付永不做)")
+    p_od.add_argument("bom", help="delivery.bom.json 路径")
+    p_od.add_argument("--confirm", action="store_true", help="显式确认生成订单草稿")
+    p_od.add_argument("--out", default="runs/order", help="输出目录")
 
     p_seed = sub.add_parser("seed", help="M2:种子块库入库(全量重建,含向量索引)")
     p_seed.add_argument("--db", default=None, help="知识库路径(默认 EDALOOP_KB_PATH 或 runs/knowledge.db)")
@@ -161,8 +183,24 @@ def _cmd_run(args: argparse.Namespace) -> int:
         md = Path(args.input).read_text(encoding="utf-8")
         source = Path(args.input).name
     body = md.split("## 期望指标")[0]
+    answers = None
+    if args.answers:
+        answers = json.loads(Path(args.answers).read_text(encoding="utf-8"))
+    retry_queries = None
+    ir_path = args.ir
+    if ir_path:
+        rf = Path(ir_path).parent / "refine-meta.json"
+        if rf.exists():
+            meta = json.loads(rf.read_text(encoding="utf-8"))
+            retry_queries = meta.get("retry_queries")
     ir, result = stage_run(
-        body, source=source, max_rounds=args.max_rounds, dry_run=args.dry_run
+        body,
+        source=source,
+        max_rounds=args.max_rounds,
+        dry_run=args.dry_run,
+        answers=answers,
+        ir_path=ir_path,
+        retry_queries=[r.get("query") for r in (retry_queries or []) if r.get("query")],
     )
     print(f"run {ir.id}: status={result.status}")
     for r in result.rounds:
@@ -277,6 +315,77 @@ def _cmd_replay(args: argparse.Namespace) -> int:
     return 0 if result["gate_verdict"] == "pass" else 1
 
 
+def _cmd_refine(args: argparse.Namespace) -> int:
+    from edaloop.refine import collect_questions, refine_run
+
+    if args.list:
+        for q in collect_questions(args.audit_dir):
+            opts = " | ".join(q["options"][:3])
+            print(f"[{q['id']}:{q['source']}] {q['question'][:90]}")
+            if opts:
+                print(f"    选项: {opts}")
+        return 0
+    if not args.answers:
+        print("需要 --answers(或 --list 只看问题清单)")
+        return 2
+    answers = json.loads(Path(args.answers).read_text(encoding="utf-8"))
+    result = refine_run(args.audit_dir, answers)
+    print(f"applied {result['applied']} answer(s); IR revision -> {result['ir_revision']}")
+    if result["remaining"]:
+        print(f"未答: {result['remaining']}")
+    for r in result["retry_queries"]:
+        print(f"  二次检索[{r['qid']}]: {r['query']}")
+    print(f"IR-v2 -> {result['ir_path']}")
+    print(f"重跑: uv run edaloop run <需求.md> --ir {result['ir_path']}")
+    return 0
+
+
+def _cmd_pcb(args: argparse.Namespace) -> int:
+    from edaloop.generate.audit import AuditLog
+    from edaloop.generate.pcb import stage_pcb
+
+    audit = AuditLog("runs/pcb")
+    result = stage_pcb(audit=audit, mount_holes=not args.no_mount_holes, retry=not args.no_retry)
+    for s in result["steps"]:
+        print(f"  {s['step']}: rc={s['rc']}")
+    print(f"gate_ok: {result['gate_ok']}")
+    print("audit -> runs/pcb")
+    return 0 if result["gate_ok"] else 1
+
+
+def _cmd_quote(args: argparse.Namespace) -> int:
+    from edaloop.generate.ordering import order_draft, precheck_bom, quote
+
+    pre = precheck_bom(args.bom)
+    if not pre["ok"]:
+        print(f"预检: {len(pre['problems'])} 项问题")
+        for p in pre["problems"]:
+            print(f"  {p['ref']}: {p['issue']} → {p['fix']}")
+    else:
+        print("预检: 通过")
+    q = quote(args.bom, layers=args.layers, qty=args.qty)
+    print(f"报价({args.layers}层 x{args.qty}): PCB ¥{q.pcb_cost:.2f} + SMT ¥{q.smt_cost:.2f} + 元件 ¥{q.parts_cost:.2f} = ¥{q.total:.2f}")
+    for n in q.notes:
+        print(f"  note: {n}")
+    if args.order_draft:
+        out = order_draft(q, "当前工程", out_dir="runs/order")
+        print(f"订单草稿 -> {out}")
+    return 0
+
+
+def _cmd_order(args: argparse.Namespace) -> int:
+    from edaloop.generate.ordering import order_draft, quote
+
+    if not args.confirm:
+        print("订单草稿含资金相关内容,需 --confirm 显式确认(本命令永不提交订单/支付)")
+        return 2
+    q = quote(args.bom)
+    out = order_draft(q, "当前工程", out_dir=args.out)
+    print(f"订单草稿 -> {out}")
+    print("支付在嘉立创官方页面人工完成(edaloop 不做)")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     load_dotenv()
     parser = build_parser()
@@ -302,6 +411,14 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_questions(args)
     if args.command == "replay":
         return _cmd_replay(args)
+    if args.command == "refine":
+        return _cmd_refine(args)
+    if args.command == "pcb":
+        return _cmd_pcb(args)
+    if args.command == "quote":
+        return _cmd_quote(args)
+    if args.command == "order":
+        return _cmd_order(args)
     raise NotImplementedError(f"command '{args.command}' 尚未实现")
 
 

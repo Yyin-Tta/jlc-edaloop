@@ -41,6 +41,23 @@ def test_query_text_contains_keys() -> None:
     assert "锂电充电" in q and "3.3V" in q and "USB-C 5V" in q and "TVS" in q
 
 
+def test_apply_answers_removes_and_bumps_revision() -> None:
+    ir = DesignIR.model_validate(_ir_dict())
+    assert ir.revision == 1 and len(ir.open_questions) == 1
+    applied = ir.apply_answers({"Q1": "选 MT3608 升压"})
+    assert applied == 1
+    assert ir.open_questions == []
+    assert ir.revision == 2
+
+
+def test_apply_answers_partial() -> None:
+    ir = DesignIR.model_validate(_ir_dict())
+    applied = ir.apply_answers({"Q9": "无关答案"})
+    assert applied == 0
+    assert ir.revision == 1
+    assert len(ir.open_questions) == 1
+
+
 def test_parse_ok() -> None:
     chat = FakeChat("```json\n" + json.dumps(_ir_dict(), ensure_ascii=False) + "\n```")
     ir = requirement_to_ir("# 需求\n用 TP4056", chat)
