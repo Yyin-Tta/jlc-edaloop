@@ -26,7 +26,7 @@ class Finding(BaseModel):
         return f"{self.code}|{self.where.ref}|{self.where.net}|{self.where.pin}|{self.evidence[:80]}"
 
 
-STRONG_BLOCKING = ("GATE_FAIL", "MISSING_RAIL", "WRONG_NET", "PIN_MISMATCH")
+STRONG_BLOCKING = ("GATE_FAIL", "MISSING_RAIL", "PIN_MISMATCH")
 
 
 def is_blocking(f: Finding) -> bool:

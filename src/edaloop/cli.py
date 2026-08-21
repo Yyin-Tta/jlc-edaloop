@@ -31,7 +31,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_eval = sub.add_parser("eval", help="跑 evals 金标准集")
     p_eval.add_argument("--subset", default=None, help="子集:w1-retrieval / w3-loop")
-    p_eval.add_argument("--tier", default=None, help="w3-loop 层级:easy(4)/medium(5)/hard(5) 难度层,smoke(3~12min)/daily(8)/rest(全量减 daily,发版增量) 回归级,all(真全量重跑)")
+    p_eval.add_argument("--tier", default=None, help="w3-loop 层级:easy(4)/medium(5)/hard(5) 难度层,smoke(3~12min)/daily(8)/rest(全量减 daily,发版增量) 回归级,all(真全量重跑);electrical(P4-3 注入式电气缺陷样本,不走 E2E)")
 
     p_q = sub.add_parser("questions", help="弱门禁确认队列:DesignIR open_questions + uncovered 项")
     p_q.add_argument("input", help="需求文件路径(md/txt)")
@@ -128,6 +128,12 @@ def _cmd_eval(args: argparse.Namespace) -> int:
         rate, _ = run_w1_retrieval_eval()
         return 0 if rate >= 0.8 else 1
     if args.subset == "w3-loop":
+        if args.tier == "electrical":
+            # P4-3 注入式电气缺陷 harness(不走 E2E;14 需求零误伤由 smoke/daily 回归实证)
+            from edaloop.evals_electrical import run_electrical_eval
+
+            summary = run_electrical_eval()
+            return 0 if summary["go"] else 1
         from edaloop.evals_w3 import run_w3_loop_eval
 
         summary = run_w3_loop_eval(tier=args.tier)

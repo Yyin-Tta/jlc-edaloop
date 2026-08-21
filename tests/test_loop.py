@@ -575,7 +575,7 @@ def test_clear_fidelity_verify_and_retry(tmp_path) -> None:
     clears = [c for c in adapter.calls if c[:3] == ["sch", "clear", "--doc"]]
     assert [c[-1] for c in clears] == ["P1", "P1"]
     # 审计:两趟 page-clear-doc,首趟 ok=False(survivors=2),次趟 ok=True
-    events = [json.loads(line) for line in Path(str(tmp_path), "audit.jsonl").read_text().splitlines()]
+    events = [json.loads(line) for line in Path(str(tmp_path), "audit.jsonl").read_text(encoding="utf-8").splitlines()]
     pcd = [e for e in events if e.get("kind") == "page-clear-doc"]
     assert [(e["attempt"], e["survivors"], e["ok"]) for e in pcd] == [(1, 2, False), (2, 0, True)]
     # page-clear 汇总:failures 清零(重清成功)
@@ -773,7 +773,7 @@ def test_arrange_closeout_clamps_strays_when_arrange_refuses(tmp_path) -> None:
     # R3 在 g1(placed 去 MCUSTM32);box maxX=1300 越界 142 → snap-5 远离零 = -145
     assert len(mv) == 1 and mv[0][mv[0].index("--group") + 1] == "g1"
     assert mv[0][mv[0].index("--dx") + 1] == "-145" and mv[0][mv[0].index("--dy") + 1] == "0"
-    events = [json.loads(line) for line in Path(str(tmp_path), "audit.jsonl").read_text().splitlines()]
+    events = [json.loads(line) for line in Path(str(tmp_path), "audit.jsonl").read_text(encoding="utf-8").splitlines()]
     clamp = [e for e in events if e.get("kind") == "arrange-clamp"]
     assert [(e["designator"], e["dx"], e["dy"]) for e in clamp] == [("R3", -145, 0)]
     assert [e["remaining"] for e in events if e.get("kind") == "arrange-result"] == [0]
@@ -825,7 +825,7 @@ def test_arrange_closeout_never_repeats_refused_clamp(tmp_path) -> None:
     mv = [c for c in adapter.calls if c[:2] == ["sch", "group-move"]]
     # 候选序:J2 下推(-140) 被拒 → D3 下推(-140);同位移不同件不混淆
     assert [(c[c.index("--dx") + 1], c[c.index("--dy") + 1]) for c in mv] == [("0", "-140"), ("0", "-140")]
-    events = [json.loads(line) for line in Path(str(tmp_path), "audit.jsonl").read_text().splitlines()]
+    events = [json.loads(line) for line in Path(str(tmp_path), "audit.jsonl").read_text(encoding="utf-8").splitlines()]
     clamp = [e for e in events if e.get("kind") == "arrange-clamp"]
     assert [(e["designator"], e["rc"]) for e in clamp] == [("J2", 1), ("D3", 0)]
     assert [e["remaining"] for e in events if e.get("kind") == "arrange-result"] == [0]
@@ -849,7 +849,7 @@ def test_arrange_closeout_separates_overlaps_when_arrange_refuses(tmp_path) -> N
     mv = [c for c in adapter.calls if c[:2] == ["sch", "group-move"]]
     # D3 箱 (1200,600)-(1300,700),J2 同箱:down = 600-40-700 = -140
     assert len(mv) == 1 and mv[0][mv[0].index("--dy") + 1] == "-140"
-    events = [json.loads(line) for line in Path(str(tmp_path), "audit.jsonl").read_text().splitlines()]
+    events = [json.loads(line) for line in Path(str(tmp_path), "audit.jsonl").read_text(encoding="utf-8").splitlines()]
     clamp = [e for e in events if e.get("kind") == "arrange-clamp"]
     assert [(e["designator"], e["dy"]) for e in clamp] == [("J2", -140)]
 
@@ -949,6 +949,6 @@ def test_titleblock_real_shape_and_false_negative_verified(tmp_path) -> None:
     data = [c for c in adapter.calls if "--data" in c]
     assert len(data) == 1
     assert json.loads(data[0][data[0].index("--data") + 1]) == {"Name": {"value": "t · P1"}}
-    events = [json.loads(line) for line in Path(str(tmp_path), "audit.jsonl").read_text().splitlines()]
+    events = [json.loads(line) for line in Path(str(tmp_path), "audit.jsonl").read_text(encoding="utf-8").splitlines()]
     tb = [e for e in events if e.get("kind") == "titleblock"]
     assert [(e["key"], e["rc"], e["verified"]) for e in tb] == [("Name", 1, True)]

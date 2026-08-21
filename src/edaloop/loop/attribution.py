@@ -29,5 +29,8 @@ def attribute(findings: list[Finding]) -> str:
         where = f.where.pin and f"{f.where.ref}:{f.where.pin}" or (f.where.net or f.where.ref or "-")
         lines.append(f"[{f.code}@{where}] {f.evidence} → 修复:{instr}")
     if weak:
-        lines.append(f"[IR_UNCOVERED x{len(weak)}] 弱门禁(不阻断):保持 uncovered 如实登记即可")
+        from collections import Counter
+
+        tag = "、".join(f"{code}x{n}" for code, n in Counter(f.code for f in weak).items())
+        lines.append(f"[弱门禁 x{len(weak)}] {tag}(不阻断):uncovered 保持如实登记;数据债回填块库 electrical 字段后自动转强判")
     return "\n".join(lines)
