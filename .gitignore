@@ -16,6 +16,8 @@ runs/
 *.sqlite3
 *.db
 
+.claude/settings.local.json
+
 dist/
 
 docs/

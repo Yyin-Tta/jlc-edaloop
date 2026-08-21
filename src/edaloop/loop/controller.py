@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import os
 import time
 from dataclasses import dataclass, field
@@ -182,10 +183,19 @@ class LoopController:
             gate_report = None
             apply_ok = True
             if not self.dry_run:
+                # A4 标定(2026-08 真机):250 为实测可整块入图的格距;旧 600+150×(r-1)
+                # 爬坡阶梯废弃——页流下放大 spacing 直接破页容量,重试走 per-block at/params.spacing
+                actions = compile_actions(plan, self.catalog, spacing_default="250")
+                pages = self._plan_pages(actions)
                 self.adapter.clear_all_pages()
-                self.audit.event("page-clear", round_no=round_no)
-                spacing = str(600 + (round_no - 1) * 150)
-                actions = compile_actions(plan, self.catalog, spacing_default=spacing)
+                # sch clear 只清各窗口当前活动页;上轮逐页 gate 会把前台留在末页,
+                # 故每轮显式清文档全部既有页(含 P1 与超出本轮计划的孤儿页),
+                # 否则 r≥2 叠上轮墨迹 → 文档级位号冲突(C8 类)确定性复发。
+                existing = self._ensure_pages([p for p in pages if p != "P1"], round_no)
+                for p in self._page_order(existing | set(pages)):
+                    rc, _, _ = self.adapter.run(["sch", "clear", "--doc", p])
+                    self.audit.event("page-clear-doc", round_no=round_no, page=p, rc=rc)
+                self.audit.event("page-clear", round_no=round_no, pages=pages)
                 apply_ok, gate_report = self._apply(actions, round_no)
                 rec.gate_verdict = gate_report.get("verdict", "unknown") if gate_report else "not-run"
             findings = validate(self.ir, plan, gate_report, catalog=self.catalog)
@@ -193,7 +203,7 @@ class LoopController:
                 findings = [
                     Finding(
                         code="GATE_FAIL",
-                        evidence=f"round {round_no}: block-apply 存在失败(autoconnect 连线失败或环境错误,详见 apply-error 审计);本轮 spacing={600 + (round_no - 1) * 150}",
+                        evidence=f"round {round_no}: block-apply 存在失败(autoconnect 连线失败或环境错误,详见 apply-error 审计);本轮 spacing=250(A4 页流;RELAYOUT 反馈请给 at/params.spacing)",
                         severity="error",
                         suggested_fix_class="RELAYOUT",
                     )
@@ -233,10 +243,23 @@ class LoopController:
 
         arts = {}
         try:
-            svg_path = str((self.audit.dir / "delivery.svg").resolve())
-            rc, out, _ = self.adapter.run(["sch", "export-image", "--out", svg_path, "--format", "svg"])
-            if rc == 0 and Path(svg_path).exists():
-                arts["svg"] = svg_path
+            # export-image 缺省只导前台页(末轮逐页 gate 把前台留在末页)——多页必须
+            # 逐页 --doc 导出,否则交付物静默缺页(P1 电源页丢失类);单页保持原名。
+            pages = sorted(
+                {b.page or "P1" for b in (result.final_plan.blocks if result.final_plan else [])}
+            )
+            exported: list[str] = []
+            for p in pages:
+                name = "delivery.svg" if len(pages) == 1 else f"delivery-{p}.svg"
+                svg_path = str((self.audit.dir / name).resolve())
+                rc, _, _ = self.adapter.run(
+                    ["sch", "export-image", "--out", svg_path, "--format", "svg", "--doc", p]
+                )
+                if rc == 0 and Path(svg_path).exists():
+                    exported.append(svg_path)
+            if exported:
+                arts["svg"] = exported[0]
+                arts["svg_pages"] = exported
         except Exception:
             pass
         try:
@@ -332,12 +355,12 @@ class LoopController:
         self.audit.event("delivery", artifacts=arts)
         return arts
 
-    def _verify_pins(self, round_no: int, designator: str, pinout: dict[str, str] | None) -> bool:
-        """place 后回读符号 pin 集合,与库 pinout diff(三方校验的落地端)。"""
+    def _verify_pins(self, round_no: int, designator: str, pinout: dict[str, str] | None, page: str = "P1") -> bool:
+        """place 后回读符号 pin 集合,与库 pinout diff(三方校验的落地端);--page 定页读。"""
         if not pinout:
             return True
         try:
-            read = self._run_json_retry(["sch", "read"])
+            read = self._run_json_retry(["sch", "read", "--page", page or "P1"])
         except AdapterError as e:
             self.audit.event("pin-verify", round_no=round_no, designator=designator, error=str(e)[:500])
             return True
@@ -367,8 +390,8 @@ class LoopController:
         return ok
 
     @staticmethod
-    def _jitter_at(args: list[str], delta: int = 350) -> list[str]:
-        """轮内重试时对 --at 坐标做确定性偏移(避开原冲突几何)。"""
+    def _jitter_at(args: list[str], delta: int = 40) -> list[str]:
+        """轮内重试时对 --at 坐标做确定性偏移(避开原冲突几何;A4 尺度下 40 ≈ 半格距)。"""
         try:
             i = args.index("--at")
             x, y = args[i + 1].split(",")
@@ -378,70 +401,174 @@ class LoopController:
             pass
         return args
 
-    def _apply_zone_frames(self, round_no: int, zone_designators: dict[str, list[str]], actions) -> None:
-        """P4-1② 功能分区编排:zones clear → set(真实位号) → zone-plan(审计) → zone-draw → 分区注记。
+    @staticmethod
+    def _page_order(names) -> list[str]:
+        """页名规范序:P1 恒首,其余 P<n> 按号升序,非规范名殿后。"""
 
-        注释层操作,单次执行不走通用重试通道(note 重跑会产生重复注释);失败不判负
-        (分区框是注释不是电气对象,按弱信号处理),全部入审计;zone-plan 五项校验计数
-        留作 P4-4 门禁接线的数据源,本轮只记不拦。
+        def order(p: str) -> tuple[int, int]:
+            m = re.fullmatch(r"P(\d+)", p.strip())
+            if p == "P1":
+                return (0, 0)
+            return (1, int(m.group(1))) if m else (2, 0)
+
+        return sorted(set(names), key=order)
+
+    @classmethod
+    def _plan_pages(cls, actions) -> list[str]:
+        """动作涉及的落图页(P1 恒首,其余按页号升序;无落图动作回退 P1)。
+
+        块按高度重排后动作流首现序不保证 P1 打头(实测 P4 曾打头,调用方
+        pages[1:] 误把 P4 当 P1 跳过 → 漏建页 → --doc 落图全炸);
+        建页/清页/逐页 gate/复核统一消费本序。
+        """
+        raw = {a.page or "P1" for a in actions if a.kind in ("block-apply", "sch-place")}
+        return cls._page_order(raw) or ["P1"]
+
+    def _ensure_pages(self, want: list[str], round_no: int) -> set[str]:
+        """P4-b2 多页提前量:compile 判定分页后,落图前按名建页(幂等,已存在跳过)。
+
+        page-new 无名(上游 v0.25.1 无 --name),需 page-rename 两段;变更类命令
+        单次执行不走重试通道(重试会双建页);失败只审计不判负——后续 --doc 落图
+        命令会显式失败并走既有 apply-fatal 路径。
+        返回建页后文档全部既有页名(调用方据此逐页全清,含孤儿页)。
         """
         from edaloop.generate.adapter import AdapterError
 
+        self._warmup()
         try:
-            rc, _, _ = self.adapter.run(["sch", "zones", "clear"])
-            self.audit.event("zones-clear", round_no=round_no, rc=rc)
-            set_args = ["sch", "zones", "set"]
-            for claim, desigs in sorted(zone_designators.items()):
-                zone_vocab = CLAIM_ZONE.get(claim, ("center", claim))[0]
-                uniq = list(dict.fromkeys(d for d in desigs if d))
-                set_args += ["--module", f"{claim}={zone_vocab}:{','.join(uniq)}"]
-            rc, out, _ = self.adapter.run(set_args)
-            self.audit.event(
-                "zones-set",
-                round_no=round_no,
-                rc=rc,
-                claims={c: len(v) for c, v in zone_designators.items()},
-                out=(out or "")[:300],
-            )
-            try:
-                plan = self._run_json_retry(["sch", "zone-plan", "--json"])
-                validation = plan.get("validation") or {}
-                self.audit.event(
-                    "zone-plan",
-                    round_no=round_no,
-                    validation=validation,
-                    partitions=len(plan.get("partitions", []) or []),
-                )
-            except AdapterError as e:
-                self.audit.event("zone-plan-error", round_no=round_no, error=str(e)[:500])
-            rc, _, _ = self.adapter.run(["sch", "zone-draw", "--mode", "partition"])
-            self.audit.event("zone-draw", round_no=round_no, rc=rc)
-            # 每带一条分区注记:带说明 + 块名串;锚点取该带最左块 x,y 贴底(y-UP,内容自 300 起)
-            band_x: dict[str, int] = {}
-            band_names: dict[str, list[str]] = {}
-            for act in actions:
-                if not act.zone or act.kind not in ("block-apply", "sch-place"):
-                    continue
-                try:
-                    if act.kind == "block-apply":
-                        x = int(act.args[act.args.index("--at") + 1].split(",")[0])
-                    else:
-                        x = int(act.args[act.args.index("--x") + 1])
-                except (ValueError, IndexError):
-                    continue
-                band_x[act.zone] = min(band_x.get(act.zone, x), x)
-                band_names.setdefault(act.zone, []).append(
-                    act.desc.split(" @")[0].split("(")[0].strip()
-                )
-            for claim, x in sorted(band_x.items()):
-                label = CLAIM_ZONE.get(claim, ("", claim))[1]
-                text = f"{label}: " + " / ".join(dict.fromkeys(band_names.get(claim, [])))
-                rc, _, _ = self.adapter.run(
-                    ["sch", "note", "--text", text, "--x", str(x), "--y", "150", "--zone", claim]
-                )
-                self.audit.event("zone-note", round_no=round_no, claim=claim, rc=rc, text=text[:200])
+            info = self._run_json_retry(["sch", "pages"])
         except AdapterError as e:
-            self.audit.event("zones-fatal", round_no=round_no, error=str(e)[:1000])
+            self.audit.event("pages-read-error", round_no=round_no, error=str(e)[:500])
+            return set()
+        res = info.get("result", {}) or {}
+        entries = list(res.get("pages") or [])
+        if not entries:
+            for s in res.get("schematics", []) or []:
+                entries.extend(s.get("page", []) or [])
+        have = {str(p.get("name", "")).strip() for p in entries if str(p.get("name", "")).strip()}
+        sch_uuid = next((p.get("parentSchematicUuid") for p in entries if p.get("parentSchematicUuid")), "")
+        for name in want:
+            if name in have:
+                continue
+            try:
+                if not sch_uuid:
+                    raise AdapterError("sch pages 未返回 parentSchematicUuid,无法建页")
+                r = self.adapter.run_json(["sch", "page-new", "--schematic", sch_uuid])
+                inner = r.get("result", r) if isinstance(r, dict) else {}
+                page_uuid = (inner or {}).get("pageUuid") or (inner or {}).get("uuid") or ""
+                if not page_uuid:
+                    raise AdapterError(f"page-new 未返回 uuid: {str(r)[:200]}")
+                rc, _, _ = self.adapter.run(["sch", "page-rename", "--page", page_uuid, "--name", name])
+                self.audit.event("page-create", round_no=round_no, name=name, uuid=page_uuid, rc=rc)
+                if rc == 0:
+                    have.add(name)  # 仅成功改名才计入(失败页留着由 --doc 落图显式暴露)
+            except Exception as e:  # noqa: BLE001 - 建页失败不判负,交由后续 --doc 命令显式暴露
+                self.audit.event("page-create-error", round_no=round_no, name=name, error=str(e)[:500])
+        return have
+
+    def _gate_all_pages(self, gate_args: list[str], actions, round_no: int) -> dict:
+        """逐页 gate:上游 gate 只校验活动页,多页必须 --doc 逐页跑;verdict 取最坏,stages 并集带页标。"""
+        from edaloop.generate.adapter import AdapterError
+
+        worst = {"pass": 0, "unknown": 1, "blocked": 1, "fail": 2}
+        merged: dict = {"verdict": "pass", "stages": []}
+        for p in self._plan_pages(actions):
+            verdict_page = "unknown"
+            stages_page: list = []
+            try:
+                rep = self._run_json_retry(list(gate_args) + ["--doc", p])
+                verdict_page = rep.get("verdict", "unknown")
+                stages_page = rep.get("stages", []) or []
+            except AdapterError as e:
+                self.audit.event("gate-error", round_no=round_no, page=p, error=str(e)[:500])
+                verdict_page = "blocked"
+            if worst.get(verdict_page, 2) > worst.get(merged["verdict"], 2):
+                merged["verdict"] = verdict_page
+            merged["stages"].extend([dict(s, page=p) for s in stages_page])
+            self.audit.event(
+                "gate",
+                round_no=round_no,
+                page=p,
+                verdict=verdict_page,
+                stages=[
+                    f"{s.get('stage') or s.get('name')}:{s.get('verdict') or s.get('status')}"
+                    for s in stages_page
+                ],
+            )
+        return merged
+
+    @staticmethod
+    def _doc_args(act) -> list[str]:
+        """页钉扎:一切带页的落图动作(含 P1)追加全局 --doc(上游无 --page,--doc 是唯一
+        页选择器,CLI 自动切页并核对 document.current,refuse 而落错页)。
+
+        P1 不豁免:--doc 切换是粘性的,前台可能停在上一动作切去的页——不带 --doc 的
+        变更命令会落错页且与该页首块锚点(100,300)精确相撞(2026-08-21 req-02 真机
+        三轮全灭的根因)。sch-gate 除外:_gate_all_pages 自行逐页钉扎。
+        """
+        if act.page and act.kind != "sch-gate":
+            return act.args + ["--doc", act.page]
+        return act.args
+
+    def _apply_zone_frames(self, round_no: int, zone_pages: dict[str, dict[str, list[str]]], actions) -> None:
+        """P4-1②/P4-b2 功能分区编排(逐页):zones clear → set(真实位号) → zone-plan(审计)
+        → zone-draw → 分区注记。
+
+        注释层操作,单次执行不走通用重试通道(note 重跑会产生重复注释);失败不判负
+        (分区框是注释不是电气对象,按弱信号处理),全部入审计;zone-plan 五项校验计数
+        留作 P4-4 门禁接线的数据源,本轮只记不拦。注记锚 (100+i*350, 230):避图签
+        keepout(y≤198 且 x≥468)且各认领横向错开防 label 碰撞。
+        """
+        from edaloop.generate.adapter import AdapterError
+
+        for page, claims in sorted(zone_pages.items()):
+            doc = ["--doc", page]
+            page_actions = [a for a in actions if (a.page or "P1") == page]
+            try:
+                rc, _, _ = self.adapter.run(["sch", "zones", "clear", *doc])
+                self.audit.event("zones-clear", round_no=round_no, page=page, rc=rc)
+                set_args = ["sch", "zones", "set"]
+                for claim, desigs in sorted(claims.items()):
+                    zone_vocab = CLAIM_ZONE.get(claim, ("center", claim))[0]
+                    uniq = list(dict.fromkeys(d for d in desigs if d))
+                    set_args += ["--module", f"{claim}={zone_vocab}:{','.join(uniq)}"]
+                rc, out, _ = self.adapter.run(set_args + doc)
+                self.audit.event(
+                    "zones-set",
+                    round_no=round_no,
+                    page=page,
+                    rc=rc,
+                    claims={c: len(v) for c, v in claims.items()},
+                    out=(out or "")[:300],
+                )
+                try:
+                    plan = self._run_json_retry(["sch", "zone-plan", "--json", *doc])
+                    validation = plan.get("validation") or {}
+                    self.audit.event(
+                        "zone-plan",
+                        round_no=round_no,
+                        page=page,
+                        validation=validation,
+                        partitions=len(plan.get("partitions", []) or []),
+                    )
+                except AdapterError as e:
+                    self.audit.event("zone-plan-error", round_no=round_no, page=page, error=str(e)[:500])
+                rc, _, _ = self.adapter.run(["sch", "zone-draw", "--mode", "partition", *doc])
+                self.audit.event("zone-draw", round_no=round_no, page=page, rc=rc)
+                for i, claim in enumerate(sorted(claims)):
+                    label = CLAIM_ZONE.get(claim, ("", claim))[1]
+                    names = [
+                        a.desc.split(" @")[0].split("(")[0].strip()
+                        for a in page_actions
+                        if a.zone == claim and a.kind in ("block-apply", "sch-place")
+                    ]
+                    text = f"{label}: " + " / ".join(dict.fromkeys(names))
+                    rc, _, _ = self.adapter.run(
+                        ["sch", "note", "--text", text, "--x", str(100 + i * 350), "--y", "230", "--zone", claim, *doc]
+                    )
+                    self.audit.event("zone-note", round_no=round_no, page=page, claim=claim, rc=rc, text=text[:200])
+            except AdapterError as e:
+                self.audit.event("zones-fatal", round_no=round_no, page=page, error=str(e)[:1000])
 
     def _apply(self, actions, round_no: int) -> tuple[bool, dict | None]:
         from edaloop.generate.adapter import AdapterError
@@ -453,25 +580,14 @@ class LoopController:
         failed: set[str] = set()
         place_pinouts: dict[str, dict[str, str]] = {}
         designators: dict[str, str] = {}
-        zone_designators: dict[str, list[str]] = {}  # P4-1②:claim → 本轮落图位号
+        zone_designators: dict[str, dict[str, list[str]]] = {}  # P4-1②/P4-b2:页 → claim → 本轮落图位号
         for act in actions:
             try:
+                args = self._doc_args(act)  # P4-b2:非 P1 页追加 --doc 钉扎
                 if act.kind == "sch-gate":
                     if self.zones_enabled and zone_designators and not self.dry_run:
                         self._apply_zone_frames(round_no, zone_designators, actions)
-                    gate_report = self._run_json_retry(act.args)
-                    verdict = gate_report.get("verdict", "unknown")
-                    stage_summary = [
-                        f"{s.get('stage') or s.get('name')}:{s.get('verdict') or s.get('status')}"
-                        for s in gate_report.get("stages", [])
-                    ]
-                    self.audit.event(
-                        "gate",
-                        round_no=round_no,
-                        verdict=verdict,
-                        stages=stage_summary,
-                        args=act.args,
-                    )
+                    gate_report = self._gate_all_pages(act.args, actions, round_no)
                     continue
                 if act.kind == "lib-search":
                     resp = self._run_json_retry(act.args)
@@ -513,18 +629,18 @@ class LoopController:
                         ok_all = False
                         failed.add(act.block_instance)
                         continue
-                    args = []
+                    place_args = []
                     holes = iter((lib, uuid))
-                    for x in act.args:
-                        args.append(next(holes) if x == "" else x)
-                    resp = self._run_json_retry(args)
+                    for x in args:
+                        place_args.append(next(holes) if x == "" else x)
+                    resp = self._run_json_retry(place_args)
                     comp = (resp.get("result", {}) or {}).get("component", {}) or {}
                     desig = comp.get("designator", "")
                     ok = bool(desig)
                     if ok and act.zone:
-                        zone_designators.setdefault(act.zone, []).append(desig)
+                        zone_designators.setdefault(act.page or "P1", {}).setdefault(act.zone, []).append(desig)
                     if ok and act.pinout:
-                        ok = self._verify_pins(round_no, desig, act.pinout)
+                        ok = self._verify_pins(round_no, desig, act.pinout, act.page or "P1")
                         if not ok:
                             failed.add(act.block_instance)
                     if not ok:
@@ -536,16 +652,17 @@ class LoopController:
                         round_no=round_no,
                         instance=act.block_instance,
                         designator=desig or "?",
+                        page=act.page or "P1",
                         ok=ok,
                     )
                     continue
-                rc, out, err = self.adapter.run(act.args)
+                rc, out, err = self.adapter.run(args)
                 manifest: dict = {}
                 if act.kind == "sch-autoconnect":
                     status = "applied" if rc == 0 else "failed"
                 else:
                     try:
-                        manifest = self._run_json_retry(act.args)
+                        manifest = self._run_json_retry(args)
                     except AdapterError as e:
                         ok_all = False
                         self.audit.event(
@@ -563,7 +680,8 @@ class LoopController:
                     status=status,
                     failure=manifest.get("failure", "") or "",
                     window=getattr(self.adapter, "window_id", ""),
-                    args=act.args if act.kind in ("block-apply", "sch-place") else [],
+                    page=act.page or "P1",
+                    args=args if act.kind in ("block-apply", "sch-place") else [],
                 )
                 if status != "applied":
                     if str(status).startswith("failed-partial"):
@@ -572,7 +690,7 @@ class LoopController:
                             self.adapter.delete_primitives(survivors)
                             self.audit.event("cleanup", round_no=round_no, deleted=survivors)
                         try:
-                            retry_args = self._jitter_at(act.args)
+                            retry_args = self._jitter_at(args)
                             manifest = self._run_json_retry(retry_args)
                             status = manifest.get("ok") or manifest.get("status") or "unknown"
                             self.audit.event(
@@ -581,6 +699,7 @@ class LoopController:
                                 instance=act.block_instance,
                                 status=status,
                                 retry=True,
+                                page=act.page or "P1",
                                 args=retry_args if act.kind == "block-apply" else [],
                             )
                         except AdapterError as e:
@@ -593,7 +712,7 @@ class LoopController:
                 if status == "applied" and act.zone:
                     for p in manifest.get("placed", []) or []:
                         if p.get("designator"):
-                            zone_designators.setdefault(act.zone, []).append(p["designator"])
+                            zone_designators.setdefault(act.page or "P1", {}).setdefault(act.zone, []).append(p["designator"])
                 if status != "applied":
                     ok_all = False
             except AdapterError as e:
@@ -610,14 +729,17 @@ class LoopController:
 
     def _verify_substance(self, actions, round_no: int) -> bool:
         """block-apply 的 failed-rolled-back 可能是回滚校验假象(部件实际在页上,gate 也过)。
-        机械复核:计划网络全部存在于网表且页面非空 → 判 applied(证据入审计)。"""
+        机械复核(逐页 --page 读,多页合并):计划网络全部存在于网表且页面非空 → 判 applied。"""
+        comps: list[dict] = []
+        page_nets: set[str] = set()
         try:
-            read = self._run_json_retry(["sch", "read"])
+            for p in self._plan_pages(actions):
+                read = self._run_json_retry(["sch", "read", "--page", p])
+                res = read.get("result", {}) or {}
+                comps.extend(c for c in res.get("components", []) if c.get("componentType") != "sheet")
+                page_nets |= {str(n.get("net") or n.get("name") or "") for n in res.get("nets", [])}
         except AdapterError:
             return False
-        res = read.get("result", {}) or {}
-        comps = [c for c in res.get("components", []) if c.get("componentType") != "sheet"]
-        page_nets = {str(n.get("net") or n.get("name") or "") for n in res.get("nets", [])}
         planned = {
             act.args[i + 1].split("=", 1)[1]
             for act in actions

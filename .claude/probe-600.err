@@ -1,0 +1,162 @@
+warn: 5 part(s) land OUTSIDE the sheet frame [0,0]-[1170,825]: D3(1340,300) J4(1960,300) R9(100,920) R10(720,920) U4(1340,920) — they wire up and reconcile normally but are off the printed page; use a bigger sheet, split the block across pages, or give the block a schematic_layout template
+warn: 5 part(s) land OUTSIDE the sheet frame [0,0]-[1170,825]: D3(1340,300) J4(1960,300) R9(100,920) R10(720,920) U4(1340,920) — they wire up and reconcile normally but are off the printed page; use a bigger sheet, split the block across pages, or give the block a schematic_layout template
+placed C7     cap.100nf_0402     @ 100,300 [grid]
+placed C8     cap.100nf_0402     @ 720,300 [grid]
+placed D3     tvs.sm712_sot23    @ 1340,300 [grid]
+placed J4     conn.usb_c_16p     @ 1960,300 [grid]
+placed R9     res.5k1_0402       @ 100,920 [grid]
+placed R10    res.5k1_0402       @ 720,920 [grid]
+placed U4     ic.ch340c          @ 1340,920 [grid]
+layout ✓ no overlap or pin coincidence involving this instance
+autoconnect: 30 connection(s), mode=connect — 30 new, 0 already-connected, 0 conflict
+  ✓ J4:A4B9 → 5V [power]: right offset=18 end=(2030.00,270.00) score=81.80
+      wire=8a4d648cc0b33ba4 flag=2ad9cd2fb192caae
+      rejected down  offset=18 score=101.80 — stub runs close to a pin fanout channel
+      rejected left  offset=78 score=607.80 — stub passes through a component bbox
+      rejected up    offset=48 score=999999994.80 — stub crosses a non-target pin (hard reject)
+  ✓ J4:B4A9 → 5V [power]: left offset=18 end=(1900.00,310.00) score=81.80
+      wire=1e48a7f000c0466c flag=c6f428b0dca88a2a
+      rejected right offset=78 score=607.80 — stub passes through a component bbox
+      rejected up    offset=18 score=1000000091.80 — stub crosses a non-target pin (hard reject)
+      rejected down  offset=18 score=1000000101.80 — stub crosses a non-target pin (hard reject)
+  ✓ U4:VCC → 5V [power]: right offset=18 end=(1405.00,955.00) score=81.80
+      wire=f24d6bc9bb182968 flag=47dfb32cc0145bd4
+      rejected up    offset=18 score=91.80 — stub runs close to a pin fanout channel
+      rejected left  offset=78 score=607.80 — stub passes through a component bbox
+      rejected down  offset=72 score=1000000007.20 — stub crosses a non-target pin (hard reject)
+  ✓ C8:1 → 5V [power]: left offset=18 end=(680.00,300.00) score=-18.20
+      wire=e021f3ba8162d355 flag=05fd096ed7aefdc6
+      rejected up    offset=18 score=-8.20 — offset cost
+      rejected down  offset=18 score=1.80 — offset cost
+      rejected right offset=30 score=603.00 — stub passes through a component bbox
+  ✓ J4:A1B12 → GND [gnd]: right offset=24 end=(2035.00,280.00) score=82.40
+      wire=d7376469d7b971f7 flag=3c2e42c460770e8c
+      rejected left  offset=78 score=607.80 — stub passes through a component bbox
+      rejected up    offset=72 score=1000000107.20 — stub crosses a non-target pin (hard reject)
+      rejected down  offset=42 score=2000000094.20 — stub crosses a non-target pin (hard reject)
+  ✓ J4:B1A12 → GND [gnd]: left offset=24 end=(1895.00,320.00) score=82.40
+      wire=9f913adf13ede3f7 flag=59d59a1aa638b7a1
+      rejected up    offset=30 score=103.00 — stub runs close to a pin fanout channel
+      rejected right offset=78 score=607.80 — stub passes through a component bbox
+      rejected down  offset=78 score=1999999997.80 — stub crosses a non-target pin (hard reject)
+  ✓ J4:10 → GND [gnd]: down offset=18 end=(1955.00,230.00) score=-28.20
+      wire=dfe29df45fb57117 flag=6826de86742a9bfb
+      rejected left  offset=18 score=1.80 — offset cost
+      rejected up    offset=18 score=10501.80 — label overlaps a part bbox
+      rejected right offset=42 score=1000000004.20 — stub crosses a non-target pin (hard reject)
+  ✓ J4:11 → GND [gnd]: down offset=30 end=(1975.00,220.00) score=-27.00
+      wire=96c73e8d75a12b8c flag=cc84ba751d2e3fb5
+      rejected right offset=18 score=1.80 — offset cost
+      rejected up    offset=18 score=10501.80 — label overlaps a part bbox
+      rejected left  offset=42 score=1000000004.20 — stub crosses a non-target pin (hard reject)
+  ✓ J4:8 → GND [gnd]: up offset=18 end=(1955.00,360.00) score=-18.20
+      wire=b0a29f176d150ada flag=a338d713310e2ff5
+      rejected left  offset=18 score=1.80 — offset cost
+      rejected down  offset=18 score=10491.80 — label overlaps a part bbox
+      rejected right offset=42 score=1000000004.20 — stub crosses a non-target pin (hard reject)
+  ✓ J4:9 → GND [gnd]: up offset=30 end=(1975.00,370.00) score=-17.00
+      wire=09a9c4187576191c flag=d472a39e6185467c
+      rejected right offset=18 score=1.80 — offset cost
+      rejected down  offset=18 score=10491.80 — label overlaps a part bbox
+      rejected left  offset=42 score=1000000004.20 — stub crosses a non-target pin (hard reject)
+  ✓ U4:GND → GND [gnd]: left offset=18 end=(1275.00,955.00) score=81.80
+      wire=20bc6dd01e1938b3 flag=c97e21f5275657ee
+      rejected up    offset=30 score=103.00 — stub runs close to a pin fanout channel
+      rejected right offset=78 score=607.80 — stub passes through a component bbox
+      rejected down  offset=72 score=1000009997.20 — stub crosses a non-target pin (hard reject)
+  ✓ C8:2 → GND [gnd]: right offset=18 end=(760.00,300.00) score=-18.20
+      wire=09e33e2f69b73df4 flag=8d50d3741e5a36c9
+      rejected down  offset=30 score=-7.00 — offset cost
+      rejected up    offset=30 score=3.00 — offset cost
+      rejected left  offset=24 score=502.40 — stub passes through a component bbox
+  ✓ C7:2 → GND [gnd]: right offset=18 end=(140.00,300.00) score=-18.20
+      wire=c92405427eab6440 flag=d4f1e953a14a7ad9
+      rejected down  offset=30 score=-7.00 — offset cost
+      rejected up    offset=30 score=3.00 — offset cost
+      rejected left  offset=24 score=502.40 — stub passes through a component bbox
+  ✓ D3:3 → GND [gnd]: right offset=18 end=(1395.00,300.00) score=-18.20
+      wire=fcd74c4021e3b472 flag=3704421d5f874d68
+      rejected down  offset=48 score=-5.20 — offset cost
+      rejected up    offset=48 score=4.80 — offset cost
+      rejected left  offset=48 score=504.80 — stub passes through a component bbox
+  ✓ R9:2 → GND [gnd]: right offset=18 end=(140.00,920.00) score=-18.20
+      wire=346bc32d6177ab2a flag=84bd936506219c99
+      rejected down  offset=24 score=-7.60 — offset cost
+      rejected up    offset=24 score=2.40 — offset cost
+      rejected left  offset=24 score=502.40 — stub passes through a component bbox
+  ✓ R10:2 → GND [gnd]: right offset=18 end=(760.00,920.00) score=-18.20
+      wire=10d9a2de194c097e flag=6922a56eeaefd6ec
+      rejected down  offset=24 score=-7.60 — offset cost
+      rejected up    offset=24 score=2.40 — offset cost
+      rejected left  offset=24 score=502.40 — stub passes through a component bbox
+  ✓ U4:V3 → PROBE_CH340_N3 [netport]: left offset=18 end=(1275.00,925.00) score=81.80
+      wire=9e8072771f300449 flag=2419268bf4103525
+      rejected right offset=78 score=597.80 — stub passes through a component bbox
+      rejected down  offset=18 score=1000000251.80 — stub crosses a non-target pin (hard reject)
+      rejected up    offset=18 score=1000000251.80 — stub crosses a non-target pin (hard reject)
+  ✓ C7:1 → PROBE_CH340_N3 [netport]: left offset=18 end=(60.00,300.00) score=-18.20
+      wire=59883870ce59dc36 flag=43161eb9444f9417
+      rejected down  offset=18 score=151.80 — netport folded vertical — label reads sideways
+      rejected up    offset=18 score=151.80 — netport folded vertical — label reads sideways
+      rejected right offset=24 score=492.40 — stub passes through a component bbox
+  ✓ U4:D+ → PROBE_CH340_N4 [netport]: left offset=54 end=(1240.00,915.00) score=85.40
+      wire=03c5a4b05fb02875 flag=7b0f45144a8a4954
+      rejected right offset=78 score=597.80 — stub passes through a component bbox
+      rejected down  offset=18 score=1000000251.80 — stub crosses a non-target pin (hard reject)
+      rejected up    offset=18 score=2000000251.80 — stub crosses a non-target pin (hard reject)
+  ✓ J4:DP1 → PROBE_CH340_N4 [netport]: left offset=18 end=(1900.00,280.00) score=81.80
+      wire=b05543890cf6348e flag=1bc90797ac3b0ebd
+      rejected right offset=78 score=1597.80 — label collides with an existing flag/port/label
+      rejected down  offset=18 score=1000000251.80 — stub crosses a non-target pin (hard reject)
+      rejected up    offset=18 score=1000000251.80 — stub crosses a non-target pin (hard reject)
+  ✓ J4:DP2 → PROBE_CH340_N4 [netport]: right offset=18 end=(2030.00,310.00) score=71.80
+      wire=1bad0066766caad4 flag=a6add7d04a81949b
+      rejected left  offset=78 score=1607.80 — label collides with an existing flag/port/label
+      rejected down  offset=18 score=1000000251.80 — stub crosses a non-target pin (hard reject)
+      rejected up    offset=18 score=1000000251.80 — stub crosses a non-target pin (hard reject)
+  ✓ D3:1 → PROBE_CH340_N4 [netport]: left offset=18 end=(1285.00,320.00) score=-18.20
+      wire=a3852d6d9ba4d392 flag=520d169f63164d61
+      rejected down  offset=18 score=151.80 — netport folded vertical — label reads sideways
+      rejected up    offset=18 score=151.80 — netport folded vertical — label reads sideways
+      rejected right offset=54 score=495.40 — stub passes through a component bbox
+  ✓ U4:D- → PROBE_CH340_N5 [netport]: left offset=18 end=(1275.00,905.00) score=81.80
+      wire=3dcad15ab111d91e flag=8d1b8f033eb7a009
+      rejected right offset=78 score=597.80 — stub passes through a component bbox
+      rejected down  offset=18 score=1000000251.80 — stub crosses a non-target pin (hard reject)
+      rejected up    offset=18 score=2000000251.80 — stub crosses a non-target pin (hard reject)
+  ✓ J4:DN1 → PROBE_CH340_N5 [netport]: left offset=54 end=(1865.00,290.00) score=85.40
+      wire=126f86d2269f0e21 flag=35cf2c47ce2cc08a
+      rejected right offset=78 score=597.80 — stub passes through a component bbox
+      rejected down  offset=18 score=2000000251.80 — stub crosses a non-target pin (hard reject)
+      rejected up    offset=18 score=2000000251.80 — stub crosses a non-target pin (hard reject)
+  ✓ J4:DN2 → PROBE_CH340_N5 [netport]: right offset=54 end=(2065.00,300.00) score=75.40
+      wire=68f5f5085aff7f23 flag=c2ad5cc5ce6c3da9
+      rejected left  offset=78 score=1607.80 — label collides with an existing flag/port/label
+      rejected down  offset=18 score=2000000251.80 — stub crosses a non-target pin (hard reject)
+      rejected up    offset=18 score=2000000251.80 — stub crosses a non-target pin (hard reject)
+  ✓ D3:2 → PROBE_CH340_N5 [netport]: left offset=18 end=(1285.00,280.00) score=-18.20
+      wire=5cc3981b16e61c0a flag=e6656690ef2d39d6
+      rejected down  offset=18 score=151.80 — netport folded vertical — label reads sideways
+      rejected up    offset=18 score=151.80 — netport folded vertical — label reads sideways
+      rejected right offset=54 score=495.40 — stub passes through a component bbox
+  ✓ J4:CC1 → PROBE_CH340_N6 [netport]: left offset=54 end=(1865.00,270.00) score=85.40
+      wire=0fc5c20fd9dd7e19 flag=779bc5e90777cbbe
+      rejected down  offset=18 score=251.80 — netport folded vertical — label reads sideways
+      rejected right offset=78 score=1597.80 — label collides with an existing flag/port/label
+      rejected up    offset=48 score=2000000154.80 — stub crosses a non-target pin (hard reject)
+  ✓ R9:1 → PROBE_CH340_N6 [netport]: left offset=18 end=(60.00,920.00) score=-18.20
+      wire=329dbfcee61b1f9a flag=ddff295255f47bac
+      rejected down  offset=18 score=151.80 — netport folded vertical — label reads sideways
+      rejected up    offset=18 score=151.80 — netport folded vertical — label reads sideways
+      rejected right offset=24 score=492.40 — stub passes through a component bbox
+  ✓ J4:CC2 → PROBE_CH340_N7 [netport]: right offset=54 end=(2065.00,320.00) score=75.40
+      wire=f28771ae28cbf53a flag=6ca66db6b88a99ff
+      rejected up    offset=18 score=251.80 — netport folded vertical — label reads sideways
+      rejected left  offset=78 score=1607.80 — label collides with an existing flag/port/label
+      rejected down  offset=48 score=2000000154.80 — stub crosses a non-target pin (hard reject)
+  ✓ R10:1 → PROBE_CH340_N7 [netport]: left offset=18 end=(680.00,920.00) score=-18.20
+      wire=17bba3f047038fe2 flag=34c0731f8ae803eb
+      rejected down  offset=18 score=151.80 — netport folded vertical — label reads sideways
+      rejected up    offset=18 score=151.80 — netport folded vertical — label reads sideways
+      rejected right offset=24 score=492.40 — stub passes through a component bbox
+reconcile ✓ 7 net(s) match the live netlist

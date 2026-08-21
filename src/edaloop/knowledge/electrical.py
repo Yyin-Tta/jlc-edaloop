@@ -2,7 +2,8 @@
 
 两步走,人工终审原则(ADR-0001)不自动落库:
   1) fetch:抓 wmsc 详情,按品类映射 paramNameEn → 电气字段,产出 proposal JSONL(含 raw_params 供人工核对)
-  2) apply:人工审核/修剪 proposal 后回写 seeds/blocks.jsonl,再跑 `edaloop-cli seed` 重建知识库
+  2) filter:保守过滤(双值电压→min+max;单值→仅 max;一池 i_typ 留人工审)
+  3) apply:把过滤后的 proposal 回写 seeds/blocks.jsonl(缺省只填空槽),再跑 `edaloop seed` 重建知识库
 
 wmsc 字段实测(2026-08 spike):STM32 "Voltage - Supply"="2V~3.6V";AMS1117 "Output Current"="1A";
 ULN2003 "Ic"="500mA";C9580(SS34) params 为空——空/失败一律记入 proposal 的 errors,不静默跳过。
@@ -59,7 +60,12 @@ def fetch_params(lcsc: str, *, timeout: float = 15.0) -> dict[str, str] | None:
     import httpx
 
     try:
-        resp = httpx.get(WMSC_URL.format(code=lcsc), timeout=timeout)
+        # WAF 拦 httpx 默认 UA(python-httpx/* → 403);显式 UA 实测 200
+        resp = httpx.get(
+            WMSC_URL.format(code=lcsc),
+            timeout=timeout,
+            headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) edaloop-backfill/0.1"},
+        )
         resp.raise_for_status()
         data = resp.json()
     except Exception:
@@ -145,6 +151,56 @@ def cmd_fetch(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_filter(args: argparse.Namespace) -> int:
+    """保守过滤 proposal,产出入审 proposal + i_typ 人工审文件。
+
+    策略(2026-08 batch2,AMS1117 陷阱后定):
+      - 电压双值("2V~3.6V")→ v_supply_min + v_supply_max 全保留(工作范围)
+      - 电压单值("15V")     → 仅 v_supply_max(单值是绝对最大,不是最小;15V≠可 15V 供电)
+      - i_max               → 保留
+      - i_typ               → 移入 review 文件(语义混杂:静态/工作电流不分,人工判)
+    """
+    out_path = Path(args.out)
+    review_path = Path(args.review)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    n_dual = n_single = n_imax = n_ityp = 0
+    with out_path.open("w", encoding="utf-8") as fo, review_path.open("w", encoding="utf-8") as fr:
+        for line in Path(args.proposal).read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            item = json.loads(line)
+            proposed = dict(item.get("proposed") or {})
+            raw = item.get("raw_params") or {}
+            v_text = next(
+                (v for k, v in raw.items() if k.strip().lower() in _V_RANGE_KEYS and v and v != "-"),
+                "",
+            )
+            nums = _NUM_RE.findall(v_text.replace(" ", ""))
+            dual = len(nums) >= 2
+            keep: dict = {}
+            if "v_supply_min" in proposed and dual:
+                keep["v_supply_min"] = proposed["v_supply_min"]
+            if "v_supply_max" in proposed:
+                keep["v_supply_max"] = proposed["v_supply_max"]
+            if "i_max" in proposed:
+                keep["i_max"] = proposed["i_max"]
+                n_imax += 1
+            review: dict = {}
+            if "i_typ" in proposed:
+                review["i_typ"] = proposed.pop("i_typ")
+                n_ityp += 1
+            if "v_supply_min" in proposed and not dual:
+                n_single += 1
+            elif dual and "v_supply_min" in proposed:
+                n_dual += 1
+            item["proposed"] = keep
+            fo.write(json.dumps(item, ensure_ascii=False) + "\n")
+            if review:
+                fr.write(json.dumps({"block_id": item.get("block_id"), "lcsc": item.get("lcsc", ""), **review}, ensure_ascii=False) + "\n")
+    print(f"filter: dual_v={n_dual} single_v(max_only)={n_single} i_max={n_imax} i_typ→review={n_ityp} -> {out_path};review={review_path}")
+    return 0
+
+
 def cmd_apply(args: argparse.Namespace) -> int:
     from edaloop.knowledge.models import BlockRecord, Electrical
 
@@ -169,7 +225,12 @@ def cmd_apply(args: argparse.Namespace) -> int:
         new_el = Electrical(source=src, **fields)
         if b.electrical is not None and not args.force:
             merged = b.electrical.model_dump()
-            merged.update({k: v for k, v in new_el.model_dump().items() if v not in (None, "") and k != "source"})
+            # 只填空槽:已有非空字段一律不动(与 --help 文案一致);--force 才整体覆盖
+            for k, v in new_el.model_dump().items():
+                if k == "source" or v in (None, ""):
+                    continue
+                if merged.get(k) in (None, "", []):
+                    merged[k] = v
             if src not in merged.get("source", ""):
                 merged["source"] = f"{merged.get('source', '')}; {src}".strip("; ")
             b.electrical = Electrical(**merged)
@@ -181,7 +242,7 @@ def cmd_apply(args: argparse.Namespace) -> int:
         for b in blocks:
             fh.write(json.dumps(json.loads(b.model_dump_json()), ensure_ascii=False) + "\n")
     tmp.replace(seeds_path)
-    print(f"applied electrical to {n_applied}/{len(blocks)} blocks -> {seeds_path};请运行 edaloop-cli seed 重建知识库")
+    print(f"applied electrical to {n_applied}/{len(blocks)} blocks -> {seeds_path};请运行 edaloop seed 重建知识库")
     return 0
 
 
@@ -194,8 +255,13 @@ def main(argv: list[str] | None = None) -> int:
     p_fetch.add_argument("--only", default="", help="逗号分隔 block_id 白名单,空=全部")
     p_fetch.add_argument("--sleep", type=float, default=0.6, help="请求间隔秒(限速)")
     p_fetch.set_defaults(func=cmd_fetch)
+    p_filter = sub.add_parser("filter", help="保守过滤 proposal:双值电压→min+max/单值→仅max/i_typ 留人工审")
+    p_filter.add_argument("--proposal", default="runs/electrical-proposal.jsonl")
+    p_filter.add_argument("--out", default="runs/electrical-proposal-filtered.jsonl")
+    p_filter.add_argument("--review", default="runs/electrical-review.jsonl")
+    p_filter.set_defaults(func=cmd_filter)
     p_apply = sub.add_parser("apply", help="把审核后的 proposal 回写 seeds(缺省只填空槽,--force 覆盖)")
-    p_apply.add_argument("--proposal", default="runs/electrical-proposal.jsonl")
+    p_apply.add_argument("--proposal", default="runs/electrical-proposal-filtered.jsonl")
     p_apply.add_argument("--seeds", default="seeds/blocks.jsonl")
     p_apply.add_argument("--force", action="store_true", help="覆盖已有非空电气字段")
     p_apply.set_defaults(func=cmd_apply)

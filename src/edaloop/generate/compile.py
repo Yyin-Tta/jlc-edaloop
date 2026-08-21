@@ -55,12 +55,18 @@ def _fill_bindings(plan: BlockPlan, catalog: dict[str, BlockRecord]) -> BlockPla
     return plan
 
 
-_GRID_X0 = 400
+# A4 横放实测(EasyEDA 单位 = 0.01 inch):1170 × 825,y-UP;图签占位右下 [468..1170, 0..198]。
+# 锚点(100,300):墨迹左/下探 ~20,避图签(y≥198)且贴边距。
+_GRID_X0 = 100
 _GRID_Y0 = 300
+_SHEET_TOP_LIMIT = 800  # 顶部余 25;esp32 类 489 高块 300..789 可整页放下
+_SHEET_W = 1170  # A4 横放全宽(墨迹右缘校核用)
+_STACK_GAP = 60  # 同页相邻块垂直间隙
 
-# ---- P4-1① 功能分区:category → 带(band)。带 = 上游全高区词汇 left/center/right,
-# 三带平铺不重叠;zoneRect 按 live sheet bbox 解析,带内内容超出 A4 时声明仍成立(溢出由 zone-plan 报)。
-# 信号流向约定:电源入口在左 → 主控居中 → 接口/外设在右。
+# ---- P4-1① 功能分区:category → 带(band)。带 = 上游 zones 词汇 left/center/right 的认领组。
+# P4-b2 起 A4 尺度下三带由「横向并排」改为「纵向堆叠次序」:spacing 250 实测块墨迹宽
+# 821~921,单页宽只容一列;信号流向仍为 电源入口 → 主控 → 接口/外设(0→1→2),
+# 页满开新页,controller 以 --doc 钉扎落图页(跨页同名网 port 电气等价)。
 _CATEGORY_BAND = {
     "power": 0, "usb": 0, "human-input": 0, "speaker-amp": 0, "audio": 0,
     "mcu": 1, "mcu-support": 1, "timing": 1, "driver": 1, "imu": 1, "sensing": 1, "passive": 1,
@@ -76,39 +82,82 @@ _ZONE_BAND = {
     "left-top": 0, "left-bottom": 0, "center-top": 1, "center-bottom": 1,
     "right-top": 2, "right-bottom": 2,
 }
-_SHEET_TOP_LIMIT = 8200  # 名义 A4 高;y-UP,超限换列(zone-plan sheetOverflow 会报,不静默)
-_BAND_GAP = 300
 
-# 上游块的保守占位估计(格距, 与块内器件数×spacing 成正比;v2 布局策略的输入)
-# 数据源:721 次 block-apply 审计分析——spacing 400 失败率 70%,600 仅 3%(见 P1 八批变更记录)
-_BLOCK_CELL = {
-    "block.esp32s3_wroom1_module": 2800,
-    "block.ch340c_usb_serial": 2800,
-    "block.lgs4056_liion_charge_path": 2800,
-    "block.vehicle_input_tps54360_5v": 2800,
-    "block.usbc_ufp_power_or": 2400,
-    "block.usbc_dual_orientation_data": 2400,
-    "block.sp3485_rs485_halfduplex": 2600,
-    "block.ams1117_ldo_3v3": 1600,
-    "block.tactile_boot_reset": 1400,
-    "block.led_indicator_gpio": 1200,
-    "block.esp32_autodownload": 1600,
-    "block.sy7088_boost_5v": 1800,
+# 实测墨迹占位表:(dx, dy) = sch list --include-bbox 的器件 bbox 并集,spacing 250、
+# --at 100,300、含默认 --bind(2026-08-21 真机标定,31/32 块;证据 .claude/measure-ink-full.json)。
+# 取代旧 _BLOCK_CELL 估算表(超幅画布期产物,系统性高估 ~4×);dy 随 spacing 线性缩放。
+# ch334f_usb4_hub 两轮 apply 失败未测得,走 _INK_DEFAULT 保守值。
+_INK_CELL = {
+    "block.usbc_ufp_power_or": (831, 318),
+    "block.vehicle_input_tps54360_5v": (864, 1384),
+    "block.lgs4056_liion_charge_path": (871, 846),
+    "block.sy7088_boost_5v": (831, 589),
+    "block.ams1117_ldo_3v3": (856, 41),
+    "block.esp32s3_wroom1_module": (831, 489),
+    "block.ch340c_usb_serial": (861, 356),
+    "block.sp3485_rs485_halfduplex": (846, 594),
+    "block.led_indicator_gpio": (136, 26),
+    "block.tactile_boot_reset": (311, 10),
+    "block.aw8737_classd_spk": (856, 596),
+    "block.bmi270_imu_i2c": (856, 81),
+    "block.bq24074_powerpath_charger": (861, 904),
+    "block.cc1101_433m_balun_ipex": (906, 1649),
+    "block.es8311_codec_i2s": (921, 609),
+    "block.esp32_autodownload": (821, 21),
+    "block.esp32s3_pico_native_usb": (896, 964),
+    "block.i2c_isolation_2n7002dw": (846, 41),
+    "block.ina226_power_monitor": (831, 309),
+    "block.ir_txrx_remote": (846, 581),
+    "block.lc29h_dr_gnss_frontend": (911, 886),
+    "block.mems_mic_analog": (846, 294),
+    "block.microsd_spi_pushpush": (831, 325),
+    "block.opto_acc_ign_detect": (831, 297),
+    "block.pmos_highside_softstart": (831, 285),
+    "block.sdnand_sdmmc_4bit": (856, 574),
+    "block.st7789_spi_lcd_btb": (831, 310),
+    "block.sy8089_buck_3v3": (838, 299),
+    "block.tps63802_buckboost_3v8": (838, 309),
+    "block.usbc_dual_orientation_data": (849, 315),
+    "block.xl1509_buck_12v_5v": (856, 329),
 }
-_CELL_DEFAULT = 2200
-_CELL_PLACE = 900
-_CELL_ROW_EXTRA = 400
-_CALIB_SPACING = 600  # _BLOCK_CELL 的标定间距
+_INK_DEFAULT = (950, 700)  # 未实测 upstream 块保守占位
+_CELL_PLACE = (400, 250)  # place 通道单器件符号(保守)
+_CALIB_SPACING = 250  # _INK_CELL 的标定格距(A4 实测可整块入图)
+_SPACING_DEFAULT = "250"
+
+
+def _spacing_of(b, spacing_default: int) -> int:
+    """块生效格距:per-block params.spacing 优先(P4-1④ RELAYOUT 通道),非法值回退默认。"""
+    raw = (b.params or {}).get("spacing", "")
+    try:
+        return max(int(str(raw).strip()), 100)
+    except (TypeError, ValueError):
+        return spacing_default
 
 
 def _cell_for(rec: BlockRecord, spacing: int = _CALIB_SPACING) -> tuple[int, int]:
-    """占位估计随 spacing 线性缩放(P4-1③ 硬伤 B:间距放大时占位表不再低估)。"""
+    """实测占位。upstream 块墨迹随 --spacing 线性缩放(相对 250 标定);
+    place 通道符号几何与 spacing 无关(sch place 无该旗标),恒用固定格不缩放。"""
+    if rec.upstream is None:
+        return _CELL_PLACE[0], _CELL_PLACE[1]
     s = max(int(spacing), 100) / _CALIB_SPACING
-    if rec.upstream is not None:
-        base = _BLOCK_CELL.get(rec.upstream.id, _CELL_DEFAULT)
-        return int((base + _CELL_ROW_EXTRA) * s), int(base * s)
-    place = int(_CELL_PLACE * s)
-    return place, place
+    dx, dy = _INK_CELL.get(rec.upstream.id, _INK_DEFAULT)
+    return int(dx * s), int(dy * s)
+
+
+def _spacing_eff(rec: BlockRecord, b, spacing_default: int) -> int:
+    """生效格距:params.spacing(RELAYOUT)优先,再按块宽截到 A4 内(x0+dx ≤ 1170)。
+
+    dx 随 spacing 线性放大,不截则 RELAYOUT 反馈给 350+ 会把墨迹静默推出右缘
+    (实测最宽 es8311 dx=921:350 → 1289 > 1170);截断只在超宽时收紧,
+    不影响 250 标定(全部实测块 250 下右缘 ≤1021)。
+    """
+    sp = _spacing_of(b, spacing_default)
+    if rec.upstream is None:
+        return sp  # place 通道无 --spacing 语义,格距只影响流程推进,宽度恒定
+    dx, _ = _INK_CELL.get(rec.upstream.id, _INK_DEFAULT)
+    ceiling = max(int(_CALIB_SPACING * (_SHEET_W - _GRID_X0) / dx), 100)
+    return min(sp, ceiling)
 
 
 def band_of(rec: BlockRecord, zone_hint: str = "") -> int:
@@ -119,67 +168,68 @@ def band_of(rec: BlockRecord, zone_hint: str = "") -> int:
     return _CATEGORY_BAND.get((rec.category or "").strip().lower(), 1)
 
 
-class _BandFlow:
-    """带内自底向上单列流式布局,列满换列(P4-1③ 硬伤 A:堆叠只看自身 dy,同列无跨块行共享)。
+class _PageFlow:
+    """A4 页内纵向堆叠:块按带序(电源→主控→外设)依次入页,累计越 _SHEET_TOP_LIMIT 开新页。
 
-    y-UP:从 _GRID_Y0 向上堆;下一块起点 = 前一块起点 + 前一块自身 dy(逐块推进,
-    不存在"换行用触发块 dy"的共享行问题);累计越过 top_limit 换新列,列进给统一槽宽。
+    页名 P1..Pn(P1 = 工程已有首页,controller 对 P2+ 做 page-new/page-rename 并以
+    --doc 钉扎)。单块自身超页高(cc1101 类 25 件块)仍占当前页并照常推进——溢出由
+    zone-plan/审计暴露(fit-first 不静默),不为巨块硬改几何。
     """
 
-    def __init__(self, anchor_x: int, col_w: int, top_limit: int = _SHEET_TOP_LIMIT) -> None:
-        self.anchor_x = anchor_x
-        self.col_w = max(col_w, 100)
-        self.top_limit = top_limit
-        self.col = 0
-        self.next_y = _GRID_Y0
-        self.max_dx = 0
+    def __init__(
+        self,
+        x0: int = _GRID_X0,
+        y0: int = _GRID_Y0,
+        top_limit: int = _SHEET_TOP_LIMIT,
+        gap: int = _STACK_GAP,
+    ) -> None:
+        self.x0, self.y0, self.top_limit, self.gap = x0, y0, top_limit, gap
+        self.page_no = 0
+        self.next_y = y0
         self.placed_any = False
 
-    def take(self, dx: int, dy: int) -> str:
+    def take(self, dy: int) -> tuple[str, str]:
+        """返回 (at, 页名);间隙记在后块(推进量 = dy + gap),换页判定不含间隙。"""
         if self.placed_any and self.next_y + dy > self.top_limit:
-            self.col += 1
-            self.next_y = _GRID_Y0
-        at = f"{self.anchor_x + self.col * self.col_w},{self.next_y}"
-        self.next_y += dy
-        self.max_dx = max(self.max_dx, dx)
+            self.page_no += 1
+            self.next_y = self.y0
+        at = f"{self.x0},{self.next_y}"
+        self.next_y += dy + self.gap
         self.placed_any = True
-        return at
-
-    @property
-    def width(self) -> int:
-        """列数 × 带内最宽块(probe 估算带宽用;真实放置的列进给统一槽宽)。"""
-        return (self.col + 1) * self.max_dx if self.placed_any else 0
+        return at, f"P{self.page_no + 1}"
 
 
 def compile_actions(
     plan: BlockPlan,
     catalog: dict[str, BlockRecord],
     *,
-    spacing_default: str = "600",
+    spacing_default: str = _SPACING_DEFAULT,
 ) -> list[Action]:
     plan = _fill_bindings(plan, catalog)
     actions: list[Action] = []
     spacing = int(spacing_default)
-    # P4-1①:按带分组(带内保持 plan 顺序)。zoneRect 按 live bbox 三等分解析,
-    # 故三带用统一槽宽(取各带内容宽度最大值)+等距锚点,让各带内容落在自己的 1/3 内。
+    # P4-1①/P4-b2:A4 页流布局。带内大块先放(装箱友好:小块填补页尾)。
+    # 产出序 = 流序(页连续升序):--doc 切换粘性,跨页交错产出会让前台来回摆,
+    # 也让 P1 动作夹在 P2+ 之后(见 controller._doc_args);流序天然同页聚簇。
     band_blocks: dict[int, list] = {0: [], 1: [], 2: []}
     for b in plan.blocks:
         band_blocks[band_of(catalog[b.block_id], b.zone)].append(b)
-    band_widths: dict[int, int] = {}
+    flow = _PageFlow()
+    emit: list = []
     for band in (0, 1, 2):
-        probe = _BandFlow(0, col_w=1)
-        for b in band_blocks[band]:
-            dx, dy = _cell_for(catalog[b.block_id], spacing)
-            probe.take(dx, dy)
-        band_widths[band] = probe.max_dx  # 带的单列自然宽;多列带溢出自身 1/3 仅 WARN
-    slot_w = max(band_widths.values())
-    for band in (0, 1, 2):
-        flows = _BandFlow(_GRID_X0 + band * (slot_w + _BAND_GAP), col_w=slot_w)
-        for b in band_blocks[band]:
-            dx, dy = _cell_for(catalog[b.block_id], spacing)
+        ordered = sorted(
+            band_blocks[band],
+            key=lambda b: _cell_for(catalog[b.block_id], _spacing_eff(catalog[b.block_id], b, spacing))[1],
+            reverse=True,
+        )
+        for b in ordered:
+            dx, dy = _cell_for(catalog[b.block_id], _spacing_eff(catalog[b.block_id], b, spacing))
+            at, page = flow.take(dy)
+            b.page = page
             if not b.at:
-                b.at = flows.take(dx, dy)
-    for b in plan.blocks:
+                b.at = at  # planner/RELAYOUT 显式 at 优先(P4-1④,页内坐标)
+            emit.append(b)
+    for b in emit:
         rec = catalog[b.block_id]
         band = band_of(rec, b.zone)
         if rec.upstream is not None:
@@ -190,7 +240,7 @@ def compile_actions(
                 "--instance",
                 b.instance,
                 "--spacing",
-                spacing_default,
+                str(_spacing_eff(catalog[b.block_id], b, spacing)),
                 "--at",
                 b.at,
             ]
@@ -205,6 +255,7 @@ def compile_actions(
                     args=args,
                     desc=f"{rec.name} @ {b.at} -> {b.ports_binding}",
                     zone=_BAND_CLAIMS[band],
+                    page=b.page,
                 )
             )
         else:
@@ -219,9 +270,9 @@ def compile_actions(
                 "--uuid",
                 b.params.get("device_uuid", ""),
                 "--x",
-                b.params.get("x", "400"),
+                b.params.get("x", str(_GRID_X0)),
                 "--y",
-                b.params.get("y", "300"),
+                b.params.get("y", str(_GRID_Y0)),
                 "--designator",
                 designator,
             ]
@@ -243,6 +294,7 @@ def compile_actions(
                     pinout=dict(rec.pinout) if rec.pinout else None,
                     desc=f"{rec.name}({rec.lcsc}) 直放",
                     zone=_BAND_CLAIMS[band],
+                    page=b.page,
                 )
             )
             pinout = rec.pinout or {}
@@ -264,6 +316,7 @@ def compile_actions(
                             net,
                         ],
                         desc=f"{designator}:{pin}({pin_name}) -> {net}",
+                        page=b.page,
                     )
                 )
     actions.append(

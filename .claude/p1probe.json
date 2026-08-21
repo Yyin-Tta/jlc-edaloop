@@ -1,0 +1,380 @@
+placed C9     cap.100nf_0402     @ 100,300 [grid]
+placed C10    cap.100nf_0402     @ 370,300 [grid]
+placed D4     tvs.sm712_sot23    @ 640,300 [grid]
+placed J5     conn.usb_c_16p     @ 910,300 [grid]
+placed R11    res.5k1_0402       @ 100,570 [grid]
+placed R12    res.5k1_0402       @ 370,570 [grid]
+placed U5     ic.ch340c          @ 640,570 [grid]
+layout ✓ no overlap or pin coincidence involving this instance
+autoconnect: 30 connection(s), mode=connect — 30 new, 0 already-connected, 0 conflict
+  ✓ J5:A4B9 → 5V [power]: right offset=18 end=(980.00,270.00) score=81.80
+      wire=11b268326b41e2de flag=e7f157d34c77762f
+      rejected down  offset=18 score=101.80 — stub runs close to a pin fanout channel
+      rejected left  offset=78 score=607.80 — stub passes through a component bbox
+      rejected up    offset=48 score=999999994.80 — stub crosses a non-target pin (hard reject)
+  ✓ J5:B4A9 → 5V [power]: left offset=18 end=(850.00,310.00) score=81.80
+      wire=21167a2c386af70c flag=771b4d8485640699
+      rejected right offset=78 score=607.80 — stub passes through a component bbox
+      rejected up    offset=18 score=1000000091.80 — stub crosses a non-target pin (hard reject)
+      rejected down  offset=18 score=1000000101.80 — stub crosses a non-target pin (hard reject)
+  ✓ U5:VCC → 5V [power]: right offset=18 end=(705.00,605.00) score=81.80
+      wire=b68c923196d937c2 flag=0fd88cef679fab90
+      rejected up    offset=18 score=91.80 — stub runs close to a pin fanout channel
+      rejected left  offset=78 score=607.80 — stub passes through a component bbox
+      rejected down  offset=72 score=1000000007.20 — stub crosses a non-target pin (hard reject)
+  ✓ C10:1 → 5V [power]: left offset=18 end=(330.00,300.00) score=-18.20
+      wire=f767c58f3c29a9b2 flag=0667546b98865bf4
+      rejected up    offset=18 score=-8.20 — offset cost
+      rejected down  offset=18 score=1.80 — offset cost
+      rejected right offset=30 score=603.00 — stub passes through a component bbox
+  ✓ J5:A1B12 → GND [gnd]: right offset=24 end=(985.00,280.00) score=82.40
+      wire=056c2cb6e60df93d flag=a915f5057e57dbf7
+      rejected left  offset=78 score=607.80 — stub passes through a component bbox
+      rejected up    offset=72 score=1000000107.20 — stub crosses a non-target pin (hard reject)
+      rejected down  offset=42 score=2000000094.20 — stub crosses a non-target pin (hard reject)
+  ✓ J5:B1A12 → GND [gnd]: left offset=24 end=(845.00,320.00) score=82.40
+      wire=d21bf1c18b7a14c0 flag=61f63644617aab55
+      rejected up    offset=30 score=103.00 — stub runs close to a pin fanout channel
+      rejected right offset=78 score=607.80 — stub passes through a component bbox
+      rejected down  offset=78 score=1999999997.80 — stub crosses a non-target pin (hard reject)
+  ✓ J5:10 → GND [gnd]: down offset=18 end=(905.00,230.00) score=-28.20
+      wire=bd6b80abde2895c1 flag=6e0c983bc0649548
+      rejected left  offset=18 score=1.80 — offset cost
+      rejected up    offset=18 score=10501.80 — label overlaps a part bbox
+      rejected right offset=42 score=1000000004.20 — stub crosses a non-target pin (hard reject)
+  ✓ J5:11 → GND [gnd]: down offset=30 end=(925.00,220.00) score=-27.00
+      wire=08044f21a7918c90 flag=8ce7fd3b2c431749
+      rejected right offset=18 score=1.80 — offset cost
+      rejected up    offset=18 score=10501.80 — label overlaps a part bbox
+      rejected left  offset=42 score=1000000004.20 — stub crosses a non-target pin (hard reject)
+  ✓ J5:8 → GND [gnd]: up offset=18 end=(905.00,360.00) score=-18.20
+      wire=a34a79c7c5cf324f flag=b94f7d3d7fd06390
+      rejected left  offset=18 score=1.80 — offset cost
+      rejected down  offset=18 score=10491.80 — label overlaps a part bbox
+      rejected right offset=42 score=1000000004.20 — stub crosses a non-target pin (hard reject)
+  ✓ J5:9 → GND [gnd]: up offset=30 end=(925.00,370.00) score=-17.00
+      wire=a3d4a23faa0f89f0 flag=77dd98991e64a480
+      rejected right offset=18 score=1.80 — offset cost
+      rejected down  offset=18 score=10491.80 — label overlaps a part bbox
+      rejected left  offset=42 score=1000000004.20 — stub crosses a non-target pin (hard reject)
+  ✓ U5:GND → GND [gnd]: left offset=18 end=(575.00,605.00) score=81.80
+      wire=9b4219c01d92aebd flag=c035280f6269ce06
+      rejected up    offset=30 score=103.00 — stub runs close to a pin fanout channel
+      rejected right offset=78 score=607.80 — stub passes through a component bbox
+      rejected down  offset=72 score=1000009997.20 — stub crosses a non-target pin (hard reject)
+  ✓ C10:2 → GND [gnd]: right offset=18 end=(410.00,300.00) score=-18.20
+      wire=4ccefd9cffa96d69 flag=4ec10292dc3231eb
+      rejected down  offset=30 score=-7.00 — offset cost
+      rejected up    offset=30 score=3.00 — offset cost
+      rejected left  offset=24 score=502.40 — stub passes through a component bbox
+  ✓ C9:2 → GND [gnd]: right offset=18 end=(140.00,300.00) score=-18.20
+      wire=42dc80b51784e40e flag=731b20e4a537eccc
+      rejected down  offset=30 score=-7.00 — offset cost
+      rejected up    offset=30 score=3.00 — offset cost
+      rejected left  offset=24 score=502.40 — stub passes through a component bbox
+  ✓ D4:3 → GND [gnd]: right offset=18 end=(695.00,300.00) score=-18.20
+      wire=8ccc6f333c24e2e2 flag=9d8560704640a560
+      rejected down  offset=48 score=-5.20 — offset cost
+      rejected up    offset=48 score=4.80 — offset cost
+      rejected left  offset=48 score=504.80 — stub passes through a component bbox
+  ✓ R11:2 → GND [gnd]: right offset=18 end=(140.00,570.00) score=-18.20
+      wire=3a056985b5c2fd0b flag=ae3b329b5f813ffe
+      rejected down  offset=24 score=-7.60 — offset cost
+      rejected up    offset=24 score=2.40 — offset cost
+      rejected left  offset=24 score=502.40 — stub passes through a component bbox
+  ✓ R12:2 → GND [gnd]: right offset=18 end=(410.00,570.00) score=-18.20
+      wire=a5bfa87ff9e152c1 flag=2db7354c081a4088
+      rejected down  offset=24 score=-7.60 — offset cost
+      rejected up    offset=24 score=2.40 — offset cost
+      rejected left  offset=24 score=502.40 — stub passes through a component bbox
+  ✓ U5:V3 → P1PROBE_CH340_N3 [netport]: left offset=18 end=(575.00,575.00) score=81.80
+      wire=d02648089fa4a045 flag=dfbf6bcc1edf0619
+      rejected right offset=78 score=597.80 — stub passes through a component bbox
+      rejected down  offset=18 score=1000000251.80 — stub crosses a non-target pin (hard reject)
+      rejected up    offset=18 score=1000000251.80 — stub crosses a non-target pin (hard reject)
+  ✓ C9:1 → P1PROBE_CH340_N3 [netport]: left offset=18 end=(60.00,300.00) score=-18.20
+      wire=51561964bbf2b5f8 flag=34d78b158db2f1d8
+      rejected down  offset=18 score=151.80 — netport folded vertical — label reads sideways
+      rejected up    offset=18 score=151.80 — netport folded vertical — label reads sideways
+      rejected right offset=24 score=492.40 — stub passes through a component bbox
+  ✓ U5:D+ → P1PROBE_CH340_N4 [netport]: left offset=54 end=(540.00,565.00) score=85.40
+      wire=0aab5846f03ec4d4 flag=f94bc5b8df31e6ac
+      rejected right offset=78 score=597.80 — stub passes through a component bbox
+      rejected down  offset=18 score=1000000251.80 — stub crosses a non-target pin (hard reject)
+      rejected up    offset=18 score=2000000251.80 — stub crosses a non-target pin (hard reject)
+  ✓ J5:DP1 → P1PROBE_CH340_N4 [netport]: left offset=18 end=(850.00,280.00) score=81.80
+      wire=9447359ccbb81737 flag=d006bd28c2b53103
+      rejected right offset=78 score=1597.80 — label collides with an existing flag/port/label
+      rejected down  offset=18 score=1000000251.80 — stub crosses a non-target pin (hard reject)
+      rejected up    offset=18 score=1000000251.80 — stub crosses a non-target pin (hard reject)
+  ✓ J5:DP2 → P1PROBE_CH340_N4 [netport]: right offset=18 end=(980.00,310.00) score=71.80
+      wire=7688bc4140f56a2e flag=aeaec0d3555f8621
+      rejected left  offset=78 score=1607.80 — label collides with an existing flag/port/label
+      rejected down  offset=18 score=1000000251.80 — stub crosses a non-target pin (hard reject)
+      rejected up    offset=18 score=1000000251.80 — stub crosses a non-target pin (hard reject)
+  ✓ D4:1 → P1PROBE_CH340_N4 [netport]: left offset=18 end=(585.00,320.00) score=-18.20
+      wire=a2c86d64ba8ff382 flag=0282a0c32b806775
+      rejected down  offset=18 score=151.80 — netport folded vertical — label reads sideways
+      rejected up    offset=18 score=151.80 — netport folded vertical — label reads sideways
+      rejected right offset=54 score=495.40 — stub passes through a component bbox
+  ✓ U5:D- → P1PROBE_CH340_N5 [netport]: left offset=18 end=(575.00,555.00) score=81.80
+      wire=155eeac1a1167adf flag=027b92593b33ad28
+      rejected right offset=78 score=597.80 — stub passes through a component bbox
+      rejected down  offset=18 score=1000000251.80 — stub crosses a non-target pin (hard reject)
+      rejected up    offset=18 score=2000000251.80 — stub crosses a non-target pin (hard reject)
+  ✓ J5:DN1 → P1PROBE_CH340_N5 [netport]: left offset=54 end=(815.00,290.00) score=85.40
+      wire=d0a6f45e5d86b3cc flag=1653f13fc081f946
+      rejected right offset=78 score=597.80 — stub passes through a component bbox
+      rejected down  offset=18 score=2000000251.80 — stub crosses a non-target pin (hard reject)
+      rejected up    offset=18 score=2000000251.80 — stub crosses a non-target pin (hard reject)
+  ✓ J5:DN2 → P1PROBE_CH340_N5 [netport]: right offset=54 end=(1015.00,300.00) score=75.40
+      wire=5ba663b20e869e34 flag=9de0d6f449bb3266
+      rejected left  offset=78 score=1607.80 — label collides with an existing flag/port/label
+      rejected down  offset=18 score=2000000251.80 — stub crosses a non-target pin (hard reject)
+      rejected up    offset=18 score=2000000251.80 — stub crosses a non-target pin (hard reject)
+  ✓ D4:2 → P1PROBE_CH340_N5 [netport]: left offset=18 end=(585.00,280.00) score=-18.20
+      wire=c6938602472e2fd5 flag=707ab7a776fdd037
+      rejected down  offset=18 score=151.80 — netport folded vertical — label reads sideways
+      rejected up    offset=18 score=151.80 — netport folded vertical — label reads sideways
+      rejected right offset=54 score=495.40 — stub passes through a component bbox
+  ✓ J5:CC1 → P1PROBE_CH340_N6 [netport]: left offset=54 end=(815.00,270.00) score=85.40
+      wire=aff9e71f39f0dda0 flag=631c07c128be3206
+      rejected down  offset=18 score=251.80 — netport folded vertical — label reads sideways
+      rejected right offset=78 score=1597.80 — label collides with an existing flag/port/label
+      rejected up    offset=48 score=2000000154.80 — stub crosses a non-target pin (hard reject)
+  ✓ R11:1 → P1PROBE_CH340_N6 [netport]: left offset=18 end=(60.00,570.00) score=-18.20
+      wire=9512eb20bc92cd87 flag=fa5dffe74dab90e0
+      rejected down  offset=18 score=151.80 — netport folded vertical — label reads sideways
+      rejected up    offset=18 score=151.80 — netport folded vertical — label reads sideways
+      rejected right offset=24 score=492.40 — stub passes through a component bbox
+  ✓ J5:CC2 → P1PROBE_CH340_N7 [netport]: right offset=54 end=(1015.00,320.00) score=75.40
+      wire=0c669b3d977dde5d flag=d5d2571b59d54e4f
+      rejected up    offset=18 score=251.80 — netport folded vertical — label reads sideways
+      rejected left  offset=78 score=1607.80 — label collides with an existing flag/port/label
+      rejected down  offset=48 score=2000000154.80 — stub crosses a non-target pin (hard reject)
+  ✓ R12:1 → P1PROBE_CH340_N7 [netport]: left offset=18 end=(330.00,570.00) score=-18.20
+      wire=c5ef51905ba83bca flag=16e43c236bc8b635
+      rejected down  offset=18 score=151.80 — netport folded vertical — label reads sideways
+      rejected up    offset=18 score=151.80 — netport folded vertical — label reads sideways
+      rejected right offset=24 score=492.40 — stub passes through a component bbox
+reconcile ✓ 7 net(s) match the live netlist
+{
+  "ok": "applied",
+  "blockId": "block.ch340c_usb_serial",
+  "revision": 2,
+  "blockState": "verified",
+  "instance": "p1probe_ch340",
+  "origin": {
+    "requestedX": 100,
+    "requestedY": 300,
+    "x": 100,
+    "y": 300,
+    "relocated": false
+  },
+  "placed": [
+    {
+      "role": "C_V3",
+      "part": "cap.100nf_0402",
+      "designator": "C9",
+      "primitiveId": "ae80e78427b188f9",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "87bb635d0b2f489a9f60e7cd225beb3c",
+      "lcsc": "C1525",
+      "x": 100,
+      "y": 300,
+      "layout": "grid"
+    },
+    {
+      "role": "C_VCC",
+      "part": "cap.100nf_0402",
+      "designator": "C10",
+      "primitiveId": "741a1c8d6300bd26",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "87bb635d0b2f489a9f60e7cd225beb3c",
+      "lcsc": "C1525",
+      "x": 370,
+      "y": 300,
+      "layout": "grid"
+    },
+    {
+      "role": "D_ESD",
+      "part": "tvs.sm712_sot23",
+      "designator": "D4",
+      "primitiveId": "300ce1472593e0a5",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "46f638b2935c42718f09eb74f6058737",
+      "lcsc": "C32677",
+      "x": 640,
+      "y": 300,
+      "layout": "grid"
+    },
+    {
+      "role": "J_USB",
+      "part": "conn.usb_c_16p",
+      "designator": "J5",
+      "primitiveId": "44c7fba4362e609e",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "fafc5d2de09d4595b0cc7abedc0530e6",
+      "lcsc": "C9900012665",
+      "x": 910,
+      "y": 300,
+      "layout": "grid"
+    },
+    {
+      "role": "R_CC1",
+      "part": "res.5k1_0402",
+      "designator": "R11",
+      "primitiveId": "554f1d926086b122",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "ef1f93374e0c4079b48a2d1a3cec8f6b",
+      "lcsc": "C25905",
+      "x": 100,
+      "y": 570,
+      "layout": "grid"
+    },
+    {
+      "role": "R_CC2",
+      "part": "res.5k1_0402",
+      "designator": "R12",
+      "primitiveId": "09871a0038954476",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "ef1f93374e0c4079b48a2d1a3cec8f6b",
+      "lcsc": "C25905",
+      "x": 370,
+      "y": 570,
+      "layout": "grid"
+    },
+    {
+      "role": "U",
+      "part": "ic.ch340c",
+      "designator": "U5",
+      "primitiveId": "7f261d13dcad2266",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "4951b3094e3e48a7b4c8c708b64932e4",
+      "lcsc": "C84681",
+      "x": 640,
+      "y": 570,
+      "layout": "grid"
+    }
+  ],
+  "nets": [
+    {
+      "net": "5V",
+      "kind": "power",
+      "port": "VBUS_5V",
+      "bound": true,
+      "members": [
+        "J5:VBUS*",
+        "U5:VCC",
+        "C10:1"
+      ],
+      "roles": [
+        "J_USB.VBUS*",
+        "U.VCC",
+        "C_VCC.1"
+      ]
+    },
+    {
+      "net": "GND",
+      "kind": "gnd",
+      "port": "GND",
+      "bound": true,
+      "members": [
+        "J5:GND*",
+        "J5:EP*",
+        "U5:GND",
+        "C10:2",
+        "C9:2",
+        "D4:3",
+        "R11:2",
+        "R12:2"
+      ],
+      "roles": [
+        "J_USB.GND*",
+        "J_USB.EP*",
+        "U.GND",
+        "C_VCC.2",
+        "C_V3.2",
+        "D_ESD.3",
+        "R_CC1.2",
+        "R_CC2.2"
+      ]
+    },
+    {
+      "net": "P1PROBE_CH340_N3",
+      "kind": "netport",
+      "members": [
+        "U5:V3",
+        "C9:1"
+      ],
+      "roles": [
+        "U.V3",
+        "C_V3.1"
+      ]
+    },
+    {
+      "net": "P1PROBE_CH340_N4",
+      "kind": "netport",
+      "members": [
+        "U5:D+",
+        "J5:DP1",
+        "J5:DP2",
+        "D4:1"
+      ],
+      "roles": [
+        "U.D+",
+        "J_USB.DP1",
+        "J_USB.DP2",
+        "D_ESD.1"
+      ]
+    },
+    {
+      "net": "P1PROBE_CH340_N5",
+      "kind": "netport",
+      "members": [
+        "U5:D-",
+        "J5:DN1",
+        "J5:DN2",
+        "D4:2"
+      ],
+      "roles": [
+        "U.D-",
+        "J_USB.DN1",
+        "J_USB.DN2",
+        "D_ESD.2"
+      ]
+    },
+    {
+      "net": "P1PROBE_CH340_N6",
+      "kind": "netport",
+      "members": [
+        "J5:CC1",
+        "R11:1"
+      ],
+      "roles": [
+        "J_USB.CC1",
+        "R_CC1.1"
+      ]
+    },
+    {
+      "net": "P1PROBE_CH340_N7",
+      "kind": "netport",
+      "members": [
+        "J5:CC2",
+        "R12:1"
+      ],
+      "roles": [
+        "J_USB.CC2",
+        "R_CC2.1"
+      ]
+    }
+  ],
+  "unconsumedConstraints": [
+    "pcb_layout",
+    "placement",
+    "signals",
+    "silk"
+  ],
+  "note": "block-apply v1 executes parts/internal_nets/ports only; the listed constraint maps were NOT applied",
+  "reconciled": true
+}

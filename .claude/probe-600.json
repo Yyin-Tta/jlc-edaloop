@@ -1,0 +1,223 @@
+{
+  "ok": "applied",
+  "blockId": "block.ch340c_usb_serial",
+  "revision": 2,
+  "blockState": "verified",
+  "instance": "probe_ch340",
+  "origin": {
+    "requestedX": 100,
+    "requestedY": 300,
+    "x": 100,
+    "y": 300,
+    "relocated": false
+  },
+  "placed": [
+    {
+      "role": "C_V3",
+      "part": "cap.100nf_0402",
+      "designator": "C7",
+      "primitiveId": "f276286a53802d64",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "87bb635d0b2f489a9f60e7cd225beb3c",
+      "lcsc": "C1525",
+      "x": 100,
+      "y": 300,
+      "layout": "grid"
+    },
+    {
+      "role": "C_VCC",
+      "part": "cap.100nf_0402",
+      "designator": "C8",
+      "primitiveId": "1cf36df530cde23d",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "87bb635d0b2f489a9f60e7cd225beb3c",
+      "lcsc": "C1525",
+      "x": 720,
+      "y": 300,
+      "layout": "grid"
+    },
+    {
+      "role": "D_ESD",
+      "part": "tvs.sm712_sot23",
+      "designator": "D3",
+      "primitiveId": "6de61d02b89f29aa",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "46f638b2935c42718f09eb74f6058737",
+      "lcsc": "C32677",
+      "x": 1340,
+      "y": 300,
+      "layout": "grid"
+    },
+    {
+      "role": "J_USB",
+      "part": "conn.usb_c_16p",
+      "designator": "J4",
+      "primitiveId": "8415dd58a3e68282",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "fafc5d2de09d4595b0cc7abedc0530e6",
+      "lcsc": "C9900012665",
+      "x": 1960,
+      "y": 300,
+      "layout": "grid"
+    },
+    {
+      "role": "R_CC1",
+      "part": "res.5k1_0402",
+      "designator": "R9",
+      "primitiveId": "6ab0d06d81cfd6bd",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "ef1f93374e0c4079b48a2d1a3cec8f6b",
+      "lcsc": "C25905",
+      "x": 100,
+      "y": 920,
+      "layout": "grid"
+    },
+    {
+      "role": "R_CC2",
+      "part": "res.5k1_0402",
+      "designator": "R10",
+      "primitiveId": "db6bddbcc4d04aa0",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "ef1f93374e0c4079b48a2d1a3cec8f6b",
+      "lcsc": "C25905",
+      "x": 720,
+      "y": 920,
+      "layout": "grid"
+    },
+    {
+      "role": "U",
+      "part": "ic.ch340c",
+      "designator": "U4",
+      "primitiveId": "5cd12fe3e764998d",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "4951b3094e3e48a7b4c8c708b64932e4",
+      "lcsc": "C84681",
+      "x": 1340,
+      "y": 920,
+      "layout": "grid"
+    }
+  ],
+  "nets": [
+    {
+      "net": "5V",
+      "kind": "power",
+      "port": "VBUS_5V",
+      "bound": true,
+      "members": [
+        "J4:VBUS*",
+        "U4:VCC",
+        "C8:1"
+      ],
+      "roles": [
+        "J_USB.VBUS*",
+        "U.VCC",
+        "C_VCC.1"
+      ]
+    },
+    {
+      "net": "GND",
+      "kind": "gnd",
+      "port": "GND",
+      "bound": true,
+      "members": [
+        "J4:GND*",
+        "J4:EP*",
+        "U4:GND",
+        "C8:2",
+        "C7:2",
+        "D3:3",
+        "R9:2",
+        "R10:2"
+      ],
+      "roles": [
+        "J_USB.GND*",
+        "J_USB.EP*",
+        "U.GND",
+        "C_VCC.2",
+        "C_V3.2",
+        "D_ESD.3",
+        "R_CC1.2",
+        "R_CC2.2"
+      ]
+    },
+    {
+      "net": "PROBE_CH340_N3",
+      "kind": "netport",
+      "members": [
+        "U4:V3",
+        "C7:1"
+      ],
+      "roles": [
+        "U.V3",
+        "C_V3.1"
+      ]
+    },
+    {
+      "net": "PROBE_CH340_N4",
+      "kind": "netport",
+      "members": [
+        "U4:D+",
+        "J4:DP1",
+        "J4:DP2",
+        "D3:1"
+      ],
+      "roles": [
+        "U.D+",
+        "J_USB.DP1",
+        "J_USB.DP2",
+        "D_ESD.1"
+      ]
+    },
+    {
+      "net": "PROBE_CH340_N5",
+      "kind": "netport",
+      "members": [
+        "U4:D-",
+        "J4:DN1",
+        "J4:DN2",
+        "D3:2"
+      ],
+      "roles": [
+        "U.D-",
+        "J_USB.DN1",
+        "J_USB.DN2",
+        "D_ESD.2"
+      ]
+    },
+    {
+      "net": "PROBE_CH340_N6",
+      "kind": "netport",
+      "members": [
+        "J4:CC1",
+        "R9:1"
+      ],
+      "roles": [
+        "J_USB.CC1",
+        "R_CC1.1"
+      ]
+    },
+    {
+      "net": "PROBE_CH340_N7",
+      "kind": "netport",
+      "members": [
+        "J4:CC2",
+        "R10:1"
+      ],
+      "roles": [
+        "J_USB.CC2",
+        "R_CC2.1"
+      ]
+    }
+  ],
+  "warnings": [
+    "5 part(s) land OUTSIDE the sheet frame [0,0]-[1170,825]: D3(1340,300) J4(1960,300) R9(100,920) R10(720,920) U4(1340,920) — they wire up and reconcile normally but are off the printed page; use a bigger sheet, split the block across pages, or give the block a schematic_layout template"
+  ],
+  "unconsumedConstraints": [
+    "pcb_layout",
+    "placement",
+    "signals",
+    "silk"
+  ],
+  "note": "block-apply v1 executes parts/internal_nets/ports only; the listed constraint maps were NOT applied",
+  "reconciled": true
+}

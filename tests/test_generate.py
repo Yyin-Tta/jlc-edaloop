@@ -164,75 +164,148 @@ def test_compile_rejects_no_upstream() -> None:
         compile_actions(plan, catalog)
 
 
-# ---- P4-1:功能分区布局(三带)与网格硬伤修复 ----
+# ---- P4-b2:A4 页流布局(1170×825,实测墨迹表 @250)+ per-block 覆盖 ----
+# 实测占位:ams1117 dy=41,esp32s3 dy=489(spacing 250 标定);y0=300,top=800,间隙 60。
 
 
-def _plan_of(catalog, *block_ids: str, zone: str = "") -> BlockPlan:
+def _plan_of(catalog, *block_ids: str, zone: str = "", at: str = "", spacing: str = "") -> BlockPlan:
     blocks = []
     for n, bid in enumerate(block_ids):
         rec = catalog[bid]
+        params = {"spacing": spacing} if spacing else {}
         blocks.append(
             {
                 "block_id": bid,
                 "upstream_id": rec.upstream.id if rec.upstream else "",
                 "instance": f"i{n}",
                 "pins_binding": {} if rec.upstream else {"1": "GND"},
+                "params": params,
                 "zone": zone,
+                "at": at,
             }
         )
     return BlockPlan.model_validate({"blocks": blocks})
 
 
-def _at_of(plan: BlockPlan, catalog) -> dict[str, str]:
-    compile_actions(plan, catalog)
-    return {b.instance: b.at for b in plan.blocks}
+def _at_page_of(plan: BlockPlan, catalog, **kw) -> dict[str, tuple[str, str]]:
+    compile_actions(plan, catalog, **kw)
+    return {b.instance: (b.at, b.page) for b in plan.blocks}
 
 
-def test_band_layout_separates_power_and_mcu() -> None:
-    """LDO(电源带)与 MCU(主控带)锚点分列;统一槽宽 = max(2000,3200),带距 300。"""
-    plan = BlockPlan.model_validate({"design_ir_id": "x", **_plan_json()})
-    actions = compile_actions(plan, _catalog())
-    assert plan.blocks[0].at == "400,300"
-    assert plan.blocks[1].at == "3900,300"  # 400 + 槽宽 3200 + 带隙 300
-    claims = {a.block_instance: a.zone for a in actions if a.kind == "block-apply"}
-    assert claims["ldo1"] == "PWR" and claims["mcu1"] == "MCU"
-
-
-def test_band_stack_advances_by_own_dy() -> None:
-    """硬伤 A 回归:同带堆叠,下一块起点 = 前块起点 + 前块自身 dy(不再共用触发块 dy)。"""
+def test_page_flow_band_order_and_wrap() -> None:
+    """带序入页:LDO(带0,dy41)先入 P1;MCU(带1,dy489)接续 401+489>800 → 换 P2 页首。"""
     catalog = _catalog()
-    at = _at_of(_plan_of(catalog, "ldo-ams1117-3v3", "ldo-ams1117-3v3"), catalog)
-    assert at["i0"] == "400,300"
-    assert at["i1"] == "400,1900"  # 300 + 自身 dy 1600
+    res = _at_page_of(_plan_of(catalog, "ldo-ams1117-3v3", "mcu-esp32s3-wroom1-min"), catalog)
+    assert res["i0"] == ("100,300", "P1")
+    assert res["i1"] == ("100,300", "P2")
 
 
-def test_band_column_wraps_at_top_limit() -> None:
-    """列满换列:2800 高块堆 2 块(顶 5900),第 3 块顶到 8700 越限 → 换列 x=锚点+槽宽 3200。"""
+def test_page_flow_stacks_small_blocks_same_page() -> None:
+    """两块 AMS1117(各 dy41):300+41+60=401 接续,401+41=442 ≤ 800 同页纵排。"""
     catalog = _catalog()
-    plan = _plan_of(
+    res = _at_page_of(_plan_of(catalog, "ldo-ams1117-3v3", "ldo-ams1117-3v3"), catalog)
+    assert res["i0"] == ("100,300", "P1")
+    assert res["i1"] == ("100,401", "P1")
+
+
+def test_page_flow_big_blocks_one_per_page() -> None:
+    """esp32(489)×3:849+489>800 逐块换页 → P1/P2/P3 各一块(单块仍占当前页,不静默丢)。"""
+    catalog = _catalog()
+    res = _at_page_of(
+        _plan_of(catalog, "mcu-esp32s3-wroom1-min", "mcu-esp32s3-wroom1-min", "mcu-esp32s3-wroom1-min"),
         catalog,
-        "mcu-esp32s3-wroom1-min", "mcu-esp32s3-wroom1-min",
-        "mcu-esp32s3-wroom1-min", "mcu-esp32s3-wroom1-min",
     )
-    at = _at_of(plan, catalog)
-    assert at["i0"] == "3900,300"  # mcu 带 = 带1,锚点 400+3200+300
-    assert at["i1"] == "3900,3100"
-    assert at["i2"] == "7100,300"  # 第 3 块顶边 5900+2800=8700 > 8200 → 换列
-    assert at["i3"] == "7100,3100"
+    assert [res[f"i{n}"] for n in range(3)] == [
+        ("100,300", "P1"),
+        ("100,300", "P2"),
+        ("100,300", "P3"),
+    ]
 
 
 def test_cells_scale_with_spacing() -> None:
-    """硬伤 B 回归:spacing 1200 时占位 ×2(槽宽取 MCU 6400,LDO dy 3200)。"""
-    plan = BlockPlan.model_validate({"design_ir_id": "x", **_plan_json()})
-    compile_actions(plan, _catalog(), spacing_default="1200")
-    assert plan.blocks[0].at == "400,300"
-    assert plan.blocks[1].at == "7100,300"  # 400 + 槽宽 6400 + 带隙 300
+    """占位随 spacing 线性缩放(300 < 宽度截断点,不触发 clamp):dy 41→49,i1 y=300+49+60=409。"""
+    catalog = _catalog()
+    plan = _plan_of(catalog, "ldo-ams1117-3v3", "ldo-ams1117-3v3")
+    actions = compile_actions(plan, catalog, spacing_default="300")
+    join0 = " ".join(next(a for a in actions if a.kind == "block-apply" and a.block_instance == "i0").args)
+    assert "--spacing 300" in join0
+    res = {b.instance: b.at for b in plan.blocks}
+    assert res["i0"] == "100,300"
+    assert res["i1"] == "100,409"
+
+
+def test_spacing_clamped_to_sheet_width() -> None:
+    """RELAYOUT 给大 spacing 会被块宽截到 A4 内:ldo dx=856 → 上限 ⌊250*1070/856⌋=312。"""
+    catalog = _catalog()
+    blocks = [
+        {"block_id": "ldo-ams1117-3v3", "upstream_id": "block.ams1117_ldo_3v3",
+         "instance": "i0", "params": {"spacing": "500"}},
+    ]
+    plan = BlockPlan.model_validate({"blocks": blocks})
+    actions = compile_actions(plan, catalog)
+    a = next(a for a in actions if a.kind == "block-apply")
+    assert a.args[a.args.index("--spacing") + 1] == "312"
+    # 占位按截断后格距推进:dy=int(41*312/250)=51
+    res = _at_page_of(_plan_of(catalog, "ldo-ams1117-3v3", "ldo-ams1117-3v3", spacing="500"), catalog)
+    assert res["i0"][0] == "100,300"
+    assert res["i1"][0] == "100,411"
+
+
+def test_per_block_spacing_and_at_override() -> None:
+    """P4-1④:i0 params.spacing=300(截断内)→ --spacing 300 且占位放大;i1 显式 at 优先网格。"""
+    catalog = _catalog()
+    blocks = [
+        {"block_id": "ldo-ams1117-3v3", "upstream_id": "block.ams1117_ldo_3v3",
+         "instance": "i0", "params": {"spacing": "300"}},
+        {"block_id": "ldo-ams1117-3v3", "upstream_id": "block.ams1117_ldo_3v3",
+         "instance": "i1", "at": "600,600"},
+    ]
+    plan = BlockPlan.model_validate({"blocks": blocks})
+    actions = compile_actions(plan, catalog)
+    by_inst = {a.block_instance: a for a in actions if a.kind == "block-apply"}
+    assert by_inst["i0"].args[by_inst["i0"].args.index("--spacing") + 1] == "300"
+    assert by_inst["i1"].args[by_inst["i1"].args.index("--spacing") + 1] == "250"
+    res = {b.instance: (b.at, b.page) for b in plan.blocks}
+    assert res["i0"] == ("100,300", "P1")  # dy 49,推进到 409
+    assert res["i1"] == ("600,600", "P1")  # 显式 at 生效,页槽仍按流分配(409+41≤800 → P1)
+
+
+def test_emission_page_consecutive_flow_order() -> None:
+    """产出序=流序(页连续升序)而非 plan 原序:plan 先 mcu 后 ldo,产出 ldo(P1) 在 mcu(P2) 前。
+
+    --doc 切换粘性,跨页交错产出会让前台来回摆 + P1 动作夹在 P2+ 之后落错页。
+    """
+    catalog = _catalog()
+    plan = _plan_of(catalog, "mcu-esp32s3-wroom1-min", "ldo-ams1117-3v3")
+    actions = compile_actions(plan, catalog)
+    applies = [a for a in actions if a.kind == "block-apply"]
+    assert [a.block_instance for a in applies] == ["i1", "i0"]  # ldo(band0) 先于 mcu(band1)
+    assert [a.page for a in applies] == ["P1", "P2"]
+
+
+def test_place_cell_not_scaled_by_spacing() -> None:
+    """place 通道符号几何与 spacing 无关(sch place 无该旗标):格恒 400×250,不随 params 缩。"""
+    catalog = _catalog()
+    catalog["part-res-pull"] = BlockRecord(
+        block_id="part-res-pull", name="R", desc="x", lcsc="C22878",
+        pinout={"1": "A", "2": "B"},
+    )
+    # zone=left 全归电源带,大块先放:place(250) → ldo(51) → ldo(51)
+    plan = _plan_of(catalog, "part-res-pull", "ldo-ams1117-3v3", "ldo-ams1117-3v3", zone="left", spacing="500")
+    compile_actions(plan, catalog)
+    res = {b.instance: (b.at, b.page) for b in plan.blocks}
+    # i0 place 占位恒 250(gap 60):i1 ldo 在 y=300+250+60=610 同页;
+    # 若误随 spacing=500 缩放(500+60),i1 应在 100,860 → 换 P2
+    assert res["i0"][0] == "100,300"
+    assert res["i1"][0] == "100,610"
+    assert res["i1"][1] == "P1"
 
 
 def test_zone_hint_overrides_category() -> None:
-    """planner 显式 zone=right 优先于 category 默认(claim 变 PERI,锚点占带 2 槽位)。"""
+    """planner 显式 zone=right 优先于 category 默认(claim 变 PERI;页流下位置不变)。"""
     catalog = _catalog()
     plan = _plan_of(catalog, "ldo-ams1117-3v3", zone="right")
     actions = compile_actions(plan, catalog)
     assert next(a for a in actions if a.kind == "block-apply").zone == "PERI"
-    assert plan.blocks[0].at == "5000,300"  # 400 + 2*(槽宽 2000 + 带隙 300)
+    assert plan.blocks[0].at == "100,300"
+    assert plan.blocks[0].page == "P1"

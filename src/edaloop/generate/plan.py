@@ -25,7 +25,9 @@ _SYSTEM = """你是电路块规划器。给定 DesignIR(设计意图)和候选�
   "blocks": [
     {"block_id": "...", "upstream_id": "block.xxx", "instance": "唯一实例名",
      "ports_binding": {"PORT名": "网络名"}, "pins_binding": {}, "params": {}, "provenance": "检索分数或选择理由",
-     "zone": "left|center|right|left-top|center-bottom|...(可选)"}
+     "zone": "left|center|right|left-top|center-bottom|...(可选)",
+     "at": "x,y(可选,页内锚点,仅 RELAYOUT 反馈指定空位时给)",
+     "params": {"spacing": "250-600(可选,块内格距覆盖,仅 RELAYOUT 反馈要求时给)"}
   ],
   "nets": [{"name": "3V3", "class": "power"}],
   "uncovered": ["<目录无法覆盖的功能,简述>"],
@@ -44,6 +46,7 @@ _SYSTEM = """你是电路块规划器。给定 DesignIR(设计意图)和候选�
 - 串口交叉:USB 串口块的 TXD 与主控 RX 同网,RXD 与主控 TX 同网
 - 需要多个相同块(如多路 LED)时,生成多个实例,instance 命名不同(led1/led2)
 - zone 可选:布局分区提示(左=电源入口,中=主控,右=接口外设);不填按块品类默认,仅当有明确布局理由(如客户点名"USB 口放右边")才给
+- at/params.spacing 可选且仅在上一轮 RELAYOUT 反馈点名时给:at 是页内锚点(A4 画布 1170×825,x∈[100,1100] y∈[300,780]),params.spacing 覆盖该块默认格距 250;布局由编译器自动分页,planner 不要发明页号
 - 器件型号以目录 parts 为准,不要发明器件"""
 
 

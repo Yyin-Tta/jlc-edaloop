@@ -364,12 +364,16 @@ def test_loop_gate_fail_blocks(tmp_path) -> None:
 
 
 class _ZoneFakeAdapter(_FakeAdapter):
-    """block-apply manifest 带 placed 位号,其余 rc=0;记录全部调用供断言。"""
+    """block-apply manifest 带 placed 位号,sch pages/page-new 仿真;记录全部调用供断言。"""
 
     def run_json(self, args):
         self.calls.append(args)
         if args[1] == "gate":
             return {"verdict": self.gate_verdict, "stages": []}
+        if args[1] == "pages":
+            return {"result": {"pages": [{"name": "P1", "uuid": "u1", "parentSchematicUuid": "s1"}]}}
+        if args[1] == "page-new":
+            return {"result": {"pageUuid": f"pg-{len(self.calls)}"}}
         if args[1] == "block-apply":
             return {"ok": "applied", "placed": [{"designator": "U1"}, {"designator": "C1"}]}
         return {"ok": "applied"}
@@ -415,3 +419,61 @@ def test_zone_frames_sequence_when_enabled(tmp_path) -> None:
     assert note_call[note_call.index("--zone") + 1] == "PWR"
     gate_i = next(i for i, c in enumerate(flat) if c[:2] == ["sch", "gate"])
     assert set_i < gate_i and next(i for i, c in enumerate(flat) if c[:2] == ["sch", "note"]) < gate_i
+
+
+# ---- P4-b2:多页编排(页流超 A4 → 建页 + --doc 钉扎 + 逐页 gate/zones) ----
+
+_PLAN_2WIDE = {
+    "blocks": [
+        {
+            "block_id": "dc-terminal-wide-input",
+            "upstream_id": "block.vehicle_input_tps54360_5v",
+            "instance": "dcin1",
+            "ports_binding": {"VBAT_RAW": "12V"},
+        },
+        {
+            "block_id": "dc-terminal-wide-input",
+            "upstream_id": "block.vehicle_input_tps54360_5v",
+            "instance": "dcin2",
+            "ports_binding": {"VBAT_RAW": "12V"},
+        },
+    ],
+    "nets": [],
+    "uncovered": [],
+    "confidence": 0.9,
+    "provenance": [],
+}
+
+
+def test_multipage_orchestration(tmp_path) -> None:
+    """宽压块(dy 1384)×2:单页放不下 → 建页 P2 + 落图 --doc 钉扎 + 逐页 gate/zones。"""
+    chat = FakeChat(json.dumps(_PLAN_2WIDE, ensure_ascii=False))
+    adapter = _ZoneFakeAdapter("pass")
+    lc = _loop(chat, adapter, ir=_ir_with_rails(("12V", 12.0)), tmp=str(tmp_path))
+    lc.zones_enabled = True
+    result = lc.run()
+    assert result.status == "PASS"
+    flat = adapter.calls
+    # 1) 建页:sch pages 读现状 → page-new(无名)→ page-rename --name P2
+    pages_i = next(i for i, c in enumerate(flat) if c[:2] == ["sch", "pages"])
+    new_i = next(i for i, c in enumerate(flat) if c[:2] == ["sch", "page-new"])
+    rename_i = next(i for i, c in enumerate(flat) if c[:2] == ["sch", "page-rename"])
+    assert pages_i < new_i < rename_i
+    assert "--name" in flat[rename_i] and flat[rename_i][flat[rename_i].index("--name") + 1] == "P2"
+    # 1b) 每轮全量清页:既有页 ∪ 计划页逐页 sch clear --doc(含 P1;前台粘滞使
+    #     clear_all_pages 只清得到活动页,r≥2 不显式清 P1 会叠上轮墨迹 → 位号冲突)
+    clears = [c for c in flat if c[:3] == ["sch", "clear", "--doc"]]
+    assert sorted(c[-1] for c in clears) == ["P1", "P2"]
+    # 2) 两块落图都 --doc 钉扎(P1 不豁免:--doc 切换粘性,免钉会落错页);
+    #    通用路径 run+run_json 双记录,相邻去重
+    raw_applies = [c for c in flat if c[:2] == ["sch", "block-apply"]]
+    applies = [c for i, c in enumerate(raw_applies) if i == 0 or raw_applies[i - 1] != c]
+    assert len(applies) == 2
+    assert applies[0][applies[0].index("--doc") + 1] == "P1"
+    assert applies[1][applies[1].index("--doc") + 1] == "P2"
+    # 3) 逐页 gate:--doc P1 与 P2 各一次;zones 也逐页(set 带 --doc)
+    gates = [c for c in flat if c[:2] == ["sch", "gate"]]
+    assert sorted(c[c.index("--doc") + 1] for c in gates) == ["P1", "P2"]
+    zone_sets = [c for c in flat if c[:3] == ["sch", "zones", "set"]]
+    assert len(zone_sets) == 2
+    assert all("--doc" in c for c in zone_sets)

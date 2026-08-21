@@ -22,6 +22,7 @@ class PlannedBlock(_Strict):
     provenance: str = ""
     at: str = ""
     zone: str = ""
+    page: str = ""  # compile 页流分配的落图页(P1..Pn);planner 不给,由布局定
 
     @model_validator(mode="before")
     @classmethod
@@ -29,7 +30,7 @@ class PlannedBlock(_Strict):
         if isinstance(v, dict):
             known = {
                 "block_id", "upstream_id", "instance", "ports_binding", "pins_binding",
-                "params", "provenance", "at", "zone",
+                "params", "provenance", "at", "zone", "page",
             }
             return {k: val for k, val in v.items() if k in known}
         return v
@@ -80,3 +81,4 @@ class Action(_Strict):
     desc: str = ""
     pinout: dict[str, str] | None = None
     zone: str = ""
+    page: str = ""  # 落图页(P1 = 工程首页免建;P2+ 由 controller 建页并 --doc 钉扎)

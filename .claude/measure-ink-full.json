@@ -1,0 +1,126 @@
+{
+ "block.usbc_ufp_power_or": {
+  "ink_dx": 831,
+  "ink_dy": 318
+ },
+ "block.vehicle_input_tps54360_5v": {
+  "ink_dx": 864,
+  "ink_dy": 1384
+ },
+ "block.lgs4056_liion_charge_path": {
+  "ink_dx": 871,
+  "ink_dy": 846
+ },
+ "block.sy7088_boost_5v": {
+  "ink_dx": 831,
+  "ink_dy": 589
+ },
+ "block.ams1117_ldo_3v3": {
+  "ink_dx": 856,
+  "ink_dy": 41
+ },
+ "block.esp32s3_wroom1_module": {
+  "ink_dx": 831,
+  "ink_dy": 489
+ },
+ "block.ch340c_usb_serial": {
+  "ink_dx": 861,
+  "ink_dy": 356
+ },
+ "block.sp3485_rs485_halfduplex": {
+  "ink_dx": 846,
+  "ink_dy": 594
+ },
+ "block.led_indicator_gpio": {
+  "ink_dx": 136,
+  "ink_dy": 26
+ },
+ "block.tactile_boot_reset": {
+  "ink_dx": 311,
+  "ink_dy": 10
+ },
+ "block.aw8737_classd_spk": {
+  "ink_dx": 856,
+  "ink_dy": 596
+ },
+ "block.bmi270_imu_i2c": {
+  "ink_dx": 856,
+  "ink_dy": 81
+ },
+ "block.bq24074_powerpath_charger": {
+  "ink_dx": 861,
+  "ink_dy": 904
+ },
+ "block.cc1101_433m_balun_ipex": {
+  "ink_dx": 906,
+  "ink_dy": 1649
+ },
+ "block.es8311_codec_i2s": {
+  "ink_dx": 921,
+  "ink_dy": 609
+ },
+ "block.esp32_autodownload": {
+  "ink_dx": 821,
+  "ink_dy": 21
+ },
+ "block.esp32s3_pico_native_usb": {
+  "ink_dx": 896,
+  "ink_dy": 964
+ },
+ "block.i2c_isolation_2n7002dw": {
+  "ink_dx": 846,
+  "ink_dy": 41
+ },
+ "block.ina226_power_monitor": {
+  "ink_dx": 831,
+  "ink_dy": 309
+ },
+ "block.ir_txrx_remote": {
+  "ink_dx": 846,
+  "ink_dy": 581
+ },
+ "block.lc29h_dr_gnss_frontend": {
+  "ink_dx": 911,
+  "ink_dy": 886
+ },
+ "block.mems_mic_analog": {
+  "ink_dx": 846,
+  "ink_dy": 294
+ },
+ "block.microsd_spi_pushpush": {
+  "ink_dx": 831,
+  "ink_dy": 325
+ },
+ "block.opto_acc_ign_detect": {
+  "ink_dx": 831,
+  "ink_dy": 297
+ },
+ "block.pmos_highside_softstart": {
+  "ink_dx": 831,
+  "ink_dy": 285
+ },
+ "block.sdnand_sdmmc_4bit": {
+  "ink_dx": 856,
+  "ink_dy": 574
+ },
+ "block.st7789_spi_lcd_btb": {
+  "ink_dx": 831,
+  "ink_dy": 310
+ },
+ "block.sy8089_buck_3v3": {
+  "ink_dx": 838,
+  "ink_dy": 299
+ },
+ "block.tps63802_buckboost_3v8": {
+  "ink_dx": 838,
+  "ink_dy": 309
+ },
+ "block.usbc_dual_orientation_data": {
+  "ink_dx": 849,
+  "ink_dy": 315
+ },
+ "block.xl1509_buck_12v_5v": {
+  "ink_dx": 856,
+  "ink_dy": 329
+ }
+}
