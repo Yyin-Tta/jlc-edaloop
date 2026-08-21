@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 from edaloop.generate.audit import AuditLog
 from edaloop.generate.models import BlockPlan
@@ -178,6 +179,9 @@ class _FakeAdapter:
 
     def run(self, args):
         self.calls.append(args)
+        if len(args) > 1 and args[1] == "block-apply":
+            # 变更命令只执行一次:manifest 由本次 stdout 承载(controller 不重发)
+            return 0, json.dumps({"ok": "applied", "placed": []}), ""
         return 0, "{}", ""
 
     def clear_all_pages(self):
@@ -366,6 +370,12 @@ def test_loop_gate_fail_blocks(tmp_path) -> None:
 class _ZoneFakeAdapter(_FakeAdapter):
     """block-apply manifest 带 placed 位号,sch pages/page-new 仿真;记录全部调用供断言。"""
 
+    def run(self, args):
+        self.calls.append(args)
+        if args[1] == "block-apply":
+            return 0, json.dumps({"ok": "applied", "placed": [{"designator": "U1"}, {"designator": "C1"}]}), ""
+        return 0, "{}", ""
+
     def run_json(self, args):
         self.calls.append(args)
         if args[1] == "gate":
@@ -374,8 +384,6 @@ class _ZoneFakeAdapter(_FakeAdapter):
             return {"result": {"pages": [{"name": "P1", "uuid": "u1", "parentSchematicUuid": "s1"}]}}
         if args[1] == "page-new":
             return {"result": {"pageUuid": f"pg-{len(self.calls)}"}}
-        if args[1] == "block-apply":
-            return {"ok": "applied", "placed": [{"designator": "U1"}, {"designator": "C1"}]}
         return {"ok": "applied"}
 
 
@@ -465,7 +473,7 @@ def test_multipage_orchestration(tmp_path) -> None:
     clears = [c for c in flat if c[:3] == ["sch", "clear", "--doc"]]
     assert sorted(c[-1] for c in clears) == ["P1", "P2"]
     # 2) 两块落图都 --doc 钉扎(P1 不豁免:--doc 切换粘性,免钉会落错页);
-    #    通用路径 run+run_json 双记录,相邻去重
+    #    manifest 单次执行路径只经 run() 记录(重发重放=孪生部件,见回归测试)
     raw_applies = [c for c in flat if c[:2] == ["sch", "block-apply"]]
     applies = [c for i, c in enumerate(raw_applies) if i == 0 or raw_applies[i - 1] != c]
     assert len(applies) == 2
@@ -477,3 +485,65 @@ def test_multipage_orchestration(tmp_path) -> None:
     zone_sets = [c for c in flat if c[:3] == ["sch", "zones", "set"]]
     assert len(zone_sets) == 2
     assert all("--doc" in c for c in zone_sets)
+
+
+# ---- P4-b2 续:清页保真(clear 三态结果 + 回读复核 + settle 重清) ----
+
+
+class _GhostInkAdapter(_ZoneFakeAdapter):
+    """仿真 settle 电阻:P1 首趟 clear 后回读仍有 2 器件,第二趟才真清空。"""
+
+    def __init__(self, gate_verdict: str) -> None:
+        super().__init__(gate_verdict)
+        self.dirty_reads = 0
+
+    def run_json(self, args):
+        if args[1] == "read":
+            self.calls.append(args)
+            self.dirty_reads += 1
+            if self.dirty_reads == 1:  # 首次回读:幽灵墨迹在场
+                return {
+                    "result": {
+                        "components": [
+                            {"componentType": "part", "designator": "U9"},
+                            {"componentType": "part", "designator": "C9"},
+                        ]
+                    }
+                }
+            return {"result": {"components": [{"componentType": "sheet"}]}}
+        return super().run_json(args)
+
+
+def test_clear_fidelity_verify_and_retry(tmp_path) -> None:
+    """首趟 clear 后回读有 survivors → 自动重清 → 第二趟干净;
+    审计 page-clear-doc 带 survivors/attempt/ok 双趟记录。"""
+    chat = FakeChat(json.dumps(_PLAN_OK, ensure_ascii=False))
+    adapter = _GhostInkAdapter("pass")
+    lc = _loop(chat, adapter, tmp=str(tmp_path))
+    result = lc.run()
+    assert result.status == "PASS"
+    # P1 被清了两趟(首趟回读见 2 器件 → settle 重清)
+    clears = [c for c in adapter.calls if c[:3] == ["sch", "clear", "--doc"]]
+    assert [c[-1] for c in clears] == ["P1", "P1"]
+    # 审计:两趟 page-clear-doc,首趟 ok=False(survivors=2),次趟 ok=True
+    events = [json.loads(line) for line in Path(str(tmp_path), "audit.jsonl").read_text().splitlines()]
+    pcd = [e for e in events if e.get("kind") == "page-clear-doc"]
+    assert [(e["attempt"], e["survivors"], e["ok"]) for e in pcd] == [(1, 2, False), (2, 0, True)]
+    # page-clear 汇总:failures 清零(重清成功)
+    pc = [e for e in events if e.get("kind") == "page-clear"]
+    assert pc[-1]["failures"] == []
+
+
+def test_block_apply_executes_once(tmp_path) -> None:
+    """回归(run3b 六连挂根因):block-apply manifest 从首次执行的 stdout 解析,
+    同参命令绝不被重发——重放=同页孪生部件再放一份(平台分号 D4/J2/R3…、
+    几何逐位相同),apply 内置 verify 逐件报 overlap+pin coincidence 判死,
+    第一遍成品被误记 failed-rolled-back。"""
+    chat = FakeChat(json.dumps(_PLAN_OK, ensure_ascii=False))
+    adapter = _ZoneFakeAdapter("pass")
+    lc = _loop(chat, adapter, tmp=str(tmp_path))
+    result = lc.run()
+    assert result.status == "PASS"
+    # 修复前:adapter.run + _run_json_retry(args) 各发一遍 = 2
+    runs = [c for c in adapter.calls if c[:2] == ["sch", "block-apply"]]
+    assert len(runs) == 1

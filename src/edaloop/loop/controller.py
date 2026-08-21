@@ -192,10 +192,18 @@ class LoopController:
                 # 故每轮显式清文档全部既有页(含 P1 与超出本轮计划的孤儿页),
                 # 否则 r≥2 叠上轮墨迹 → 文档级位号冲突(C8 类)确定性复发。
                 existing = self._ensure_pages([p for p in pages if p != "P1"], round_no)
-                for p in self._page_order(existing | set(pages)):
-                    rc, _, _ = self.adapter.run(["sch", "clear", "--doc", p])
-                    self.audit.event("page-clear-doc", round_no=round_no, page=p, rc=rc)
-                self.audit.event("page-clear", round_no=round_no, pages=pages)
+                # 清页保真(2026-08-21 决定性实验结论):sch clear --doc 本身不说谎
+                # (连发六页全部真清空,remaining=0 如实),但其结果是三态——幸存时只往
+                # result 塞 warning 仍 rc=0;且 r≥2 的清页紧跟上轮 apply,上游实证
+                # 「block-apply 后立即 clear 可复现留 ~20 幸存者,数秒后手跑才能清空」。
+                # rc 不可信:clear 后回读数器件才算数,幸存 → 重清一次(settle 电阻),
+                # 两趟仍不清 → clear-fidelity 失败进审计(不静默;后续 apply 失败自会
+                # 经 GATE_FAIL 归因,此处只负责把证据钉死)。
+                clear_failed = [
+                    p for p in self._page_order(existing | set(pages))
+                    if not self._clear_page_verified(p, round_no)
+                ]
+                self.audit.event("page-clear", round_no=round_no, pages=pages, failures=clear_failed)
                 apply_ok, gate_report = self._apply(actions, round_no)
                 rec.gate_verdict = gate_report.get("verdict", "unknown") if gate_report else "not-run"
             findings = validate(self.ir, plan, gate_report, catalog=self.catalog)
@@ -656,22 +664,14 @@ class LoopController:
                         ok=ok,
                     )
                     continue
-                rc, out, err = self.adapter.run(args)
                 manifest: dict = {}
                 if act.kind == "sch-autoconnect":
+                    rc, _, _ = self.adapter.run(args)
                     status = "applied" if rc == 0 else "failed"
                 else:
-                    try:
-                        manifest = self._run_json_retry(args)
-                    except AdapterError as e:
-                        ok_all = False
-                        self.audit.event(
-                            "apply-fatal",
-                            round_no=round_no,
-                            instance=act.block_instance,
-                            error=str(e)[:2000],
-                        )
-                        continue
+                    # block-apply 非幂等:manifest 只从本次执行 stdout 解析,
+                    # 绝不重发(重放=同页孪生再放一份,详见 _run_manifest_once)
+                    manifest = self._run_manifest_once(args)
                     status = manifest.get("ok") or manifest.get("status") or "unknown"
                 self.audit.event(
                     act.kind,
@@ -691,7 +691,7 @@ class LoopController:
                             self.audit.event("cleanup", round_no=round_no, deleted=survivors)
                         try:
                             retry_args = self._jitter_at(args)
-                            manifest = self._run_json_retry(retry_args)
+                            manifest = self._run_manifest_once(retry_args)
                             status = manifest.get("ok") or manifest.get("status") or "unknown"
                             self.audit.event(
                                 act.kind,
@@ -772,6 +772,46 @@ class LoopController:
         )
         return ok
 
+    def _page_component_count(self, page: str) -> int:
+        """sch read --page 回读非 sheet 器件数;读失败返回 -1(未知 ≠ 已清空)。"""
+        try:
+            read = self._run_json_retry(["sch", "read", "--page", page])
+        except Exception as e:  # AdapterError 等:读不到按未知处理,绝不当作已清空
+            self.audit.event("clear-verify-error", page=page, error=str(e)[:500])
+            return -1
+        res = read.get("result", {}) or {}
+        return sum(1 for c in res.get("components", []) if c.get("componentType") != "sheet")
+
+    def _clear_page_verified(self, page: str, round_no: int) -> bool:
+        """clear --doc 后机械复核:result.remaining(自报)+ 回读数器件(实证)双证据;
+        任一不净 → 重清一次;两趟仍不清 → False(审计留痕)。"""
+        for attempt in (1, 2):
+            rc, out, _ = self.adapter.run(["sch", "clear", "--doc", page])
+            remaining: int | None = None
+            warnings: list[str] = []
+            try:
+                result = (json.loads(out) or {}).get("result", {}) or {}
+                remaining = result.get("remaining")
+                warnings = [str(w)[:200] for w in (result.get("warnings") or [])][:3]
+            except ValueError:
+                pass  # 非 JSON 输出:remaining 维持未知,判定交给回读
+            survivors = self._page_component_count(page)
+            ok = rc == 0 and survivors == 0 and remaining in (None, 0)
+            self.audit.event(
+                "page-clear-doc",
+                round_no=round_no,
+                page=page,
+                rc=rc,
+                remaining=remaining,
+                survivors=survivors,
+                warnings=warnings,
+                attempt=attempt,
+                ok=ok,
+            )
+            if ok:
+                return True
+        return False
+
     @staticmethod
     def _first_uuid(resp: dict) -> tuple[str, str]:
         res = resp.get("result", {}) or {}
@@ -797,6 +837,25 @@ class LoopController:
             if phase == "first":
                 self.adapter.refresh_window()
                 self.audit.event("window-refresh", round_no=None)
+
+    def _run_manifest_once(self, args) -> dict:
+        """变更型命令(block-apply)只许执行一次,manifest 取该次 stdout。
+
+        禁止走 _run_json_retry 重发:同参 block-apply 重放会在已落图的页上
+        再放一份同几何部件(平台只给新位号 D4/J2/R3…),apply 内置 verify
+        逐件报 overlap+pin coincidence → 整单判死回滚,第一遍成品被误记
+        failed-rolled-back;若重放的推让恰好躲开同位,verify 漏抓、双份留
+        页,拖到逐页 gate 才炸(run3b r1/r2 六连挂根因;2026-08-21 连接器
+        审计对账 + 活体复现 D1↔D4…R2↔R4 六对孪生后钉死)。"""
+        from edaloop.generate.adapter import AdapterError
+
+        rc, out, err = self.adapter.run(args)
+        try:
+            return json.loads(out) if out.strip() else {}
+        except ValueError as e:
+            raise AdapterError(
+                f"block-apply stdout 非 JSON(rc={rc},{e}):stderr 尾部={err[-500:]}"
+            ) from e
 
     def _run_json_retry(self, args, attempts: int = 2, delay: float = 8.0) -> dict:
         from edaloop.generate.adapter import AdapterError

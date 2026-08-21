@@ -56,12 +56,15 @@ def _fill_bindings(plan: BlockPlan, catalog: dict[str, BlockRecord]) -> BlockPla
 
 
 # A4 横放实测(EasyEDA 单位 = 0.01 inch):1170 × 825,y-UP;图签占位右下 [468..1170, 0..198]。
-# 锚点(100,300):墨迹左/下探 ~20,避图签(y≥198)且贴边距。
-_GRID_X0 = 100
+# 锚点(180,300):x0 由 100→180(2026-08-21 校准 B:首列器件左侧 netport 文字+桩线
+# 实测外伸 ~120-150,如 P2 R3 左沿 -48@x0=100),y0 避图签(y≥198)。
+_GRID_X0 = 180
 _GRID_Y0 = 300
 _SHEET_TOP_LIMIT = 800  # 顶部余 25;esp32 类 489 高块 300..789 可整页放下
 _SHEET_W = 1170  # A4 横放全宽(墨迹右缘校核用)
 _STACK_GAP = 60  # 同页相邻块垂直间隙
+# A4 可用区(铁边距 12;顶部 825-12):at 硬界校核用(_validate_at)。
+_SHEET_X0, _SHEET_X1, _SHEET_Y0, _SHEET_Y1 = 12, 1158, 12, 801
 
 # ---- P4-1① 功能分区:category → 带(band)。带 = 上游 zones 词汇 left/center/right 的认领组。
 # P4-b2 起 A4 尺度下三带由「横向并排」改为「纵向堆叠次序」:spacing 250 实测块墨迹宽
@@ -125,14 +128,34 @@ _CELL_PLACE = (400, 250)  # place 通道单器件符号(保守)
 _CALIB_SPACING = 250  # _INK_CELL 的标定格距(A4 实测可整块入图)
 _SPACING_DEFAULT = "250"
 
+# ⚠ _INK_CELL 的 dx/dy 是「器件 bbox 并集」,**不含 netport/netflag 文字翼展**
+# (2026-08-21 校准 A/B 实测:标签+桩线在 bbox 外单侧可伸 50~320 —— 长 --instance
+# 命名的内部网(USBC_ENTRY_N1)曾把 J1 类连接器翼展顶到 390;去掉 --instance 走
+# 默认位号短名(D1_N1)后回落到 ~120-230,边界网名 RS485_A 类仍可达 ~320)。
+# 翼展不进 _spacing_eff 的宽度截断(末列右翼实测小,截了反而毁标定几何),
+# 只体现在:x0(左翼)、_validate_at(硬界)与 P4-b3 组排布(列间翼展撞邻列)。
 
-def _spacing_of(b, spacing_default: int) -> int:
-    """块生效格距:per-block params.spacing 优先(P4-1④ RELAYOUT 通道),非法值回退默认。"""
+# per-block 实测锚点(2026-08-21 校准 B 逐页 clusters --strict 验证):块 → (x0, spacing)。
+# 表内值整组实测落位(翼展已含在位里),_spacing_eff 对表内块不做宽度截断。
+# rs485:U4 收发器左翼 322(RS485_A/B 文字)→ x0=340;9 件三行块需 dy≤498 → sp=210
+# (250 时第三行 U4 顶部溢出 A4)。证据:run/calib/P5-apply.json + clusters 输出。
+_BLOCK_LAYOUT: dict[str, tuple[int, int]] = {
+    "block.sp3485_rs485_halfduplex": (340, 210),
+}
+
+
+def _spacing_of(rec: BlockRecord, b, spacing_default: int) -> int:
+    """块生效格距:params.spacing(P4-1④ RELAYOUT 通道)优先,再 _BLOCK_LAYOUT 实测
+    锚点,最后默认;非法值视同缺省。"""
     raw = (b.params or {}).get("spacing", "")
     try:
         return max(int(str(raw).strip()), 100)
     except (TypeError, ValueError):
-        return spacing_default
+        pass
+    lay = _BLOCK_LAYOUT.get(rec.upstream.id) if rec.upstream else None
+    if lay:
+        return lay[1]
+    return spacing_default
 
 
 def _cell_for(rec: BlockRecord, spacing: int = _CALIB_SPACING) -> tuple[int, int]:
@@ -151,13 +174,35 @@ def _spacing_eff(rec: BlockRecord, b, spacing_default: int) -> int:
     dx 随 spacing 线性放大,不截则 RELAYOUT 反馈给 350+ 会把墨迹静默推出右缘
     (实测最宽 es8311 dx=921:350 → 1289 > 1170);截断只在超宽时收紧,
     不影响 250 标定(全部实测块 250 下右缘 ≤1021)。
+    _BLOCK_LAYOUT 实测锚点块免截断:整组几何是逐页 clusters 验证过的,
+    翼展截断反而会破坏标定(如 rs485 sp=210 的三行行距)。
     """
-    sp = _spacing_of(b, spacing_default)
+    sp = _spacing_of(rec, b, spacing_default)
     if rec.upstream is None:
         return sp  # place 通道无 --spacing 语义,格距只影响流程推进,宽度恒定
+    if rec.upstream.id in _BLOCK_LAYOUT:
+        return sp
     dx, _ = _INK_CELL.get(rec.upstream.id, _INK_DEFAULT)
     ceiling = max(int(_CALIB_SPACING * (_SHEET_W - _GRID_X0) / dx), 100)
     return min(sp, ceiling)
+
+
+def _validate_at(at: str, dx: int, dy: int, fallback: str) -> str:
+    """planner/RELAYOUT 显式 at 只做 A4 硬界校核,出界回退流式位(fit-first 不静默)。
+
+    只拦「整块飞出图纸」级灾难(run4 r2 实例:RELAYOUT 给 rs485 at=950,480,
+    4 列×336 步长=2294,整块飞出 A4 右缘);列间 netport 翼展擦撞是结构问题,
+    归 P4-b3 组排布层,不在此假装能算准(翼展实测 50~320 且逐 pin 而异)。
+    右侧留 100:末列右翼 + 少量文本;左侧 130 / 下 60:首列/末行外侧标签桩线。
+    """
+    try:
+        x_s, y_s = at.split(",")
+        x, y = int(x_s), int(y_s)
+    except ValueError:
+        return fallback
+    if x < 130 or y < 60 or x + dx > _SHEET_X1 - 100 or y + dy > _SHEET_Y1:
+        return fallback
+    return at
 
 
 def band_of(rec: BlockRecord, zone_hint: str = "") -> int:
@@ -223,22 +268,31 @@ def compile_actions(
             reverse=True,
         )
         for b in ordered:
-            dx, dy = _cell_for(catalog[b.block_id], _spacing_eff(catalog[b.block_id], b, spacing))
+            rec = catalog[b.block_id]
+            dx, dy = _cell_for(rec, _spacing_eff(rec, b, spacing))
             at, page = flow.take(dy)
+            lay = _BLOCK_LAYOUT.get(rec.upstream.id) if rec.upstream else None
+            if lay:
+                # 实测锚点 x0(块左翼已量入,如 rs485 U4 的 RS485_A/B 文字翼 322)
+                at = f"{lay[0]},{at.split(',')[1]}"
             b.page = page
             if not b.at:
                 b.at = at  # planner/RELAYOUT 显式 at 优先(P4-1④,页内坐标)
+            else:
+                b.at = _validate_at(b.at, dx, dy, at)  # 出 A4 硬界 → 回退流式位
             emit.append(b)
     for b in emit:
         rec = catalog[b.block_id]
         band = band_of(rec, b.zone)
         if rec.upstream is not None:
+            # 不传 --instance(2026-08-21 校准 B 根因):instance 名会进内部网名,
+            # 长 instance(usbc_entry)→ USBC_ENTRY_N1 类 13 字符 netport 文字把
+            # 连接器翼展顶到 390 单位(J1↔邻列必撞);默认用首个位号命名(D1_N1,
+            # 5 字符)翼展回落 ~120-230。审计追踪走 Action.block_instance,不依赖它。
             args = [
                 "sch",
                 "block-apply",
                 b.upstream_id,
-                "--instance",
-                b.instance,
                 "--spacing",
                 str(_spacing_eff(catalog[b.block_id], b, spacing)),
                 "--at",
