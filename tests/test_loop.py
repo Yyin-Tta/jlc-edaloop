@@ -801,9 +801,10 @@ def test_arrange_closeout_clamp_prefers_own_zone(tmp_path) -> None:
     result = lc.run()
     assert result.status == "PASS"
     mv = [c for c in adapter.calls if c[:2] == ["sch", "group-move"]]
-    # 6 个扫描空位(s=0..5 → dx -145..-445)全部可行且都远离成员箱;
-    # zone 中心 x=350 → 最近 = 最深一步 dx=-445(无 zone 时应取 s=0 的 -145)
-    assert mv and mv[0][mv[0].index("--dx") + 1] == "-445"
+    # 8 级主轴扫描(s=0..7 → dx -145..-565)全部可行且都远离成员箱;
+    # zone 中心 x=350 → 最近 = 最深一步 dx=-565(无 zone 时应取 s=0 的 -145;
+    # 2D 扩grid后梯子 6→8 级,最近可用从 -445 变 -565,断言随实况更新)
+    assert mv and mv[0][mv[0].index("--dx") + 1] == "-565"
 
 
 def test_arrange_closeout_never_repeats_refused_clamp(tmp_path) -> None:

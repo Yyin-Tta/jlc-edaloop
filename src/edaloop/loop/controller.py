@@ -725,13 +725,20 @@ class LoopController:
         R9——钳回带内 ≠ 钳到空位)。落点沿钳回轴向带内扫 60 步进避邻居,
         有 zone 认领时优先落本 zone 包络旁(run7 残留 partitionOverlap=3 实证
         裸钳会把件甩进邻居分区);overlap 双方都在带内 → b 沿 y 下推/上推 40
-        分离。内核拒过的 (位号,dx,dy) 不再重发(run8 P1/P2 实证:clusters
-        带含图签条,按带查可行的下推目标仍撞图签 keepout 被钳成 Δ0,同
-        finding 反复推导同一被拒位移 = 4 次空转)。无解就停,归反馈域。"""
+        分离。(位号,dx,dy) 发过即入 spent 不再重发——拒过的重发=4 次空转
+        (run8 P1/P2 实证),成功过的重发=几何绕圈回原状的振荡(req-05 P3 J1
+        实证 -180/+180/-180 循环)。无解就停,归反馈域。"""
         zone_map = zone_map or {}
         claim_of = {d: claim for claim, ds in zone_map.items() for d in ds}
-        refused: set[tuple[str, int, int]] = set()
-        for _ in range(4):
+        spent: set[tuple[str, int, int]] = set()  # 拒过的+已发过的(位号,dx,dy),都不再发
+        # 预算随首轮 ERROR 数伸缩:固定 4 次「一次一动」在 7 件越界页必剩 3 件
+        # (req-05 P1 实锤:探针 7 件、钳 4 件、remaining=3,r2 整页重排同形 →
+        # 同码连胜 HALT);×2 余量吸收移动牵出的新 ERROR。退出条件不变——清零
+        # 即返/无可动即返,预算纯防呆上限,不影响收敛判定。
+        errs = self._cluster_errors(page)
+        if not errs:
+            return []
+        for _ in range(max(4, 2 * len(errs))):
             rep = self._clusters_report(page)
             errs = [f for f in (rep.get("findings") or []) if f.get("level") == "ERROR"]
             if not errs:
@@ -778,15 +785,31 @@ class LoopController:
 
             for f in errs:
                 cands = self._clamp_moves_for(f, boxes, gid_of, ux1, uy1, ux2, uy2, _zone_bbox(f))
-                move = next((c for c in cands if (c[0], c[2], c[3]) not in refused), None)
+                move = next((c for c in cands if (c[0], c[2], c[3]) not in spent), None)
                 if not move:
+                    if not cands:
+                        # 无候选诊断(req-05 P2 U4 实锤:探针点名却永不动作,离线无从
+                        # 知道是缺箱/缺组/带内无空位)——把判定依据钉进审计再谈修复
+                        d = f.get("a") or ""
+                        b = boxes.get(d) or {}
+                        self.audit.event(
+                            "clamp-no-candidate",
+                            round_no=round_no,
+                            page=page,
+                            type=f.get("type"),
+                            designator=d,
+                            has_box=bool(b),
+                            in_group=d in gid_of,
+                            box=str(b)[:120],
+                        )
                     continue
                 d, gid, dx, dy = move
                 rc, _, err = self.adapter.run(
                     ["sch", "group-move", "--group", gid, "--dx", str(dx), "--dy", str(dy), "--doc", page]
                 )
-                if rc != 0:
-                    refused.add((d, dx, dy))
+                # 已发过的(成功与否)不再发:成功位移重推导=几何绕了一圈回到原状
+                # (req-05 P3 J1 实锤:-180/+180/-180 循环),spent 断环路
+                spent.add((d, dx, dy))
                 acted = True
                 self.audit.event(
                     "arrange-clamp",
@@ -847,26 +870,62 @@ class LoopController:
             dy = _clamp_delta(b.get("minY"), b.get("maxY"), uy1, uy2)
             if dx == dy == 0:
                 return []
-            step = -60 if dx < 0 else (60 if dx > 0 else 0)
-            free: list[tuple[tuple[int, int], dict]] = []
-            for s in range(6):
-                cand = (dx + s * step, dy) if step else (dx, dy + s * (-60 if dy < 0 else 60))
-                tb = {
-                    "minX": b["minX"] + cand[0],
-                    "maxX": b["maxX"] + cand[0],
-                    "minY": b["minY"] + cand[1],
-                    "maxY": b["maxY"] + cand[1],
-                }
-                if (
-                    tb["minX"] >= ux1
-                    and tb["maxX"] <= ux2
-                    and tb["minY"] >= uy1
-                    and tb["maxY"] <= uy2
-                    and not occupied(d, tb)
-                ):
-                    free.append((cand, tb))
+            # 2D 网格扫描(req-05 P2 实锤:轴锁死扫 6 步全被占,±120 横偏仍不够
+            # 大件落位):主轴=越界轴(双出界取量大者),钳回后同向 60 步进×8
+            # 深入带内;横轴兜底 0/±60…±360(半幅带)。落点逐个过带界检查,
+            # 有空位只进空位;候选序=位移最小优先,zone 认领时再按包络中心重排。
+            primary_x = abs(dx) >= abs(dy)
+
+            def _ladder(delta: int) -> list[int]:
+                if delta:
+                    s = -60 if delta < 0 else 60
+                    return [delta + i * s for i in range(8)]
+                return [0]
+
+            def _cross() -> list[int]:
+                return [x for m in range(7) for x in ((m * 60), (-m * 60))][1:]
+
+            in_band: list[tuple[tuple[int, int], dict]] = []
+            for m in _ladder(dx if primary_x else dy):
+                for c in _cross():
+                    cand = (m, c + dy) if primary_x else (c + dx, m)
+                    tb = {
+                        "minX": b["minX"] + cand[0],
+                        "maxX": b["maxX"] + cand[0],
+                        "minY": b["minY"] + cand[1],
+                        "maxY": b["maxY"] + cand[1],
+                    }
+                    if (
+                        tb["minX"] >= ux1
+                        and tb["maxX"] <= ux2
+                        and tb["minY"] >= uy1
+                        and tb["maxY"] <= uy2
+                    ):
+                        in_band.append((cand, tb))
+            free = [(cand, tb) for cand, tb in in_band if not occupied(d, tb)]
             if not free:
-                return []
+                # 带内无空位兜底(req-05 P2 U4 实锤:239×412 簇箱在带内被整页
+                # 簇箱铺满,±360×8 级扫描仍零空位):改选「带内+压叠数最少」落点,
+                # 把 out-of-sheet 降级成 overlap——交给下一轮探针的 overlap 钳
+                # 沿 y 分移;b 侧 40 步分离 + spent 断环,不会无限拉锯。
+                def _n_overlaps(bb: dict) -> int:
+                    return sum(
+                        1
+                        for o, ob in boxes.items()
+                        if d != o
+                        and bb["minX"] - margin < ob.get("maxX", 1e9)
+                        and bb["maxX"] + margin > ob.get("minX", -1e9)
+                        and bb["minY"] - margin < ob.get("maxY", 1e9)
+                        and bb["maxY"] + margin > ob.get("minY", -1e9)
+                    )
+
+                ranked = sorted(
+                    in_band,
+                    key=lambda ct: (_n_overlaps(ct[1]), abs(ct[0][0]) + abs(ct[0][1])),
+                )[:8]
+                if not ranked:
+                    return []
+                return [(d, gid_of[d], c[0], c[1]) for c, _ in ranked]
             if zone_bbox:
                 zx = (zone_bbox[0] + zone_bbox[2]) / 2
                 zy = (zone_bbox[1] + zone_bbox[3]) / 2
