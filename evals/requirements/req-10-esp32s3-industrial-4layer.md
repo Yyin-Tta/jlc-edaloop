@@ -1,6 +1,7 @@
 # ESP32-S3 工业控制小板设计要求（改写自 esp32MiniRequire.md · 变体 B：四层工业版）
 
-> 金标准 eval v0 · 需求样本 02
+> 金标准 eval v0 · 需求样本 10
+> 难度层：困难（v2 重设计 2026-08，26→14 分层）；原编号 02
 > 来源：https://github.com/zhoushoujianwork/easyeda-agent `esp32MiniRequire.md` 改写
 > 改写要点：保持 4 层叠层（对齐原版回归基线），口吻从教学板改为工业现场设备；增加 RS-485 预留、双色 LED、DC 电源耐压要求。覆盖相同电路块：MCU 模组 + USB 串口 + LDO + LED + 双按键 + 安装孔。
 
