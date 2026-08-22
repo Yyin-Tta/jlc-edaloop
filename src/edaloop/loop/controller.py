@@ -12,7 +12,7 @@ from edaloop.generate.adapter import EasyedaAdapter
 from edaloop.generate.audit import AuditLog
 from edaloop.generate.compile import CLAIM_ZONE, compile_actions
 from edaloop.generate.models import BlockPlan
-from edaloop.generate.plan import make_plan
+from edaloop.generate.plan import ensure_std_candidates, make_plan
 from edaloop.intent.ir import DesignIR
 from edaloop.knowledge.models import BlockRecord
 from edaloop.loop.attribution import attribute
@@ -183,6 +183,8 @@ class LoopController:
                             candidates.append(c)
                             seen.add(c.block_id)
                 self.audit.event("refine-retry", round_no=1, queries=self.retry_queries, candidates=len(candidates))
+            # P4-4②:std R/C 通道常驻(提示词宣传的通道,检索没召回也要可用,否则目录外校验必杀)
+            candidates = ensure_std_candidates(candidates, self.catalog)
             plan = make_plan(
                 self.ir,
                 candidates,
@@ -227,7 +229,10 @@ class LoopController:
                 self.audit.event("page-clear", round_no=round_no, pages=pages, failures=clear_failed)
                 apply_ok, gate_report = self._apply(actions, round_no)
                 rec.gate_verdict = gate_report.get("verdict", "unknown") if gate_report else "not-run"
-            findings = validate(self.ir, plan, gate_report, catalog=self.catalog)
+            # P4-4① sizing 轮内化:make_plan 后 validate 段计算(轨输入走 IR,出处随建议入审计),
+            # PARAM_OFF_SPEC 弱观察与 feedback 注入都消费它;PASS 后 deliver 复用末轮结果。
+            sizing_advices = self._size_round(plan, round_no)
+            findings = validate(self.ir, plan, gate_report, catalog=self.catalog, sizing=sizing_advices or None)
             if not apply_ok:
                 findings = [
                     Finding(
@@ -245,6 +250,7 @@ class LoopController:
                 gate=rec.gate_verdict,
                 blocking=[f.model_dump() for f in blocking],
                 weak=[f.evidence for f in findings if f.weak],
+                weak_codes=[f.code for f in findings if f.weak],  # P4-4④:与 weak 同序,refine 按码挑问题
             )
             result.rounds.append(rec)
             result.final_plan = plan
@@ -260,9 +266,64 @@ class LoopController:
                 self.audit.event("loop-halt", round_no=round_no, reason=rec.halted)
                 return result
             feedback = attribute(blocking)
+            # P4-4① sizing 输出经 feedback 注入下轮(值类建议带表内可用值提示,planner 采纳时
+            # 用 resistor-std/capacitor-std 落图;只在还有下一轮时有意义,PASS 轮不经过此处)
+            siz_fb = self._sizing_feedback(sizing_advices)
+            if siz_fb:
+                feedback = feedback + "\n" + siz_fb
             rec.feedback = feedback
         self.audit.event("loop-done", status="FAIL", rounds=self.max_rounds)
         return result
+
+    def _size_round(self, plan, round_no: int) -> list:
+        """P4-4①:本轮计划的确定性 sizing(轨输入走 IR;失败不阻断,只落审计)。"""
+        try:
+            from edaloop.generate.sizing import size_for_plan
+
+            advices = size_for_plan(plan.blocks, ir=self.ir, catalog=self.catalog)
+            self._last_sizing = advices
+            self.audit.event(
+                "sizing",
+                round_no=round_no,
+                advices=[
+                    {
+                        "kind": a.kind, "target": a.target, "rec": a.result_rec,
+                        "rec_value": a.rec_value, "rec_kind": a.rec_kind, "nets": list(a.nets),
+                        "inputs": [list(i) for i in a.inputs],
+                    }
+                    for a in advices
+                ],
+            )
+            return advices
+        except Exception as e:  # sizing 是弱增强:任何失败不拖垮主链路
+            self._last_sizing = []
+            self.audit.event("sizing-error", round_no=round_no, error=str(e)[:200])
+            return []
+
+    def _sizing_feedback(self, advices: list) -> str:
+        """值类建议的 planner 反馈行(带标准件表命中状态;表内值才可直接落图)。"""
+        try:
+            from edaloop.generate.stdparts import lookup
+
+            kind_map = {"resistance": "resistor", "capacitance": "capacitor"}
+            lines = []
+            for a in advices:
+                if a.result_rec == "n/a":
+                    continue
+                if a.rec_value and a.rec_kind in kind_map:
+                    hit = lookup(kind_map[a.rec_kind], a.rec_value)
+                    tail = f"params.value={a.rec_value}" if hit else f"推荐 {a.rec_value}(就近换表内值)"
+                    lines.append(f"- {a.kind}@{a.target}: {tail}")
+                else:
+                    lines.append(f"- {a.kind}@{a.target}: {a.result_rec}")
+            if not lines:
+                return ""
+            return (
+                "sizing 建议值(确定性公式,输入出处见 delivery.sizing.txt;采纳时用 "
+                "resistor-std/capacitor-std 块 + params.value 表内标准值,值不要发明):\n" + "\n".join(lines[:10])
+            )
+        except Exception:
+            return ""
 
     def deliver(self, result) -> dict:
         """PASS 后交付打包:SVG + 网表 + BOM 成本 + 摘要落 run 目录(§1 交付链路)。"""
@@ -351,13 +412,16 @@ class LoopController:
         except Exception as e:
             self.audit.event("swap-error", error=str(e)[:200])
         try:
-            from edaloop.generate.sizing import size_for_plan
+            # P4-4①:deliver 复用末轮轮内 sizing(缺则重算一次;输出口径含输入来源表)
+            advices = getattr(self, "_last_sizing", None)
+            if advices is None:
+                from edaloop.generate.sizing import size_for_plan
 
-            blocks_dicts = [
-                {"block_id": b.block_id, "instance": b.instance, "ports_binding": b.ports_binding}
-                for b in (result.final_plan.blocks if result.final_plan else [])
-            ]
-            advices = size_for_plan(blocks_dicts)
+                blocks_dicts = [
+                    {"block_id": b.block_id, "instance": b.instance, "ports_binding": b.ports_binding}
+                    for b in (result.final_plan.blocks if result.final_plan else [])
+                ]
+                advices = size_for_plan(blocks_dicts, ir=self.ir, catalog=self.catalog)
             if advices:
                 (self.audit.dir / "delivery.sizing.txt").write_text(
                     "\n\n".join(a.render() for a in advices), encoding="utf-8"
@@ -371,7 +435,32 @@ class LoopController:
 
             if result.final_plan and result.final_plan.blocks:
                 catalog_desc = {k: v.desc for k, v in self.catalog.items()}
-                findings = review_plan(result.final_plan, self.llm, catalog_desc=catalog_desc)
+                # P4-4④ 输入增强:网表摘要 + IR rails + sizing 建议值(critique 输入不再只有 plan 骨架)
+                net_summary = ""
+                try:
+                    net_json = arts.get("netlist") and Path(arts["netlist"]).read_text(encoding="utf-8") or ""
+                    if net_json:
+                        net = json.loads(net_json)
+                        nets = net.get("nets") or net.get("netlist") or []
+                        names = [n.get("name", n.get("net", "")) if isinstance(n, dict) else str(n) for n in nets]
+                        net_summary = f"{len(names)} nets: " + ", ".join(sorted(filter(None, names))[:60])
+                except Exception:
+                    net_summary = ""
+                rails_summary = "; ".join(
+                    f"{r.name}={r.v_text()}" + (f" imax={r.imax:g}A" if r.imax is not None else "")
+                    for r in self.ir.power.rails
+                )
+                sizing_summary = "\n".join(
+                    f"{a.kind}@{a.target}: {a.result_rec}" for a in (getattr(self, "_last_sizing", None) or []) if a.result_rec != "n/a"
+                )
+                findings = review_plan(
+                    result.final_plan,
+                    self.llm,
+                    catalog_desc=catalog_desc,
+                    netlist_summary=net_summary,
+                    rails_summary=rails_summary,
+                    sizing_summary=sizing_summary,
+                )
                 summary = f"{len(result.final_plan.blocks)} blocks, status={result.status}"
                 (self.audit.dir / "delivery.review.txt").write_text(
                     render_report(findings, summary), encoding="utf-8"

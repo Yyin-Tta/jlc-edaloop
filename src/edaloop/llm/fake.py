@@ -46,10 +46,12 @@ class FakeRerank(RerankProvider):
 
 
 class FakeChat(LLMProvider):
-    def __init__(self, reply: str) -> None:
-        self._reply = reply
+    """单回复或按次序回复(测重试收敛);序列耗尽后重复末条。"""
+
+    def __init__(self, reply: str | list[str]) -> None:
+        self._replies = [reply] if isinstance(reply, str) else list(reply)
         self.messages: list[list[ChatMessage]] = []
 
     def chat(self, messages: list[ChatMessage], *, model: str | None = None) -> str:
         self.messages.append(messages)
-        return self._reply
+        return self._replies[min(len(self.messages) - 1, len(self._replies) - 1)]

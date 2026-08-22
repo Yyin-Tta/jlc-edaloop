@@ -1,0 +1,422 @@
+{
+ "_doc": [
+  "P4-4② R/C 标准件表:推荐值 → LCSC C 号(place 通道确定性落图)。",
+  "来源:easyeda-agent references/standard-parts.json(社区 curated 表;basic=JLC 基础库)。",
+  "导入 2026-08-22,仅 res./cap. 条目;同值多封装取 basic 优先+小封装优先。",
+  "键规范:电阻 = _fmt_ohm 口径(330/4.7k/1M);电容 = µF→u/nF→n/pF→p(100n/22u/1.5p)。",
+  "新增值先在源头表补齐再同步导入,不在本仓库散录(单一真值源)。"
+ ],
+ "provenance": "easyeda-agent standard-parts.json (community curated), imported 2026-08-22",
+ "resistor": {
+  "10k": {
+   "lcsc": "C25744",
+   "mpn": "0402WGF1002TCE",
+   "value": "10kΩ",
+   "footprint": "R0402",
+   "basic": true,
+   "desc": "10k 1% 0402 (pull-up/down)"
+  },
+  "4.7k": {
+   "lcsc": "C25940",
+   "mpn": "0402WGJ0472TCE",
+   "value": "4.7kΩ",
+   "footprint": "R0402",
+   "basic": true,
+   "desc": "4.7k 0402 —— 三极管基极串阻/通用上拉;立创·ESP32S3 开发板自动下载电路用值"
+  },
+  "5.1k": {
+   "lcsc": "C25905",
+   "mpn": "0402WGF5101TCE",
+   "value": "5.1kΩ",
+   "footprint": "R0402",
+   "basic": true,
+   "desc": "5.1k 1% 0402 (USB-C CC pulldown)"
+  },
+  "330": {
+   "lcsc": "C25104",
+   "mpn": "0402WGF3300TCE",
+   "value": "330Ω",
+   "footprint": "R0402",
+   "basic": true,
+   "desc": "330R 1% 0402 (LED current limit)"
+  },
+  "453k": {
+   "lcsc": "C27009",
+   "mpn": "0402WGF4533TCE",
+   "value": "453k",
+   "footprint": "",
+   "basic": false,
+   "desc": "auto-added from box-v2 realization 2026-06-26；lcsc C49653416→C27009(原 C 号 lib by-lcsc 无法解析,2026-07-09 实测)"
+  },
+  "88.7k": {
+   "lcsc": "C170366",
+   "mpn": "WR04X8872FTL",
+   "value": "88.7k",
+   "footprint": "",
+   "basic": false,
+   "desc": "auto-added from box-v2 realization 2026-06-26"
+  },
+  "162k": {
+   "lcsc": "C54068",
+   "mpn": "0402WGF1623TCE",
+   "value": "162k",
+   "footprint": "",
+   "basic": false,
+   "desc": "auto-added from box-v2 realization 2026-06-26；lcsc C49654427→C54068(原 C 号 lib by-lcsc 无法解析,2026-07-09 实测)"
+  },
+  "52.3k": {
+   "lcsc": "C170333",
+   "mpn": "WR04X5232FTL",
+   "value": "52.3k",
+   "footprint": "",
+   "basic": false,
+   "desc": "auto-added from box-v2 realization 2026-06-26"
+  },
+  "1.78k": {
+   "lcsc": "C113478",
+   "mpn": "0402WGF1781TCE",
+   "value": "1.78k",
+   "footprint": "",
+   "basic": false,
+   "desc": "auto-added from box-v2 realization 2026-06-26"
+  },
+  "1.6k": {
+   "lcsc": "C25931",
+   "mpn": "0402WGJ0162TCE",
+   "value": "1.6k",
+   "footprint": "",
+   "basic": false,
+   "desc": "auto-added from box-v2 realization 2026-06-26"
+  },
+  "665k": {
+   "lcsc": "C56583",
+   "mpn": "0402WGF6653TCE",
+   "value": "665k",
+   "footprint": "",
+   "basic": false,
+   "desc": "auto-added from box-v2 realization 2026-06-26；lcsc C3015995→C56583(原 C 号 lib by-lcsc 解析失败,2026-07-09 实测替换)"
+  },
+  "100k": {
+   "lcsc": "C25741",
+   "mpn": "0402WGF1003TCE",
+   "value": "100k",
+   "footprint": "",
+   "basic": false,
+   "desc": "auto-added from box-v2 realization 2026-06-26"
+  },
+  "100": {
+   "lcsc": "C25076",
+   "mpn": "0402WGF1000TCE",
+   "value": "100Ω",
+   "footprint": "R0402",
+   "basic": true,
+   "desc": "100Ω 1% 0402 —— 模拟供电 RC 滤波串阻(StickS3 R52,mic VDD 100R+100nF RC 滤波);C25076 为 JLC 基础料。 （LCSC C25076/deviceUuid 已由 lib by-lcsc 解析 2026-07-23;StickS3 对标）"
+  },
+  "45.3k": {
+   "lcsc": "C26980",
+   "mpn": "0402WGF4532TCE",
+   "value": "45.3k",
+   "footprint": "",
+   "basic": false,
+   "desc": "auto-added from box-v2 realization 2026-06-26；lcsc C49653562→C26980(原 C 号 lib by-lcsc 解析失败,2026-07-09 实测替换)"
+  },
+  "1k": {
+   "lcsc": "C11702",
+   "mpn": "0402WGF1001TCE",
+   "value": "1k",
+   "footprint": "",
+   "basic": false,
+   "desc": "auto-added from box-v2 realization 2026-06-26"
+  },
+  "15k": {
+   "lcsc": "C25756",
+   "mpn": "0402WGF1502TCE",
+   "value": "15kΩ",
+   "footprint": "R0402",
+   "basic": false,
+   "desc": "电阻类型:厚膜电阻;阻值:15kΩ;精度:±1%;功率:62.5mW;最大工作电压:50V;温度系数:±100ppm/℃;"
+  },
+  "0": {
+   "lcsc": "C17168",
+   "mpn": "0402WGF0000TCE",
+   "value": "0Ω",
+   "footprint": "R0402",
+   "basic": false,
+   "desc": "电阻类型:厚膜电阻;阻值:0Ω;精度:±1%;功率:62.5mW;工作电压:50V;温度系数:±800ppm/℃;"
+  },
+  "120": {
+   "lcsc": "C17909",
+   "mpn": "1206W4F1200T5E",
+   "value": "120Ω",
+   "footprint": "R1206",
+   "basic": false,
+   "desc": "电阻类型:厚膜电阻;阻值:120Ω;精度:±1%;功率:250mW;工作电压:200V;温度系数:±100ppm/℃;"
+  },
+  "680": {
+   "lcsc": "C25130",
+   "mpn": "0402WGF6800TCE",
+   "value": "680Ω",
+   "footprint": "R0402",
+   "basic": false,
+   "desc": "电阻类型:厚膜电阻;阻值:680Ω;精度:±1%;功率:62.5mW;工作电压:50V;温度系数:±100ppm/℃;"
+  },
+  "56k": {
+   "lcsc": "C25796",
+   "mpn": "0402WGF5602TCE",
+   "value": "56kΩ",
+   "footprint": "R0402",
+   "basic": false,
+   "desc": "电阻类型:厚膜电阻;阻值:56kΩ;精度:±1%;功率:62.5mW;工作电压:50V;温度系数:±100ppm/℃;"
+  },
+  "1.07k": {
+   "lcsc": "C26260",
+   "mpn": "0402WGF1071TCE",
+   "value": "1.07k",
+   "footprint": "",
+   "basic": false,
+   "desc": "E96;BQ24074 ILIM≈1.45A(KILIM=1550)。auto-added from 车机V2-fable realization 2026-07-09 (box-v2 评审修正版)"
+  },
+  "470": {
+   "lcsc": "C25117",
+   "mpn": "0402WGF4700TCE",
+   "value": "470Ω",
+   "footprint": "",
+   "basic": false,
+   "desc": "GPIO 串阻/滤波。auto-added from 车机V2-fable realization 2026-07-09 (box-v2 评审修正版)"
+  },
+  "1M": {
+   "lcsc": "C26083",
+   "mpn": "0402WGF1004TCE",
+   "value": "1M",
+   "footprint": "",
+   "basic": false,
+   "desc": "低漏电分压(电池采样 1M/1M=1.9µA)。auto-added from 车机V2-fable realization 2026-07-09 (box-v2 评审修正版)"
+  },
+  "22": {
+   "lcsc": "C25092",
+   "mpn": "0402WGF220JTCE",
+   "value": "22Ω",
+   "footprint": "",
+   "basic": false,
+   "desc": "时钟/数据串阻(SD_CLK 振铃抑制)。auto-added from 车机V2-fable realization 2026-07-10 (blocks batch-2)"
+  },
+  "10": {
+   "lcsc": "C25077",
+   "mpn": "0402WGF100JTCE",
+   "value": "10Ω",
+   "footprint": "",
+   "basic": false,
+   "desc": "限流(天线馈电等)。auto-added from 车机V2-fable realization 2026-07-10 (blocks batch-2)"
+  },
+  "2.2k": {
+   "lcsc": "C25879",
+   "mpn": "0402WGF2201TCE",
+   "value": "2.2kΩ",
+   "footprint": "R0402",
+   "basic": true,
+   "desc": "2.2kΩ 1% 0402,I2C 上拉常用值 （LCSC C25879/deviceUuid 已由 lib by-lcsc 解析 2026-07-23;StickS3 对标）"
+  },
+  "20k": {
+   "lcsc": "C25765",
+   "mpn": "0402WGF2002TCE",
+   "value": "20kΩ",
+   "footprint": "R0402",
+   "basic": true,
+   "desc": "20kΩ 1% 0402 （LCSC C25765/deviceUuid 已由 lib by-lcsc 解析 2026-07-23;StickS3 对标）"
+  },
+  "147k": {
+   "lcsc": "C64171",
+   "mpn": "0402WGF1473TCE",
+   "value": "147kΩ",
+   "footprint": "R0402",
+   "basic": false,
+   "desc": "147kΩ 1% 0402,SY7088 FB 上分压 （LCSC C64171/deviceUuid 已由 lib by-lcsc 解析 2026-07-23;StickS3 对标）"
+  },
+  "46.4k": {
+   "lcsc": "C52378",
+   "mpn": "0402WGF4642TCE",
+   "value": "46.4kΩ",
+   "footprint": "R0402",
+   "basic": false,
+   "desc": "46.4kΩ 1% 0402,SY7088 FB 下分压 （LCSC C52378/deviceUuid 已由 lib by-lcsc 解析 2026-07-23;StickS3 对标）"
+  }
+ },
+ "capacitor": {
+  "100n": {
+   "lcsc": "C1525",
+   "mpn": "CL05B104KO5NNNC",
+   "value": "100nF",
+   "footprint": "C0402",
+   "basic": true,
+   "desc": "100nF X7R 0402 (HF decoupling)"
+  },
+  "10u": {
+   "lcsc": "C440198",
+   "mpn": "GRM21BR61H106KE43L",
+   "value": "10µF",
+   "footprint": "C0805",
+   "basic": false,
+   "desc": "10µF 50V X5R 0805 (bulk decoupling)"
+  },
+  "22u": {
+   "lcsc": "C45783",
+   "mpn": "CL21A226MAQNNNE",
+   "value": "22µF",
+   "footprint": "C0805",
+   "basic": false,
+   "desc": "22µF 25V X5R 0805 (LDO output)"
+  },
+  "4.7n": {
+   "lcsc": "C1538",
+   "mpn": "0402B472K500NT",
+   "value": "4.7nF",
+   "footprint": "",
+   "basic": false,
+   "desc": "auto-added from box-v2 realization 2026-06-26"
+  },
+  "47p": {
+   "lcsc": "C1567",
+   "mpn": "0402CG470J500NT",
+   "value": "47pF",
+   "footprint": "",
+   "basic": false,
+   "desc": "auto-added from box-v2 realization 2026-06-26"
+  },
+  "1u": {
+   "lcsc": "C52923",
+   "mpn": "CL05A105KA5NQNC",
+   "value": "1µF",
+   "footprint": "",
+   "basic": false,
+   "desc": "auto-added from box-v2 realization 2026-06-26"
+  },
+  "18p": {
+   "lcsc": "C1549",
+   "mpn": "0402CG180J500NT",
+   "value": "18pF",
+   "footprint": "",
+   "basic": false,
+   "desc": "auto-added from box-v2 realization 2026-06-26"
+  },
+  "100u": {
+   "lcsc": "C63711",
+   "mpn": "TAJC107K006RNJ",
+   "value": "100µF",
+   "footprint": "",
+   "basic": false,
+   "desc": "auto-added from box-v2 realization 2026-06-26"
+  },
+  "33p": {
+   "lcsc": "C1562",
+   "mpn": "0402CG330J500NT",
+   "value": "33pF",
+   "footprint": "",
+   "basic": false,
+   "desc": "auto-added from box-v2 realization 2026-06-26"
+  },
+  "10p": {
+   "lcsc": "C32949",
+   "mpn": "CL05C100JB5NNNC",
+   "value": "10pF",
+   "footprint": "",
+   "basic": false,
+   "desc": "auto-added from box-v2 realization 2026-06-26"
+  },
+  "220p": {
+   "lcsc": "C1530",
+   "mpn": "0402B221K500NT",
+   "value": "220pF",
+   "footprint": "C0402",
+   "basic": false,
+   "desc": "容值:220pF;精度:±10%;额定电压:50V;温度系数:X7R;"
+  },
+  "10n": {
+   "lcsc": "C15195",
+   "mpn": "CL05B103KB5NNNC",
+   "value": "10nF",
+   "footprint": "C0402",
+   "basic": false,
+   "desc": "容值:10nF;精度:±10%;额定电压:50V;温度系数:X7R;"
+  },
+  "12p": {
+   "lcsc": "C1547",
+   "mpn": "0402CG120J500NT",
+   "value": "12pF",
+   "footprint": "C0402",
+   "basic": false,
+   "desc": "容值:12pF;精度:±5%;额定电压:50V;温度系数:C0G;"
+  },
+  "15p": {
+   "lcsc": "C1548",
+   "mpn": "0402CG150J500NT",
+   "value": "15pF",
+   "footprint": "C0402",
+   "basic": false,
+   "desc": "容值:15pF;精度:±5%;额定电压:50V;温度系数:C0G;"
+  },
+  "3.9p": {
+   "lcsc": "C1566",
+   "mpn": "0402CG3R9C500NT",
+   "value": "3.9pF",
+   "footprint": "C0402",
+   "basic": false,
+   "desc": "容值:3.9pF;额定电压:50V;温度系数:C0G;"
+  },
+  "8.2p": {
+   "lcsc": "C1579",
+   "mpn": "0402CG8R2C500NT",
+   "value": "8.2pF",
+   "footprint": "C0402",
+   "basic": false,
+   "desc": "容值:8.2pF;额定电压:50V;温度系数:C0G;"
+  },
+  "5.6p": {
+   "lcsc": "C1574",
+   "mpn": "0402CG5R6C500NT",
+   "value": "5.6pF",
+   "footprint": "C0402",
+   "basic": false,
+   "desc": "容值:5.6pF;额定电压:50V;温度系数:C0G;"
+  },
+  "1.5p": {
+   "lcsc": "C1552",
+   "mpn": "0402CG1R5C500NT",
+   "value": "1.5pF",
+   "footprint": "C0402",
+   "basic": false,
+   "desc": "容值:1.5pF;额定电压:50V;温度系数:C0G;"
+  },
+  "100p": {
+   "lcsc": "C1546",
+   "mpn": "0402CG101J500NT",
+   "value": "100pF",
+   "footprint": "",
+   "basic": false,
+   "desc": "RF 隔直/pi 匹配占位。auto-added from 车机V2-fable realization 2026-07-10 (blocks batch-2)"
+  },
+  "1p": {
+   "lcsc": "C1550",
+   "mpn": "0402CG1R0C500NT",
+   "value": "1pF",
+   "footprint": "C0402",
+   "basic": false,
+   "desc": "1pF C0G 0402——2.4GHz 天线 π 匹配并联 C 代表值(配 ind.2n7_0402);按天线实测调谐实配,预留可不贴"
+  },
+  "2.2u": {
+   "lcsc": "C377773",
+   "mpn": "CL21A225KBQNNNE",
+   "value": "2.2uF",
+   "footprint": "C0805",
+   "basic": false,
+   "desc": "2.2uF 0805 MLCC,功放电荷泵飞跨电容/去耦 （LCSC C377773/deviceUuid 已由 lib by-lcsc 解析 2026-07-23;StickS3 对标）"
+  },
+  "33n": {
+   "lcsc": "C1585",
+   "mpn": "0402F333M500NT",
+   "value": "33nF",
+   "footprint": "C0402",
+   "basic": false,
+   "desc": "33nF 0402 MLCC,ES8311 OUTP/OUTN 滤波 （LCSC C1585/deviceUuid 已由 lib by-lcsc 解析 2026-07-23;StickS3 对标）"
+  }
+ }
+}

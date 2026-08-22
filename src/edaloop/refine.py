@@ -32,6 +32,36 @@ def collect_questions(audit_dir: str) -> list[dict]:
                     questions.append(
                         {"id": q.get("id", f"Q{len(questions)+1}"), "question": key, "options": q.get("options", []), "source": "open_question"}
                     )
+        elif k == "critic":
+            # P4-4④ critic 闭环:findings → refine questions(采纳补件=按建议重规划/人工忽略)
+            for f in ev.get("findings") or []:
+                key = f.get("evidence", "")[:150]
+                if key and key not in seen_q:
+                    seen_q.add(key)
+                    questions.append(
+                        {
+                            "id": f"C{len(questions)+1}",
+                            "question": f"critic 建议: [{f.get('code', 'CRITIC')}] {key}",
+                            "options": ["采纳补件(按建议重规划)", "人工忽略"],
+                            "source": "critic",
+                        }
+                    )
+        elif k == "round-validate":
+            # P4-4③→④:PARAM_OFF_SPEC 弱观察进问题队列(weak/weak_codes 同序)
+            for code, text in zip(ev.get("weak_codes") or [], ev.get("weak") or []):
+                if code != "PARAM_OFF_SPEC" or not text:
+                    continue
+                if text[:150] in seen_q:
+                    continue
+                seen_q.add(text[:150])
+                questions.append(
+                    {
+                        "id": f"P{len(questions)+1}",
+                        "question": f"参数偏离建议值: {text[:150]}",
+                        "options": ["采纳建议值(补/换标准件重规划)", "人工忽略"],
+                        "source": "param-off-spec",
+                    }
+                )
         elif k == "round-plan":
             for i, u in enumerate(ev.get("uncovered") or [], 1):
                 key = f"U{ev.get('round_no', 1)}-{i}: {u}"

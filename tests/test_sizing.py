@@ -113,13 +113,36 @@ def test_thermal_check_margin() -> None:
 
 
 def test_size_for_plan_covers_buck_full() -> None:
+    """P4-4①:轨输入走 IR(零硬编码),空绑定+无 IR 只剩降级记号。"""
+    from edaloop.intent.ir import DesignIR
+
+    ir = DesignIR.model_validate(
+        {"source": "t.md", "power": {"rails": [
+            {"name": "VIN", "v_min": 8.0, "v_max": 36.0, "imax": 1.0},
+            {"name": "5V", "voltage": 5.0},
+        ]}}
+    )
     advices = size_for_plan(
         [
-            {"block_id": "up-xl1509_buck_12v_5v", "instance": "b1", "ports_binding": {}},
-            {"block_id": "up-vehicle_input_tps54360_5v", "instance": "vin1", "ports_binding": {}},
-        ]
+            {"block_id": "up-xl1509_buck_12v_5v", "instance": "b1",
+             "ports_binding": {"VIN": "VIN", "+5V": "5V", "GND": "GND"}},
+            {"block_id": "up-vehicle_input_tps54360_5v", "instance": "vin1",
+             "ports_binding": {"VIN": "VIN", "GND": "GND"}},
+        ],
+        ir=ir,
     )
-    kinds = {a.kind for a in advices}
-    assert "buck-ripple" in kinds
-    assert "tvs-rating" in kinds
-    assert "fuse-rating" in kinds
+    real = {a.kind for a in advices if a.result_rec != "n/a"}
+    assert "buck-ripple" in real
+    assert "tvs-rating" in real
+    assert "fuse-rating" in real
+    # 输入来源表:每条真实建议的轨输入都有出处(硬编码清零断言的基础形态)
+    for a in advices:
+        if a.result_rec != "n/a":
+            assert a.gap() is None, f"{a.kind}@{a.target} 轨输入缺出处"
+    # 无 IR + 空绑定:轨相关公式(纹波)不再凭关键词硬套 12V,只留降级记号
+    # (电容惯例值/保险丝不依赖轨,仍可用工程缺省给出)
+    degraded = size_for_plan(
+        [{"block_id": "up-xl1509_buck_12v_5v", "instance": "b1", "ports_binding": {}}]
+    )
+    ripple = [a for a in degraded if a.kind == "buck-ripple"]
+    assert ripple and all(a.result_rec == "n/a" for a in ripple)

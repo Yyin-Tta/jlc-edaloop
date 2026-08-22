@@ -26,6 +26,8 @@ def _pin_kind(pin_name: str) -> str:
 
 
 def _fill_bindings(plan: BlockPlan, catalog: dict[str, BlockRecord]) -> BlockPlan:
+    from edaloop.generate.stdparts import available_values, kind_of, lookup
+
     for b in plan.blocks:
         rec = catalog.get(b.block_id)
         if rec is None:
@@ -42,7 +44,8 @@ def _fill_bindings(plan: BlockPlan, catalog: dict[str, BlockRecord]) -> BlockPla
             for port, default_net in ports.items():
                 b.ports_binding.setdefault(port, default_net)
         else:
-            if not rec.lcsc:
+            std_kind = kind_of(rec)
+            if not rec.lcsc and std_kind is None:
                 raise CompileError(f"块 {b.block_id} 无 upstream 且无 lcsc(不可落图)")
             if not b.pins_binding:
                 raise CompileError(
@@ -52,6 +55,17 @@ def _fill_bindings(plan: BlockPlan, catalog: dict[str, BlockRecord]) -> BlockPla
                 unknown = [p for p in b.pins_binding if p not in rec.pinout]
                 if unknown:
                     raise CompileError(f"块 {b.block_id} 绑定了不存在的引脚号: {unknown}")
+            if std_kind is not None:
+                # P4-4② std-value 通道:params.value 查标准件表得 lcsc(确定性;表无此值=硬错,
+                # 让 planner 显式换值,不静默取最近值)
+                if not rec.lcsc:
+                    val = (b.params or {}).get("value", "")
+                    entry = lookup(std_kind, val) if val else None
+                    if entry is None:
+                        raise CompileError(
+                            f"块 {b.block_id} 的 params.value {val!r} 不在标准件表"
+                            f"(可用值: {available_values(std_kind)})"
+                        )
     return plan
 
 
@@ -316,6 +330,17 @@ def compile_actions(
             designator = _sanitize_designator(b.instance)
             x, y = b.at.split(",")
             b.params["x"], b.params["y"] = x, y
+            # P4-4② std-value 通道:值查表得 lcsc/mpn(resistor-std/capacitor-std);
+            # 普通库外器件仍走 rec.lcsc(_fill_bindings 已保证其一存在)
+            from edaloop.generate.stdparts import kind_of, lookup
+
+            std_kind = kind_of(rec)
+            place_lcsc = rec.lcsc or ""
+            place_mpn = (rec.parts[0].ref if rec.parts else "")
+            if std_kind is not None and not rec.lcsc:
+                entry = lookup(std_kind, (b.params or {}).get("value", ""))
+                place_lcsc = (entry or {}).get("lcsc", "")
+                place_mpn = (entry or {}).get("mpn") or place_mpn
             place = [
                 "sch",
                 "place",
@@ -334,10 +359,10 @@ def compile_actions(
                 Action(
                     kind="lib-search",
                     block_instance=b.instance,
-                    lcsc=rec.lcsc or "",
-                    mpn=(rec.parts[0].ref if rec.parts else ""),
-                    args=["lib", "search", "--query", rec.lcsc or "", "--limit", "3"],
-                    desc=f"查 {rec.lcsc} 的库 uuid(place 前置,C 号无映射时回退 MPN)",
+                    lcsc=place_lcsc,
+                    mpn=place_mpn,
+                    args=["lib", "search", "--query", place_lcsc, "--limit", "3"],
+                    desc=f"查 {place_lcsc} 的库 uuid(place 前置,C 号无映射时回退 MPN)",
                 )
             )
             actions.append(

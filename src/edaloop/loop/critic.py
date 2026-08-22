@@ -30,8 +30,9 @@ _SYSTEM = """你是硬件设计评审员(critic)。给定 BlockPlan(块组合+�
 6. emc:晶振/天线附近有高速开关;长线接口无滤波
 
 纪律:
-- 只报有把握的问题(证据来自 plan 内容本身);不确定的不报
+- 只报有把握的问题(证据来自 plan 内容本身,含 netlist_summary/sizing_recommendations);不确定的不报
 - 宁缺毋滥:把正确设计标为缺陷比漏报更糟
+- sizing_recommendations 已给出的值类建议不要重复报(那是确定性公式;你审的是它覆盖不到的设计层)
 - 输出数组可为空 []
 """
 
@@ -41,11 +42,16 @@ def review_plan(
     llm: LLMProvider,
     *,
     catalog_desc: dict[str, str] | None = None,
+    netlist_summary: str = "",
+    rails_summary: str = "",
+    sizing_summary: str = "",
     attempts: int = 2,
 ) -> list[Finding]:
     catalog_desc = catalog_desc or {}
     blocks_view = []
     for b in plan.blocks:
+        # P4-4④ 输入增强:弃 desc-120 截断(块 desc 本就是精炼过的引脚/用途说明,
+        # 截断丢掉引脚语义;全量 desc 实测 95 块平均 <200 字符,token 代价可忽略)
         blocks_view.append(
             {
                 "instance": b.instance,
@@ -53,10 +59,18 @@ def review_plan(
                 "upstream": b.upstream_id,
                 "ports_binding": b.ports_binding,
                 "pins_binding": b.pins_binding,
-                "block_desc": catalog_desc.get(b.block_id, "")[:120],
+                "params": {k: v for k, v in (b.params or {}).items() if k in ("value",)},
+                "block_desc": catalog_desc.get(b.block_id, ""),
             }
         )
-    user = json.dumps({"blocks": blocks_view, "uncovered": plan.uncovered}, ensure_ascii=False, indent=1)
+    user_payload: dict = {"blocks": blocks_view, "uncovered": plan.uncovered}
+    if netlist_summary:
+        user_payload["netlist_summary"] = netlist_summary
+    if rails_summary:
+        user_payload["ir_rails"] = rails_summary
+    if sizing_summary:
+        user_payload["sizing_recommendations"] = sizing_summary
+    user = json.dumps(user_payload, ensure_ascii=False, indent=1)
     last_raw = ""
     for _ in range(attempts):
         reply = llm.chat([ChatMessage(role="system", content=_SYSTEM), ChatMessage(role="user", content=user)])

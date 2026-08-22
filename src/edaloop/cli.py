@@ -31,7 +31,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_eval = sub.add_parser("eval", help="跑 evals 金标准集")
     p_eval.add_argument("--subset", default=None, help="子集:w1-retrieval / w3-loop")
-    p_eval.add_argument("--tier", default=None, help="w3-loop 层级:easy(4)/medium(5)/hard(5) 难度层,smoke(3~12min)/daily(8)/rest(全量减 daily,发版增量) 回归级,all(真全量重跑);electrical(P4-3 注入式电气缺陷样本,不走 E2E)")
+    p_eval.add_argument("--tier", default=None, help="w3-loop 层级:easy(4)/medium(5)/hard(5) 难度层,smoke(3~12min)/daily(8)/rest(全量减 daily,发版增量) 回归级,all(真全量重跑);electrical(P4-3 注入式电气缺陷样本);params(P4-4 参数核对闭环:错值拦截+电源块覆盖+critic 捕获);都不走 E2E")
 
     p_q = sub.add_parser("questions", help="弱门禁确认队列:DesignIR open_questions + uncovered 项")
     p_q.add_argument("input", help="需求文件路径(md/txt)")
@@ -133,6 +133,12 @@ def _cmd_eval(args: argparse.Namespace) -> int:
             from edaloop.evals_electrical import run_electrical_eval
 
             summary = run_electrical_eval()
+            return 0 if summary["go"] else 1
+        if args.tier == "params":
+            # P4-4 参数核对闭环 harness(错值拦截/干净零误杀/电源块覆盖/来源表/critic)
+            from edaloop.evals_params import run_params_eval
+
+            summary = run_params_eval()
             return 0 if summary["go"] else 1
         from edaloop.evals_w3 import run_w3_loop_eval
 

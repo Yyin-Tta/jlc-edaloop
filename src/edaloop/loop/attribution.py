@@ -33,4 +33,8 @@ def attribute(findings: list[Finding]) -> str:
 
         tag = "、".join(f"{code}x{n}" for code, n in Counter(f.code for f in weak).items())
         lines.append(f"[弱门禁 x{len(weak)}] {tag}(不阻断):uncovered 保持如实登记;数据债回填块库 electrical 字段后自动转强判")
+        # P4-4③:PARAM_OFF_SPEC 逐条展开(选值 vs 建议值是可执行的修正指令,压成计数丢信息)
+        for f in [x for x in weak if x.code == "PARAM_OFF_SPEC"][:5]:
+            where = f.where.pin and f"{f.where.ref}:{f.where.pin}" or (f.where.net or f.where.ref or "-")
+            lines.append(f"[{f.code}@{where}] {f.evidence} → 修正:按建议值换 resistor-std/capacitor-std(params.value 取表内值)")
     return "\n".join(lines)

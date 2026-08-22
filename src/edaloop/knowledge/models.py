@@ -23,6 +23,9 @@ class Electrical(BaseModel):
     i_typ: float | None = None
     rails: list[str] = Field(default_factory=list)
     source: str = ""
+    # P4-0 器件参数槽(开放键值,P4-4 sizing 消费):vf/if(LED)/f_sw(开关电源)/rja(热阻)/
+    # vref(基准)。键名小写惯例;值一律字符串(数值由消费方解析);出处并入 source。
+    params: dict[str, str] = Field(default_factory=dict)
 
 
 class UpstreamRef(BaseModel):

@@ -24,6 +24,11 @@ WMSC_URL = "https://wmsc.lcsc.com/ftps/wm/product/detail?productCode={code}"
 _V_RANGE_KEYS = ("voltage - supply", "supply voltage", "operating voltage", "voltage - rated", "voltage - input")
 _I_MAX_KEYS = ("output current", "current - output", "collector current", "ic", "continuous drain current")
 _I_TYP_KEYS = ("operating supply current", "supply current", "quiescent current", "operating current")
+# P4-4 器件参数槽回填键(wmsc paramNameEn → 开放槽位;值原样字符串,sizing 侧解析)
+_PARAM_SLOT_KEYS = {
+    "frequency - switching": "f_sw",
+    "switching frequency": "f_sw",
+}
 
 _NUM_RE = re.compile(r"(\d+(?:\.\d+)?)")
 
@@ -101,6 +106,8 @@ def map_params(params: dict[str, str], category: str = "") -> dict:
             cur = parse_current(val)
             if cur is not None:
                 out.setdefault("i_typ", cur)
+        elif k in _PARAM_SLOT_KEYS:
+            out.setdefault("params", {})[_PARAM_SLOT_KEYS[k]] = val
         else:
             unmapped.append(f"{key}={val}")
     out["unmapped"] = unmapped
@@ -185,6 +192,8 @@ def cmd_filter(args: argparse.Namespace) -> int:
             if "i_max" in proposed:
                 keep["i_max"] = proposed["i_max"]
                 n_imax += 1
+            if proposed.get("params"):
+                keep["params"] = proposed["params"]
             review: dict = {}
             if "i_typ" in proposed:
                 review["i_typ"] = proposed.pop("i_typ")

@@ -372,6 +372,127 @@ def check_uncovered(plan: BlockPlan) -> list[Finding]:
     ]
 
 
+# ---------- P4-4③ 参数核对:实际选值 vs sizing 建议值(弱观察) ----------
+
+# 偏差容忍 = ±1 个 E24 档(E24 相邻档比 ~1.1,两档 ~1.21;1.35 覆盖档间不均匀)
+_PARAM_TOLERANCE = 1.35
+
+
+def _value_num(kind: str, text: str) -> float | None:
+    """'4.7k'→4700Ω / '100n'→1e-9F;解析不出返回 None(canon 后按尾缀换算)。"""
+    from edaloop.generate.stdparts import canon_value
+
+    key = canon_value(kind, text)
+    m = re.fullmatch(r"([\d.]+)([Mknup]?)", key)
+    if not m:
+        return None
+    v = float(m.group(1))
+    scale = {"resistor": {"": 1.0, "k": 1e3, "M": 1e6}, "capacitor": {"": 1e-6, "u": 1e-6, "n": 1e-9, "p": 1e-12}}[kind]
+    return v * scale.get(m.group(2), 1.0)
+
+
+def check_param_off_spec(plan: BlockPlan, sizing_advices, catalog: dict | None = None) -> list[Finding]:
+    """P4-4③ 实际选值 vs sizing 建议 E24 归一比对(先弱观察;连续 2 批零误报再议转强)。
+
+    比对通道(确定性,无 LLM):
+      A. 直接:advice.target == plan 块 instance 且该块声明 params.value(同 quantity);
+      B. 网组:std-value R/C 块按 advice.nets 聚组——电容取 pins 网集 == advice.nets 的
+         set 相等(输出电容 {VOUT,GND} 无歧义);LED 限流电阻取「与建议驱动网恰有一网相交」
+         (串联件必触驱动节点,另一端是内部节点)。**组内任一成员在容差内即满足**
+         (22µF 纹波电容与 100n 去耦电容共存于同网对,是正常设计,不逐件判罪)。
+    偏差超 1 个 E24 档(|actual/rec| > 1.35 或 < 1/1.35)且组内无任何合格成员 →
+    PARAM_OFF_SPEC(weak, REPLAN)。缺件(建议有、图上无)**不在此报**——块内可能已含
+    该元件(led-indicator 内置限流电阻),缺件归 critic/refine 问答(采纳补件),避免误杀。
+    """
+    from edaloop.generate.stdparts import kind_of
+
+    qty_of_kind = {"resistor": "resistance", "capacitor": "capacitance"}
+    recs = [a for a in (sizing_advices or []) if getattr(a, "rec_value", "") and getattr(a, "rec_kind", "") in qty_of_kind.values()]
+    if not recs:
+        return []
+    kind_of_qty = {v: k for k, v in qty_of_kind.items()}
+    by_target: dict[str, object] = {}
+    for a in recs:
+        by_target.setdefault(a.target, a)
+    findings: list[Finding] = []
+
+    def _num(qty: str, text: str) -> float | None:
+        return _value_num(kind_of_qty[qty], text)
+
+    def _in_tol(qty: str, val: str, rec_val: str) -> bool:
+        actual, want = _num(qty, val), _num(qty, rec_val)
+        if not actual or not want:
+            return True  # 解析不出的值不判罪(容差内处理)
+        ratio = actual / want
+        if qty == "capacitance":
+            # 电容只判欠额:超规格是工程裕量(纹波更小),不是缺陷
+            return ratio >= 1 / _PARAM_TOLERANCE
+        return _PARAM_TOLERANCE >= ratio >= 1 / _PARAM_TOLERANCE
+
+    def _flag(advice, members: list) -> Finding:
+        srcs = "; ".join(f"{n}={v}←{s}" for n, v, s in (getattr(advice, "inputs", None) or [])[:3])
+        vals = ", ".join(f"{m.instance}={m.params.get('value', '?')}" for m in members[:4])
+        return Finding(
+            code="PARAM_OFF_SPEC",
+            where=Where(ref=members[0].instance),
+            evidence=(
+                f"选值 [{vals}] vs sizing 建议 {advice.rec_value}({advice.kind}@{advice.target});"
+                f"该网组内无任何 E24 邻档合格成员;建议依据: {srcs}"
+            ),
+            severity="warn",
+            suggested_fix_class="REPLAN",
+            weak=True,
+        )
+
+    # ---- 通道 A:直接(块自己声明了值,且是建议目标) ----
+    consumed: set[int] = set()
+    for b in plan.blocks:
+        val = (b.params or {}).get("value", "")
+        if not val:
+            continue
+        advice = by_target.get(b.instance)
+        if advice is None:
+            continue
+        rec = (catalog or {}).get(b.block_id)
+        std_kind = kind_of(rec) if rec is not None else None
+        qty = qty_of_kind.get(std_kind or "")
+        if qty and qty != advice.rec_kind:
+            continue
+        if not _in_tol(advice.rec_kind, val, advice.rec_value):
+            findings.append(_flag(advice, [b]))
+        consumed.add(id(advice))
+
+    # ---- 通道 B:网组(std-value 元件按 advice.nets 聚组,组内任一合格即满足) ----
+    std_blocks = []
+    for b in plan.blocks:
+        if not (b.params or {}).get("value"):
+            continue
+        rec = (catalog or {}).get(b.block_id)
+        std_kind = kind_of(rec) if rec is not None else None
+        if std_kind:
+            std_blocks.append((b, qty_of_kind[std_kind], set((b.pins_binding or {}).values())))
+    for advice in recs:
+        if id(advice) in consumed or not getattr(advice, "nets", None):
+            continue
+        anets = set(advice.nets)
+        if advice.rec_kind == "capacitance" and len(anets) == 2:
+            group = [(b, q, ns) for b, q, ns in std_blocks if q == advice.rec_kind and ns == anets]
+        elif advice.rec_kind == "resistance" and advice.kind == "led-resistor" and len(anets) == 1:
+            drive = next(iter(anets))
+            if _family_volts(_rail_family(drive)) is not None:
+                # 驱动网本身是轨(电源指示灯直挂轨):该节点上的外部 R 可能是上拉/分压,
+                # 与限流串联电阻拓扑不可分,不判(缺件归 critic/refine 问答)
+                continue
+            group = [(b, q, ns) for b, q, ns in std_blocks if q == advice.rec_kind and len(ns & anets) == 1]
+        else:
+            continue
+        if not group:
+            continue  # 缺件不报(块内可能已含;归 critic/refine 问答)
+        if not any(_in_tol(advice.rec_kind, b.params.get("value", ""), advice.rec_value) for b, _q, _ns in group):
+            findings.append(_flag(advice, [b for b, _q, _ns in group]))
+    return findings
+
+
 def check_gauge(gate_report: dict) -> list[Finding]:
     findings: list[Finding] = []
     verdict = gate_report.get("verdict", "unknown")
@@ -503,7 +624,12 @@ def _catalog_pinout(block_id: str) -> dict:
 
 
 def validate(
-    ir: DesignIR, plan: BlockPlan, gate_report: dict | None, *, catalog: dict | None = None
+    ir: DesignIR,
+    plan: BlockPlan,
+    gate_report: dict | None,
+    *,
+    catalog: dict | None = None,
+    sizing: list | None = None,
 ) -> list[Finding]:
     findings: list[Finding] = []
     findings += check_rails(ir, plan)
@@ -511,6 +637,9 @@ def validate(
     findings += check_current_budget(ir, plan, catalog)
     findings += check_uncovered(plan)
     findings += check_topology_sanity(plan, catalog)
+    if sizing:
+        # P4-4③:sizing 建议值与实际选值的弱观察比对(controller 轮内计算后传入)
+        findings += check_param_off_spec(plan, sizing, catalog)
     if gate_report is not None:
         findings += check_gauge(gate_report)
     return findings
