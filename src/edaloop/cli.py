@@ -31,7 +31,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_eval = sub.add_parser("eval", help="跑 evals 金标准集")
     p_eval.add_argument("--subset", default=None, help="子集:w1-retrieval / w3-loop")
-    p_eval.add_argument("--tier", default=None, help="w3-loop 层级:easy(4)/medium(5)/hard(5) 难度层,smoke(3~12min)/daily(8)/rest(全量减 daily,发版增量) 回归级,all(真全量重跑);electrical(P4-3 注入式电气缺陷样本);params(P4-4 参数核对闭环:错值拦截+电源块覆盖+critic 捕获);都不走 E2E")
+    p_eval.add_argument("--tier", default=None, help="w3-loop 层级:easy(4)/medium(5)/hard(5) 难度层,smoke(3~12min)/daily(8)/rest(全量减 daily,发版增量) 回归级,all(真全量重跑);electrical(P4-3 注入式电气缺陷样本);params(P4-4 参数核对闭环:错值拦截+电源块覆盖+critic 捕获);refine(P4-5 验收规格+功能覆盖+refine 转化);都不走 E2E")
 
     p_q = sub.add_parser("questions", help="弱门禁确认队列:DesignIR open_questions + uncovered 项")
     p_q.add_argument("input", help="需求文件路径(md/txt)")
@@ -140,6 +140,12 @@ def _cmd_eval(args: argparse.Namespace) -> int:
 
             summary = run_params_eval()
             return 0 if summary["go"] else 1
+        if args.tier == "refine":
+            # P4-5 验收规格/功能覆盖/refine 闭环 harness(生成率/可执行率/注入/零误伤/转化)
+            from edaloop.evals_refine import run_refine_eval
+
+            summary = run_refine_eval()
+            return 0 if summary["go"] else 1
         from edaloop.evals_w3 import run_w3_loop_eval
 
         summary = run_w3_loop_eval(tier=args.tier)
@@ -194,7 +200,7 @@ def _cmd_run(args: argparse.Namespace) -> int:
     else:
         md = Path(args.input).read_text(encoding="utf-8")
         source = Path(args.input).name
-    body = md.split("## 期望指标")[0]
+    body = md  # P4-5①:「## 期望指标」段不再丢弃(pipeline 解析为验收条目,IR parse 亦可见)
     answers = None
     if args.answers:
         answers = json.loads(Path(args.answers).read_text(encoding="utf-8"))
@@ -261,7 +267,7 @@ def _cmd_questions(args: argparse.Namespace) -> int:
     from edaloop.llm.openai_compat import get_llm
 
     md = Path(args.input).read_text(encoding="utf-8")
-    body = md.split("## 期望指标")[0]
+    body = md  # P4-5①:标注段不再丢弃
     answers: dict[str, str] = {}
     if args.answer:
         answers = json.loads(Path(args.answer).read_text(encoding="utf-8"))

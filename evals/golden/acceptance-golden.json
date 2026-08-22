@@ -1,0 +1,138 @@
+{
+  "_comment": "P4-5①c 验收条目 golden(14 需求):ir=IR 派生条目应命中的(kind+key,key 为轨家族/接口特征词,双侧子串匹配);md=「## 期望指标」表应解析出的行号。来源:今日 PASS run 真实 IR(req-01..05,08,09,11)+ 真机 LLM 解析(06,07,10,12,13,14),经人工对需求文本核对。",
+  "req-01-esp32s3-mini-2layer.md": {
+    "ir": [
+      {"kind": "rail", "key": "5V"},
+      {"kind": "rail", "key": "3V3"},
+      {"kind": "interface", "key": "usb-c"},
+      {"kind": "interface", "key": "端子"},
+      {"kind": "protection", "key": "protection"}
+    ],
+    "md": ["M1", "M2", "M3", "M4", "M5", "M6"]
+  },
+  "req-02-rs485-sensor-hub.md": {
+    "ir": [
+      {"kind": "rail", "key": "3V3"},
+      {"kind": "interface", "key": "usb-c"},
+      {"kind": "interface", "key": "rs485"},
+      {"kind": "interface", "key": "i2c"}
+    ],
+    "md": []
+  },
+  "req-03-ir-remote-hub.md": {
+    "ir": [
+      {"kind": "rail", "key": "3V3"},
+      {"kind": "rail", "key": "5V"},
+      {"kind": "interface", "key": "usb-c"},
+      {"kind": "interface", "key": "i2c"}
+    ],
+    "md": []
+  },
+  "req-04-smart-dial-oled.md": {
+    "ir": [
+      {"kind": "rail", "key": "5V"},
+      {"kind": "rail", "key": "3V3"},
+      {"kind": "interface", "key": "usb-c"},
+      {"kind": "interface", "key": "i2c"}
+    ],
+    "md": []
+  },
+  "req-05-battery-ble-telemetry.md": {
+    "ir": [
+      {"kind": "rail", "key": "VBAT"},
+      {"kind": "rail", "key": "5V"},
+      {"kind": "rail", "key": "3V3"},
+      {"kind": "interface", "key": "usb-c"},
+      {"kind": "interface", "key": "i2c"}
+    ],
+    "md": []
+  },
+  "req-06-pico-native-usb-gateway.md": {
+    "ir": [
+      {"kind": "rail", "key": "5V"},
+      {"kind": "rail", "key": "3V3"},
+      {"kind": "interface", "key": "usb-c"},
+      {"kind": "interface", "key": "spi"},
+      {"kind": "protection", "key": "protection"}
+    ],
+    "md": []
+  },
+  "req-07-motor-driver-board.md": {
+    "ir": [
+      {"kind": "rail", "key": "VIN"},
+      {"kind": "rail", "key": "5V"},
+      {"kind": "rail", "key": "3V3"},
+      {"kind": "interface", "key": "uart"},
+      {"kind": "protection", "key": "protection"}
+    ],
+    "md": []
+  },
+  "req-08-liion-protection-freeform.md": {
+    "ir": [
+      {"kind": "rail", "key": "VBAT"},
+      {"kind": "interface", "key": "battery"},
+      {"kind": "protection", "key": "protection"}
+    ],
+    "md": []
+  },
+  "req-09-ambiguous-sensor-node.md": {
+    "ir": [
+      {"kind": "rail", "key": "3V3"},
+      {"kind": "interface", "key": "gpio"}
+    ],
+    "md": []
+  },
+  "req-10-esp32s3-industrial-4layer.md": {
+    "ir": [
+      {"kind": "rail", "key": "5V"},
+      {"kind": "rail", "key": "3V3"},
+      {"kind": "budget", "key": "5V"},
+      {"kind": "interface", "key": "usb-c"},
+      {"kind": "interface", "key": "rs485"},
+      {"kind": "protection", "key": "protection"}
+    ],
+    "md": ["M1", "M2", "M3", "M4", "M5", "M6", "M7"]
+  },
+  "req-11-isolated-dido-module.md": {
+    "ir": [
+      {"kind": "rail", "key": "5V"},
+      {"kind": "rail", "key": "3V3"},
+      {"kind": "rail", "key": "5V_ISO"},
+      {"kind": "interface", "key": "端子"}
+    ],
+    "md": []
+  },
+  "req-12-hybrid-dual-mcu-gateway.md": {
+    "ir": [
+      {"kind": "rail", "key": "5V"},
+      {"kind": "rail", "key": "3V3"},
+      {"kind": "interface", "key": "usb-c"},
+      {"kind": "interface", "key": "uart"},
+      {"kind": "interface", "key": "i2c"},
+      {"kind": "interface", "key": "端子"},
+      {"kind": "protection", "key": "protection"}
+    ],
+    "md": ["M1", "M2", "M3", "M4", "M5", "M6", "M7"]
+  },
+  "req-13-env-sensor-motherboard.md": {
+    "ir": [
+      {"kind": "rail", "key": "5V"},
+      {"kind": "rail", "key": "3V3"},
+      {"kind": "interface", "key": "usb-c"},
+      {"kind": "interface", "key": "i2c"},
+      {"kind": "interface", "key": "rs485"},
+      {"kind": "protection", "key": "protection"}
+    ],
+    "md": []
+  },
+  "req-14-door-sensor-e2e.md": {
+    "ir": [
+      {"kind": "rail", "key": "5V"},
+      {"kind": "rail", "key": "3V3"},
+      {"kind": "interface", "key": "rs485"},
+      {"kind": "interface", "key": "i2c"},
+      {"kind": "protection", "key": "protection"}
+    ],
+    "md": []
+  }
+}

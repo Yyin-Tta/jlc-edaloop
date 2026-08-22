@@ -372,6 +372,259 @@ def check_uncovered(plan: BlockPlan) -> list[Finding]:
     ]
 
 
+# ---------- P4-5② 功能覆盖机械对齐:IR.functions × 计划块(恒弱) ----------
+
+# 词表:功能用词(左,在 function 文本里找)→ 块词汇(右,在块联合文本里找),命中即覆盖。
+# 拆分原则:左侧专有词(rs-485/usb/充电)必须映射到右侧同类专有词——泛化右侧(usb、esp32)
+# 会让「RS-485 通信」被任意 USB-C 座覆盖(P4-5⑤ 注入实证),故接口行按协议拆开。
+_FUNC_SYNONYMS: list[tuple[str, str]] = [
+    (r"点灯|指示灯|led|灯", r"led|indicator"),
+    (r"主控|单片机|mcu|控制器", r"mcu|stm32|单片机|controller"),
+    (r"串口|烧录|下载|uart|ttl|日志", r"uart|ch340|serial|usb-serial|cp210"),
+    (r"供电|电源|稳压|降压|升压|buck|ldo|电压转换", r"power|ldo|buck|boost|dc-dc|charger"),
+    (r"电池|锂电|充电|battery", r"battery|charg|18650|dw01|fs8205|bq25|tp405"),
+    (r"按键|按钮|复位|boot|键", r"button|reset|boot|human-input"),
+    (r"传感|测量|温湿度|imu|加速度|采集", r"sensing|sensor|imu|adc"),
+    (r"显示|屏幕|oled|lcd|屏", r"display|oled|lcd"),
+    (r"存储|eeprom|flash|记忆", r"storage|eeprom|flash|sd"),
+    (r"通信|无线|wifi|蓝牙|ble|联网|射频|无线", r"comms|rf|wifi|ble|esp32|antenna|cc1101"),
+    (r"隔离", r"iso|isolat|b0505|opto"),
+    (r"保护|防反|过流|保险|tvs|浪涌", r"tvs|polyfuse|protect|fuse|mosfet"),  # 防反=PMOS 通道
+    (r"电机|驱动|马达|继电器|mos", r"driver|motor|mosfet|relay|speaker-amp"),
+    (r"时钟|晶振|rtc|计时", r"timing|crystal|rtc|32k"),
+    (r"rs-?485|modbus", r"rs485|max485|sp3485|485"),
+    (r"usb|type-?c|网口|rj45", r"usb|typec|rj45"),
+    (r"接口|端子|排针|插针", r"terminal|interface|header|conn|排针|端子"),
+    (r"遥测|上报|数据上传", r"comms|uart|rs485|ble|esp32"),
+    (r"低压|告警|欠压", r"lowvolt|alarm|tl431|欠压|低压"),
+    (r"测试点|test.?point", r"testpoint|测试点|探针"),
+    (r"结构|安装孔|固定孔|螺丝", r"mount|hole|安装孔|螺丝|结构"),
+]
+_FUNC_STOP = {"and", "for", "with", "the", "via", "pcb", "gpio", "gnd", "vcc", "3v3", "5v", "12v", "24v"}
+
+
+def _block_corpus(plan: BlockPlan, catalog: dict | None) -> tuple[set[str], set[str], str, set[str]]:
+    """计划块联合文本 → (ascii 词元集[全文], CJK 标签文本[仅 name/category/tags/block_id]),小写。
+
+    词元集含 -/_ 融合变体(rs-485 → rs485),按「词元等值/前缀」判,不做全文子串——
+    子串会让 2~3 字符右侧词(rf/ble/sd)在任意长词里诈胡(P4-5⑤ 实证:「RS-485
+    通信」被语料某处子串 rf 覆盖)。CJK bigram 只对**标签字段**——desc 叙述文里的
+    共词(如升压块 desc 提「锂电」)不该让「锂电池充电」算被覆盖,承载件必须自报标签。
+    """
+    raws: list[str] = []
+    labels: list[str] = []
+    for b in plan.blocks:
+        rec = (catalog or {}).get(b.block_id)
+        seg = [b.block_id]
+        lab = [b.block_id]
+        if rec is not None:
+            name = getattr(rec, "name", "") or ""
+            desc = getattr(rec, "desc", "") or ""
+            cat = getattr(rec, "category", "") or ""
+            tags = " ".join(getattr(rec, "tags", None) or [])
+            seg += [name, desc, cat, tags]
+            lab += [name, cat, tags]
+            up = getattr(rec, "upstream", None)
+            if up is not None and getattr(up, "id", None):
+                seg.append(up.id)
+        raws.append(" ".join(x for x in seg if x))
+        labels.append(" ".join(x for x in lab if x))
+    raw = " ".join(raws).lower()
+    lab = " ".join(labels).lower()
+    toks = set(re.findall(r"[a-z0-9]+", raw))
+    # 标签词元保留连字符整词(mcu-support 不产出碎片 mcu——支持电路不是主控本体;
+    # 真 mcu 块的 category/tag 自带独立整词)+ 融合变体
+    lab_toks = set(re.findall(r"[a-z0-9][a-z0-9_-]*", lab))
+    for t in re.findall(r"[a-z0-9][a-z0-9_-]{2,}", raw):
+        fused = re.sub(r"[-_]", "", t)
+        if len(fused) >= 3:
+            toks.add(fused)
+    for t in list(lab_toks):
+        fused = re.sub(r"[-_]", "", t)
+        if len(fused) >= 3:
+            lab_toks.add(fused)
+    cjk = " ".join(re.findall(r"[一-鿿]+", lab))
+    # 伪块(自由拓扑实例,block_id 不在目录)= planner 的承载声明,其 id 词元可作救援证据
+    pseudo_toks: set[str] = set()
+    for b in plan.blocks:
+        if (catalog or {}).get(b.block_id) is None:
+            pseudo_toks.add(b.block_id.lower())
+            for part in re.split(r"[-_]", b.block_id.lower()):
+                if len(part) >= 3:
+                    pseudo_toks.add(part)
+            fused = re.sub(r"[-_]", "", b.block_id.lower())
+            if len(fused) >= 3:
+                pseudo_toks.add(fused)
+    return toks, lab_toks, cjk, pseudo_toks
+
+
+# 修饰词:含此词的标签词元是「服务于 X 的电路」而非 X 本体(mcu-support ≠ 主控)
+_LAB_QUALIFIERS = ("support", "isolat")
+
+
+def _right_hits(brx: str, toks: set[str], lab_toks: set[str], cjk: str) -> bool:
+    """词表右侧对语料:≥5 字符右词可命中全文词元(前缀);短右词只认**标签**词元——
+    叙述文里的共词(ch340 desc 的「目标 MCU」)不算;标签侧允许前缀(mcu_main 是
+    planner 声明的主控实例)但含修饰词的复合词不算(mcu-support/mcusupport)。
+    CJK 右词做标签子串。"""
+    for t in toks:
+        m = re.match(brx, t)
+        if m and len(m.group(0)) >= 5:
+            return True
+    for t in lab_toks:
+        m = re.match(brx, t)
+        if m and not any(q in t for q in _LAB_QUALIFIERS):
+            return True
+    return bool(cjk and re.search(brx, cjk))
+
+
+def _func_probe_hits(text: str, toks: set[str], lab_toks: set[str], cjk: str) -> bool:
+    """单一探测文本对语料:词表(双语)→ ascii 词元(短词认标签/长词认全文)→ CJK bigram,任一命中。"""
+    for frx, brx in _FUNC_SYNONYMS:
+        if re.search(frx, text) and _right_hits(brx, toks, lab_toks, cjk):
+            return True
+    for tok in set(re.findall(r"[a-z0-9][a-z0-9_-]{2,}", text)):
+        if tok in _FUNC_STOP:
+            continue
+        fused = re.sub(r"[-_]", "", tok)
+        if len(fused) < 5:
+            # 短词元只认整词精确(标签词元保留连字符,mcu 不得前缀命中 mcusupport)
+            if fused in lab_toks:
+                return True
+        elif fused in toks or any(t.startswith(fused) for t in toks):
+            return True
+    for run in re.findall(r"[一-鿿]{2,}", text):
+        for i in range(len(run) - 1):
+            if run[i : i + 2] in cjk:
+                return True
+    return False
+
+
+def _func_has_signal(text: str) -> bool:
+    """文本里是否提取得到任何可判信号(词表左词/ascii 词元/CJK bigram)——没有则该层探测无效。"""
+    if any(re.search(frx, text) for frx, _ in _FUNC_SYNONYMS):
+        return True
+    if any(tok not in _FUNC_STOP for tok in re.findall(r"[a-z0-9][a-z0-9_-]{2,}", text)):
+        return True
+    return bool(re.findall(r"[一-鿿]{2,}", text))
+
+
+_FUNC_SPECIFIC_MIN = 5  # ≥5 字符的 ascii 词元视为专名(tl431/ch340/sp3485),可作 desc 侧救援证据
+
+
+def _func_covered(name: str, full: str, corpus: tuple[set[str], set[str], str, set[str]]) -> bool:
+    """两级探测:**name 优先**——功能名是规范标签,desc/constraints 只是展开。
+
+    name 有可判信号时以 name 的命中为准(防 desc 里的泛化词把缺口“覆盖”掉,
+    如「锂电池充电」的 desc 提到 5V 输入就被任意 power 块覆盖);desc 只允许
+    **专名词元**(≥5 字符,如 tl431/ch340n)救援,且证据只认**伪块实例名**——
+    实例名是 planner 的承载声明(alarm_tl431/do_uln),目录块 name 里的型号
+    碎片不算(up-esp32_autodownload 的 esp32 救不了「MCU 主控」)。
+    name 提取不到信号(空名/纯停用词)才退化用全文全机制。
+    """
+    toks, lab_toks, cjk, pseudo_toks = corpus
+    if name.strip() and _func_probe_hits(name, toks, lab_toks, cjk):
+        return True
+    if name.strip() and _func_has_signal(name):
+        for tok in set(re.findall(r"[a-z0-9][a-z0-9_-]{2,}", full)):
+            fused = re.sub(r"[-_]", "", tok)
+            if len(fused) < _FUNC_SPECIFIC_MIN:
+                continue
+            # 直证(实例名即含型号,alarm_tl431)或反向前缀(do_uln ↔ uln2003)
+            if fused in pseudo_toks or any(fused.startswith(t) for t in pseudo_toks):
+                return True
+        return False
+    return bool(full.strip()) and _func_probe_hits(full, toks, lab_toks, cjk)
+
+
+def check_func_covered(ir: DesignIR, plan: BlockPlan, catalog: dict | None = None) -> list[Finding]:
+    """P4-5② IR.functions × 块 tags/category 机械对齐;漏覆盖 → FUNC_UNCOVERED。
+
+    **恒弱**:词表/词元/bigram 是启发式映射,不满足强门禁「能机械证明未覆盖」的前提
+    (证明「覆盖」靠相似性,证明「未覆盖」不可能排除同义表达)。is_blocking 的
+    severity=="error" 兜底会误伤,故 weak=True 且 severity="warn" 双保险。
+    """
+    corpus = _block_corpus(plan, catalog)
+    findings: list[Finding] = []
+    for f in ir.functions:
+        fname = (f.name or "").lower()
+        ftext = " ".join([f.name, f.desc, f.constraints_digest()]).lower()
+        if not ftext.strip() or _func_covered(fname, ftext, corpus):
+            continue
+        findings.append(
+            Finding(
+                code="FUNC_UNCOVERED",
+                where=Where(ref=(f.name or f.desc)[:40]),
+                evidence=(
+                    f"IR 功能「{f.name or f.desc[:30]}」在计划 {len(plan.blocks)} 块的词表/词元匹配中无覆盖证据"
+                    "(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)"
+                ),
+                severity="warn",
+                suggested_fix_class="ADD_BLOCK",
+                weak=True,
+            )
+        )
+    return findings
+
+
+# ---------- P4-5① 验收条目机械复评(ACCEPTANCE_UNMET,恒弱) ----------
+
+
+def check_acceptance(
+    ir: DesignIR,
+    plan: BlockPlan,
+    items: list,
+    gate_report: dict | None = None,
+    catalog: dict | None = None,
+) -> list[Finding]:
+    """AcceptanceItem → 调映射 checker 子集复评;有 hard finding → ACCEPTANCE_UNMET(弱)。
+
+    只把 severity=error 且非 weak 的 finding 记为未满足(数据债/UNKNOWN 是降级不是失败);
+    manual 条目不判。rail/budget 条目按轨家族过滤,别的轨的既有 finding 不牵连本条。
+    """
+    from edaloop.intent.acceptance import is_executable
+
+    findings: list[Finding] = []
+    for it in items:
+        if not is_executable(it.checker):
+            continue
+        names = set(it.checker.split("+"))
+        sub: list[Finding] = []
+        if "check_rails" in names:
+            sub += check_rails(ir, plan)
+        if "check_voltage_compat" in names:
+            sub += check_voltage_compat(ir, plan, catalog)
+        if "check_current_budget" in names:
+            sub += [f for f in check_current_budget(ir, plan, catalog) if f.code == "RAIL_BUDGET_OVER"]
+        if "check_func_covered" in names:
+            sub += check_func_covered(ir, plan, catalog)
+        if "check_topology_sanity" in names:
+            sub += check_topology_sanity(plan, catalog)
+        if "check_gauge" in names:
+            if gate_report is None:
+                continue  # 规划期/dry-run 无 gate 报告:不判,不冒误报
+            sub += check_gauge(gate_report)
+        if it.kind in ("rail", "budget") and it.key:
+            want = _rail_family(it.key)
+            sub = [f for f in sub if (f.where.net and _rail_family(f.where.net) == want) or not f.where.net]
+        hard = [f for f in sub if f.severity == "error" and not f.weak]
+        if hard:
+            findings.append(
+                Finding(
+                    code="ACCEPTANCE_UNMET",
+                    where=Where(ref=it.id, net=it.key),
+                    evidence=(
+                        f"[{it.id}] {it.check}: 期望「{it.expect[:60]}」未满足 ← "
+                        + "; ".join(f"{f.code}: {f.evidence[:80]}" for f in hard[:2])
+                    ),
+                    severity="warn",
+                    suggested_fix_class="REPLAN",
+                    weak=True,
+                )
+            )
+    return findings
+
+
 # ---------- P4-4③ 参数核对:实际选值 vs sizing 建议值(弱观察) ----------
 
 # 偏差容忍 = ±1 个 E24 档(E24 相邻档比 ~1.1,两档 ~1.21;1.35 覆盖档间不均匀)
@@ -630,6 +883,7 @@ def validate(
     *,
     catalog: dict | None = None,
     sizing: list | None = None,
+    acceptance: list | None = None,
 ) -> list[Finding]:
     findings: list[Finding] = []
     findings += check_rails(ir, plan)
@@ -637,9 +891,14 @@ def validate(
     findings += check_current_budget(ir, plan, catalog)
     findings += check_uncovered(plan)
     findings += check_topology_sanity(plan, catalog)
+    # P4-5②:功能覆盖机械对齐(恒弱——词表/词元启发式不满足强门禁前提)
+    findings += check_func_covered(ir, plan, catalog)
     if sizing:
         # P4-4③:sizing 建议值与实际选值的弱观察比对(controller 轮内计算后传入)
         findings += check_param_off_spec(plan, sizing, catalog)
+    if acceptance:
+        # P4-5①:验收条目机械复评(恒弱;manual 条目不判)
+        findings += check_acceptance(ir, plan, acceptance, gate_report, catalog)
     if gate_report is not None:
         findings += check_gauge(gate_report)
     return findings

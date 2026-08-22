@@ -84,7 +84,8 @@ class KnowledgeStore:
         self.conn.execute("DROP TABLE IF EXISTS blocks_fts")
         self._ensure_schema()
         texts = [self._embed_text(b) for b in blocks]
-        vectors = self.embedder.embed_documents(texts)
+        # 无 embedder(未配密钥)→ 只建关键词 FTS,跳过向量表(检索降级不阻断)
+        vectors = self.embedder.embed_documents(texts) if self.embedder else [None] * len(blocks)
         for b, v in zip(blocks, vectors):
             cur = self.conn.execute(
                 "INSERT INTO blocks(block_id, name, desc, category, tags, parts, ports, provenance, upstream, lcsc, pinout, electrical) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
@@ -104,7 +105,8 @@ class KnowledgeStore:
                 ),
             )
             rowid = cur.lastrowid
-            self.conn.execute("INSERT INTO blocks_vec(rowid, embedding) VALUES(?, ?)", (rowid, json.dumps(v)))
+            if v is not None:
+                self.conn.execute("INSERT INTO blocks_vec(rowid, embedding) VALUES(?, ?)", (rowid, json.dumps(v)))
             self.conn.execute("INSERT INTO blocks_fts(rowid, text) VALUES(?, ?)", (rowid, self._fts_text(b)))
         self.conn.commit()
         return len(blocks)
@@ -161,7 +163,7 @@ class KnowledgeStore:
         return hits
 
     def retrieve(self, query: str, top_k: int = 5, *, candidate_k: int = 20) -> list[RetrievedBlock]:
-        dense = self._dense_search(query, candidate_k)
+        dense = self._dense_search(query, candidate_k) if self.embedder else []
         kw = self._keyword_search(query, candidate_k)
         fused: dict[int, float] = {}
         channels: dict[int, set[str]] = {}

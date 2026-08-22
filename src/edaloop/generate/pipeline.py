@@ -8,6 +8,7 @@ from edaloop.generate.audit import AuditLog
 from edaloop.generate.compile import compile_actions
 from edaloop.generate.models import BlockPlan
 from edaloop.generate.plan import make_plan
+from edaloop.intent.acceptance import parse_acceptance
 from edaloop.intent.ir import DesignIR
 from edaloop.intent.parse import requirement_to_ir
 from edaloop.knowledge.models import BlockRecord
@@ -96,6 +97,7 @@ def stage_run(
         dry_run=dry_run,
         answer_context=answer_context,
         retry_queries=retry_queries or [],
+        acceptance_items=parse_acceptance(md_text),  # P4-5①:「## 期望指标」段不再丢弃
     )
     result = controller.run()
     delivery = controller.deliver(result)

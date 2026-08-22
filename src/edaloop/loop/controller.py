@@ -81,6 +81,7 @@ class LoopController:
         dry_run: bool = False,
         answer_context: str = "",
         retry_queries: list[str] | None = None,
+        acceptance_items: list | None = None,
     ) -> None:
         self.ir = ir
         self.catalog = catalog
@@ -92,6 +93,8 @@ class LoopController:
         self.dry_run = dry_run
         self.answer_context = answer_context
         self.retry_queries = list(retry_queries or [])
+        # P4-5①:验收条目(「## 期望指标」标注段,run 不再丢弃;空=无标注段)
+        self.acceptance_items = list(acceptance_items or [])
         # P4-1② 功能分区编排(声明+整页分区框+分区注记),默认关——真机验证过再转默认开(风险 R17)
         self.zones_enabled = os.environ.get("EDALOOP_ZONES", "") in ("1", "true", "yes")
 
@@ -232,7 +235,21 @@ class LoopController:
             # P4-4① sizing 轮内化:make_plan 后 validate 段计算(轨输入走 IR,出处随建议入审计),
             # PARAM_OFF_SPEC 弱观察与 feedback 注入都消费它;PASS 后 deliver 复用末轮结果。
             sizing_advices = self._size_round(plan, round_no)
-            findings = validate(self.ir, plan, gate_report, catalog=self.catalog, sizing=sizing_advices or None)
+            if round_no == 1 and self.acceptance_items:
+                # P4-5①:验收条目进审计(标注段不再丢弃;复评结果随 round-validate 的 weak)
+                self.audit.event(
+                    "acceptance",
+                    items=[
+                        {"id": it.id, "source": it.source, "kind": it.kind, "check": it.check,
+                         "checker": it.checker, "key": it.key}
+                        for it in self.acceptance_items
+                    ],
+                )
+            findings = validate(
+                self.ir, plan, gate_report, catalog=self.catalog,
+                sizing=sizing_advices or None, acceptance=self.acceptance_items or None,
+            )
+            self._last_acceptance_unmet = [f for f in findings if f.code == "ACCEPTANCE_UNMET"]
             if not apply_ok:
                 findings = [
                     Finding(
@@ -430,6 +447,25 @@ class LoopController:
                 arts["sizing_count"] = len(advices)
         except Exception as e:
             self.audit.event("sizing-error", error=str(e)[:200])
+        try:
+            # P4-5①:验收清单交付(条目 + 末轮复评结果;manual 条目照列,人审)
+            if self.acceptance_items:
+                from edaloop.intent.acceptance import is_executable
+
+                unmet = {f.where.ref for f in getattr(self, "_last_acceptance_unmet", [])}
+                lines = []
+                for it in self.acceptance_items:
+                    mark = "✗ " if it.id in unmet else ("· " if is_executable(it.checker) else "? ")
+                    lines.append(f"{mark}[{it.id}]({it.source}/{it.kind}) {it.check} → {it.checker}\n    期望: {it.expect}")
+                for f in getattr(self, "_last_acceptance_unmet", []):
+                    lines.append(f"  ✗ {f.evidence[:160]}")
+                (self.audit.dir / "delivery.acceptance.txt").write_text(
+                    "验收清单(✗=机械复评未满足 · =可执行已过 ? =manual 人审)\n" + "\n".join(lines),
+                    encoding="utf-8",
+                )
+                arts["acceptance"] = str(self.audit.dir / "delivery.acceptance.txt")
+        except Exception as e:
+            self.audit.event("acceptance-error", error=str(e)[:200])
         try:
             from edaloop.loop.critic import render_report, review_plan
 
