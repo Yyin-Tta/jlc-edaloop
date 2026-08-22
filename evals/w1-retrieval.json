@@ -1,39 +1,106 @@
 {
- "metric": "recall@8: 每个 (需求, 标注块) 对,块或其功能等价类成员出现在 Top-8 即命中;聚合 >= 0.80 为 Go。top-k=8 因块库 20→95(密度 4.75x)",
- "note": "每份需求标注 <=5 个关键块(存等价类代表);等价类:usb-c-power-entry={usb-c-power-entry,usb-c-16p,up-usbc_dual_orientation_data}, dc-terminal-5v-input={dc-terminal-5v-input,terminal-kf301-2p};电压/功能不同不并类",
- "req-01-esp32s3-mini-2layer.md": [
-  "buttons-boot-reset",
-  "ldo-ams1117-3v3",
-  "mcu-esp32s3-wroom1-min",
-  "usb-c-power-entry",
-  "usb-serial-ch340n"
- ],
- "req-10-esp32s3-industrial-4layer.md": [
-  "dc-terminal-5v-input",
-  "ldo-ams1117-3v3",
-  "mcu-esp32s3-wroom1-min",
-  "rs485-max485",
-  "usb-serial-ch340n"
- ],
- "req-03-power-board.md": [
-  "boost-mt3608",
-  "charger-tp4056",
-  "dc-terminal-wide-input",
-  "ldo-ams1117-3v3",
-  "led-indicator"
- ],
- "req-04-interface-board.md": [
-  "driver-uln2003",
-  "isolated-dc-b0505s",
-  "isolator-pc817",
-  "ldo-ams1117-3v3",
-  "rs485-max485"
- ],
- "req-12-hybrid-dual-mcu-gateway.md": [
-  "eeprom-24c02",
-  "ldo-ams1117-3v3",
-  "mcu-esp32s3-wroom1-min",
-  "mcu-stm32f103c8-min",
-  "usb-serial-ch340n"
- ]
+  "metric": "recall@8: 每个 (需求, 标注块) 对,块或其功能等价类成员出现在 Top-8 即命中;P4-6 扩标注后聚合 >= 0.92 为 Go / >= 0.95 为 Stretch(不与旧 5 需求 88% 跨标注集直接比较);top-k=8 因块库 20->97",
+  "note": "P4-6 扩标注至全部 14 需求(v2 分层重组后全集,74 条:需求原文点名的 diode-ss34(req-06 SS34 防倒灌)/usb-c-power-entry(req-10 Type-C 供电)按标注完整性补入);标注 = 正确设计必含的关键块(需求点名件优先,等价类代表存储);等价类:usb-c-power-entry={usb-c-power-entry,usb-c-16p,up-usbc_dual_orientation_data}, dc-terminal-5v-input={dc-terminal-5v-input,terminal-kf301-2p};电压/功能不同不并类;泛功能块(查询无型号抓手:ldo/led/端子/usb-c)miss 在 harness 单独归因计数;IR 解析温度 0(边界块曾随 IR 措辞方差在 92% 线上打摆);eval 不传 ir → 案例第五通道结构性消融(P4-6③)",
+  "req-01-esp32s3-mini-2layer.md": [
+    "buttons-boot-reset",
+    "ldo-ams1117-3v3",
+    "mcu-esp32s3-wroom1-min",
+    "usb-c-power-entry",
+    "usb-serial-ch340n"
+  ],
+  "req-02-rs485-sensor-hub.md": [
+    "eeprom-24c02",
+    "ldo-ams1117-3v3",
+    "mcu-stm32f103c8-min",
+    "rs485-max485",
+    "usb-c-power-entry",
+    "usb-serial-ch340n"
+  ],
+  "req-03-power-board.md": [
+    "boost-mt3608",
+    "charger-tp4056",
+    "dc-terminal-wide-input",
+    "ldo-ams1117-3v3",
+    "led-indicator"
+  ],
+  "req-04-interface-board.md": [
+    "driver-uln2003",
+    "isolated-dc-b0505s",
+    "isolator-pc817",
+    "ldo-ams1117-3v3",
+    "rs485-max485"
+  ],
+  "req-05-battery-ble-telemetry.md": [
+    "boost-mt3608",
+    "charger-tp4056",
+    "ldo-ams1117-3v3",
+    "low-battery-alarm-tl431",
+    "mcu-esp32s3-wroom1-min",
+    "usb-c-power-entry"
+  ],
+  "req-06-pico-native-usb-gateway.md": [
+    "dc-terminal-5v-input",
+    "diode-ss34",
+    "ldo-ams1117-3v3",
+    "up-esp32s3_pico_native_usb",
+    "up-ina226_power_monitor",
+    "up-microsd_spi_pushpush",
+    "usb-c-power-entry"
+  ],
+  "req-07-motor-driver-board.md": [
+    "dc-terminal-wide-input",
+    "driver-uln2003",
+    "ldo-ams1117-3v3",
+    "mcu-stm32f103c8-min",
+    "up-xl1509_buck_12v_5v",
+    "usb-serial-ch340n"
+  ],
+  "req-08-liion-protection-freeform.md": [
+    "battery-dw01-protection",
+    "mos-fs8205a-dual"
+  ],
+  "req-09-ambiguous-sensor-node.md": [
+    "led-indicator",
+    "mcu-stm32f103c8-min",
+    "rs485-max485"
+  ],
+  "req-10-esp32s3-industrial-4layer.md": [
+    "dc-terminal-5v-input",
+    "ldo-ams1117-3v3",
+    "mcu-esp32s3-wroom1-min",
+    "rs485-max485",
+    "usb-c-power-entry",
+    "usb-serial-ch340n"
+  ],
+  "req-11-isolated-dido-module.md": [
+    "driver-uln2003",
+    "isolated-dc-b0505s",
+    "isolator-pc817",
+    "ldo-ams1117-3v3",
+    "mcu-stm32f103c8-min"
+  ],
+  "req-12-hybrid-dual-mcu-gateway.md": [
+    "eeprom-24c02",
+    "ldo-ams1117-3v3",
+    "mcu-esp32s3-wroom1-min",
+    "mcu-stm32f103c8-min",
+    "usb-serial-ch340n"
+  ],
+  "req-13-env-sensor-motherboard.md": [
+    "ldo-ams1117-3v3",
+    "mcu-stm32f103c8-min",
+    "rs485-max485",
+    "tvs-smaj5",
+    "up-i2c_isolation_2n7002dw",
+    "usb-c-power-entry"
+  ],
+  "req-14-door-sensor-e2e.md": [
+    "dc-terminal-wide-input",
+    "eeprom-24c02",
+    "ldo-ams1117-3v3",
+    "mcu-stm32f103c8-min",
+    "rs485-max485",
+    "sensor-hall-a3144",
+    "up-xl1509_buck_12v_5v"
+  ]
 }

@@ -84,9 +84,9 @@ def _embed_config_from_env() -> EmbedConfig:
     return EmbedConfig(base=base, key=key, model=model, rerank_model=rerank_model)
 
 
-def get_llm() -> LLMProvider:
+def get_llm(temperature: float = 0.2) -> LLMProvider:
     cfg = _llm_config_from_env()
-    return OpenAICompatChat(base=cfg.base, key=cfg.key, model=cfg.model)
+    return OpenAICompatChat(base=cfg.base, key=cfg.key, model=cfg.model, temperature=temperature)
 
 
 def get_embedder() -> EmbeddingProvider:
@@ -102,16 +102,17 @@ def get_reranker() -> RerankProvider | None:
 
 
 class OpenAICompatChat(LLMProvider):
-    def __init__(self, base: str, key: str, model: str) -> None:
+    def __init__(self, base: str, key: str, model: str, temperature: float = 0.2) -> None:
         self._base = base.rstrip("/")
         self._key = key
         self._model = model
+        self._temperature = temperature
 
     def chat(self, messages: list[ChatMessage], *, model: str | None = None) -> str:
         payload = {
             "model": model or self._model,
             "messages": [m.model_dump() for m in messages],
-            "temperature": 0.2,
+            "temperature": self._temperature,
         }
         if "/coding/" in self._base:
             payload["thinking"] = {"type": "disabled"}

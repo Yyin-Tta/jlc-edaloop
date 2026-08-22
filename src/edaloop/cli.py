@@ -100,8 +100,18 @@ def _cmd_seed(args: argparse.Namespace) -> int:
     ]
     store = KnowledgeStore(_db_path(args.db), get_embedder(), get_reranker())
     n = store.rebuild(blocks)
+    # P4-6③:种子案例随块库装载(cases 表 rebuild 不清空,record_case hash 去重幂等;
+    # writeback 写入的 run 案例不受影响)
+    from edaloop.knowledge.models import CaseRecord
+
+    cases_path = Path(args.seeds).parent / "cases.jsonl"
+    n_cases = 0
+    if cases_path.exists():
+        for line in cases_path.read_text(encoding="utf-8").splitlines():
+            if line.strip():
+                n_cases += int(store.record_case(CaseRecord.model_validate_json(line)))
     store.close()
-    print(f"seeded {n} blocks -> {_db_path(args.db)}")
+    print(f"seeded {n} blocks + {n_cases} cases -> {_db_path(args.db)}")
     return 0
 
 
@@ -123,10 +133,11 @@ def _cmd_retrieve(args: argparse.Namespace) -> int:
 
 def _cmd_eval(args: argparse.Namespace) -> int:
     if args.subset in (None, "w1-retrieval"):
-        from edaloop.evals_w1 import run_w1_retrieval_eval
+        from edaloop.evals_w1 import _GO_RATE, run_w1_retrieval_eval
 
-        rate, _ = run_w1_retrieval_eval()
-        return 0 if rate >= 0.8 else 1
+        rate, detail = run_w1_retrieval_eval()
+        # Go = recall 达线 且 负样本机械断言通过(24V 直入 ldo 出局 + 5V 正控不误伤)
+        return 0 if rate >= _GO_RATE and detail.get("neg-elec") == "ok" else 1
     if args.subset == "w3-loop":
         if args.tier == "electrical":
             # P4-3 注入式电气缺陷 harness(不走 E2E;14 需求零误伤由 smoke/daily 回归实证)

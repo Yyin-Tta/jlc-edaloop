@@ -4,8 +4,8 @@ from pathlib import Path
 
 from edaloop.generate.audit import AuditLog
 from edaloop.ingest.extract import llm_extract, llm_extract_suggestions, rule_channel
-from edaloop.ingest.models import IngestReport, PinTable, Suggestion
-from edaloop.ingest.pdf_pages import find_pin_pages, page_text
+from edaloop.ingest.models import ElecRow, IngestReport, PinTable, Suggestion
+from edaloop.ingest.pdf_pages import elec_rows, find_elec_pages, find_pin_pages, page_text
 from edaloop.ingest.store import DatasheetStore
 from edaloop.ingest.validate import run_gate
 from edaloop.llm.base import LLMProvider
@@ -21,8 +21,19 @@ def ingest_pdf(
     pages = find_pin_pages(pdf_path)
     if not pages:
         raise RuntimeError(f"{pdf_name}: 未找到引脚定义页(扫描件或非标准排版?)")
+    # P4-6②/G16:电气参数表页 min/typ/max 机械提取(独立于引脚通道,失败不阻断引脚入库)
+    elec: list[ElecRow] = []
+    try:
+        for ep in find_elec_pages(pdf_path)[:6]:
+            for r in elec_rows(pdf_path, ep):
+                elec.append(ElecRow.model_validate(r))
+    except Exception as e:
+        elec = []
+        audit_kw = {"elec_error": str(e)[:120]}
+    else:
+        audit_kw = {"elec_rows": len(elec)}
     audit = AuditLog("runs/ingest")
-    audit.event("ingest-start", pdf=pdf_name, pages=pages)
+    audit.event("ingest-start", pdf=pdf_name, pages=pages, **audit_kw)
     table: PinTable | None = None
     report: IngestReport | None = None
     last_err: Exception | None = None
@@ -32,6 +43,7 @@ def ingest_pdf(
             continue
         try:
             table = llm_extract(text, pdf_name, llm, page_no)
+            table.elec = elec  # G16 数值行随表入库(datasheets.pins JSON 内)
         except Exception as e:
             last_err = e
             continue

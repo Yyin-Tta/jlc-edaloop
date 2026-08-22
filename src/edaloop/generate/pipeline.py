@@ -26,15 +26,53 @@ def load_catalog(seeds_path: str | Path = "seeds/blocks.jsonl") -> dict[str, Blo
     return {b.block_id: b for b in blocks}
 
 
-def make_retriever(db_path: str = "runs/knowledge.db", top_k: int = 12):
+def make_retriever(db_path: str = "runs/knowledge.db", top_k: int = 12, ir=None):
+    # P4-6③:ir 透传 → 案例第五通道开;生产路径(stage_run/stage_plan)传 ir,
+    # 评测路径(evals_w1/evals_refine)只喂 query_text → 通道结构性消融。
     def retrieve(query: str):
         store = KnowledgeStore(db_path, get_embedder(), get_reranker())
         try:
-            return store.retrieve(query or "power mcu interface", top_k=top_k)
+            return store.retrieve(query or "power mcu interface", top_k=top_k, ir=ir)
         finally:
             store.close()
 
     return retrieve
+
+
+def _maybe_record_case(ir, result, *, source: str, dry_run: bool, db_path: str, audit: AuditLog) -> None:
+    """P4-6③ 案例 PASS 回写。三护栏:①eval 源不写(req-*/evals 路径直接拒);
+    ②origin=run:<ir.id> 溯源;③hash 去重(store.record_case 内 sha256)。
+    """
+    if dry_run or result.status != "PASS" or result.final_plan is None:
+        return
+    src = Path(source)
+    if src.name.lower().startswith("req-") or "evals" in source.lower().replace("\\", "/"):
+        return
+    block_ids = sorted({b.block_id for b in result.final_plan.blocks})
+    if not block_ids:
+        return
+    from datetime import datetime, timezone
+
+    from edaloop.knowledge.models import CaseRecord
+    from edaloop.knowledge.store import _case_digest_of
+
+    try:
+        store = KnowledgeStore(db_path, get_embedder(), get_reranker())
+        try:
+            case = CaseRecord(
+                case_id=f"case-{ir.id}",
+                name=(ir.functions[0].name if ir.functions else src.stem)[:60],
+                origin=f"run:{ir.id}",
+                digest=_case_digest_of(ir),
+                block_ids=block_ids,
+                created=datetime.now(timezone.utc).isoformat(),
+            )
+            inserted = store.record_case(case)
+            audit.event("case-writeback", case_id=case.case_id, inserted=inserted, blocks=case.block_ids)
+        finally:
+            store.close()
+    except Exception as e:  # 回写是增益通道,失败不拖垮 PASS 交付
+        audit.event("case-writeback-error", error=str(e)[:200])
 
 
 def _parse_ir_with_retry(md_text: str, llm, source: str, attempts: int = 3) -> DesignIR:
@@ -76,7 +114,7 @@ def stage_run(
             answer_context = "\n\n用户已确认的决策(优先级高于你的默认选择,不要再问):\n" + "\n".join(
                 f"- [{qid}] {ans}" for qid, ans in answers.items() if ans
             )
-    retriever = make_retriever(db_path)
+    retriever = make_retriever(db_path, ir=ir)
     audit = AuditLog(f"runs/run-{ir.id}")
     audit.event(
         "ir",
@@ -100,6 +138,7 @@ def stage_run(
         acceptance_items=parse_acceptance(md_text),  # P4-5①:「## 期望指标」段不再丢弃
     )
     result = controller.run()
+    _maybe_record_case(ir, result, source=source, dry_run=dry_run, db_path=db_path, audit=audit)
     delivery = controller.deliver(result)
     audit.save_json(
         "loop-result.json",
@@ -124,7 +163,7 @@ def stage_plan(
     ir = requirement_to_ir(md_text, llm, source=source)
     store = KnowledgeStore(db_path, get_embedder(), get_reranker())
     try:
-        candidates = store.retrieve(ir.query_text() or md_text, top_k=top_k)
+        candidates = store.retrieve(ir.query_text() or md_text, top_k=top_k, ir=ir)
     finally:
         store.close()
     plan = make_plan(ir, candidates, llm)

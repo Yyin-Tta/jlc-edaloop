@@ -17,11 +17,27 @@ class PinInfo(_Strict):
     agreed: bool = True
 
 
+class ElecRow(_Strict):
+    """G16 datasheet 电气参数表行(P4-6②):min/typ/max 数值行,机械通道提取。
+
+    数值表可机械校验(与 prose 建议 suggestions 分级:elec 行 > prose 文本)。
+    """
+
+    param: str
+    min: str = ""
+    typ: str = ""
+    max: str = ""
+    unit: str = ""
+    page: int = 0
+    channel: str = "rule"
+
+
 class PinTable(_Strict):
     part: str
     source_pdf: str
     pages: list[int] = Field(default_factory=list)
     pins: list[PinInfo] = Field(default_factory=list)
+    elec: list[ElecRow] = Field(default_factory=list)
 
 
 class Suggestion(_Strict):
