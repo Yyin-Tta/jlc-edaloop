@@ -13,12 +13,12 @@ def _adapter(handler) -> EasyedaAdapter:
 
 
 def test_check_version_ok() -> None:
-    a = _adapter(lambda args: (0, "easyeda-agent v0.25.1\n", ""))
-    assert a.check_version() == "0.25.1"
+    a = _adapter(lambda args: (0, "easyeda-agent v1.1.1\n", ""))
+    assert a.check_version() == "1.1.1"
 
 
 def test_check_version_mismatch_raises() -> None:
-    a = _adapter(lambda args: (0, "easyeda-agent v0.26.0\n", ""))
+    a = _adapter(lambda args: (0, "easyeda-agent v0.25.1\n", ""))  # 旧钉扎=真机曾实装的漂移形态
     with pytest.raises(AdapterError, match="ADR-0002"):
         a.check_version()
 

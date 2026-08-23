@@ -171,6 +171,13 @@ class LoopController:
         result = LoopResult(status="FAIL", audit_dir=str(self.audit.dir))
         feedback = ""
         code_streak: dict[str, int] = {}
+        if not self.dry_run:
+            # 版本门前移(P5-0):此前只有 stage_apply 查版本,run 主链裸奔——
+            # 真机 daily 在钉扎 0.25.1/实装 1.1.1 漂移下照常落图。真机首次
+            # 变更前统一过门(ADR-0002);Fake/测试适配器无此方法则跳过。
+            _check = getattr(self.adapter, "check_version", None)
+            if callable(_check):
+                _check()
         for round_no in range(1, self.max_rounds + 1):
             rec = RoundRecord(round_no=round_no)
             query = self.ir.query_text()
@@ -581,10 +588,14 @@ class LoopController:
     def _ensure_pages(self, want: list[str], round_no: int) -> set[str]:
         """P4-b2 多页提前量:compile 判定分页后,落图前按名建页(幂等,已存在跳过)。
 
-        page-new 无名(上游 v0.25.1 无 --name),需 page-rename 两段;变更类命令
-        单次执行不走重试通道(重试会双建页);失败只审计不判负——后续 --doc 落图
+        P5-0 增页修剪:eval 复用同一工程,page-clear 只清内容不删页 → 页数单调涨
+        (实测 38 页后 EasyEDA netlist 导出超时"returned no file",block-apply 内置
+        净验证全缺脚假阴性 → GATE_FAIL,2026-08-22 实证);先删计划外的 P\\d+ 孤儿页
+        再建页。page-new 无名(上游 v0.25.1 无 --name),需 page-rename 两段;变更类
+        命令单次执行不走重试通道(重试会双建页);失败只审计不判负——后续 --doc 落图
         命令会显式失败并走既有 apply-fatal 路径。
-        返回建页后文档全部既有页名(调用方据此逐页全清,含孤儿页)。
+        返回修剪+建页后文档剩余页名(调用方据此逐页全清;非 harness 命名的页不动,
+        仍走清内容路径)。
         """
         from edaloop.generate.adapter import AdapterError
 
@@ -601,6 +612,29 @@ class LoopController:
                 entries.extend(s.get("page", []) or [])
         have = {str(p.get("name", "")).strip() for p in entries if str(p.get("name", "")).strip()}
         sch_uuid = next((p.get("parentSchematicUuid") for p in entries if p.get("parentSchematicUuid")), "")
+        # P5-0 页修剪:只删 harness 命名形态(^P\\d+$)且不在本轮计划的页;单发不重试
+        # (变更类纪律,同 page-new);删失败不判负,残留页由逐页清内容路径兜底。
+        keep = set(want) | {"P1"}
+        by_name = {str(p.get("name", "")).strip(): p.get("uuid", "") for p in entries}
+        doomed = sorted(n for n in have if re.match(r"^P\d+$", n) and n not in keep)
+        deleted: list[str] = []
+        prune_failed: list[str] = []
+        for name in doomed:
+            uuid = by_name.get(name, "")
+            try:
+                if not uuid:
+                    raise AdapterError(f"sch pages 未返回该页 uuid: {name}")
+                rc, _, _ = self.adapter.run(["sch", "page-delete", "--page", uuid])
+                if rc == 0:
+                    deleted.append(name)
+                else:
+                    prune_failed.append(name)
+            except Exception as e:  # noqa: BLE001 - 删页失败不判负,残留页走清内容路径
+                prune_failed.append(name)
+                self.audit.event("page-prune-error", round_no=round_no, name=name, error=str(e)[:300])
+        if doomed:
+            self.audit.event("page-prune", round_no=round_no, deleted=deleted, failed=prune_failed)
+            have -= set(deleted)
         for name in want:
             if name in have:
                 continue

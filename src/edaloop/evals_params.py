@@ -233,19 +233,24 @@ def _critic_eval() -> dict:
     rows = []
     for s in _CRITIC_SAMPLES:
         plan = BlockPlan.model_validate({"blocks": s["blocks"]})
-        try:
-            findings = review_plan(
-                plan, llm, catalog_desc=s.get("catalog_desc"),
-                netlist_summary=s.get("netlist", ""), rails_summary=s.get("rails", ""),
-                sizing_summary="", attempts=2,
-            )
-        except RuntimeError as e:  # 解析失败按未捕获计,不让单样本炸整批
-            rows.append({"name": s["name"], "expect": s["expect"], "caught": False, "codes": [f"ERR:{e}"]})
-            continue
-        codes = [f.code for f in findings]
-        caught = s["expect"] in codes
-        rows.append({"name": s["name"], "expect": s["expect"], "caught": caught, "codes": codes})
-        print(f"[{'OK ' if caught else 'MISS'}] critic {s['name']} -> {s['expect']} 实际 {codes}", flush=True)
+        # P5-0:critic 单发有类别方差(同一缺陷一轮报 THERMAL 一轮报
+        # POWER_INTEGRITY、一轮漏)——pass@2 并集口径测「能力」不测骰子,
+        # 与 P4-5 A 段生成率 pass@2 同理;生产 critic 仍单发。
+        codes: list[str] = []
+        for _call in range(2):
+            try:
+                findings = review_plan(
+                    plan, llm, catalog_desc=s.get("catalog_desc"),
+                    netlist_summary=s.get("netlist", ""), rails_summary=s.get("rails", ""),
+                    sizing_summary="", attempts=2,
+                )
+                codes.extend(f.code for f in findings)
+            except RuntimeError as e:  # 解析失败按未捕获计,不让单样本炸整批
+                codes.append(f"ERR:{e}")
+        uniq = list(dict.fromkeys(codes))
+        caught = s["expect"] in uniq
+        rows.append({"name": s["name"], "expect": s["expect"], "caught": caught, "codes": uniq})
+        print(f"[{'OK ' if caught else 'MISS'}] critic {s['name']} -> {s['expect']} 实际 {uniq}", flush=True)
     caught_n = sum(1 for r in rows if r["caught"])
     return {"skipped": False, "rows": rows, "total": len(rows), "caught": caught_n}
 

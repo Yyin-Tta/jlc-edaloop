@@ -124,7 +124,10 @@ def run_w3_loop_eval(max_rounds: int = 5, dry_run: bool = False, resume: bool = 
         state_path = Path("runs/w3-loop-state.json")
     state = _load_state(state_path) if resume else {"rows": {}}
     for name in reqs:
-        if name in state["rows"]:
+        # P5-0: 只跳 PASS;HALT/ERROR 重跑——resume 曾把环境崩溃遗留的 HALT 行当
+        # 已完成跳过,smoke 变 2/3 而不自知(2026-08-23 实证)。HALT=同错 2 轮需
+        # 人工介入,操作者重发 eval 即代表要新尝试,旧行已留在上一 run 的 audit 里。
+        if state["rows"].get(name, {}).get("status") == "PASS":
             print(f"skip(done) {name}: {state['rows'][name]}", flush=True)
             continue
         md = (_REQ_DIR / name).read_text(encoding="utf-8")

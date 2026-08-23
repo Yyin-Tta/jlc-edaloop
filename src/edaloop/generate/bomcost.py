@@ -38,11 +38,20 @@ def fetch_cost(lcsc: str, *, timeout: float = 15.0) -> PartCost:
     if not lcsc or not lcsc.upper().startswith("C"):
         pc.error = "invalid lcsc"
         return pc
-    try:
-        r = httpx.get(_API, params={"productCode": lcsc}, headers=_HEADERS, timeout=timeout)
-        data = r.json()
-    except Exception as e:
-        pc.error = f"{type(e).__name__}: {e}"[:120]
+    # P5-4②:SSL/连接瞬态重试一次(历史 run 实测 6 行缺价全是 ConnectError 瞬态;
+    # 弱信号不抛原则不变,两次都败才落 error)
+    last_exc: Exception | None = None
+    for attempt in range(2):
+        try:
+            r = httpx.get(_API, params={"productCode": lcsc}, headers=_HEADERS, timeout=timeout)
+            data = r.json()
+            last_exc = None
+            break
+        except Exception as e:
+            last_exc = e
+            continue
+    if last_exc is not None:
+        pc.error = f"{type(last_exc).__name__}: {last_exc}"[:120]
         return pc
     if not data.get("ok"):
         pc.error = f"api not ok: {str(data.get('code'))[:40]}"

@@ -31,4 +31,4 @@ testpaths = ["tests"]
 
 # 澶栭儴渚濊禆閽夋(ADR-0002):easyeda-agent CLI/daemon/杩炴帴鍣?skill,鍗囩骇椤荤嫭绔?PR + 鍏ㄩ噺 evals 鍥炲綊
 [tool.edaloop]
-easyeda-agent = "0.25.1"
+easyeda-agent = "1.1.1"

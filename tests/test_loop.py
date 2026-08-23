@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+
+import pytest
 from pathlib import Path
 
 from edaloop.generate.audit import AuditLog
@@ -953,3 +955,67 @@ def test_titleblock_real_shape_and_false_negative_verified(tmp_path) -> None:
     events = [json.loads(line) for line in Path(str(tmp_path), "audit.jsonl").read_text(encoding="utf-8").splitlines()]
     tb = [e for e in events if e.get("kind") == "titleblock"]
     assert [(e["key"], e["rc"], e["verified"]) for e in tb] == [("Name", 1, True)]
+
+
+def test_run_version_gate_before_mutation(tmp_path) -> None:
+    """P5-0 版本门前移:真机 run 主链首轮变更前必须过版本门(此前仅 apply 查)。
+
+    适配器带 check_version 且 raise → run() 在任何变更命令前炸出;
+    旧钉扎形态(0.25.1)正是本机实装 1.1.1 时的漂移场景。
+    """
+    from edaloop.generate.adapter import AdapterError
+
+    class _VersionGateAdapter(_FakeAdapter):
+        def check_version(self) -> str:
+            raise AdapterError("easyeda-agent 版本 0.25.1 与钉死版本 1.1.1 不一致(ADR-0002)")
+
+    chat = FakeChat(json.dumps(_PLAN_OK, ensure_ascii=False))
+    adapter = _VersionGateAdapter("pass")
+    lc = _loop(chat, adapter, tmp=str(tmp_path))
+    with pytest.raises(AdapterError, match="ADR-0002"):
+        lc.run()
+    # 门在任何落图命令(block-apply/clear)之前炸出
+    mutating = [c for c in adapter.calls if len(c) > 1 and c[1] in ("block-apply",) or c[:2] == ["sch", "clear"]]
+    assert mutating == []
+
+
+def test_run_no_check_version_method_skips_gate(tmp_path) -> None:
+    """无 check_version 的适配器(Fake/测试形态)不受版本门影响,照常收敛。"""
+    chat = FakeChat(json.dumps(_PLAN_OK, ensure_ascii=False))
+    lc = _loop(chat, _FakeAdapter("pass"), tmp=str(tmp_path))
+    assert lc.run().status == "PASS"
+
+
+# ---- P5-0 页修剪:计划外 P\d+ 孤儿页删除(netlist 导出页数超载的根因修复) ----
+
+
+class _PruneFakeAdapter(_ZoneFakeAdapter):
+    """sch pages 返回 P1..P5+Main(非 harness 命名);page-delete 记录入 calls 供断言。"""
+
+    def run_json(self, args):
+        if args[1] == "pages":
+            return {"result": {"pages": [
+                {"name": "P1", "uuid": "u1", "parentSchematicUuid": "s1"},
+                {"name": "P2", "uuid": "u2", "parentSchematicUuid": "s1"},
+                {"name": "P3", "uuid": "u3", "parentSchematicUuid": "s1"},
+                {"name": "P4", "uuid": "u4", "parentSchematicUuid": "s1"},
+                {"name": "P5", "uuid": "u5", "parentSchematicUuid": "s1"},
+                {"name": "Main", "uuid": "um", "parentSchematicUuid": "s1"},
+            ]}}
+        return super().run_json(args)
+
+
+def test_page_prune_deletes_orphan_plan_pages(tmp_path) -> None:
+    chat = FakeChat(json.dumps(_PLAN_OK, ensure_ascii=False))
+    adapter = _PruneFakeAdapter("pass")
+    lc = _loop(chat, adapter, tmp=str(tmp_path))
+    result = lc.run()
+    assert result.status == "PASS"
+    dels = [c for c in adapter.calls if c[:2] == ["sch", "page-delete"]]
+    # 计划只落 P1 → P2..P5 删(uuid 断言),Main 非 ^P\d+$ 不动
+    assert sorted(c[3] for c in dels) == ["u2", "u3", "u4", "u5"]
+    assert not any("um" in c for c in dels)
+    # 清内容只剩 P1+Main(删除的页不再逐页 clear)
+    cleared = [c for c in adapter.calls if c[:2] == ["sch", "clear"]]
+    docs = {c[i + 1] for c in cleared for i, a in enumerate(c) if a == "--doc"}
+    assert sorted(docs) == ["Main", "P1"]
