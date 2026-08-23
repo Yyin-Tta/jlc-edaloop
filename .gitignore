@@ -20,4 +20,9 @@ runs/
 
 dist/
 
+# 本地工作区/上游克隆/CLI 导出产物——永不入库(防 add -A 误收)
+easyeda-agent/
+samples/
+.easyeda/
+
 docs/
