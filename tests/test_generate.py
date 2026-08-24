@@ -349,3 +349,124 @@ def test_zone_hint_overrides_category() -> None:
     assert next(a for a in actions if a.kind == "block-apply").zone == "PERI"
     assert plan.blocks[0].at == "180,300"
     assert plan.blocks[0].page == "P1"
+
+
+# ---- P5-0/G33 行-货架页流:place 小件行内并排,宽块恒独行(与旧单列逐坐标等价) ----
+
+
+def _tiny(catalog, block_id: str = "tiny", pinout: dict | None = None) -> None:
+    catalog[block_id] = BlockRecord(
+        block_id=block_id,
+        name=block_id,
+        desc="x",
+        lcsc="C1",
+        pinout=pinout if pinout is not None else {"1": "A", "2": "B"},
+    )
+
+
+def test_row_shelf_packs_small_parts_per_row(monkeypatch) -> None:
+    """行-货架流(G33 页爆炸修复核心):place 小件行内左→右并排,行宽尽换行。
+    实测墨迹 (150,80) → pitch = 150+2×120 = 390:行内 180/570 两位,第三件换行。"""
+    from edaloop.generate import compile as compile_mod
+
+    monkeypatch.setattr(compile_mod, "_PLACE_INK", {"tiny": (150, 80)})
+    catalog = _catalog()
+    _tiny(catalog)
+    res = _at_page_of(_plan_of(catalog, "tiny", "tiny", "tiny"), catalog)
+    assert [res[f"i{n}"] for n in range(3)] == [
+        ("180,300", "P1"),
+        ("570,300", "P1"),
+        ("180,440", "P1"),  # 换行:行进 = 行内最大 dy(80)+gap 60
+    ]
+
+
+def test_row_advance_uses_max_dy_of_row(monkeypatch) -> None:
+    """行进 = 行内最大 dy + gap(不是逐件 dy 累加):同行 300 高 + 80 高两件,
+    下一件 y = 300+300+60 = 660。"""
+    from edaloop.generate import compile as compile_mod
+
+    monkeypatch.setattr(compile_mod, "_PLACE_INK", {"tall": (150, 300), "tiny": (150, 80)})
+    catalog = _catalog()
+    _tiny(catalog, "tall")
+    _tiny(catalog, "tiny")
+    # 带内 dy 降序:tall(300) 先,tiny(80) 拼 its 行(pitch 390+390=780 ≤ 950)
+    res = _at_page_of(_plan_of(catalog, "tall", "tiny", "tiny"), catalog)
+    assert res["i0"] == ("180,300", "P1")
+    assert res["i1"] == ("570,300", "P1")
+    assert res["i2"] == ("180,660", "P1")
+
+
+def test_bands_do_not_share_rows(monkeypatch) -> None:
+    """带不共行(页内行段=带,分区语义):band0 末件与 band1 首件即使都小
+    也分行。"""
+    from edaloop.generate import compile as compile_mod
+
+    monkeypatch.setattr(compile_mod, "_PLACE_INK", {"tiny": (150, 80)})
+    catalog = _catalog()
+    _tiny(catalog)
+    blocks = [
+        {"block_id": "tiny", "upstream_id": "", "instance": "i0", "pins_binding": {"1": "GND"}, "zone": "left"},
+        {"block_id": "tiny", "upstream_id": "", "instance": "i1", "pins_binding": {"1": "GND"}, "zone": "left"},
+        {"block_id": "tiny", "upstream_id": "", "instance": "i2", "pins_binding": {"1": "GND"}, "zone": "center"},
+    ]
+    plan = BlockPlan.model_validate({"blocks": blocks})
+    res = _at_page_of(plan, catalog)
+    assert res["i0"] == ("180,300", "P1")
+    assert res["i1"] == ("570,300", "P1")  # band0 行内并排
+    assert res["i2"] == ("180,440", "P1")  # band1 起新行,不接 960 拼
+
+
+def test_block_layout_anchor_owns_row(monkeypatch) -> None:
+    """_BLOCK_LAYOUT 锚点块独占行(整组实测几何不与邻件拼行):led(dx136,
+    pitch 376 本可拼行)锚定后逐块独行且 x 用实测锚点。"""
+    from edaloop.generate import compile as compile_mod
+
+    monkeypatch.setattr(compile_mod, "_BLOCK_LAYOUT", {"block.led_indicator_gpio": (200, 250)})
+    catalog = _catalog()
+    catalog["led"] = BlockRecord(
+        block_id="led", name="L", desc="x", category="power",
+        upstream=UpstreamRef(id="block.led_indicator_gpio", ports={}),
+    )
+    res = _at_page_of(_plan_of(catalog, "led", "led"), catalog)
+    assert res["i0"] == ("200,300", "P1")  # 锚点 x0 覆盖(实测左翼已量入)
+    assert res["i1"] == ("200,386", "P1")  # 行进 = dy26+60,而非拼行 x=556
+
+
+def test_place_tier_defaults_by_pin_count() -> None:
+    """未标定 place 器件按引脚数分档保守缺省:2 脚=旧 _CELL_PLACE(行为保真),
+    3-9 脚中件,10+ 大件。"""
+    from edaloop.generate.compile import _place_cell
+
+    def rec(n: int) -> BlockRecord:
+        return BlockRecord(
+            block_id=f"p{n}", name="x", desc="x", lcsc="C1",
+            pinout={str(i): f"P{i}" for i in range(1, n + 1)},
+        )
+
+    assert _place_cell(rec(2)) == (400, 250)
+    assert _place_cell(rec(6)) == (450, 350)
+    assert _place_cell(rec(12)) == (550, 500)
+
+
+def test_place_ink_measured_table_wins(monkeypatch) -> None:
+    """_PLACE_INK 实测墨迹优先于分档:标定过的 block_id 直接用实测格。"""
+    from edaloop.generate import compile as compile_mod
+    from edaloop.generate.compile import _place_cell
+
+    monkeypatch.setattr(compile_mod, "_PLACE_INK", {"p2": (150, 80)})
+    r = BlockRecord(block_id="p2", name="x", desc="x", lcsc="C1", pinout={"1": "A", "2": "B"})
+    assert _place_cell(r) == (150, 80)
+
+
+def test_row_shelf_12_small_parts_two_pages(monkeypatch) -> None:
+    """页爆炸修复量化:req-11 类 37 小件从每件一页回到行-货架密度——
+    12 件 (150,80) → 2 页收(2 件/行 × 4 行/页;旧单列流 = 3 页,
+    旧未标定保守格 250 高 = 5 页)。"""
+    from edaloop.generate import compile as compile_mod
+
+    monkeypatch.setattr(compile_mod, "_PLACE_INK", {"tiny": (150, 80)})
+    catalog = _catalog()
+    _tiny(catalog)
+    res = _at_page_of(_plan_of(catalog, *(["tiny"] * 12)), catalog)
+    pages = {p for _, p in res.values()}
+    assert pages == {"P1", "P2"}

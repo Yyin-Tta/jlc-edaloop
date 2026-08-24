@@ -153,6 +153,28 @@ def test_check_gate_fail() -> None:
     assert findings[0].suggested_fix_class == "RELAYOUT"
 
 
+def test_check_gate_overlap_evidence_names_parties() -> None:
+    """G33:overlap evidence 必须点名双方(a/b 进 _compact 键表)——RELAYOUT
+    反馈据此定位修复对象;不同双方不折叠成同一条 type=overlap。"""
+    report = {
+        "verdict": "fail",
+        "stages": [
+            {
+                "stage": "clusters",
+                "verdict": "fail",
+                "findings": [
+                    {"type": "overlap", "a": "R9", "b": "R10"},
+                    {"type": "overlap", "a": "D2", "b": "J1"},
+                ],
+            }
+        ],
+    }
+    findings = check_gauge(report)
+    assert len(findings) == 2  # 双方不同 → 两条独立,不折叠
+    r9 = next(f for f in findings if "R9" in f.evidence)
+    assert "a=R9" in r9.evidence and "b=R10" in r9.evidence
+
+
 def test_check_gate_blocked_env() -> None:
     report = {"verdict": "blocked", "stages": []}
     findings = check_gauge(report)
@@ -609,6 +631,8 @@ class _ArrangeFakeAdapter(_ZoneFakeAdapter):
     block-apply manifest 位号与 g1 对齐(placed_by_page 命中路径)。
     arrange_rc=1 仿真「装不下拒排」(fit 类),=0 仿真已执行。"""
 
+    _USABLE = {"minX": 12, "minY": 12, "maxX": 1158, "maxY": 813}
+
     def __init__(
         self,
         gate_verdict: str,
@@ -619,6 +643,7 @@ class _ArrangeFakeAdapter(_ZoneFakeAdapter):
         clamp_clean: bool = False,
         extra_clusters: dict[str, dict] | None = None,
         refuse_first: int = 0,
+        sheet_usable: dict | None = _USABLE,  # 传 None → clusters 报告整体缺 sheetUsable(图框丢失现场)
     ) -> None:
         super().__init__(gate_verdict)
         self.arranges = 0
@@ -631,6 +656,7 @@ class _ArrangeFakeAdapter(_ZoneFakeAdapter):
         self.clamps = 0
         self.ok_moves = 0
         self.refuse_first = refuse_first
+        self.sheet_usable = dict(sheet_usable) if sheet_usable is not None else None
 
     def run(self, args):
         if args[1] == "block-apply":
@@ -653,17 +679,10 @@ class _ArrangeFakeAdapter(_ZoneFakeAdapter):
                         clusters.append({"designator": b, "primitiveId": f"p-{b}", "box": dict(box)})
                 for d, box in self.extra_clusters.items():
                     clusters.append({"designator": d, "primitiveId": f"p-{d}", "box": dict(box)})
-                return (
-                    1,
-                    json.dumps(
-                        {
-                            "findings": findings,
-                            "clusters": clusters,
-                            "sheetUsable": {"minX": 12, "minY": 12, "maxX": 1158, "maxY": 813},
-                        }
-                    ),
-                    "",
-                )
+                payload = {"findings": findings, "clusters": clusters}
+                if self.sheet_usable is not None:
+                    payload["sheetUsable"] = dict(self.sheet_usable)
+                return 1, json.dumps(payload), ""
             return 0, json.dumps({"findings": []}), ""
         if args[:2] == ["sch", "group-move"]:
             self.calls.append(args)
@@ -781,6 +800,31 @@ def test_arrange_closeout_clamps_strays_when_arrange_refuses(tmp_path) -> None:
     assert [e["remaining"] for e in events if e.get("kind") == "arrange-result"] == [0]
 
 
+def test_clamp_falls_back_to_contract_band_when_usable_missing(tmp_path) -> None:
+    """clusters 报告整体缺 sheetUsable(图框几何丢失现场,req-01 daily HALT 链:
+    上游拒排 + 旧代码静默零修复)→ 回退 planner 契约带继续刚移并留痕:
+    R3 maxX=1300 越回退带 maxX=1100 → dx=-200(真带 1158 时是 -145)。"""
+    chat = FakeChat(json.dumps(_PLAN_OK, ensure_ascii=False))
+    adapter = _ArrangeFakeAdapter(
+        "pass",
+        dirty_arranges=99,
+        arrange_rc=1,
+        placed=("D3", "J1", "R3", "R9"),
+        errors=(("out-of-sheet", "R3", ""),),
+        clamp_clean=True,
+        sheet_usable=None,
+    )
+    lc = _loop(chat, adapter, tmp=str(tmp_path))
+    result = lc.run()
+    assert result.status == "PASS"
+    mv = [c for c in adapter.calls if c[:2] == ["sch", "group-move"]]
+    assert len(mv) == 1 and mv[0][mv[0].index("--dx") + 1] == "-200"
+    assert mv[0][mv[0].index("--dy") + 1] == "0"
+    events = [json.loads(line) for line in Path(str(tmp_path), "audit.jsonl").read_text(encoding="utf-8").splitlines()]
+    assert any(e.get("kind") == "clamp-band-fallback" for e in events)
+    assert [e["remaining"] for e in events if e.get("kind") == "arrange-result"] == [0]
+
+
 def test_arrange_closeout_clamp_prefers_own_zone(tmp_path) -> None:
     """钳回落点优先本 zone 包络(run7 残留 partitionOverlap=3 的根因:裸钳把
     件甩进邻居分区):多个空位可行时取离本 zone 其他成员联合包络中心最近
@@ -877,7 +921,7 @@ def test_arrange_closeout_groups_place_channel_strays(tmp_path) -> None:
 
 def test_arrange_closeout_skips_clean_pages(tmp_path) -> None:
     """clusters 无 ERROR 的页绝不重排(干净几何重洗=收益为负);
-    明细表仍逐页补(titleblock-get 无字段 → 只 --show,不盲写 --data)。"""
+    明细表仍逐页只读保位(--show,永不 --data 写入)。"""
     chat = FakeChat(json.dumps(_PLAN_OK, ensure_ascii=False))
     adapter = _ZoneFakeAdapter("pass")  # clusters → "{}" 无 findings
     lc = _loop(chat, adapter, tmp=str(tmp_path))
@@ -890,71 +934,32 @@ def test_arrange_closeout_skips_clean_pages(tmp_path) -> None:
     assert not [c for c in shows if "--data" in c]
 
 
-class _TitleFakeAdapter(_ZoneFakeAdapter):
-    def run(self, args):
-        if args[1] == "titleblock-get":
-            self.calls.append(args)
-            return (
-                0,
-                json.dumps(
-                    {"result": {"fields": {"Title": {"value": "old"}, "Size": {"value": "A4"}}}}
-                ),
-                "",
-            )
-        return super().run(args)
-
-
-def test_titleblock_writes_discovered_key(tmp_path) -> None:
-    """titleblock-get 探到 Title → --show + --data Title=<需求·页>;
-    只写存在的 key(写不存在的 key 平台静默丢弃还 rc!=0)。"""
+def test_titleblock_never_writes_data(tmp_path) -> None:
+    """0.26.0 明令 titleblock --data 写入禁令(该写路径触发图签重建、损毁
+    sheet 符号引用 → 重启后图框丢失 → group-arrange 拒排 → HALT,req-01
+    daily 定案):主链只许 --show 保可见性,全链不许出现 --data 与
+    titleblock-get。"""
     chat = FakeChat(json.dumps(_PLAN_OK, ensure_ascii=False))
-    adapter = _TitleFakeAdapter("pass")
+    adapter = _ZoneFakeAdapter("pass")
     lc = _loop(chat, adapter, tmp=str(tmp_path))
     result = lc.run()
     assert result.status == "PASS"
-    data = [c for c in adapter.calls if "--data" in c]
-    assert len(data) == 1
-    payload = json.loads(data[0][data[0].index("--data") + 1])
-    assert payload == {"Title": {"value": "t · P1"}}  # ir.source=t.md → stem t
-    assert data[0][data[0].index("--doc") + 1] == "P1"
+    shows = [c for c in adapter.calls if c[:2] == ["sch", "titleblock"]]
+    assert shows and all("--show" in c and "--doc" in c for c in shows)
+    assert not [c for c in adapter.calls if "--data" in c]
+    assert not [c for c in adapter.calls if c[1] == "titleblock-get"]
 
 
-class _TitleRealShapeAdapter(_ZoneFakeAdapter):
-    """真机形态(run7 实探):键表在 result.titleBlockData,Name 是标题格;
-    写返回 rc=1 nothing-applied 假失败(写后即时回读撞图签重建 stale 窗口),
-    但值已落——控制器按值回读判真伪。"""
-
-    def __init__(self, gate_verdict: str) -> None:
-        super().__init__(gate_verdict)
-        self.tb: dict[str, dict] = {"Name": {"value": ""}, "Size": {"value": "A4"}}
-
-    def run(self, args):
-        if args[1] == "titleblock-get":
-            self.calls.append(args)
-            return 0, json.dumps({"result": {"titleBlockData": self.tb}}), ""
-        if args[1] == "titleblock" and "--data" in args:
-            self.calls.append(args)
-            patch = json.loads(args[args.index("--data") + 1])
-            for k, v in patch.items():
-                self.tb[k] = {"value": v["value"]}
-            return 1, "nothing was applied", ""
-        return super().run(args)
-
-
-def test_titleblock_real_shape_and_false_negative_verified(tmp_path) -> None:
-    """键表在 titleBlockData(旧解析漏这层→key 恒 None);写 rc=1 假失败时
-    按值回读判真伪(verified=True),不冤枉也不轻信。"""
+def test_titleblock_show_audited_per_page(tmp_path) -> None:
+    """只读探测逐页留痕(kind=titleblock:page/show_rc),失败只审计不判负
+    (注释类非致命,不因图签问题拖垮收敛)。"""
     chat = FakeChat(json.dumps(_PLAN_OK, ensure_ascii=False))
-    adapter = _TitleRealShapeAdapter("pass")
+    adapter = _ZoneFakeAdapter("pass")
     lc = _loop(chat, adapter, tmp=str(tmp_path))
-    result = lc.run()
-    assert result.status == "PASS"
-    data = [c for c in adapter.calls if "--data" in c]
-    assert len(data) == 1
-    assert json.loads(data[0][data[0].index("--data") + 1]) == {"Name": {"value": "t · P1"}}
+    assert lc.run().status == "PASS"
     events = [json.loads(line) for line in Path(str(tmp_path), "audit.jsonl").read_text(encoding="utf-8").splitlines()]
     tb = [e for e in events if e.get("kind") == "titleblock"]
-    assert [(e["key"], e["rc"], e["verified"]) for e in tb] == [("Name", 1, True)]
+    assert [(e["page"], e["show_rc"]) for e in tb] == [("P1", 0)]
 
 
 def test_run_version_gate_before_mutation(tmp_path) -> None:

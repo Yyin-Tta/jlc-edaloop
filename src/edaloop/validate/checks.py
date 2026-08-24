@@ -811,7 +811,7 @@ def check_gauge(gate_report: dict) -> list[Finding]:
 def _compact(f: object) -> str:
     if isinstance(f, dict):
         parts = []
-        for k in ("code", "type", "message", "detail", "net", "ref", "designator"):
+        for k in ("code", "type", "message", "detail", "net", "ref", "designator", "a", "b"):
             if f.get(k):
                 parts.append(f"{k}={f[k]}")
         return " ".join(parts)[:200] or str(f)[:200]

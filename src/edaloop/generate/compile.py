@@ -138,9 +138,44 @@ _INK_CELL = {
     "block.xl1509_buck_12v_5v": (856, 329),
 }
 _INK_DEFAULT = (950, 700)  # 未实测 upstream 块保守占位
-_CELL_PLACE = (400, 250)  # place 通道单器件符号(保守)
 _CALIB_SPACING = 250  # _INK_CELL 的标定格距(A4 实测可整块入图)
 _SPACING_DEFAULT = "250"
+
+# ---- 行-货架页流(P5-0/G33 页爆炸修复):place 通道小件行内并排,不再每件独占一页 ----
+# 页内流宽:x0(180)+950=1130 ≤ 铁边距 1158;行内 pitch = dx + 2×_WING_PAD_X。
+# 宽块(pitch ≥ 流宽)恒独行 → 与旧单列流逐坐标等价,既有页流断言零改动保真。
+# 回退开关:_FLOW_W=400 → 除 led_indicator(dx136)外全部独行,近似精确还原单列。
+_FLOW_W = 950
+_WING_PAD_X = 120  # 行内翼展垫:netport 文字+桩线实测单侧 50~320,取中带保守
+# place 通道实测墨迹表(2026-08-24 真机标定,证据 .claude/measure-place-ink.json):
+# (dx, dy) = 逐 pin autoconnect(netport 已连)后 clusters 组盒——netport 翼展已含在
+# dx 里(实测 netport 只加宽不加高:R 符号 21→连网后 261,dy 11)。R/C/STM32 三类
+# 以真实引脚名(1/2)复测校正(首轮合成引脚名 A/B 连网失败低估);STM32 的 C8734
+# lib-search 无果,走 MPN STM32F103C8T6 命中。表外块走 _PLACE_INK_TIERS 分档。
+_PLACE_INK: dict[str, tuple[int, int]] = {
+    "resistor-std": (261, 11),
+    "capacitor-std": (261, 17),
+    "switch-6x6": (281, 13),
+    "tvs-smaj5": (261, 16),
+    "xtal-8m": (195, 21),
+    "fuse-polyfuse": (301, 11),
+    "diode-ss34": (261, 17),
+    "terminal-kf301-2p": (176, 31),
+    "nmos-2n7002": (251, 51),
+    "pmos-ao3401": (251, 51),
+    "isolator-pc817": (311, 35),
+    "isolated-dc-b0505s": (226, 51),
+    "header-1x4": (331, 81),
+    "esd-usblc6": (255, 41),
+    "usb-serial-ch340k": (497, 110),
+    "mcu-stm32f103c8-min": (593, 291),
+}
+_PLACE_INK_TIERS: tuple[tuple[int, tuple[int, int]], ...] = (
+    (2, (400, 250)),  # 2 脚小件(R/C/二极管类)= 旧 _CELL_PLACE
+    (9, (450, 350)),  # 3-9 脚中件(晶体管/MOS/连接器类)
+    (1 << 30, (550, 500)),  # 10+ 脚大件(SOP/连接器排类)
+)
+_CELL_PLACE = (400, 250)  # place 通道兜底单格(_PLACE_INK_TIERS 档 1 同源)
 
 # ⚠ _INK_CELL 的 dx/dy 是「器件 bbox 并集」,**不含 netport/netflag 文字翼展**
 # (2026-08-21 校准 A/B 实测:标签+桩线在 bbox 外单侧可伸 50~320 —— 长 --instance
@@ -172,11 +207,25 @@ def _spacing_of(rec: BlockRecord, b, spacing_default: int) -> int:
     return spacing_default
 
 
+def _place_cell(rec: BlockRecord) -> tuple[int, int]:
+    """place 通道占位:_PLACE_INK 实测墨迹优先(逐 pin autoconnect 后组盒,
+    netport 翼展已含);未标定按引脚数分档保守缺省。与 spacing 无关
+    (sch place 无该旗标)。"""
+    ink = _PLACE_INK.get(rec.block_id)
+    if ink:
+        return ink[0], ink[1]
+    n = len(rec.pinout or {})
+    for cap, cell in _PLACE_INK_TIERS:
+        if n <= cap:
+            return cell
+    return _CELL_PLACE
+
+
 def _cell_for(rec: BlockRecord, spacing: int = _CALIB_SPACING) -> tuple[int, int]:
     """实测占位。upstream 块墨迹随 --spacing 线性缩放(相对 250 标定);
     place 通道符号几何与 spacing 无关(sch place 无该旗标),恒用固定格不缩放。"""
     if rec.upstream is None:
-        return _CELL_PLACE[0], _CELL_PLACE[1]
+        return _place_cell(rec)
     s = max(int(spacing), 100) / _CALIB_SPACING
     dx, dy = _INK_CELL.get(rec.upstream.id, _INK_DEFAULT)
     return int(dx * s), int(dy * s)
@@ -228,7 +277,9 @@ def band_of(rec: BlockRecord, zone_hint: str = "") -> int:
 
 
 class _PageFlow:
-    """A4 页内纵向堆叠:块按带序(电源→主控→外设)依次入页,累计越 _SHEET_TOP_LIMIT 开新页。
+    """A4 页内行-货架流:块按带序(电源→主控→外设)入页;行内左→右铺
+    (pitch = dx + 2×_WING_PAD_X),行宽尽换行(行进 = 行内最大 dy + gap),
+    页高尽换页。宽块(pitch ≥ 流宽)恒独行 → 与旧单列流逐坐标等价。
 
     页名 P1..Pn(P1 = 工程已有首页,controller 对 P2+ 做 page-new/page-rename 并以
     --doc 钉扎)。单块自身超页高(cc1101 类 25 件块)仍占当前页并照常推进——溢出由
@@ -241,19 +292,39 @@ class _PageFlow:
         y0: int = _GRID_Y0,
         top_limit: int = _SHEET_TOP_LIMIT,
         gap: int = _STACK_GAP,
+        flow_w: int = _FLOW_W,
     ) -> None:
-        self.x0, self.y0, self.top_limit, self.gap = x0, y0, top_limit, gap
+        self.x0, self.y0, self.top_limit, self.gap, self.flow_w = x0, y0, top_limit, gap, flow_w
         self.page_no = 0
         self.next_y = y0
+        self.row_x = x0
+        self.row_dy = 0
         self.placed_any = False
 
-    def take(self, dy: int) -> tuple[str, str]:
-        """返回 (at, 页名);间隙记在后块(推进量 = dy + gap),换页判定不含间隙。"""
+    def _close_row(self) -> None:
+        self.next_y += self.row_dy + self.gap
+        self.row_x = self.x0
+        self.row_dy = 0
+
+    def break_row(self) -> None:
+        """强制封行(带边界/锚点块):已开的行封口,下一块从行首起。"""
+        if self.row_x > self.x0:
+            self._close_row()
+
+    def take(self, dx: int, dy: int) -> tuple[str, str]:
+        """返回 (at, 页名)。行宽尽换行、页高尽换页(判定不含间隙);
+        间隙记在后块(行进含 gap),同旧单列语义。"""
+        pitch = dx + 2 * _WING_PAD_X
+        if self.row_x > self.x0 and self.row_x + pitch > self.x0 + self.flow_w:
+            self._close_row()
         if self.placed_any and self.next_y + dy > self.top_limit:
             self.page_no += 1
             self.next_y = self.y0
-        at = f"{self.x0},{self.next_y}"
-        self.next_y += dy + self.gap
+            self.row_x = self.x0
+            self.row_dy = 0
+        at = f"{self.row_x},{self.next_y}"
+        self.row_x += pitch
+        self.row_dy = max(self.row_dy, dy)
         self.placed_any = True
         return at, f"P{self.page_no + 1}"
 
@@ -276,6 +347,7 @@ def compile_actions(
     flow = _PageFlow()
     emit: list = []
     for band in (0, 1, 2):
+        flow.break_row()  # 带不共行(页内行段=带,分区语义保真)
         ordered = sorted(
             band_blocks[band],
             key=lambda b: _cell_for(catalog[b.block_id], _spacing_eff(catalog[b.block_id], b, spacing))[1],
@@ -284,8 +356,10 @@ def compile_actions(
         for b in ordered:
             rec = catalog[b.block_id]
             dx, dy = _cell_for(rec, _spacing_eff(rec, b, spacing))
-            at, page = flow.take(dy)
             lay = _BLOCK_LAYOUT.get(rec.upstream.id) if rec.upstream else None
+            if lay:
+                flow.break_row()  # 锚点块独占行(整组实测几何,不与邻件拼行)
+            at, page = flow.take(dx, dy)
             if lay:
                 # 实测锚点 x0(块左翼已量入,如 rs485 U4 的 RS485_A/B 文字翼 322)
                 at = f"{lay[0]},{at.split(',')[1]}"

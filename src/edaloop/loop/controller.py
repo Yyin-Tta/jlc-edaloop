@@ -43,6 +43,14 @@ def _clamp_delta(lo, hi, band_lo: float, band_hi: float) -> int:
     return _snap5(raw) if raw else 0
 
 
+# clusters 报告缺 sheetUsable 时的回退带 = planner 契约带(plan.py 提示词与
+# attribution.py 同源承诺 x∈[100,1100] y∈[300,780]);严格内嵌实测真带
+# [12,12]-[1158,813] 且避图签带(y≥198)。2026-08-24 req-01 daily 实证:图框
+# 几何丢失时上游 group-arrange 拒排 + 本地无带静默退 → 两轮零修复 HALT;
+# 回退此带保住拒排兜底链(宽度足够 group-move 扫描落位,不依赖上游报告)。
+_FALLBACK_SHEET_USABLE = (100.0, 300.0, 1100.0, 780.0)  # minX, minY, maxX, maxY
+
+
 @dataclass
 class RoundRecord:
     round_no: int
@@ -906,7 +914,15 @@ class LoopController:
             try:
                 ux1, uy1, ux2, uy2 = (float(u[k]) for k in ("minX", "minY", "maxX", "maxY"))
             except (KeyError, TypeError, ValueError):
-                return errs  # 带几何缺失:无证据不动作
+                # 旧:带几何缺失静默返回(无证据不动作)。clusters 无带 → 回退
+                # planner 契约带并留痕,ERROR 件仍可刚移——拒排兜底链不断。
+                self.audit.event(
+                    "clamp-band-fallback",
+                    round_no=round_no,
+                    page=page,
+                    missing=str(u)[:120],
+                )
+                ux1, uy1, ux2, uy2 = _FALLBACK_SHEET_USABLE
             boxes = {
                 c.get("designator"): c.get("box")
                 for c in (rep.get("clusters") or [])
@@ -1163,71 +1179,25 @@ class LoopController:
             self.audit.event("arrange-stray-group", round_no=round_no, page=page, designator=d)
 
     def _apply_titleblocks(self, round_no: int, actions) -> None:
-        """逐页明细表补齐(sch check 的 missing-titleblock 消除项;注释类非致命)。
+        """逐页明细表只读保位(注释类非致命)。
 
-        titleblock 修改只作用前台页(官方 API 无 pageUuid,与 get 不对称),
-        --doc 切页后下发;字段 key 随页模板不同,titleblock-get 先探,命中
-        Title/Name/名称/标题 之一才写——写不存在的 key 平台静默丢弃并让
-        rc!=0(notApplied),先探后写省得每轮挂一条假失败审计。"""
+        上游 0.26.0 明令 titleblock --data 写入禁令:该写路径触发图签重建、
+        损毁 sheet 符号引用 → 重启后图框丢失 → group-arrange 拒动 → overlap
+        修不掉 → HALT(2026-08-24 req-01 daily 定案,时序 09:59 写/11:48 强杀
+        重启/13:21 全灭)。标题文字的收益(一条注释)远低于该链路代价,不再由
+        harness 写入;--show 只是可见性开关(非禁令写路径),失败只审计不判负。"""
         from edaloop.generate.adapter import AdapterError
 
-        stem = Path(self.ir.source or "design").stem
         for page in self._plan_pages(actions):
-            doc = ["--doc", page]
             try:
-                keys: set[str] = set()
-                try:
-                    _, out, _ = self.adapter.run(["sch", "titleblock-get", *doc])
-                    rep = json.loads(out) if (out or "").strip() else {}
-                    res = rep.get("result") if isinstance(rep.get("result"), dict) else rep
-                    # 真机形态(run7 实探):键表在 result.titleBlockData
-                    # (Name=标题格现值空、@Page Name=平台自管页名),顶层
-                    # result 只有元数据——旧解析漏了这层,key 恒 None。
-                    for src in (
-                        res,
-                        (res or {}).get("fields"),
-                        (res or {}).get("items"),
-                        (res or {}).get("titleBlockData"),
-                    ):
-                        if isinstance(src, dict):
-                            keys |= {str(k) for k in src}
-                except ValueError:
-                    pass
-                rc_show, _, _ = self.adapter.run(["sch", "titleblock", "--show", *doc])
-                key = next((k for k in ("Title", "Name", "名称", "标题") if k in keys), "")
-                rc, out, verified = 0, "", True
-                if key:
-                    want = f"{stem} · {page}"
-                    rc, out, _ = self.adapter.run(
-                        [
-                            "sch",
-                            "titleblock",
-                            "--data",
-                            json.dumps({key: {"value": want}}, ensure_ascii=False),
-                            *doc,
-                        ]
-                    )
-                    if rc != 0:
-                        # 平台写图签会触发图签重建,连接器写后即时回读常撞 stale
-                        # 窗口,把真成功报成 nothing-applied(run7 交付态实探:报
-                        # 拒但值已落)。控制器侧按值回读判真伪,不信单次 rc。
-                        verified = False
-                        try:
-                            _, out2, _ = self.adapter.run(["sch", "titleblock-get", *doc])
-                            rep2 = json.loads(out2) if (out2 or "").strip() else {}
-                            td = (rep2.get("result") or {}).get("titleBlockData") or {}
-                            verified = (td.get(key) or {}).get("value") == want
-                        except ValueError:
-                            pass
+                rc, out, err = self.adapter.run(["sch", "titleblock", "--show", "--doc", page])
                 self.audit.event(
                     "titleblock",
                     round_no=round_no,
                     page=page,
-                    key=key or None,
-                    show_rc=rc_show,
-                    rc=rc,
-                    verified=verified,
+                    show_rc=rc,
                     out=(out or "")[-200:],
+                    error=(err or "")[-120:],
                 )
             except AdapterError as e:
                 self.audit.event("titleblock-error", round_no=round_no, page=page, error=str(e)[:500])

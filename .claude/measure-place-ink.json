@@ -1,0 +1,347 @@
+{
+  "meta": {
+    "date": "2026-08-24T06:39:17.387271+00:00",
+    "page": "P1",
+    "pos": [
+      500,
+      450
+    ],
+    "net_prefix": "CALNET",
+    "note": "双口径 clusters 组盒 + sch list --include-bbox;chosen=取大;人核后可改;resistor/capacitor/mcu 三条为真引脚名复测校正"
+  },
+  "blocks": {
+    "switch-6x6": {
+      "lcsc": "C720477",
+      "mpn": "6x6",
+      "pins": 2,
+      "designator": "SW1",
+      "cluster_box": {
+        "minX": 359.5,
+        "minY": 444.5,
+        "maxX": 640.5,
+        "maxY": 457.5
+      },
+      "cluster_size": [
+        281,
+        13
+      ],
+      "chosen": [
+        281,
+        13
+      ],
+      "source": "cluster"
+    },
+    "tvs-smaj5": {
+      "lcsc": "C143135",
+      "mpn": "SMAJ5.0A",
+      "pins": 2,
+      "designator": "D1",
+      "cluster_box": {
+        "minX": 369.5,
+        "minY": 441.5,
+        "maxX": 630.5,
+        "maxY": 457.5
+      },
+      "cluster_size": [
+        261,
+        16
+      ],
+      "chosen": [
+        261,
+        16
+      ],
+      "source": "cluster"
+    },
+    "xtal-8m": {
+      "lcsc": "C889706",
+      "mpn": "8MHz",
+      "pins": 2,
+      "designator": "Y1",
+      "cluster_box": {
+        "minX": 374.5,
+        "minY": 439.5,
+        "maxX": 569.5,
+        "maxY": 460.5
+      },
+      "cluster_size": [
+        195,
+        21
+      ],
+      "chosen": [
+        195,
+        21
+      ],
+      "source": "cluster"
+    },
+    "fuse-polyfuse": {
+      "lcsc": "C14155",
+      "mpn": "自恢复保险丝/HRL30-500",
+      "pins": 2,
+      "designator": "F1",
+      "cluster_box": {
+        "minX": 349.5,
+        "minY": 444.5,
+        "maxX": 650.5,
+        "maxY": 455.5
+      },
+      "cluster_size": [
+        301,
+        11
+      ],
+      "chosen": [
+        301,
+        11
+      ],
+      "source": "cluster"
+    },
+    "diode-ss34": {
+      "lcsc": "C8678",
+      "mpn": "SS34",
+      "pins": 2,
+      "designator": "D1",
+      "cluster_box": {
+        "minX": 369.5,
+        "minY": 441.5,
+        "maxX": 630.5,
+        "maxY": 458.5
+      },
+      "cluster_size": [
+        261,
+        17
+      ],
+      "chosen": [
+        261,
+        17
+      ],
+      "source": "cluster"
+    },
+    "terminal-kf301-2p": {
+      "lcsc": "C9900016950",
+      "mpn": "KF301",
+      "pins": 2,
+      "designator": "J1",
+      "cluster_box": {
+        "minX": 334.5,
+        "minY": 434.5,
+        "maxX": 510.5,
+        "maxY": 465.5
+      },
+      "cluster_size": [
+        176,
+        31
+      ],
+      "chosen": [
+        176,
+        31
+      ],
+      "source": "cluster"
+    },
+    "nmos-2n7002": {
+      "lcsc": "C8545",
+      "mpn": "2N7002",
+      "pins": 3,
+      "designator": "Q1",
+      "cluster_box": {
+        "minX": 369.5,
+        "minY": 424.5,
+        "maxX": 620.5,
+        "maxY": 475.5
+      },
+      "cluster_size": [
+        251,
+        51
+      ],
+      "chosen": [
+        251,
+        51
+      ],
+      "source": "cluster"
+    },
+    "pmos-ao3401": {
+      "lcsc": "C15127",
+      "mpn": "AO3401A",
+      "pins": 3,
+      "designator": "Q1",
+      "cluster_box": {
+        "minX": 369.5,
+        "minY": 424.5,
+        "maxX": 620.5,
+        "maxY": 475.5
+      },
+      "cluster_size": [
+        251,
+        51
+      ],
+      "chosen": [
+        251,
+        51
+      ],
+      "source": "cluster"
+    },
+    "isolator-pc817": {
+      "lcsc": "C4075",
+      "mpn": "PC817",
+      "pins": 4,
+      "designator": "U1",
+      "cluster_box": {
+        "minX": 344.5,
+        "minY": 432.5,
+        "maxX": 655.5,
+        "maxY": 467.5
+      },
+      "cluster_size": [
+        311,
+        35
+      ],
+      "chosen": [
+        311,
+        35
+      ],
+      "source": "cluster"
+    },
+    "isolated-dc-b0505s": {
+      "lcsc": "C382171",
+      "mpn": "B0505S-1WR2",
+      "pins": 4,
+      "designator": "U1",
+      "cluster_box": {
+        "minX": 299.5,
+        "minY": 424.5,
+        "maxX": 525.5,
+        "maxY": 475.5
+      },
+      "cluster_size": [
+        226,
+        51
+      ],
+      "chosen": [
+        226,
+        51
+      ],
+      "source": "cluster"
+    },
+    "header-1x4": {
+      "lcsc": "C9900019920",
+      "mpn": "2.54mm",
+      "pins": 6,
+      "designator": "J1",
+      "cluster_box": {
+        "minX": 284.5,
+        "minY": 409.5,
+        "maxX": 615.5,
+        "maxY": 490.5
+      },
+      "cluster_size": [
+        331,
+        81
+      ],
+      "chosen": [
+        331,
+        81
+      ],
+      "source": "cluster"
+    },
+    "esd-usblc6": {
+      "lcsc": "C2687116",
+      "mpn": "USBLC6-2SC6",
+      "pins": 6,
+      "designator": "U1",
+      "cluster_box": {
+        "minX": 400.5,
+        "minY": 429.5,
+        "maxX": 655.5,
+        "maxY": 470.5
+      },
+      "cluster_size": [
+        255,
+        41
+      ],
+      "chosen": [
+        255,
+        41
+      ],
+      "source": "cluster"
+    },
+    "usb-serial-ch340k": {
+      "lcsc": "C968586",
+      "mpn": "CH340K",
+      "pins": 11,
+      "designator": "U1",
+      "cluster_box": {
+        "minX": 259.5,
+        "minY": 419.5,
+        "maxX": 756.5,
+        "maxY": 529.5
+      },
+      "cluster_size": [
+        497,
+        110
+      ],
+      "chosen": [
+        497,
+        110
+      ],
+      "source": "cluster"
+    },
+    "mcu-stm32f103c8-min": {
+      "lcsc": "C8734",
+      "mpn": "STM32F103C8T6",
+      "pins": 48,
+      "error": "",
+      "chosen": [
+        593,
+        291
+      ],
+      "cluster_size": [
+        593,
+        291
+      ],
+      "designator": "U1",
+      "note": "C8734 lib-search 无果,MPN 命中;48 脚全连"
+    },
+    "resistor-std": {
+      "lcsc": "C25744",
+      "mpn": "0402WGF1002TCE",
+      "pins": 2,
+      "designator": "R1",
+      "cluster_box": {
+        "minX": 489.5,
+        "minY": 445.5,
+        "maxX": 510.5,
+        "maxY": 454.5
+      },
+      "cluster_size": [
+        261,
+        11
+      ],
+      "chosen": [
+        261,
+        11
+      ],
+      "source": "cluster",
+      "note": "复测:真引脚名 1/2(首轮合成 A/B 连网失败,21x9 仅符号)"
+    },
+    "capacitor-std": {
+      "lcsc": "C1525",
+      "mpn": "CL05B104KO5NNNC",
+      "pins": 2,
+      "designator": "C1",
+      "cluster_box": {
+        "minX": 489.5,
+        "minY": 441.5,
+        "maxX": 510.5,
+        "maxY": 458.5
+      },
+      "cluster_size": [
+        261,
+        17
+      ],
+      "chosen": [
+        261,
+        17
+      ],
+      "source": "cluster",
+      "note": "复测:真引脚名 1/2(首轮 21x17 仅符号)"
+    }
+  }
+}
