@@ -47,7 +47,9 @@ def ingest_pdf(
         except Exception as e:
             last_err = e
             continue
-        if len(table.pins) >= 4:
+        # ≥3 即采纳:3 脚器件(SOT-223/TO-92/SOT-23 LDO、晶体管)是真实形态;
+        # 旧 ≥4 阈值把它们逼向「合并多封装凑数」(AMS1117 12 脚 run 2026-09-01)。
+        if len(table.pins) >= 3:
             rule = rule_channel(text, page_no)
             report = run_gate(table, rule)
             try:

@@ -443,6 +443,12 @@ def _cmd_ui(args: argparse.Namespace) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Windows 控制台/重定向默认 GBK:datasheet 引文含 ϕ/Ω 等字符时 print 直接
+    # UnicodeEncodeError 中断批(run 于 2026-09-01 ingest 批 10 份只跑 1 份)。
+    # 统一切 UTF-8 + replace,输出保真让位于批不中断。
+    for _s in (sys.stdout, sys.stderr):
+        if hasattr(_s, "reconfigure"):
+            _s.reconfigure(encoding="utf-8", errors="replace")
     load_dotenv()
     parser = build_parser()
     args = parser.parse_args(argv)

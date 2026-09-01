@@ -193,3 +193,47 @@ def test_elec_rows_prose_single_value_rejected(tmp_path) -> None:
         page.insert_text((72, 100), "The typical supply current is 3.5 mA per channel under normal operation.")
         doc.save(pdf)
     assert elec_rows(str(pdf), 1) == []
+
+
+def test_ingest_pdf_accepts_3pin_part(tmp_path, monkeypatch) -> None:
+    """P5-1 回归:3 脚器件(SOT-223 LDO)必须能走通全管道并单通道降级入库。
+
+    旧 ≥4 采纳阈值把 3 脚件逼向「合并多封装凑 12 脚」(AMS1117 run 2026-09-01),
+    内部一致性门禁判 fail 后整批 0 入库。
+    """
+    import json
+
+    import pymupdf
+
+    from edaloop.ingest.pipeline import ingest_pdf
+    from edaloop.ingest.store import DatasheetStore
+    from edaloop.llm.fake import FakeChat
+
+    monkeypatch.chdir(tmp_path)  # AuditLog("runs/ingest") 落 tmp,不污染生产审计流
+    body = (
+        "PIN CONNECTIONS\nAMS1117 1A LOW DROPOUT REGULATOR SOT-223 3 PIN\n"
+        + "filler " * 40 + "\n1- Ground/Adjust\n2- VOUT\n3- VIN\n"
+    )
+    pdf = tmp_path / "ams.pdf"
+    with pymupdf.open() as doc:
+        page = doc.new_page()
+        page.insert_text((72, 100), body)
+        doc.save(pdf)
+    reply = json.dumps(
+        {
+            "part": "AMS1117",
+            "pins": [
+                {"number": "1", "name": "Ground/Adjust", "io_type": "I"},
+                {"number": "2", "name": "VOUT", "io_type": "O"},
+                {"number": "3", "name": "VIN", "io_type": "I"},
+            ],
+        }
+    )
+    db = str(tmp_path / "kb.db")
+    table, report = ingest_pdf(str(pdf), FakeChat(reply), db_path=db)
+    assert report.verdict == "low-confidence"
+    assert len(table.pins) == 3
+    store = DatasheetStore(db)
+    got = store.get("AMS1117")
+    assert got is not None
+    assert {p.name for p in got.pins} == {"Ground/Adjust", "VOUT", "VIN"}
