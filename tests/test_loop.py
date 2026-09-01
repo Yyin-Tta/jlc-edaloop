@@ -1227,6 +1227,12 @@ class _RepackFakeAdapter(_ZoneFakeAdapter):
         # [{net,"*"同配,dx,dy}] 命中时在脚+(dx,dy) 落 netport——真机 planner
         # 盲落必落标记且无几何检查(重跑#2 翼擦 12 根因),盲退护栏的质检对象
         self.ac_marks: dict[str, list[dict]] = {}
+        # prim-delete 恒失败(终态去重的残余分支:平台删不动 → 计断网交目检)
+        self.fail_prim_delete = False
+        # 真机 C9 缺陷形态(run-746b24879342):disconnect 只拆「端点在本脚的
+        # 导线+netport」,线端点不落在脚上的同网标记拆不掉——列入此集的网,
+        # disconnect 后标记仍留页上(默认空=fake 原语义全删)
+        self.disconnect_keeps_marks: set[str] = set()
         self.active_page = "P1"
         # disconnect 拆 D:P 时连带清掉其它脚的网(真机:共享 netflag/连线被删,
         # 同网邻脚孤儿化——run-86f0ec3ab850 P2:C11 modify 回退拆 C10:2 的 GND)
@@ -1404,8 +1410,9 @@ class _RepackFakeAdapter(_ZoneFakeAdapter):
                     # 可再建)——fake 网表键同步弹掉,NET_MISSING e2e 才测得出
                     # "恢复双失败=零载体断网"
                     self.nets.get(self.active_page, {}).pop(net, None)
-                    self.netports[self.active_page] = [
-                        f for f in self.netports.get(self.active_page, []) if f["net"] != net]
+                    if net not in self.disconnect_keeps_marks:
+                        self.netports[self.active_page] = [
+                            f for f in self.netports.get(self.active_page, []) if f["net"] != net]
                     for ref in self.disconnect_tears.get(f"{d}:{pnum}", []):
                         td, tp = ref.split(":", 1)
                         for q in self.pins_by_page.get(self.active_page, {}).get(td) or []:
@@ -1564,6 +1571,21 @@ class _RepackFakeAdapter(_ZoneFakeAdapter):
             _rc, out, _err = self.run(args)
             return json.loads(out or "{}")
         return super().run_json(args)
+
+    def delete_primitives(self, ids):
+        # 覆写 _FakeAdapter 的空实现:按 primitiveId 真删 netports 并记调用
+        # (盲退幂等清理/终态去重的质检对象);fail_prim_delete 仿真平台删
+        # 不动(终态去重的残余分支 → 计断网交阈值门/目检)
+        from edaloop.generate.adapter import AdapterError
+
+        self.calls.append(["sch", "prim-delete", "--ids", ",".join(ids)])
+        if self.fail_prim_delete:
+            raise AdapterError("fake: prim-delete boom")
+        gone = set(ids)
+        for pg in list(self.netports):
+            self.netports[pg] = [f for f in self.netports[pg]
+                                 if str(f.get("primitiveId") or "") not in gone]
+        return {"ok": "deleted"}
 
 
 def _audit_events(tmp: str) -> list[dict]:
@@ -2717,6 +2739,137 @@ def test_blind_guard_reseats_bad_marker_deterministically(tmp_path) -> None:
     # 终态:确定性标记在带内离体(left/30 锚 (470,530)),盲落标记已清除
     assert [(f["primitiveId"], f["x"], f["y"]) for f in adapter.netports["P1"]] == \
         [("cn_U1:1", 470.0, 530.0)]
+
+
+def test_guarded_autoconnect_precleans_stale_pin_markers(tmp_path) -> None:
+    """盲退幂等清理(req-08 目检 P2 C9 **P0** 直回:run-746b24879342 终态
+    FS8205A pin2/pin5 各挂两枚 FET_MID,全 failed:fallback 而 gate=pass)。
+    disconnect 拆不净的旧标记(线端点不在脚上删不到)留页上,盲退重落只添
+    不减。护栏落新标记前按「最近同网脚归属」prim-delete 本脚残枚——双管
+    FET 两脚同网相邻 140 也拆得开:pin2 的两枚清掉,pin5 的两枚(归属
+    pin5)原样保留;审计 outcome=preclean。"""
+    chat = FakeChat("{}")
+    adapter = _RepackFakeAdapter("pass", [])
+    adapter.model["P1"] = {"U1": {"minX": 90, "minY": 200, "maxX": 260, "maxY": 400}}
+    # 双管 FET 共漏形态:pin2 已断线(net 清空=reseat 调用方刚 disconnect),
+    # pin5 仍在网(disconnect 拆不净 = 真机 C9 缺陷形态)
+    adapter.disconnect_keeps_marks = {"FET_MID"}
+    adapter.pins_by_page["P1"] = {"U1": [
+        {"pinNumber": "2", "x": 100, "y": 300, "net": ""},
+        {"pinNumber": "5", "x": 240, "y": 300, "net": "FET_MID"}]}
+    adapter.netports["P1"] = [
+        {"primitiveId": "o1", "componentType": "netport", "net": "FET_MID",
+         "x": 110, "y": 300},
+        {"primitiveId": "o2", "componentType": "netport", "net": "FET_MID",
+         "x": 160, "y": 300},
+        {"primitiveId": "o3", "componentType": "netport", "net": "FET_MID",
+         "x": 250, "y": 300},
+        {"primitiveId": "o4", "componentType": "netport", "net": "FET_MID",
+         "x": 260, "y": 300}]
+    adapter.ac_marks["P1"] = [{"net": "FET_MID", "dx": 30, "dy": 0}]  # 盲落进自体
+    lc = LoopController(_ir_with_rails(("12V", 12.0)), _catalog(), _candidates,
+                        chat, adapter, AuditLog(str(tmp_path)))
+    st = lc._guarded_autoconnect("P1", 1, "U1:2", "netport", "FET_MID",
+                                 100, 300, [], (90, 200, 260, 400),
+                                 [(90, 200, 260, 400)], [], tag="t-guard")
+    # 首清理:pin2 的两枚(o1/o2)被 prim-delete;o3/o4 归属 pin5,原样保留
+    prims = [c for c in adapter.calls if c[:2] == ["sch", "prim-delete"]]
+    assert prims and set(prims[0][-1].split(",")) == {"o1", "o2"}
+    ev = next(e for e in _audit_events(str(tmp_path))
+              if e.get("kind") == "t-guard" and e.get("outcome") == "preclean")
+    assert ev["preclean"] == 2
+    # 盲落标记压自体 → reguard:拆脚后二清理删盲落枚,确定性重落成选
+    assert st == "reguard"
+    ids_left = {f["primitiveId"] for f in adapter.netports["P1"]}
+    assert {"o3", "o4"} <= ids_left          # pin5 的两枚全程不动
+    fet = [f for f in adapter.netports["P1"] if f["net"] == "FET_MID"]
+    assert len(fet) == 3                     # o3+o4+确定性重落 1 枚,无重复
+
+
+def test_unguarded_redrop_does_not_accumulate_marks(tmp_path) -> None:
+    """盲退二次重落不累积(C9 根因另一半):全围死脚盲退两回,真机 disconnect
+    拆不尽时本会攒两枚同网标记(run-746b24879342 的 failed:fallback 形态);
+    护栏在每次盲退前都清本脚残枚——终态一脚一标记,unguarded 计数照旧
+    (坏但连通,交目检),不再攒出重复载体。"""
+    chat = FakeChat("{}")
+    adapter = _RepackFakeAdapter("pass", [])
+    adapter.model["P1"] = {
+        "U1": {"minX": 505, "minY": 500, "maxX": 600, "maxY": 560},
+        "LB": {"minX": 100, "minY": 510, "maxX": 497, "maxY": 550},
+        "RB": {"minX": 503, "minY": 510, "maxX": 900, "maxY": 555},
+        "UB": {"minX": 400, "minY": 533, "maxX": 700, "maxY": 900},
+        "DB": {"minX": 400, "minY": 100, "maxX": 700, "maxY": 527},
+    }
+    adapter.disconnect_keeps_marks = {"NETX"}  # 真机:拆不净的旧标记留页上
+    adapter.pins_by_page["P1"] = {"U1": [
+        {"pinNumber": "1", "x": 500, "y": 530, "net": "NETX"}]}
+    adapter.netports["P1"] = [
+        {"primitiveId": "e1", "componentType": "netport", "net": "NETX",
+         "x": 700, "y": 545}]  # 压 RB 本体 → 判据② 触发 reseat
+    adapter.ac_marks["P1"] = [{"net": "NETX", "dx": 200, "dy": 15}]  # 盲落恒回坏点
+    lc = LoopController(_ir_with_rails(("12V", 12.0)), _catalog(), _candidates,
+                        chat, adapter, AuditLog(str(tmp_path)))
+    lc._reseat_escape_marks("P1", 1)
+    ev = next(e for e in _audit_events(str(tmp_path)) if e.get("kind") == "freeze-pack-reseat")
+    assert ev["failed"] == ["U1:1:NETX:fallback"]
+    # 旧 e1 与首枚盲落都被 prim-delete 清掉:终态只剩 rc2 重落的一枚盲标记
+    # (坏但连通,unguarded 已计数)——不再是一脚两枚
+    netx = [f for f in adapter.netports["P1"] if f["net"] == "NETX"]
+    assert len(netx) == 1
+    assert any(c[:2] == ["sch", "prim-delete"] for c in adapter.calls)
+    g = next(e for e in _audit_events(str(tmp_path))
+             if e.get("kind") == "reseat-blind-guard" and e.get("outcome") != "preclean")
+    assert g["outcome"] == "unguarded"
+
+
+def test_marker_dedupe_on_pin_keeps_one(tmp_path) -> None:
+    """终态去重(req-08 P2 C9 **P0**):同 pin 同网 ≥2 载体 → 留带内 > 不压体
+    > 离脚最近一枚,余枚 prim-delete,删后复列归零;平台删不动(fail_prim_
+    delete)→ 计 wire_breaks 交阈值门/目检。共享旗(两脚正中,平距)归属
+    不明,天然不触发——多脚共享标记不被误删。"""
+    def _dup_adapter() -> _RepackFakeAdapter:
+        a = _RepackFakeAdapter("pass", [])
+        a.model["P1"] = {"U1": {"minX": 90, "minY": 200, "maxX": 260, "maxY": 400}}
+        a.pins_by_page["P1"] = {"U1": [
+            {"pinNumber": "2", "x": 100, "y": 300, "net": "FET_MID"},
+            {"pinNumber": "5", "x": 240, "y": 300, "net": "FET_MID"}]}
+        # pin2 两枚(o1 近/o2 远)+ pin5 两枚(o3 近/o4 远)+ 两脚正中共享旗 m5
+        a.netports["P1"] = [
+            {"primitiveId": "o1", "componentType": "netport", "net": "FET_MID",
+             "x": 110, "y": 300},
+            {"primitiveId": "o2", "componentType": "netport", "net": "FET_MID",
+             "x": 160, "y": 300},
+            {"primitiveId": "o3", "componentType": "netport", "net": "FET_MID",
+             "x": 250, "y": 300},
+            {"primitiveId": "o4", "componentType": "netport", "net": "FET_MID",
+             "x": 260, "y": 300},
+            {"primitiveId": "m5", "componentType": "netflag", "net": "FET_MID",
+             "x": 170, "y": 300}]
+        return a
+
+    chat = FakeChat("{}")
+    adapter = _dup_adapter()
+    lc = LoopController(_ir_with_rails(("12V", 12.0)), _catalog(), _candidates,
+                        chat, adapter, AuditLog(str(tmp_path)))
+    lc._dedupe_pin_markers("P1", 1)
+    ev = next(e for e in _audit_events(str(tmp_path)) if e.get("kind") == "marker-dedupe")
+    assert ev["dupes"] == 2 and ev["failed"] == [] and ev["residual"] == 0
+    assert sorted(d["pin"] for d in ev["deduped"]) == ["U1:2", "U1:5"]
+    # 每脚留最近一枚(o1/o3),共享旗 m5 平距不动,远枚 o2/o4 已删
+    assert {f["primitiveId"] for f in adapter.netports["P1"]} == {"o1", "o3", "m5"}
+    assert not lc._wire_breaks
+
+    # 平台删不动:计 wire_breaks(freeze 只审计交目检;生产 >3 阻断)
+    adapter2 = _dup_adapter()
+    adapter2.fail_prim_delete = True
+    lc2 = LoopController(_ir_with_rails(("12V", 12.0)), _catalog(), _candidates,
+                         chat, adapter2, AuditLog(str(tmp_path) + "2"))
+    lc2._dedupe_pin_markers("P1", 1)
+    ev2 = next(e for e in _audit_events(str(tmp_path) + "2")
+               if e.get("kind") == "marker-dedupe")
+    assert len(ev2["failed"]) == 2
+    assert len(lc2._wire_breaks) == 2 \
+        and all(w.endswith(":marker-dup-ae") for w in lc2._wire_breaks)
 
 
 def test_mark_merge_guard_reseats_coincident_anchors(tmp_path) -> None:

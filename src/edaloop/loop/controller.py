@@ -1780,6 +1780,10 @@ class LoopController:
                                 pg, round_no, placed_by_page[pg],
                                 oversize=pg in getattr(self, "_repack_oversize_pages", set()))
                             self._reseat_escape_marks(pg, round_no)
+                            # 同 pin 同网重复标记终态去重(req-08 P2 C9 P0):
+                            # rotate/wrong-side 盲落不经盲退护栏,终态在此收口,
+                            # gate 的网表口径看到的也是去重后的页
+                            self._dedupe_pin_markers(pg, round_no)
                         if self.zones_enabled and zone_designators:
                             self._apply_zone_frames(round_no, zone_designators, actions)
                         self._apply_titleblocks(round_no, actions)
@@ -2896,6 +2900,10 @@ class LoopController:
                              pages={pg: sorted(i2 for i2, p2 in inst_page.items() if p2 == pg)
                                     for pg in tgt_pages},
                              failed=replay_fail)
+            # 同 pin 同网重复标记终态去重(req-08 P2 C9 P0):画框/网检前收口,
+            # 后续口径看到的都是去重后的终态;删不动的计 wire_breaks 交目检
+            for _pg in tgt_pages:
+                self._dedupe_pin_markers(_pg, round_no)
             for _pg in tgt_pages:
                 _rc, out2, _err = self.adapter.run(["sch", "clusters", "--json", "--doc", _pg])
                 try:
@@ -4174,7 +4182,9 @@ class LoopController:
         (此刻页几何是新的:同轮前序重落/扩避让档 210→330 让首轮失败的候选
         此刻可成;avoid_pts 由调用方维护 live 追加);再失败重退 planner 盲落
         保连通(宁翼擦不隐短),全程入审计——翼擦从「静默」变「计数」,对齐
-        §10 软指标记账口径。返回:"error"(autoconnect 失败,调用方按原断网
+        §10 软指标记账口径。三次盲退/重落前都先幂等清理本脚同网旧残枚
+        (req-08 P2 C9:盲退链只增不减标记;详见 _stale_ids)。返回:
+        "error"(autoconnect 失败,调用方按原断网
         口径计数)/"blind"(无新标记可检或落点合格)/"reguard"(盲落事故已
         拆+确定性重落)/"unguarded"语义并入 "blind"(审计里带 outcome 区分)。"""
         from edaloop.generate import packer
@@ -4184,7 +4194,7 @@ class LoopController:
             try:
                 comps, _deg = self._list_components(page)
             except Exception:  # noqa: BLE001
-                return None, None, None
+                return None, None, None, None
             marks = [f for f in comps
                      if f.get("componentType") in ("netport", "netflag", "netlabel")
                      and f.get("x") is not None]
@@ -4198,9 +4208,53 @@ class LoopController:
                                    float(b["maxX"]), float(b["maxY"])))
             anchors = {(round(float(f["x"]), 1), round(float(f["y"]), 1))
                        for f in marks}
-            return marks, bodies, anchors
+            spines = [(float(p["x"]), float(p["y"]), str(p.get("net") or ""))
+                      for c in comps if c.get("componentType") == "part"
+                      for p in (c.get("pins") or []) if p.get("x") is not None]
+            return marks, bodies, anchors, spines
 
-        _marks0, _bodies0, anchors0 = _geom()
+        def _stale_ids(marks_l, spins) -> list[str]:
+            """本脚同网残枚(2026-09-01,req-08 目检 P2 C9 P0 定性):disconnect
+            只拆「端点在本脚的导线+netport」,盲落标记的线不总落回脚端点——
+            拆不尽的旧标记留在纸上,重落再添新枚,同 pin 同网只增不减
+            (run-746b24879342:FS8205A pin2/pin5 各攒两枚 FET_MID)。归属判据
+            =最近同网脚是**目标脚**(peers=其它同网脚;不比它更近/平距的
+            归它)——双管 FET 两脚同网相邻(140)也拆得开:各枚归各脚,
+            共享旗(两脚正中)归平距=不动。距离窗 (2, 340] 同 reseat 配对量级。"""
+            peers = [(qx, qy) for (qx, qy, pn) in spins
+                     if pn == net and abs(qx - px) + abs(qy - py) > 2]
+            out: list[str] = []
+            for g in marks_l or []:
+                if str(g.get("net") or g.get("name") or "") != net \
+                        or g.get("x") is None:
+                    continue
+                gx, gy = float(g["x"]), float(g["y"])
+                dd = abs(gx - px) + abs(gy - py)
+                if dd > 340 or dd <= 2:
+                    continue
+                if any(abs(gx - qx) + abs(gy - qy) <= dd for (qx, qy) in peers):
+                    continue  # 别脚更近/平距:归属别脚,不动
+                pid = str(g.get("primitiveId") or "")
+                if pid:
+                    out.append(pid)
+            return out
+
+        _marks0, _bodies0, anchors0, _spins0 = _geom()
+        # 幂等清理:落新标记前 prim-delete 本脚旧残枚(调用方刚 disconnect,
+        # 残枚线已不在此脚上=孤儿);误删由下游 net-presence+修复通道兜底
+        # (网缺了会重落)。删不动照走,终态 _dedupe_pin_markers 再收口。
+        _ids0 = _stale_ids(_marks0, _spins0)
+        if _ids0:
+            try:
+                self.adapter.delete_primitives(_ids0)
+                if anchors0 is not None:
+                    anchors0 -= {(round(float(f["x"]), 1), round(float(f["y"]), 1))
+                                 for f in _marks0
+                                 if str(f.get("primitiveId") or "") in set(_ids0)}
+                self.audit.event(tag, round_no=round_no, page=page, pin=ref,
+                                 net=net, outcome="preclean", preclean=len(_ids0))
+            except AdapterError:
+                pass
         try:
             rc, _o, _e = self.adapter.run(
                 ["sch", "autoconnect", "--pin", ref, "--kind", kind, "--net", net])
@@ -4210,7 +4264,7 @@ class LoopController:
             return "error"
         if anchors0 is None:
             return "blind"  # 落前几何读不到,无从质检,按原盲退
-        marks1, bodies1, _anchors1 = _geom()
+        marks1, bodies1, _anchors1, _spins1 = _geom()
         if not marks1:
             return "blind"
         bx1, by1, bx2, by2 = packer.BAND
@@ -4238,6 +4292,17 @@ class LoopController:
         f, mx, my = bad
         try:
             self.adapter.run(["sch", "disconnect", "--pin", ref])
+            # 同款幂等清理(disconnect 已发,拆不尽的残枚此刻还压在页上):
+            # 删掉再确定性重落,reguard 终态保一脚一标记;避让集同步剔除
+            _ids1 = _stale_ids(marks1, _spins1)
+            if _ids1:
+                try:
+                    self.adapter.delete_primitives(_ids1)
+                    _gone1 = set(_ids1)
+                    marks1 = [g for g in marks1
+                              if str(g.get("primitiveId") or "") not in _gone1]
+                except AdapterError:
+                    pass
             avoid_r = list(bodies1 or body_rects or [])
             avoid_r += [self._mark_rect(g) for g in marks1 if g is not f]
             r = self._connect_stub(ref, kind, net, px, py, opins,
@@ -4254,6 +4319,15 @@ class LoopController:
                              bad_drop=f"{mx:.0f},{my:.0f}",
                              outcome="reguard", reseat=f"{r[0]}/{r[1]}")
             return "reguard"
+        # 二次盲退同款清理(rc2 落新枚前;内层 disconnect 同样拆不尽——
+        # 正是 run-746b24879342 攒出「一脚两枚」的另一半向量)
+        _m2, _b2, _a2, _s2 = _geom()
+        _ids2 = _stale_ids(_m2, _s2)
+        if _ids2:
+            try:
+                self.adapter.delete_primitives(_ids2)
+            except AdapterError:
+                pass
         try:
             rc2, _o2, _e2 = self.adapter.run(
                 ["sch", "autoconnect", "--pin", ref, "--kind", kind, "--net", net])
@@ -4751,6 +4825,134 @@ class LoopController:
                 failed.append(f"{desig}:{pnum}:{str(e)[:40]}")
         self.audit.event("mark-merge-guard", round_no=round_no, page=page,
                          coincident=len(bad), fixed=fixed, failed=failed)
+
+    def _dedupe_pin_markers(self, page: str, round_no: int) -> None:
+        """同 pin 同网重复标记去重(2026-09-01,req-08 目检 P2 C9 **P0**:
+        run-746b24879342 终态 FS8205A pin2 两枚 FET_MID(110,300+160,300)、
+        pin5 两枚(250,300+260,300),全部 failed:fallback,而 round-validate
+        gate=pass——net-presence 只查「网存在」不查「重复」,门禁盲区实锤)。
+
+        根因:reseat/盲退的多轮拆-落循环里,disconnect 拆不尽旧标记、重落
+        添新枚,标记数只增不减(盲退链已加幂等前置清理,本护栏是终态兜底,
+        兜 rotate/wrong-side 等不经 _guarded_autoconnect 的盲落)。判据=同网
+        标记按「最近同网脚」归属分组(平距/太远/配不上不动——共享旗两脚
+        正中平距,天然不触发),同一脚 ≥2 枚即重复 → 留一枚(带内 > 不压体
+        > 离脚最近,同分留首枚)prim-delete 余枚;删后复列仍有 ≥2 = 删不动,
+        计 wire_breaks(生产 >3 阻断,freeze 只审计交目检)。全部入审计
+        marker-dedupe。"""
+        from edaloop.generate import packer
+        from edaloop.generate.adapter import AdapterError
+
+        def _parts_pins(comps):
+            parts = [c for c in comps if c.get("componentType") == "part"
+                     and c.get("designator")]
+            pins = [(float(p["x"]), float(p["y"]), c["designator"],
+                     str(p.get("pinNumber")), str(p.get("net") or ""))
+                    for c in parts for p in (c.get("pins") or [])
+                    if p.get("x") is not None]
+            return parts, pins
+
+        def _group(comps):
+            """marks → {(desig, pinNumber, net): [marks]};归属=最近同网脚
+            (严格更近,平距跳过——归属不明不动比错删好)。"""
+            _parts, pins = _parts_pins(comps)
+            marks = [f for f in comps
+                     if f.get("componentType") in ("netport", "netflag", "netlabel")
+                     and f.get("x") is not None]
+            groups: dict[tuple[str, str, str], list] = {}
+            for f in marks:
+                net = str(f.get("net") or f.get("name") or "")
+                mx, my = float(f["x"]), float(f["y"])
+                owner, od = None, 1e18
+                tie = False
+                for (qx, qy, d, p, pn) in pins:
+                    if pn != net:
+                        continue
+                    dd = abs(qx - mx) + abs(qy - my)
+                    if dd < od - 1e-9:
+                        owner, od, tie = (d, p), dd, False
+                    elif owner is not None and abs(dd - od) <= 1e-9 \
+                            and (d, p) != owner:
+                        tie = True
+                if owner is None or od > 320 or tie:
+                    continue
+                groups.setdefault((*owner, net), []).append(f)
+            return groups
+
+        try:
+            comps, _deg = self._list_components(page)
+        except Exception as e:  # noqa: BLE001
+            self.audit.event("marker-dedupe", round_no=round_no, page=page,
+                             error=f"list:{str(e)[:60]}")
+            return
+        dup = {k: v for k, v in _group(comps).items() if len(v) >= 2}
+        if not dup:
+            return
+        parts, pins = _parts_pins(comps)
+        bx1, by1, bx2, by2 = packer.BAND
+        body_rects = []
+        for c in parts:
+            b = c.get("bbox")
+            if isinstance(b, dict) and "minX" in b:
+                body_rects.append((float(b["minX"]), float(b["minY"]),
+                                   float(b["maxX"]), float(b["maxY"])))
+        if not self._open_page_for_edit(page, "marker-dedupe", round_no):
+            for (d, p, n) in dup:
+                self._wire_breaks.append(f"{page}:{n}:{d}:{p}:marker-dup-open")
+            self.audit.event("marker-dedupe", round_no=round_no, page=page,
+                             error="open-failed", dupes=len(dup))
+            return
+        deduped: list[dict] = []
+        failed: list[str] = []
+        done_keys: list[tuple[str, str, str]] = []
+        for (d, p, n), fs in dup.items():
+            pin_xy = next(((qx, qy) for (qx, qy, dd, pp, pn) in pins
+                           if dd == d and pp == p and pn == n), None)
+
+            def _rank(f):
+                mx, my = float(f["x"]), float(f["y"])
+                in_band = bx1 - 5 <= mx <= bx2 + 5 and by1 - 5 <= my <= by2 + 5
+                mr = self._mark_rect(f)
+                on_body = any(mr[0] < rx2 - 2 and mr[2] > rx1 + 2
+                              and mr[1] < ry2 - 2 and mr[3] > ry1 + 2
+                              for (rx1, ry1, rx2, ry2) in body_rects)
+                dist = (abs(mx - pin_xy[0]) + abs(my - pin_xy[1])
+                        if pin_xy else 0.0)
+                # 留优序:带内 > 不压体 > 离脚近;min 取首枚=同分稳定
+                return (0 if in_band else 1, 0 if not on_body else 1, dist)
+
+            keep = min(fs, key=_rank)
+            del_ids = [str(f.get("primitiveId") or "") for f in fs if f is not keep]
+            del_ids = [i for i in del_ids if i]
+            if not del_ids:
+                failed.append(f"{d}:{p}:{n}:no-id")
+                self._wire_breaks.append(f"{page}:{n}:{d}:{p}:marker-dup")
+                continue
+            try:
+                self.adapter.delete_primitives(del_ids)
+                deduped.append({"pin": f"{d}:{p}", "net": n,
+                                "kept": f"{float(keep['x']):.0f},{float(keep['y']):.0f}",
+                                "deleted": del_ids})
+                done_keys.append((d, p, n))
+            except AdapterError as e:
+                failed.append(f"{d}:{p}:{n}:{str(e)[:40]}")
+                self._wire_breaks.append(f"{page}:{n}:{d}:{p}:marker-dup-ae")
+        # 删后复列核验:仍 ≥2 = 平台删不动(failed 组不再验,断网已计)
+        residual = 0
+        if done_keys:
+            try:
+                comps2, _deg2 = self._list_components(page)
+                groups2 = _group(comps2)
+                for key in done_keys:
+                    if len(groups2.get(key, [])) >= 2:
+                        residual += 1
+                        self._wire_breaks.append(
+                            f"{page}:{key[2]}:{key[0]}:{key[1]}:marker-dup")
+            except Exception:  # noqa: BLE001
+                pass  # 复列失败:删除已过(未抛),交 net-presence/gate 兜底
+        self.audit.event("marker-dedupe", round_no=round_no, page=page,
+                         dupes=len(dup), deduped=deduped, failed=failed,
+                         residual=residual)
 
     def _fix_wrong_side_marks(self, page: str, round_no: int) -> None:
         """标记同侧扫尾(2026-09-01,run-cbdfa6d997bf 终态实测 199 检 10 违例)。
