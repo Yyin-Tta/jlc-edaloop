@@ -256,12 +256,16 @@ def _cmd_ingest(args: argparse.Namespace) -> int:
     from edaloop.ingest.pipeline import ingest_pdf
     from edaloop.llm.openai_compat import get_llm
 
+    failed: list[str] = []
     for pdf in args.pdf:
         try:
             table, report = ingest_pdf(pdf, get_llm())
         except Exception as e:
+            # 单份失败记名续跑:批的语义是"能入库的都入库",一份抖动弃九份
+            # 是首跑批的隐性放大器(与 GBK 崩溃同日定性)
+            failed.append(pdf)
             print(f"{pdf}: FAILED - {e}")
-            return 1
+            continue
         print(
             f"{pdf}: {table.part} pins={report.pin_count} pages={report.evidence_pages} "
             f"llm/rule={report.llm_pins}/{report.rule_pins} verdict={report.verdict}"
@@ -272,6 +276,9 @@ def _cmd_ingest(args: argparse.Namespace) -> int:
             print(f"  violation: {v}")
         for s in report.suggestions[:14]:
             print(f"  suggest[{s.kind}] p{s.page}: {s.text}  «{s.quote[:50]}»")
+    if failed:
+        print(f"FAILED ({len(failed)}/{len(args.pdf)}): {failed}")
+        return 1
     return 0
 
 

@@ -267,6 +267,33 @@ def test_datasheet_backfill_joins_by_ref(tmp_path) -> None:
     store.close()
 
 
+def test_datasheet_backfill_prefix_join_for_variant_refs(tmp_path) -> None:
+    """P5-1:库 ref 带变体后缀(AMS1117-3.3/CH340K)而 datasheet 部件名是裸名(AMS1117/CH340)
+    ——精确等值零命中,前缀回退命中同 die 变体;source 记实际命中的 datasheet 部件名。"""
+    from edaloop.knowledge.models import Electrical
+
+    blocks = _blocks()
+    blocks[1].electrical = Electrical()  # 全空,纯看回填
+    store = KnowledgeStore(tmp_path / "kb.db", FakeEmbedding())
+    store.rebuild(blocks)
+    store.conn.execute(
+        "CREATE TABLE IF NOT EXISTS datasheets (part TEXT PRIMARY KEY, pins TEXT NOT NULL)"
+    )
+    store.conn.execute(
+        "INSERT INTO datasheets(part, pins) VALUES(?, ?)",
+        ("AMS1117", json.dumps({"elec": [
+            {"param": "Input voltage VIN", "min": "2.7", "typ": "", "max": "5.5", "unit": "V", "page": 1, "channel": "rule"},
+        ]})),
+    )
+    store.conn.commit()
+    results = store.retrieve("AMS1117 3V3", top_k=1)
+    el = results[0].electrical
+    assert el is not None
+    assert el.v_supply_min == 2.7 and el.v_supply_max == 5.5
+    assert "datasheet:AMS1117" in el.source  # 命中的是表里的裸名,不是设计 ref
+    store.close()
+
+
 def test_elec_deny_demotes_ldo_in_24v_direct_design(tmp_path) -> None:
     """24V 直入 3V3(无 5V 中间轨):ldo(max 15V, VIN_5V 无落点)被降权;5V 设计不误伤。"""
     from edaloop.knowledge.models import Electrical

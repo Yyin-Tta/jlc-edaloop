@@ -365,15 +365,27 @@ class KnowledgeStore:
         except (json.JSONDecodeError, KeyError, TypeError):
             return electrical
         rows: list[dict] = []
+        matched_part: str | None = None
         try:
             for ref in refs:
                 r = self.conn.execute(
-                    "SELECT pins FROM datasheets WHERE upper(part) = ?", (ref,)
+                    "SELECT pins, part FROM datasheets WHERE upper(part) = ?", (ref,)
                 ).fetchone()
+                if not r and len(ref) >= 5:
+                    # 变体后缀命中(P5-1 实测:库 ref=AMS1117-3.3/CH340K/STM32F103C8T6,
+                    # datasheet 部件名=AMS1117/CH340/STM32F103C8,精确等值 JOIN 零命中)。
+                    # 同 die 变体共享电气参数表,elec 行通用;前缀 ≥4 字符+最长优先控误命中。
+                    r = self.conn.execute(
+                        "SELECT pins, part FROM datasheets "
+                        "WHERE length(part) >= 4 AND ? LIKE upper(part) || '%' "
+                        "ORDER BY length(part) DESC LIMIT 1",
+                        (ref,),
+                    ).fetchone()
                 if r:
                     table = json.loads(r[0])
                     rows = list(table.get("elec") or [])
                     if rows:
+                        matched_part = str(r[1])
                         break
         except sqlite3.OperationalError:
             return electrical  # 同库无 datasheets 表(未跑过 ingest)
@@ -386,12 +398,17 @@ class KnowledgeStore:
             except (ValueError, TypeError):
                 return None
 
-        src_part = refs[0]
+        src_part = matched_part or refs[0]
         v_min = v_max = i_max = None
+        # 供电行匹配用 startswith(P5-1 实测:子串 "vin" 会命中脚注条件句
+        # 「(VIN - VOUT) ≤ 12V」行,把 AMS1117 的 1.21V 基准电压回填成供电范围;
+        # 供电范围行总是以量名开头,条件句总以被测量/括号开头)。
+        _V_KEYS = ("supply voltage", "input voltage", "operating voltage",
+                   "vcc", "vdd", "vin", "vbat", "operating input voltage")
         for row in rows:
-            param = str(row.get("param", "")).lower()
+            param = str(row.get("param", "")).lower().strip()
             unit = str(row.get("unit", "")).upper()
-            if unit == "V" and any(k in param for k in ("supply voltage", "vdd", "vin", "input voltage", "operating voltage")):
+            if unit == "V" and param.startswith(_V_KEYS):
                 v_min = _v(row, "min") if v_min is None else v_min
                 v_max = _v(row, "max") if v_max is None else v_max
             if unit in ("A", "mA") and any(k in param for k in ("output current", "iout", "supply current", "continuous current")):

@@ -13,6 +13,7 @@ _PIN_PAGE_MARKERS = (
     "pin connection",
     "terminal functions",
     "pin configuration",
+    "internal connection",  # Sharp/Renesas 光耦等:「Internal Connection Diagram」即引脚定义页(PC817 首跑漏页)
 )
 
 # P4-6②/G16:电气参数表页定位标记(数值表通道)。
