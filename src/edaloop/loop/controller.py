@@ -1767,8 +1767,15 @@ class LoopController:
                             self._compact_internal_nets(pg, round_no, placed_by_page[pg])
                         # 紧凑化后复探(2026-08-31):compact 的拉近在 closeout 之后
                         # 仍移动器件,收口探针看不见末端几何;终态重叠/出纸在此
-                        # 分离,分离后再补一轮压体/斜甩标记重落
+                        # 分离,分离后再补一轮压体/斜甩标记重落;随后末轮 reseat
+                        # 后终态复探+收口(2026-09-01 布局治本批,同 freeze 收口
+                        # 尾:「顺序即盲区」——reseat 的盲落/重落在探针后变异
+                        # 几何,复探分离本体相交后再收口一轮,有界收敛)
                         for pg in sorted(placed_by_page):
+                            self._overlap_reprobe(
+                                pg, round_no, placed_by_page[pg],
+                                oversize=pg in getattr(self, "_repack_oversize_pages", set()))
+                            self._reseat_escape_marks(pg, round_no)
                             self._overlap_reprobe(
                                 pg, round_no, placed_by_page[pg],
                                 oversize=pg in getattr(self, "_repack_oversize_pages", set()))
@@ -2875,7 +2882,16 @@ class LoopController:
                 # 同侧扫尾(终态标记最后变异源是 reseat2 的 fallback 盲落):
                 # 引脚对侧的同网近距标记拆掉按外侧优先序重落
                 self._fix_wrong_side_marks(_pg, round_no)
-            self._probe_nets("post-reseat2", round_no, tgt_pages)
+                # 末轮 reseat 后终态复探(2026-09-01 布局治本批,「顺序即盲区」
+                # 二次实证):reseat2/同侧扫尾/盲退护栏仍在探针后落标记+拆落
+                # 标记,末端几何此前无人看;复探分离本体级相交后,组移拖斜的
+                # 标记再收口一轮(标记不动器件 → 复探→reseat 有界收敛,无递归)
+                self._overlap_reprobe(
+                    _pg, round_no,
+                    {i2: ms for i2, ms in members_r.items() if inst_page.get(i2) == _pg},
+                    oversize=_pg in _oversize_pgs)
+                self._reseat_escape_marks(_pg, round_no)
+            self._probe_nets("post-reseat3", round_no, tgt_pages)
             self.audit.event("freeze-pack-replay", round_no=round_no,
                              pages={pg: sorted(i2 for i2, p2 in inst_page.items() if p2 == pg)
                                     for pg in tgt_pages},
@@ -4014,8 +4030,11 @@ class LoopController:
         外侧优先**排(2026-09-01 用户规范「连线不得穿越器件本体」,run-
         7db9b9f61430 目检:AMS1117 pin2 在左缘而 3V3 旗钉本体正中、STM32
         左排 7/8/9/10 脚的网全落右排——「离带边最远」与引脚侧无关,天然
-        产出穿体桩),桩长档 30/60/90(+避体续 120/150/210)里取「锚点 + 文字翼展(_mark_span,
-        顺方向延伸)」仍在带内、桩线/标记墨迹不压任何本体框的首个候选;
+        产出穿体桩),桩长档 30/60/90(+避体续 120/150/210/270/330,2026-09-01
+        布局治本扩档:重跑#2 盲退 fallback 94-110 枚/run 的主因是长档缺位——
+        短中档墨迹擦邻件、长档一出即净;带内界检仍是硬界不放松)里取「锚点 +
+        文字翼展(_mark_span,顺方向延伸)」仍在带内、桩线/标记墨迹不压任何
+        本体框的首个候选;
         自件同列/同行脚落在桩线段内 = 短路,换下一候选。
         body_rects(2026-08-31):要避让的本体框(调用方给自件+他件;None=
         旧口径不查)。此前只查带边+自件脚——「方向=离带边最远」会把标记甩
@@ -4059,7 +4078,8 @@ class LoopController:
                 order = [side, *sorted(perp, key=lambda dd: -room[dd]),
                          {"left": "right", "right": "left",
                           "up": "down", "down": "up"}[side]]
-        offsets = (30, 60, 90) if body_rects is None else (30, 60, 90, 120, 150, 210)
+        offsets = (30, 60, 90) if body_rects is None \
+            else (30, 60, 90, 120, 150, 210, 270, 330)
         fallback_best: tuple[float, tuple[str, int]] | None = None  # (压叠面积, 候选)
         for d in order:
             for off in offsets:
@@ -4138,6 +4158,111 @@ class LoopController:
             if rc == 0:
                 return (d, off)
         return None
+
+    def _guarded_autoconnect(self, page: str, round_no: int, ref: str, kind: str,
+                             net: str, px: float, py: float,
+                             opins: list[tuple[float, float]],
+                             own_body, body_rects, avoid_pts,
+                             tag: str) -> str:
+        """planner 盲退的几何质量关(2026-09-01 布局治本批,重跑#2 翼擦 12 根因)。
+
+        autoconnect 盲落无任何几何检查(#1/#2 fallback 规模 94/110 枚/run,
+        reprobe 在末轮 reseat 之前跑——盲落标记在探针后落纸,末端几何无人看)。
+        流程:落前/落后各列一次页几何,新旧锚点差集定位**本脚新标记**(fake 的
+        autoconnect 不落标记 → 差集空,按原盲退放行,老测试零扰动);新标记
+        墨迹压本体/压他件标记/出带 = 盲落质量事故 → 拆脚重走 _connect_stub
+        (此刻页几何是新的:同轮前序重落/扩避让档 210→330 让首轮失败的候选
+        此刻可成;avoid_pts 由调用方维护 live 追加);再失败重退 planner 盲落
+        保连通(宁翼擦不隐短),全程入审计——翼擦从「静默」变「计数」,对齐
+        §10 软指标记账口径。返回:"error"(autoconnect 失败,调用方按原断网
+        口径计数)/"blind"(无新标记可检或落点合格)/"reguard"(盲落事故已
+        拆+确定性重落)/"unguarded"语义并入 "blind"(审计里带 outcome 区分)。"""
+        from edaloop.generate import packer
+        from edaloop.generate.adapter import AdapterError
+
+        def _geom():
+            try:
+                comps, _deg = self._list_components(page)
+            except Exception:  # noqa: BLE001
+                return None, None, None
+            marks = [f for f in comps
+                     if f.get("componentType") in ("netport", "netflag", "netlabel")
+                     and f.get("x") is not None]
+            bodies = []
+            for c in comps:
+                if c.get("componentType") != "part" or not c.get("designator"):
+                    continue
+                b = c.get("bbox")
+                if isinstance(b, dict) and "minX" in b:
+                    bodies.append((float(b["minX"]), float(b["minY"]),
+                                   float(b["maxX"]), float(b["maxY"])))
+            anchors = {(round(float(f["x"]), 1), round(float(f["y"]), 1))
+                       for f in marks}
+            return marks, bodies, anchors
+
+        _marks0, _bodies0, anchors0 = _geom()
+        try:
+            rc, _o, _e = self.adapter.run(
+                ["sch", "autoconnect", "--pin", ref, "--kind", kind, "--net", net])
+        except AdapterError:
+            return "error"
+        if rc != 0:
+            return "error"
+        if anchors0 is None:
+            return "blind"  # 落前几何读不到,无从质检,按原盲退
+        marks1, bodies1, _anchors1 = _geom()
+        if not marks1:
+            return "blind"
+        bx1, by1, bx2, by2 = packer.BAND
+        bad = None
+        for f in marks1:
+            if str(f.get("net") or f.get("name") or "") != net:
+                continue
+            mx, my = float(f["x"]), float(f["y"])
+            if (round(mx, 1), round(my, 1)) in anchors0:
+                continue  # 旧标记,不是本次盲落
+            mrect = self._mark_rect(f)
+            if (mx < bx1 - 5 or mx > bx2 + 5 or my < by1 - 5 or my > by2 + 5
+                    or any(mrect[0] < rx2 - 2 and mrect[2] > rx1 + 2
+                           and mrect[1] < ry2 - 2 and mrect[3] > ry1 + 2
+                           for (rx1, ry1, rx2, ry2) in bodies1)
+                    or any(mrect[0] < g2[2] - 2 and mrect[2] > g2[0] + 2
+                           and mrect[1] < g2[3] - 2 and mrect[3] > g2[1] + 2
+                           for g in marks1
+                           if g is not f
+                           for g2 in (self._mark_rect(g),))):
+                bad = (f, mx, my)
+                break
+        if bad is None:
+            return "blind"
+        f, mx, my = bad
+        try:
+            self.adapter.run(["sch", "disconnect", "--pin", ref])
+            avoid_r = list(bodies1 or body_rects or [])
+            avoid_r += [self._mark_rect(g) for g in marks1 if g is not f]
+            r = self._connect_stub(ref, kind, net, px, py, opins,
+                                   body_rects=avoid_r or None,
+                                   own_body=own_body, avoid_pts=avoid_pts)
+        except AdapterError:
+            r = None
+        if r is not None:
+            if avoid_pts is not None:
+                nax = px + (r[1] if r[0] == "right" else -r[1] if r[0] == "left" else 0)
+                nay = py + (r[1] if r[0] == "up" else -r[1] if r[0] == "down" else 0)
+                avoid_pts.append((nax, nay))
+            self.audit.event(tag, round_no=round_no, page=page, pin=ref, net=net,
+                             bad_drop=f"{mx:.0f},{my:.0f}",
+                             outcome="reguard", reseat=f"{r[0]}/{r[1]}")
+            return "reguard"
+        try:
+            rc2, _o2, _e2 = self.adapter.run(
+                ["sch", "autoconnect", "--pin", ref, "--kind", kind, "--net", net])
+        except AdapterError:
+            rc2 = 1
+        self.audit.event(tag, round_no=round_no, page=page, pin=ref, net=net,
+                         bad_drop=f"{mx:.0f},{my:.0f}",
+                         outcome="unguarded" if rc2 == 0 else "error")
+        return "blind" if rc2 == 0 else "error"
 
     def _open_page_for_edit(self, page: str, tag: str, round_no: int) -> bool:
         """disconnect/autoconnect/spec 都作用于活动页:先翻到目标页(同紧凑化)。"""
@@ -4501,10 +4626,10 @@ class LoopController:
                                      "mark": f"{mx:.0f},{my:.0f}",
                                      "dir": r[0], "off": r[1]})
                     continue
-                rc2, _o2, _e2 = self.adapter.run(
-                    ["sch", "autoconnect", "--pin", f"{desig}:{pnum}",
-                     "--kind", kind, "--net", net])
-                if rc2 != 0:
+                st = self._guarded_autoconnect(
+                    page, round_no, f"{desig}:{pnum}", kind, net, px, py, opins,
+                    own, avoid, avoid_pts, tag="reseat-blind-guard")
+                if st == "error":
                     failed.append(f"{desig}:{pnum}:{net}")
                     # 上生产后(收口序重构)与 compact 恢复失败同性质:断网计数
                     self._wire_breaks.append(f"{page}:{net}:{desig}:{pnum}:reseat-escape")
@@ -4614,10 +4739,10 @@ class LoopController:
                     fixed.append(f"{desig}:{pnum}:{an}@{ax:.0f},{ay:.0f}"
                                  f"->{r[0]}/{r[1]}")
                     continue
-                rc2, _o2, _e2 = self.adapter.run(
-                    ["sch", "autoconnect", "--pin", f"{desig}:{pnum}",
-                     "--kind", kind, "--net", an])
-                if rc2 == 0:
+                st = self._guarded_autoconnect(
+                    page, round_no, f"{desig}:{pnum}", kind, an, px, py, opins,
+                    own, body_rects or None, avoid_pts, tag="merge-blind-guard")
+                if st != "error":
                     fixed.append(f"{desig}:{pnum}:{an}@{ax:.0f},{ay:.0f}->fallback")
                 else:
                     failed.append(f"{desig}:{pnum}:{an}")

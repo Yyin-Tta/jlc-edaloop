@@ -1223,6 +1223,10 @@ class _RepackFakeAdapter(_ZoneFakeAdapter):
         self.autoconnects: list[tuple[str, str, str]] = []  # 恢复路径(--pin --net)
         self.modifies: list[tuple[str, str, float]] = []  # page, designator, rotation
         self.connects: list[tuple] = []  # (page,pin,kind,net,dir,off) 确定性落桩
+        # autoconnect 盲落标记夹具(默认关=不落标记,老测试零扰动):page →
+        # [{net,"*"同配,dx,dy}] 命中时在脚+(dx,dy) 落 netport——真机 planner
+        # 盲落必落标记且无几何检查(重跑#2 翼擦 12 根因),盲退护栏的质检对象
+        self.ac_marks: dict[str, list[dict]] = {}
         self.active_page = "P1"
         # disconnect 拆 D:P 时连带清掉其它脚的网(真机:共享 netflag/连线被删,
         # 同网邻脚孤儿化——run-86f0ec3ab850 P2:C11 modify 回退拆 C10:2 的 GND)
@@ -1487,6 +1491,16 @@ class _RepackFakeAdapter(_ZoneFakeAdapter):
                             if str(p.get("pinNumber")) == pnum), None)
                 if pin:
                     pin["net"] = net
+                    for spec in self.ac_marks.get(self.active_page, ()):
+                        if spec.get("net") in ("*", net):
+                            _pref = args[args.index("--pin") + 1]
+                            self.netports.setdefault(self.active_page, []).append({
+                                "primitiveId": f"ac_{_pref}_"
+                                               f"{len(self.netports.get(self.active_page, []))}",
+                                "componentType": "netport", "net": net,
+                                "x": float(pin["x"]) + spec["dx"],
+                                "y": float(pin["y"]) + spec["dy"]})
+                            break
                 # 真机:autoconnect 落桩即建网(place 通道块没有 pins_by_page
                 # 模型,fake 里脚找不到也要让网进页网表,否则 NET_MISSING 假阳)
                 self.nets.setdefault(self.active_page, {}).setdefault(net, [])
@@ -2614,6 +2628,95 @@ def test_connect_stub_orders_directions_by_pin_side(tmp_path) -> None:
     # 方向序落到真调用:只有成选候选才发 connect,①-⑤ 逐条对上
     assert [c[c.index("--direction") + 1] for c in adapter.calls
             if c[:2] == ["sch", "connect"]] == ["left", "up", "down", "right", "down"]
+
+
+def test_connect_stub_extended_offset_tier(tmp_path) -> None:
+    """扩避让档(2026-09-01 布局治本):避体档 210→330——外侧短中档的标记
+    墨迹全擦右侧偏轴邻件(leg 不穿体,仅 ±14 墨迹带内压体)时,270 档锚点+
+    翼展整体越过邻件,确定性重落成选。旧档位同形只能吃 min-overlap 兜底
+    (150/210 压叠落桩)或退 planner 盲落——重跑#2 fallback 94-110 枚/run 的
+    主因就是长档缺位。"""
+    chat = FakeChat("{}")
+    adapter = _RepackFakeAdapter("pass", [])
+    adapter.pins_by_page["P1"] = {
+        "U5": [{"pinNumber": "1", "x": 495, "y": 530, "net": ""}]}
+    lc = LoopController(_ir_with_rails(("VIN", 12.0)), _catalog(), _candidates,
+                        chat, adapter, AuditLog(str(tmp_path)))
+    body = (500, 500, 600, 560)  # 自件;脚在左缘(引线外伸 5)
+    # 左/上/下被邻件 leg 封死(同 orders 测试夹具);右侧偏轴邻件
+    # (620..760, y 517..527)贴在桩走廊上缘:leg(y=530)不穿,但 120~210 档
+    # 锚点+166 翼展(LONGNETNAME12 13 字)墨迹全压它,270 档锚 765 翼到 931 越过
+    assert lc._connect_stub("U5:1", "netport", "LONGNETNAME12", 495, 530, [],
+                            body_rects=[body, (150, 510, 470, 550),
+                                        (350, 545, 650, 700), (350, 300, 650, 505),
+                                        (620, 517, 760, 527)],
+                            own_body=body) == ("right", 270)
+    # 唯一成选:先净后落(压叠候选只进 fallback 不发 connect)
+    assert [c[c.index("--direction") + 1] for c in adapter.calls
+            if c[:2] == ["sch", "connect"]] == ["right"]
+
+
+def test_reseat_blind_guard_audits_bad_fallback(tmp_path) -> None:
+    """盲退质量关(reseat 侧,unguarded 路径):全围死脚 _connect_stub 耗尽
+    → planner 盲落进邻件本体 → 护栏检出、拆脚确定性重试(仍围死)、重退
+    planner 保连通——翼擦从「静默」变「计数」(§10 软指标),连通不破。"""
+    chat = FakeChat("{}")
+    adapter = _RepackFakeAdapter("pass", [])
+    adapter.model["P1"] = {
+        "U1": {"minX": 505, "minY": 500, "maxX": 600, "maxY": 560},
+        "LB": {"minX": 100, "minY": 510, "maxX": 497, "maxY": 550},
+        "RB": {"minX": 503, "minY": 510, "maxX": 900, "maxY": 555},
+        "UB": {"minX": 400, "minY": 533, "maxX": 700, "maxY": 900},
+        "DB": {"minX": 400, "minY": 100, "maxX": 700, "maxY": 527},
+    }
+    adapter.pins_by_page["P1"] = {"U1": [
+        {"pinNumber": "1", "x": 500, "y": 530, "net": "NETX"}]}
+    adapter.netports["P1"] = [
+        {"primitiveId": "e1", "componentType": "netport", "net": "NETX",
+         "x": 700, "y": 545}]  # 压 RB 本体 → 判据② 触发 reseat
+    adapter.ac_marks["P1"] = [{"net": "NETX", "dx": 200, "dy": 15}]  # 盲落恒回坏点
+    lc = LoopController(_ir_with_rails(("12V", 12.0)), _catalog(), _candidates,
+                        chat, adapter, AuditLog(str(tmp_path)))
+    lc._reseat_escape_marks("P1", 1)
+    evs = _audit_events(str(tmp_path))
+    ev = next(e for e in evs if e.get("kind") == "freeze-pack-reseat")
+    assert [r["pin"] for r in ev["reseated"]] == ["U1:1"]
+    assert ev["reseated"][0]["dir"] == "auto"
+    assert ev["failed"] == ["U1:1:NETX:fallback"]
+    g = next(e for e in evs if e.get("kind") == "reseat-blind-guard")
+    assert (g["outcome"], g["pin"], g["bad_drop"]) == ("unguarded", "U1:1", "700,545")
+    # 盲落两回(初落+重落),拆脚两回(reseat+护栏重试前);connect 零发(全围死)
+    assert sum(1 for c in adapter.calls if c[:2] == ["sch", "autoconnect"]) == 2
+    assert sum(1 for c in adapter.calls if c[:2] == ["sch", "disconnect"]) == 2
+    assert not [c for c in adapter.calls if c[:2] == ["sch", "connect"]]
+    assert not lc._wire_breaks
+    # 终态:只剩重落的盲标记(坏但连通,已计数交目检),e1 已随 disconnect 清除
+    assert [(f["net"], f["x"], f["y"]) for f in adapter.netports["P1"]] == \
+        [("NETX", 700.0, 545.0)]
+
+
+def test_blind_guard_reseats_bad_marker_deterministically(tmp_path) -> None:
+    """盲退质量关(reguard 路径):盲落标记压自件本体 → 护栏拆脚按新几何
+    确定性重落成选(left/30,带内离体),avoid_pts live 追加新锚,审计
+    outcome=reguard;盲落标记随 disconnect 清除,终态只有确定性标记。"""
+    chat = FakeChat("{}")
+    adapter = _RepackFakeAdapter("pass", [])
+    adapter.model["P1"] = {"U1": {"minX": 505, "minY": 500, "maxX": 600, "maxY": 560}}
+    adapter.pins_by_page["P1"] = {"U1": [
+        {"pinNumber": "1", "x": 500, "y": 530, "net": ""}]}
+    adapter.ac_marks["P1"] = [{"net": "NETX", "dx": 35, "dy": 10}]  # 盲落压自件本体
+    lc = LoopController(_ir_with_rails(("12V", 12.0)), _catalog(), _candidates,
+                        chat, adapter, AuditLog(str(tmp_path)))
+    avoid_pts: list[tuple[float, float]] = []
+    st = lc._guarded_autoconnect("P1", 1, "U1:1", "netport", "NETX",
+                                 500, 530, [], (505, 500, 600, 560),
+                                 [(505, 500, 600, 560)], avoid_pts, tag="t-guard")
+    assert st == "reguard" and avoid_pts == [(470, 530)]
+    g = next(e for e in _audit_events(str(tmp_path)) if e.get("kind") == "t-guard")
+    assert (g["outcome"], g["reseat"], g["bad_drop"]) == ("reguard", "left/30", "535,540")
+    # 终态:确定性标记在带内离体(left/30 锚 (470,530)),盲落标记已清除
+    assert [(f["primitiveId"], f["x"], f["y"]) for f in adapter.netports["P1"]] == \
+        [("cn_U1:1", 470.0, 530.0)]
 
 
 def test_mark_merge_guard_reseats_coincident_anchors(tmp_path) -> None:
