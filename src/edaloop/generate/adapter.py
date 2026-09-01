@@ -3,7 +3,7 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
-_PINNED_VERSION = "1.1.1"  # ADR-0002→ADR-0011:0.25.1→1.1.1(双机轮换开发,另一台同步升级后同过此门)
+_PINNED_VERSION = "1.2.10"  # ADR-0002→ADR-0011→1.2.10:0.25.1→1.1.1→1.2.8→1.2.10(2026-08-28 连接器平台侧自动升级,CLI 同步跟升;双机轮换开发,另一台同步升级后同过此门)
 _FALLBACK_BIN = r"C:\Users\admin\.local\bin\easyeda.exe"
 
 
@@ -108,10 +108,50 @@ class EasyedaAdapter:
         return "easyeda"
 
     def _subprocess_run(self, args: list[str]) -> tuple[int, str, str]:
-        proc = subprocess.run(
-            [self._bin, *args], capture_output=True, text=True, encoding="utf-8", timeout=600
+        """跑一条 easyeda CLI 命令,600s 超时**杀进程树**。
+
+        为什么不用 subprocess.run(timeout=):真机 freeze-pack 实测(2026-08-31
+        run-955eb4729cff)超时只 TerminateProcess 直子进程,管道写端被孙进程
+        继承时 communicate() 永远等不到 EOF——run 在 designator-rename 后冻死
+        38min 无任何审计(py-spy 栈停在 _communicate join)。连接器 wedge 的
+        项目侧次责项之一(见 docs 连接器假死定性):超时必须 taskkill /T /F
+        树杀,让 TimeoutExpired 真的抛出来,调用方走既有失败/重试路径。
+        """
+        proc = subprocess.Popen(
+            [self._bin, *args], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            text=True, encoding="utf-8",
         )
-        return proc.returncode, proc.stdout or "", proc.stderr or ""
+        try:
+            out, err = proc.communicate(timeout=600)
+            return proc.returncode, out or "", err or ""
+        except subprocess.TimeoutExpired:
+            self._kill_tree(proc.pid)
+            try:
+                out, err = proc.communicate(timeout=15)  # 树杀后管道收尾
+            except subprocess.TimeoutExpired:  # 还有野句柄:放弃等待,别再挂死
+                out, err = "", ""
+            raise AdapterError(
+                f"easyeda {' '.join(args[:3])} 超时(600s,连接器 wedge?已树杀;"
+                f"stderr 尾: {(err or '')[-300:]}"
+            ) from None
+
+    @staticmethod
+    def _kill_tree(pid: int) -> None:
+        import os
+        import sys
+
+        if sys.platform == "win32":
+            subprocess.run(
+                ["taskkill", "/PID", str(pid), "/T", "/F"],
+                capture_output=True, timeout=30,
+            )
+        else:
+            import signal
+
+            try:
+                os.kill(pid, signal.SIGKILL)
+            except OSError:
+                pass
 
     def run(self, args: list[str]) -> tuple[int, str, str]:
         return self._runner(self._pinned(args))

@@ -20,11 +20,11 @@
 3. **可机械复验的校验闭环**(loop 是核心:每轮 gate 报告 + 结构化 Finding + 审计日志全程留痕);
 4. **案例自进化**(通过门禁的交付回写 `seeds/cases.jsonl`)。
 
-PoC 战绩(W0-W4,2026-08):检索 recall@5=88%;真机落图 5 需求 ≥3 过 `sch gate`;迭代闭环 pass@3=80%/pass@5=80%;datasheet 管道 ULN2003A 16/16 脚双通道校验;含库外器件的 showcase 零手工 2 轮收敛。
+当前状态(2026-09,v0.7.0):检索 w1 金标 74 条 recall@8=93-95%;金标需求 eval 曾 22/22 全 1 轮收敛(布局策略 v2);「脑洞→原理图→PCB→订单草稿」全链零手工走通(req-27);电气强门禁(电压兼容/电流预算/rails)eval 10/10 捕获 0 误杀;多页布局行-货架页流(37 块需求 34 页→7 页、单次 13min);datasheet 管道双通道校验(ULN2003A 16/16 脚)。布局「翼擦」类软指标仍在打磨(硬门禁本体相交=0 已达)。
 
 ## 安装
 
-前置:Python 3.12+、[uv](https://docs.astral.sh/uv/)、Windows + EasyEDA Pro(开启「设置 → 系统 → 允许外部交互」)、[easyeda-agent](https://github.com/zhoushoujianwork/easyeda-agent) 四件套(本项目钉 **v0.25.1**,见 `pyproject.toml [tool.edaloop]`)。
+前置:Python 3.12+、[uv](https://docs.astral.sh/uv/)、Windows + EasyEDA Pro(开启「设置 → 系统 → 允许外部交互」)、[easyeda-agent](https://github.com/zhoushoujianwork/easyeda-agent) 四件套(本项目钉 **v1.2.10**,见 `pyproject.toml [tool.edaloop]`)。
 
 ```powershell
 uv sync
@@ -33,7 +33,7 @@ uv run edaloop seed           # 种子块库入库(含向量索引)
 uv run edaloop --help
 ```
 
-环境变量(.env):`EDALOOP_LLM_*`(GLM/DeepSeek/任意 OpenAI 兼容端点)、`EDALOOP_EMBED_*`(硅基流动 BGE-M3,接口抽象可换本地)、`EDALOOP_PROJECT`(EasyEDA 工程名路由)。
+环境变量(.env):`EDALOOP_LLM_*`(GLM/DeepSeek/任意 OpenAI 兼容端点;base 含 `/anthropic` 自动切 Anthropic 协议)、`EDALOOP_EMBED_*`(硅基流动 BGE-M3,接口抽象可换本地)、`EDALOOP_PROJECT`(EasyEDA 工程名路由)、`EDALOOP_LAYOUT_FREEZE=pack`(布局试放冻结,复现布局问题用)。
 
 ## 使用
 
@@ -55,9 +55,13 @@ uv run edaloop apply runs/plan-<id>.json               # 落图 + gate
 # 弱门禁:需求歧义/未覆盖项确认队列
 uv run edaloop questions evals/requirements/req-04-....md --plan runs/plan-<id>.json
 
+# Web UI(Chainlit 聊天式:上传需求/datasheet、长任务流式进度、refine 问答)
+uv sync --extra ui
+uv run --extra ui edaloop ui
+
 # 评测
-uv run edaloop eval --subset w1-retrieval   # 检索 recall@5
-uv run edaloop eval --subset w3-loop        # 迭代收敛(真机,断点续跑)
+uv run edaloop eval --subset w1-retrieval   # 检索 recall@8
+uv run edaloop eval --subset w3-loop        # 迭代收敛(真机,断点续跑;tier smoke/daily/rest 分层)
 ```
 
 每轮迭代的输入 IR/检索命中/BlockPlan/findings/修复动作全量落 `runs/run-<id>/audit.jsonl`。
@@ -67,13 +71,14 @@ uv run edaloop eval --subset w3-loop        # 迭代收敛(真机,断点续跑)
 ```
 src/edaloop/
   intent/    # M1 需求 → DesignIR
-  knowledge/ # M2 四通道混合检索 + 案例回写
-  generate/  # M3 planner/compiler/adapter/audit
+  knowledge/ # M2 五通道混合检索 + 案例回写
+  generate/  # M3 planner/compiler/adapter/audit/packer(布局装箱)
   validate/  # M4 强/弱门禁 → 结构化 Finding
-  loop/      # M5 归因 + 迭代控制器(防震荡)
+  loop/      # M5 归因 + 迭代控制器(防震荡+布局收口)
   ingest/    # M6 datasheet 管道
+  ui/        # Web UI(Chainlit 薄适配+会话纯逻辑,走 --extra ui)
 seeds/        # 种子块库(含 LCSC 回读验证的 pinout)+ 案例库
-evals/        # 金标准集(5 需求 × 10 datasheet)+ 评测脚本
+evals/        # 金标准集(14 需求 × 10 datasheet)+ 评测脚本
 ```
 
 ## 边界与非目标

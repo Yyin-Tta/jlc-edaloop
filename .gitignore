@@ -26,3 +26,12 @@ samples/
 .easyeda/
 
 docs/
+
+# Chainlit Web UI 本地产物(配置缓存/上传暂存/欢迎页,首跑自动生成)
+.chainlit/
+.files/
+chainlit.md
+
+# 真机跑批的重定向日志与会话暂存(不入库)
+log-*.log
+.claude/tmp/

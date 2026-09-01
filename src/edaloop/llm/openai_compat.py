@@ -86,6 +86,12 @@ def _embed_config_from_env() -> EmbedConfig:
 
 def get_llm(temperature: float = 0.2) -> LLMProvider:
     cfg = _llm_config_from_env()
+    # 2026-08-31:GLM coding 套餐配额走 Anthropic 协议端点(/api/anthropic,
+    # Claude Code 同款;openai 协议的 /coding/paas/v4 断供时用户切换到此),
+    # 协议选择按 base 特征路由,调用方(LLMProvider)无感
+    if "/anthropic" in cfg.base:
+        return AnthropicCompatChat(base=cfg.base, key=cfg.key, model=cfg.model,
+                                   temperature=temperature)
     return OpenAICompatChat(base=cfg.base, key=cfg.key, model=cfg.model, temperature=temperature)
 
 
@@ -99,6 +105,99 @@ def get_reranker() -> RerankProvider | None:
         return None
     cfg = _embed_config_from_env()
     return OpenAICompatRerank(base=cfg.base, key=cfg.key, model=cfg.rerank_model)
+
+
+class AnthropicCompatChat(LLMProvider):
+    """Anthropic 协议端点(GLM coding 套餐 /api/anthropic,Claude Code 同款)。
+
+    与 OpenAI 协议的三点差异都要兜:①system 消息必须拎成顶层 `system` 参数,
+    不能混进 messages;②`max_tokens` 必填;③响应 content 是块数组,thinking
+    块(该端点默认开)在前、正文 text 块在后——只拼 text 块。消息序列要求
+    首条 user 且角色交替:项目内调用方全是 [system, user] 两段式,但仍做
+    合并防御(连续同角色并成一条,避免上游 400)。"""
+
+    def __init__(self, base: str, key: str, model: str, temperature: float = 0.2) -> None:
+        self._base = base.rstrip("/")
+        self._key = key
+        self._model = model
+        self._temperature = temperature
+
+    def chat(self, messages: list[ChatMessage], *, model: str | None = None) -> str:
+        system_parts = [m.content for m in messages if m.role == "system"]
+        convo = [m for m in messages if m.role != "system"]
+        merged: list[dict] = []
+        for m in convo:
+            if merged and merged[-1]["role"] == m.role:
+                merged[-1]["content"] += "\n\n" + m.content
+            else:
+                merged.append({"role": m.role, "content": m.content})
+        while merged and merged[0]["role"] == "assistant":
+            merged.pop(0)  # 协议要求首条 user;项目无此形态,防御而已
+        payload: dict = {
+            "model": model or self._model,
+            # 该端点 thinking 强制开且 disabled 字段被静默忽略(实测 200 仍带
+            # thinking 块),思考与正文共享 max_tokens——预算必须把思考装下,
+            # 8192 实测被 make_plan 长提示的思考吃光(stop=max_tokens 无 text)。
+            # 同时走 SSE 流式:非流式下 read timeout 是"首字节前"单窗口,
+            # 65536 预算的长思考生成可超 15min,300s 窗口必然 ReadTimeout
+            # 反复重试空转(实测 25min 无 round-plan);流式思考增量持续到达,
+            # 读超时按"块间隔"计,永不触发
+            "max_tokens": 65536,
+            "stream": True,
+            "messages": merged or [{"role": "user", "content": ""}],
+        }
+        if system_parts:
+            payload["system"] = "\n\n".join(system_parts)
+        if self._temperature:
+            payload["temperature"] = self._temperature
+        url = f"{self._base}/v1/messages"
+        headers = {"x-api-key": self._key, "anthropic-version": "2023-06-01"}
+        last_exc: Exception | None = None
+        for attempt, delay in enumerate(_RETRY_DELAYS + (None,)):
+            trial = payload
+            if attempt > 0 and merged:  # 内容过滤重试同款:末条附注扰动
+                trial = dict(payload)
+                trial["messages"] = [dict(m) for m in payload["messages"]]
+                trial["messages"][-1]["content"] += _FILTER_NOTE
+            text_parts: list[str] = []
+            stop_reason: str | None = None
+            try:
+                with httpx.stream("POST", url, headers=headers, json=trial,
+                                  timeout=httpx.Timeout(60.0, read=300.0, write=60.0, pool=60.0)) as resp:
+                    if resp.status_code in _RETRY_STATUS or _is_content_filter(resp.status_code, ""):
+                        raise httpx.HTTPStatusError(
+                            f"{resp.status_code} for {url}", request=resp.request, response=resp)
+                    resp.raise_for_status()
+                    for line in resp.iter_lines():
+                        if not line.startswith("data:"):
+                            continue
+                        try:
+                            evt = json.loads(line[5:].strip())
+                        except ValueError:
+                            continue
+                        et = evt.get("type")
+                        if et == "content_block_delta":
+                            d = evt.get("delta") or {}
+                            if d.get("type") == "text_delta":
+                                text_parts.append(str(d.get("text") or ""))
+                        elif et == "message_delta":
+                            stop_reason = (evt.get("delta") or {}).get("stop_reason") or stop_reason
+                text = "".join(text_parts)
+                if text.strip():
+                    return text
+                last_exc = RuntimeError(
+                    f"anthropic 流式无 text 增量: stop={stop_reason}")
+            except (_RETRY_EXC + (httpx.HTTPStatusError,)) as e:
+                if isinstance(e, httpx.HTTPStatusError) \
+                        and e.response.status_code not in _RETRY_STATUS \
+                        and not _is_content_filter(e.response.status_code, str(getattr(e.response, "_text", ""))):
+                    raise
+                last_exc = e
+            if delay is not None:
+                time.sleep(delay)
+            else:
+                break
+        raise last_exc or RuntimeError(f"request failed: {url}")
 
 
 class OpenAICompatChat(LLMProvider):

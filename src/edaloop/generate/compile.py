@@ -147,6 +147,25 @@ _SPACING_DEFAULT = "250"
 # 回退开关:_FLOW_W=400 → 除 led_indicator(dx136)外全部独行,近似精确还原单列。
 _FLOW_W = 950
 _WING_PAD_X = 120  # 行内翼展垫:netport 文字+桩线实测单侧 50~320,取中带保守
+# 网名长度维翼展增量(2026-08-24 req-02/06/07 HALT 定案):_PLACE_INK 按 CALNET{pin}
+# (≤9 字符)标定、_INK_CELL 的 dx 是器件 bbox 并集根本不含 netport 文字,pitch 的
+# pad 120 名义上只覆盖 ~8 字符网;真实网名 max 10-12(USB_5V_RAW/PA8_RS485_DE/
+# STEP1_A_OUT 成排),每超 1 字翼展单侧多 15。led_indicator_gpio dx=136+11 字网
+# 真实宽 466 > 旧 pitch 376 → 同行相邻 LED 块必叠(req-07 R9×R11 实证)。
+_NET_CHAR_W = 15  # netport 每字符净宽(含桩线摊销):R 标定 (261-21)/2/8
+_CAL_NET_REF = 8  # 标定参考网长:_PLACE_INK 按 CALNET{pin} 量,_INK_CELL 无翼展但 pad 120≈8 字
+# upstream 翼展基线补偿(P2-8,2026-08-26 对齐 _mark_span 真机口径):_INK_CELL 的
+# dx 是器件 bbox 并集、完全不含 netport 翼展,pad 120 名义 ≈8 字,但 8 字网单侧
+# 真机实测 ≈146(桩 40 + 文字 106,run-885b01f68b1f 的 _mark_span 同口径:
+# 12/字符 + 10 下限 60)。基线补 26 只给 upstream;place 实测表按 ≤9 字网连网后
+# 量的组盒,翼展已含,只吃长度斜率(斜率 15/字系 req-07 R9×R11 真机缺口反推,
+# 3 字缺 45=恰好 15/字,不动的部分)。
+_WING_BASE_EXTRA = 26
+# 纵向欠账(同日定案,req-01 网名不超 8 仍 HALT):_INK_CELL 的 dy 同为器件 bbox,
+# 不含 netport 垂直悬挂(上下各伸 ~30-60),行间只有 _STACK_GAP=60 → autodl dy=21
+# 下一行仅 +81 即撞(req-01/06 的 clamp 全是 dy 移动实证)。place 实测 dy 已含
+# netport、tier 本就高估,不加(保小件页密度)。
+_WING_PAD_Y = 40  # upstream 块 dy 单侧补偿(调参梯:不足→60,页数涨→30)
 # place 通道实测墨迹表(2026-08-24 真机标定,证据 .claude/measure-place-ink.json):
 # (dx, dy) = 逐 pin autoconnect(netport 已连)后 clusters 组盒——netport 翼展已含在
 # dx 里(实测 netport 只加宽不加高:R 符号 21→连网后 261,dy 11)。R/C/STM32 三类
@@ -231,12 +250,31 @@ def _cell_for(rec: BlockRecord, spacing: int = _CALIB_SPACING) -> tuple[int, int
     return int(dx * s), int(dy * s)
 
 
+def _wing_extra(rec: BlockRecord, b) -> int:
+    """网名长度维的翼展单侧增量:_CAL_NET_REF 字符以内按标定口径已覆盖
+    (place 实测墨迹含 CALNET{pin} 翼展;upstream bbox 无翼展但 pad 120 名义
+    ≈8 字),超出部分按每字符 _NET_CHAR_W 补。upstream 额外加基线
+    _WING_BASE_EXTRA:bbox 完全无翼展,pad 120 对 8 字网实测缺 26。
+    取该块所绑最长网名(pins_binding/ports_binding 并集,两通道在
+    _fill_bindings 后都已填)。"""
+    nets = set(b.pins_binding.values()) | set(b.ports_binding.values())
+    longest = max((len(n) for n in nets), default=0)
+    extra = _NET_CHAR_W * max(0, longest - _CAL_NET_REF)
+    if rec.upstream is not None:
+        extra += _WING_BASE_EXTRA
+    return extra
+
+
 def _spacing_eff(rec: BlockRecord, b, spacing_default: int) -> int:
-    """生效格距:params.spacing(RELAYOUT)优先,再按块宽截到 A4 内(x0+dx ≤ 1170)。
+    """生效格距:params.spacing(RELAYOUT)优先,再按块宽/块高截到 A4 内。
 
     dx 随 spacing 线性放大,不截则 RELAYOUT 反馈给 350+ 会把墨迹静默推出右缘
     (实测最宽 es8311 dx=921:350 → 1289 > 1170);截断只在超宽时收紧,
     不影响 250 标定(全部实测块 250 下右缘 ≤1021)。
+    dy 同理纵向截断(2026-08-24 req-06 定案):esp32s3_pico_native_usb
+    dy=964 > A4 可用高 500,sp=250 下子件落 y~1264 出界 805,钳移回带又与
+    邻件相挤成 rc=1 死锁——sp 压到 ⌊250×500/964⌋=129 后 dy=497 可整块入页;
+    cc1101 类(1649)压到下限 100 仍放不下的维持 fit-first 照放(审计暴露)。
     _BLOCK_LAYOUT 实测锚点块免截断:整组几何是逐页 clusters 验证过的,
     翼展截断反而会破坏标定(如 rs485 sp=210 的三行行距)。
     """
@@ -245,17 +283,25 @@ def _spacing_eff(rec: BlockRecord, b, spacing_default: int) -> int:
         return sp  # place 通道无 --spacing 语义,格距只影响流程推进,宽度恒定
     if rec.upstream.id in _BLOCK_LAYOUT:
         return sp
-    dx, _ = _INK_CELL.get(rec.upstream.id, _INK_DEFAULT)
-    ceiling = max(int(_CALIB_SPACING * (_SHEET_W - _GRID_X0) / dx), 100)
-    return min(sp, ceiling)
+    dx, dy = _INK_CELL.get(rec.upstream.id, _INK_DEFAULT)
+    ceiling_w = max(int(_CALIB_SPACING * (_SHEET_W - _GRID_X0) / dx), 100)
+    ceiling_h = max(int(_CALIB_SPACING * (_SHEET_TOP_LIMIT - _GRID_Y0) / dy), 100)
+    return min(sp, ceiling_w, ceiling_h)
 
 
-def _validate_at(at: str, dx: int, dy: int, fallback: str) -> str:
-    """planner/RELAYOUT 显式 at 只做 A4 硬界校核,出界回退流式位(fit-first 不静默)。
+def _validate_at(
+    at: str, dx: int, dy: int, fallback: str,
+    placed: list[tuple[int, int, int, int]] | None = None,
+) -> str:
+    """planner/RELAYOUT 显式 at 做 A4 硬界 + 邻块碰撞校核,任一不过回退流式位
+    (fit-first 不静默)。
 
-    只拦「整块飞出图纸」级灾难(run4 r2 实例:RELAYOUT 给 rs485 at=950,480,
-    4 列×336 步长=2294,整块飞出 A4 右缘);列间 netport 翼展擦撞是结构问题,
-    归 P4-b3 组排布层,不在此假装能算准(翼展实测 50~320 且逐 pin 而异)。
+    硬界拦「整块飞出图纸」级灾难(run4 r2 实例:RELAYOUT 给 rs485 at=950,480,
+    4 列×336 步长=2294,整块飞出 A4 右缘)。碰撞拦「显式 at 压进已落块的 ink 框」
+    (P1-7,2026-08-26):流式位由 pitch/行进数学保证不叠,显式位此前无任何邻块
+    检查——RELAYOUT 反馈给的 at 落在别块 cell 上即真叠。cell 已含翼展估算,
+    相交即拒,双侧各放 20 余量。列间 netport 翼展擦撞的精度问题仍归 P4-b3
+    组排布层,不在此假装能算准(翼展实测 50~320 且逐 pin 而异)。
     右侧留 100:末列右翼 + 少量文本;左侧 130 / 下 60:首列/末行外侧标签桩线。
     """
     try:
@@ -265,6 +311,10 @@ def _validate_at(at: str, dx: int, dy: int, fallback: str) -> str:
         return fallback
     if x < 130 or y < 60 or x + dx > _SHEET_X1 - 100 or y + dy > _SHEET_Y1:
         return fallback
+    for (px, py, pw, ph) in placed or ():
+        if (x - 20 < px + pw + 20 and x + dx + 20 > px - 20
+                and y - 20 < py + ph + 20 and y + dy + 20 > py - 20):
+            return fallback
     return at
 
 
@@ -346,20 +396,47 @@ def compile_actions(
         band_blocks[band_of(catalog[b.block_id], b.zone)].append(b)
     flow = _PageFlow()
     emit: list = []
+
+    def _dy_eff(b) -> int:
+        # upstream 墨迹 dy 不含 netport 垂直悬挂,行距按 dy+2×pad 推进;
+        # place 实测 dy 已含 netport,tier 本就高估——不加,保小件页密度。
+        _, dy = _cell_for(catalog[b.block_id], _spacing_eff(catalog[b.block_id], b, spacing))
+        return dy + 2 * _WING_PAD_Y if catalog[b.block_id].upstream is not None else dy
+
+    # 已落块 cell 登记(P1-7),**按页分桶**:显式 at 与后续流式位共用同一张
+    # 占用表——显式位校核邻块碰撞,流式位反过来避开先前的显式位(显式块不占
+    # 流游标,它的实际落点必须登记,否则后续流式块可能直接铺到显式块身上)。
+    # 分页是因为流式换页后回到同页首锚点,跨页比较会把前一页首块误判成碰撞。
+    placed_by_page: dict[str, list[tuple[int, int, int, int]]] = {}
+
+    def _take_checked(dx_eff: int, dy_eff: int) -> tuple[str, str]:
+        """流式取位 + 同页占用表避让:落点撞已登记 cell(显式 at)则封行独占新行。"""
+        at, page = flow.take(dx_eff, dy_eff)
+        placed = placed_by_page.get(page)
+        if placed:
+            x, y = (int(v) for v in at.split(",")[:2])
+            hit = any(
+                x - 20 < px + pw + 20 and x + dx_eff + 20 > px - 20
+                and y - 20 < py + ph + 20 and y + dy_eff + 20 > py - 20
+                for (px, py, pw, ph) in placed
+            )
+            if hit:
+                flow.break_row()
+                at, page = flow.take(dx_eff, dy_eff)
+        return at, page
+
     for band in (0, 1, 2):
         flow.break_row()  # 带不共行(页内行段=带,分区语义保真)
-        ordered = sorted(
-            band_blocks[band],
-            key=lambda b: _cell_for(catalog[b.block_id], _spacing_eff(catalog[b.block_id], b, spacing))[1],
-            reverse=True,
-        )
+        ordered = sorted(band_blocks[band], key=_dy_eff, reverse=True)
         for b in ordered:
             rec = catalog[b.block_id]
             dx, dy = _cell_for(rec, _spacing_eff(rec, b, spacing))
+            dx_eff = dx + 2 * _wing_extra(rec, b)
+            dy_eff = dy + 2 * _WING_PAD_Y if rec.upstream is not None else dy
             lay = _BLOCK_LAYOUT.get(rec.upstream.id) if rec.upstream else None
             if lay:
                 flow.break_row()  # 锚点块独占行(整组实测几何,不与邻件拼行)
-            at, page = flow.take(dx, dy)
+            at, page = _take_checked(dx_eff, dy_eff)
             if lay:
                 # 实测锚点 x0(块左翼已量入,如 rs485 U4 的 RS485_A/B 文字翼 322)
                 at = f"{lay[0]},{at.split(',')[1]}"
@@ -367,7 +444,12 @@ def compile_actions(
             if not b.at:
                 b.at = at  # planner/RELAYOUT 显式 at 优先(P4-1④,页内坐标)
             else:
-                b.at = _validate_at(b.at, dx, dy, at)  # 出 A4 硬界 → 回退流式位
+                b.at = _validate_at(b.at, dx_eff, dy_eff, at, placed=placed_by_page.get(page))
+            try:
+                _px, _py = (int(v) for v in b.at.split(",")[:2])
+                placed_by_page.setdefault(page, []).append((_px, _py, dx_eff, dy_eff))
+            except ValueError:
+                pass
             emit.append(b)
     for b in emit:
         rec = catalog[b.block_id]
@@ -451,6 +533,9 @@ def compile_actions(
                 )
             )
             pinout = rec.pinout or {}
+            # --pin 用引脚号(pinout 键)不用名字:连接器重名脚(USB-C 16P 的
+            # VBUS/GND/EP 各 2-4 个)按名解析撞 ambiguous 直接 rc≠0(req-07 实证);
+            # pin-verify 证明符号引脚号与目录键一致,号维永远唯一。
             for pin, net in b.pins_binding.items():
                 pin_name = pinout.get(pin, pin)
                 kind = _pin_kind(pin_name)
@@ -462,7 +547,7 @@ def compile_actions(
                             "sch",
                             "autoconnect",
                             "--pin",
-                            f"{designator}:{pin_name}",
+                            f"{designator}:{pin}",
                             "--kind",
                             kind,
                             "--net",
@@ -476,3 +561,38 @@ def compile_actions(
         Action(kind="sch-gate", block_instance="", upstream_id="", args=["sch", "gate", "--json"], desc="验证门禁")
     )
     return actions
+
+
+def ink_cells(
+    plan: BlockPlan,
+    catalog: dict[str, BlockRecord],
+    *,
+    spacing_default: str = _SPACING_DEFAULT,
+) -> dict[str, tuple[int, int, int, str]]:
+    """块实例 -> (dx, dy, band_id, kind) 估算 cell(repack 装箱输入)。
+
+    upstream 块仅在试放回读缺失时兜底(实测框优先——真机 clusters 的 box 含
+    netport 文字墨迹,估算永远追不上);place 块恒用估算(其 netport 在逐 pin
+    autoconnect 后才存在,试放成本=正式落图,不合算)。dx 含 _wing_extra、
+    upstream dy 含 _WING_PAD_Y,与 compile_actions 布局段同口径。
+    """
+    plan = _fill_bindings(plan, catalog)
+    spacing = int(spacing_default)
+    out: dict[str, tuple[int, int, int, str]] = {}
+    for b in plan.blocks:
+        rec = catalog[b.block_id]
+        dx, dy = _cell_for(rec, _spacing_eff(rec, b, spacing))
+        # FRM-5(v0.6.11 审计):超 _CAL_NET_REF 的长网字符斜率两通道同加
+        # (compile_actions 布局段 dx_eff 同口径,流式装箱两套口径曾不一致
+        # → repack 低估 place 块 → 装箱重叠);_WING_PAD_Y 仍 upstream 专属
+        # (place 实测 dy 已含 netport 悬挂,_dy_eff 同判)。
+        dx += 2 * _wing_extra(rec, b)
+        if rec.upstream is not None:
+            dy += 2 * _WING_PAD_Y
+        out[b.instance] = (
+            int(dx),
+            int(dy),
+            band_of(rec, b.zone),
+            "upstream" if rec.upstream is not None else "place",
+        )
+    return out

@@ -98,6 +98,7 @@ def stage_run(
     answers: dict[str, str] | None = None,
     ir_path: str | None = None,
     retry_queries: list[str] | None = None,
+    audit_listener=None,
 ):
     from edaloop.generate.adapter import EasyedaAdapter
     from edaloop.loop.controller import LoopController
@@ -115,7 +116,8 @@ def stage_run(
                 f"- [{qid}] {ans}" for qid, ans in answers.items() if ans
             )
     retriever = make_retriever(db_path, ir=ir)
-    audit = AuditLog(f"runs/run-{ir.id}")
+    # audit_listener:UI 事件总线(见 generate/audit.py),None = 既有 CLI/eval 用法
+    audit = AuditLog(f"runs/run-{ir.id}", listener=audit_listener)
     audit.event(
         "ir",
         source=source,

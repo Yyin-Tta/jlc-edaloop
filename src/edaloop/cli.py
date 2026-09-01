@@ -81,6 +81,11 @@ def build_parser() -> argparse.ArgumentParser:
     p_apply.add_argument("plan", help="plan 命令产出的 BlockPlan JSON 路径")
     p_apply.add_argument("--seeds", default="seeds/blocks.jsonl")
 
+    p_ui = sub.add_parser("ui", help="Chainlit Web UI:聊天+上传需求/datasheet,流式看 run 进度(需 uv sync --extra ui)")
+    p_ui.add_argument("--host", default="127.0.0.1")
+    p_ui.add_argument("--port", type=int, default=8000)
+    p_ui.add_argument("--headless", action="store_true", help="不自动开浏览器")
+
     return parser
 
 
@@ -417,6 +422,26 @@ def _cmd_order(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_ui(args: argparse.Namespace) -> int:
+    import subprocess
+
+    try:
+        import chainlit  # noqa: F401
+    except ImportError:
+        print("缺少 chainlit,先装:uv sync --extra ui")
+        return 2
+    app = Path(__file__).with_name("ui") / "app.py"
+    cmd = [
+        sys.executable, "-m", "chainlit", "run", str(app),
+        "--host", args.host, "--port", str(args.port),
+    ]
+    if args.headless:
+        cmd.append("--headless")
+    print(f"starting: {' '.join(cmd)}")
+    print("(工作目录须为仓库根:runs/ seeds/ 按相对路径解析;会话附件落 runs/ui/)")
+    return subprocess.call(cmd)
+
+
 def main(argv: list[str] | None = None) -> int:
     load_dotenv()
     parser = build_parser()
@@ -450,6 +475,8 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_quote(args)
     if args.command == "order":
         return _cmd_order(args)
+    if args.command == "ui":
+        return _cmd_ui(args)
     raise NotImplementedError(f"command '{args.command}' 尚未实现")
 
 

@@ -23,6 +23,7 @@ class PlannedBlock(_Strict):
     at: str = ""
     zone: str = ""
     page: str = ""  # compile 页流分配的落图页(P1..Pn);planner 不给,由布局定
+    module: str = ""  # 功能模块名(小写短词,如 mcu/power/motor1/usb-serial);装箱亲和用,缺省按带序
 
     @model_validator(mode="before")
     @classmethod
@@ -30,7 +31,7 @@ class PlannedBlock(_Strict):
         if isinstance(v, dict):
             known = {
                 "block_id", "upstream_id", "instance", "ports_binding", "pins_binding",
-                "params", "provenance", "at", "zone", "page",
+                "params", "provenance", "at", "zone", "page", "module",
             }
             return {k: val for k, val in v.items() if k in known}
         return v

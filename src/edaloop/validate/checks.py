@@ -746,8 +746,9 @@ def check_param_off_spec(plan: BlockPlan, sizing_advices, catalog: dict | None =
     return findings
 
 
-def check_gauge(gate_report: dict) -> list[Finding]:
+def check_gauge(gate_report: dict, oversize_pages: set[str] | None = None) -> list[Finding]:
     findings: list[Finding] = []
+    oversize_pages = oversize_pages or set()
     verdict = gate_report.get("verdict", "unknown")
     if verdict == "pass":
         return findings
@@ -766,6 +767,10 @@ def check_gauge(gate_report: dict) -> list[Finding]:
         err = stage.get("error") or ""
         if sv == "pass" or sv == "skipped":
             continue
+        # repack oversize 页(独占左上锚的超带块)几何族 fail 是结构溢出的必然
+        # 表现,refine 治不了(REPLAN 类)——降弱观察随 review 交付,不再 HALT。
+        # 电气族(check/bridge-check/drc)不豁免:那是真错,必须治。
+        degrade = stage.get("page") in oversize_pages and name in ("layout-lint", "clusters")
         detail = stage.get("detail") if isinstance(stage.get("detail"), dict) else {}
         items = (
             stage.get("findings")
@@ -776,7 +781,7 @@ def check_gauge(gate_report: dict) -> list[Finding]:
             or detail.get("items")
             or []
         )
-        if err:
+        if err and not degrade:
             findings.append(
                 Finding(
                     code="GATE_FAIL",
@@ -787,11 +792,24 @@ def check_gauge(gate_report: dict) -> list[Finding]:
                 )
             )
         for f in items[:20]:
+            evidence = _compact(f)
+            if degrade:
+                findings.append(
+                    Finding(
+                        code="OVERSIZE_PAGE_GEOMETRY",
+                        where=Where(ref=name),
+                        evidence=f"[oversize 页 {stage.get('page')}] {evidence}",
+                        severity="warning",
+                        suggested_fix_class="REPLAN",
+                        weak=True,
+                    )
+                )
+                continue
             findings.append(
                 Finding(
                     code="GATE_FAIL",
                     where=Where(ref=name),
-                    evidence=_compact(f),
+                    evidence=evidence,
                     severity="error",
                     suggested_fix_class=_fix_class(name, f),
                 )
@@ -876,6 +894,32 @@ def _catalog_pinout(block_id: str) -> dict:
     return {}
 
 
+def check_net_existence(
+    planned_by_page: dict[str, set[str]], actual_by_page: dict[str, set[str]]
+) -> list[dict]:
+    """P0 net 存在性确定性终检(v0.6.11 审计):逐页对照计划网与页内实际网表。
+
+    planned 来自动作流(block-apply 的 --bind PORT=NET、autoconnect 的 --net,
+    按 act.page 归页),actual 来自 `sch read --page` 的 nets 字段。某页缺某网
+    = 该网在本页零载体(导线/桩/netport 任一都没有)= 确定性断网。与 gate
+    互补:gate 的 layout-lint/check 判"接得合不合法",判不了"规划里的网
+    根本没落上去"(req-07 P2 全页零 GND 形态,gate 只报局部松动)。
+
+    纯函数(无 IO):controller 采集两侧数据后调用,冻结分支只把结果进审计。
+    NC 与空名不算缺失(未用脚语义)。返回 [{page, missing:[网名]}],空=全过。
+    """
+    out: list[dict] = []
+    for page in sorted(planned_by_page):
+        want = planned_by_page.get(page) or set()
+        have = actual_by_page.get(page) or set()
+        missing = sorted(
+            n for n in want if n and str(n).upper() != "NC" and n not in have
+        )
+        if missing:
+            out.append({"page": page, "missing": missing})
+    return out
+
+
 def validate(
     ir: DesignIR,
     plan: BlockPlan,
@@ -884,6 +928,7 @@ def validate(
     catalog: dict | None = None,
     sizing: list | None = None,
     acceptance: list | None = None,
+    oversize_pages: set[str] | None = None,
 ) -> list[Finding]:
     findings: list[Finding] = []
     findings += check_rails(ir, plan)
@@ -900,5 +945,5 @@ def validate(
         # P4-5①:验收条目机械复评(恒弱;manual 条目不判)
         findings += check_acceptance(ir, plan, acceptance, gate_report, catalog)
     if gate_report is not None:
-        findings += check_gauge(gate_report)
+        findings += check_gauge(gate_report, oversize_pages or set())
     return findings

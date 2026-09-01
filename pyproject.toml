@@ -1,6 +1,6 @@
 [project]
 name = "edaloop"
-version = "0.2.0"
+version = "0.7.0"
 description = "Open-source schematic-design agent for EasyEDA Pro: RAG knowledge base, two-stage generation, mechanical validation loop"
 requires-python = ">=3.12"
 dependencies = [
@@ -13,6 +13,10 @@ dependencies = [
 
 [project.scripts]
 edaloop = "edaloop.cli:main"
+
+# Web UI 会话层(纪律同 ADR-0002 easyeda-agent):核心依赖零增量,UI 走 extra
+[project.optional-dependencies]
+ui = ["chainlit>=2,<3"]
 
 [dependency-groups]
 dev = [
@@ -29,6 +33,6 @@ packages = ["src/edaloop", "skills"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
-# 澶栭儴渚濊禆閽夋(ADR-0002):easyeda-agent CLI/daemon/杩炴帴鍣?skill,鍗囩骇椤荤嫭绔?PR + 鍏ㄩ噺 evals 鍥炲綊
+# 外部依赖钉死(ADR-0002):easyeda-agent CLI/daemon/连接器、skill,升级须独立 PR + 全量 evals 回归
 [tool.edaloop]
-easyeda-agent = "1.1.1"
+easyeda-agent = "1.2.10"

@@ -203,11 +203,12 @@ def test_page_flow_band_order_and_wrap() -> None:
 
 
 def test_page_flow_stacks_small_blocks_same_page() -> None:
-    """两块 AMS1117(各 dy41):300+41+60=401 接续,401+41=442 ≤ 800 同页纵排。"""
+    """两块 AMS1117(各 dy41,upstream 纵向 slop +2×40):300+121+60=481 接续,
+    481+121=602 ≤ 800 同页纵排。"""
     catalog = _catalog()
     res = _at_page_of(_plan_of(catalog, "ldo-ams1117-3v3", "ldo-ams1117-3v3"), catalog)
     assert res["i0"] == ("180,300", "P1")
-    assert res["i1"] == ("180,401", "P1")
+    assert res["i1"] == ("180,481", "P1")
 
 
 def test_page_flow_big_blocks_one_per_page() -> None:
@@ -233,7 +234,7 @@ def test_cells_scale_with_spacing() -> None:
     assert "--spacing 280" in join0
     res = {b.instance: b.at for b in plan.blocks}
     assert res["i0"] == "180,300"
-    assert res["i1"] == "180,405"
+    assert res["i1"] == "180,485"  # dy_eff = 45+2×40(slop) → 300+125+60
 
 
 def test_spacing_clamped_to_sheet_width() -> None:
@@ -247,20 +248,22 @@ def test_spacing_clamped_to_sheet_width() -> None:
     actions = compile_actions(plan, catalog)
     a = next(a for a in actions if a.kind == "block-apply")
     assert a.args[a.args.index("--spacing") + 1] == "289"
-    # 占位按截断后格距推进:dy=int(41*289/250)=47
+    # 占位按截断后格距推进:dy=int(41*289/250)=47,+slop 2×40 → 300+127+60=487
     res = _at_page_of(_plan_of(catalog, "ldo-ams1117-3v3", "ldo-ams1117-3v3", spacing="500"), catalog)
     assert res["i0"][0] == "180,300"
-    assert res["i1"][0] == "180,407"
+    assert res["i1"][0] == "180,487"
 
 
 def test_per_block_spacing_and_at_override() -> None:
-    """P4-1④:i0 params.spacing=280(截断内)→ --spacing 280 且占位放大;i1 显式 at(A4 内)优先网格。"""
+    """P4-1④:i0 params.spacing=280(截断内)→ --spacing 280 且占位放大;i1 显式 at(A4 内)优先网格。
+    at 的 x 从 180 收到 130:P2-8 upstream 翼展基线 +52 后 dx_eff=908,
+    180+908 > 1058 已越硬界(旧 dx_eff=856 才放行 180)。"""
     catalog = _catalog()
     blocks = [
         {"block_id": "ldo-ams1117-3v3", "upstream_id": "block.ams1117_ldo_3v3",
          "instance": "i0", "params": {"spacing": "280"}},
         {"block_id": "ldo-ams1117-3v3", "upstream_id": "block.ams1117_ldo_3v3",
-         "instance": "i1", "at": "180,600"},
+         "instance": "i1", "at": "130,600"},
     ]
     plan = BlockPlan.model_validate({"blocks": blocks})
     actions = compile_actions(plan, catalog)
@@ -269,7 +272,7 @@ def test_per_block_spacing_and_at_override() -> None:
     assert by_inst["i1"].args[by_inst["i1"].args.index("--spacing") + 1] == "250"
     res = {b.instance: (b.at, b.page) for b in plan.blocks}
     assert res["i0"] == ("180,300", "P1")  # dy 45,推进到 405
-    assert res["i1"] == ("180,600", "P1")  # 显式 at 生效,页槽仍按流分配(405+41≤800 → P1)
+    assert res["i1"] == ("130,600", "P1")  # 显式 at 生效(130+908≤1058),页槽按流分配 P1
 
 
 def test_explicit_at_offsheet_falls_back() -> None:
@@ -351,6 +354,42 @@ def test_zone_hint_overrides_category() -> None:
     assert plan.blocks[0].page == "P1"
 
 
+def test_autoconnect_pins_by_number_not_name() -> None:
+    """连接器重名脚(req-07 USBC 实证):--pin 必须用引脚号。目录 pinout 名字可重
+    (USB-C 16P: VBUS×2/GND×2/EP×4),按名解析在符号上撞 ambiguous 直接 rc≠0;
+    引脚号(= pinout 键)经 pin-verify 证明与符号一致且唯一。kind 检测仍走名字。"""
+    catalog = _catalog()
+    catalog["usb-c-16p"] = BlockRecord(
+        block_id="usb-c-16p", name="USB-C 16P", desc="x", lcsc="C9900012665",
+        pinout={"A4B9": "VBUS", "B4A9": "VBUS", "A1B12": "GND", "B1A12": "GND", "A5": "CC1", "B5": "CC2"},
+    )
+    plan = BlockPlan.model_validate(
+        {
+            "design_ir_id": "x",
+            "source": "req.md",
+            "blocks": [
+                {
+                    "block_id": "usb-c-16p",
+                    "upstream_id": "",
+                    "instance": "usb1",
+                    "pins_binding": {
+                        "A4B9": "5V_BUS", "B4A9": "5V_BUS", "A1B12": "GND",
+                        "B1A12": "GND", "A5": "CC1_NET", "B5": "CC2_NET",
+                    },
+                }
+            ],
+        }
+    )
+    actions = compile_actions(plan, catalog)
+    ac = [a for a in actions if a.kind == "sch-autoconnect"]
+    assert [a.args[a.args.index("--pin") + 1] for a in ac] == [
+        "USB1:A4B9", "USB1:B4A9", "USB1:A1B12", "USB1:B1A12", "USB1:A5", "USB1:B5",
+    ]
+    # 名字维仍用于 kind:VBUS 非电源提示词走默认 netport,GND→gnd
+    kinds = [a.args[a.args.index("--kind") + 1] for a in ac]
+    assert kinds[:4] == ["netport", "netport", "gnd", "gnd"]
+
+
 # ---- P5-0/G33 行-货架页流:place 小件行内并排,宽块恒独行(与旧单列逐坐标等价) ----
 
 
@@ -429,7 +468,7 @@ def test_block_layout_anchor_owns_row(monkeypatch) -> None:
     )
     res = _at_page_of(_plan_of(catalog, "led", "led"), catalog)
     assert res["i0"] == ("200,300", "P1")  # 锚点 x0 覆盖(实测左翼已量入)
-    assert res["i1"] == ("200,386", "P1")  # 行进 = dy26+60,而非拼行 x=556
+    assert res["i1"] == ("200,466", "P1")  # 行进 = dy_eff 26+2×40 +60,而非拼行
 
 
 def test_place_tier_defaults_by_pin_count() -> None:
@@ -470,3 +509,184 @@ def test_row_shelf_12_small_parts_two_pages(monkeypatch) -> None:
     res = _at_page_of(_plan_of(catalog, *(["tiny"] * 12)), catalog)
     pages = {p for _, p in res.values()}
     assert pages == {"P1", "P2"}
+
+
+# ---- G33 残余批:网名长度维翼展增量 + upstream 纵向 slop(req-01/02/06/07 HALT) ----
+
+
+def test_long_net_widens_pitch(monkeypatch) -> None:
+    """网名超标定参考长(8)按每字符 15 加翼展:req-06 实网 USB_5V_RAW(10 字)
+    → 单侧 extra=30,pitch = 150+2×30+2×120 = 450(短网 pitch 390 不变)。"""
+    from edaloop.generate import compile as compile_mod
+
+    monkeypatch.setattr(compile_mod, "_PLACE_INK", {"tiny": (150, 80)})
+    catalog = _catalog()
+    _tiny(catalog)
+    long_nets = [
+        {"block_id": "tiny", "upstream_id": "", "instance": f"i{n}", "pins_binding": {"1": "USB_5V_RAW"}}
+        for n in range(2)
+    ]
+    res = _at_page_of(BlockPlan.model_validate({"blocks": long_nets}), catalog)
+    assert res["i0"][0] == "180,300"
+    assert res["i1"][0] == "630,300"  # 180+450
+    short_nets = [
+        {"block_id": "tiny", "upstream_id": "", "instance": f"i{n}", "pins_binding": {"1": "GND"}}
+        for n in range(2)
+    ]
+    res2 = _at_page_of(BlockPlan.model_validate({"blocks": short_nets}), catalog)
+    assert res2["i1"][0] == "570,300"  # 短网(3 字)不加翼展
+
+
+def test_upstream_row_gets_vertical_slop(monkeypatch) -> None:
+    """upstream 墨迹 dy 不含 netport 垂直悬挂 → 行进按 dy+2×40 推进;
+    place 实测 dy 已含 netport,不加(小件页密度保真)。同 dy=41 对照。"""
+    from edaloop.generate import compile as compile_mod
+
+    monkeypatch.setattr(compile_mod, "_PLACE_INK", {"tiny": (150, 41)})
+    catalog = _catalog()
+    _tiny(catalog)
+    up = _at_page_of(_plan_of(catalog, "ldo-ams1117-3v3", "ldo-ams1117-3v3"), catalog)
+    assert up["i1"][0] == "180,481"  # 41+2×40+60
+    pl = _at_page_of(_plan_of(catalog, "tiny", "tiny", "tiny"), catalog)
+    assert pl["i2"][0] == "180,401"  # 41+60,place 无 slop
+
+
+def _led_catalog(catalog) -> None:
+    catalog["led"] = BlockRecord(
+        block_id="led",
+        name="L",
+        desc="x",
+        category="power",
+        upstream=UpstreamRef(id="block.led_indicator_gpio", ports={"CTRL": "CTRL", "GND": "GND"}),
+    )
+
+
+def test_wing_uses_longest_of_pins_and_ports_bindings() -> None:
+    """翼展取 ports/pins 两本绑定并集的最长网名(req-02 的 12 字 PA8_RS485_DE
+    挂 ports_binding 实证)。P2-8:upstream bbox 全无翼展,基线补 26(pad 120
+    对 8 字网实测缺 146-120);place 实测表已含翼展不吃基线(test_long_net_
+    widens_pitch 的 570/630 不变即其对照)。"""
+    from edaloop.generate.compile import ink_cells
+
+    catalog = _catalog()
+    _led_catalog(catalog)
+    long_nets = [
+        {"block_id": "led", "upstream_id": "block.led_indicator_gpio", "instance": f"i{n}",
+         "ports_binding": {"CTRL": "STEP1_A_OUT", "GND": "GND"}}
+        for n in range(2)
+    ]
+    plan = BlockPlan.model_validate({"blocks": long_nets})
+    res = _at_page_of(plan, catalog)
+    assert res["i0"][0] == "180,300"
+    # dx_eff = 136+2×(26+15×3) = 278,pitch 518:180+518+518 > 流宽 → i1 独占新行
+    assert res["i1"] == ("180,466", "P1")
+    assert ink_cells(plan, catalog)["i0"][0] == 278
+    short_nets = [
+        {"block_id": "led", "upstream_id": "block.led_indicator_gpio", "instance": f"i{n}",
+         "ports_binding": {"CTRL": "LED1", "GND": "GND"}}
+        for n in range(2)
+    ]
+    plan2 = BlockPlan.model_validate({"blocks": short_nets})
+    res2 = _at_page_of(plan2, catalog)
+    assert res2["i1"][0] == "608,300"  # 短网 pitch 428 仍同行并排
+    assert ink_cells(plan2, catalog)["i0"][0] == 188  # 基线 26:136+2×26
+
+
+def test_ink_cells_place_channel_adds_char_slope_not_pad_y(monkeypatch) -> None:
+    """FRM-5(v0.6.11 审计):place 块 ink_cells 的 dx 补长网字符斜率(与
+    compile_actions 布局段同口径——两套口径不一致曾让 repack 低估 place 块
+    → 装箱重叠);dy 不加 _WING_PAD_Y(place 实测墨迹已含 netport 悬挂)。"""
+    from edaloop.generate import compile as compile_mod
+    from edaloop.generate.compile import ink_cells
+
+    monkeypatch.setattr(compile_mod, "_PLACE_INK", {"tiny": (150, 41)})
+    catalog = _catalog()
+    _tiny(catalog)
+    plan = BlockPlan.model_validate({"blocks": [
+        {"block_id": "tiny", "instance": "i0",
+         "pins_binding": {"1": "STEP1_A_OUT", "2": "GND"}}]})
+    cell = ink_cells(plan, catalog)["i0"]
+    # 11 字网:150+2×(15×3)=240;dy 原样 41;kind=place
+    assert cell[:2] == (240, 41) and cell[3] == "place"
+    # ≤8 字网(标定口径内)不加斜率
+    plan2 = BlockPlan.model_validate({"blocks": [
+        {"block_id": "tiny", "instance": "i0",
+         "pins_binding": {"1": "LED1", "2": "GND"}}]})
+    assert ink_cells(plan2, catalog)["i0"][:2] == (150, 41)
+
+
+def test_validate_at_uses_inflated_cell() -> None:
+    """显式 at 的 A4 硬界校核用膨胀后 cell(保守方向):同 at=850,300,
+    短网 dx_eff=188 放行,11 字网 dx_eff=278 → 850+278 > 1058 回退流式位。"""
+    catalog = _catalog()
+    _led_catalog(catalog)
+    long_net = BlockPlan.model_validate(
+        {"blocks": [{"block_id": "led", "upstream_id": "block.led_indicator_gpio", "instance": "i0",
+                     "at": "850,300", "ports_binding": {"CTRL": "STEP1_A_OUT", "GND": "GND"}}]}
+    )
+    res = _at_page_of(long_net, catalog)
+    assert res["i0"] == ("180,300", "P1")
+    short_net = BlockPlan.model_validate(
+        {"blocks": [{"block_id": "led", "upstream_id": "block.led_indicator_gpio", "instance": "i0",
+                     "at": "850,300", "ports_binding": {"CTRL": "LED1", "GND": "GND"}}]}
+    )
+    res2 = _at_page_of(short_net, catalog)
+    assert res2["i0"] == ("850,300", "P1")
+
+
+def test_validate_at_rejects_neighbor_collision() -> None:
+    """P1-7:显式 at 压进已落块 cell(双侧各 20 余量)即回退流式位——此前显式
+    at 无任何邻块检查,RELAYOUT 反馈的落点叠上已落块就是真叠。"""
+    from edaloop.generate.compile import _validate_at
+
+    placed = [(180, 300, 150, 80)]
+    # (200,300):x 侧 200-20 < 180+150+20 且 y 全叠 → 拒,回退
+    assert _validate_at("200,300", 150, 80, "380,300", placed=placed) == "380,300"
+    # x 分离足量(380-20 ≥ 180+150+20)→ 放行
+    assert _validate_at("380,300", 150, 80, "580,300", placed=placed) == "380,300"
+    # y 侧同理:贴下缘 430(430-20 ≥ 300+80+20)不叠 → 放行
+    assert _validate_at("180,430", 150, 80, "380,300", placed=placed) == "180,430"
+    # 无登记块:只查 A4 硬界
+    assert _validate_at("200,300", 150, 80, "380,300") == "200,300"
+
+
+def test_flow_avoids_registered_explicit_at(monkeypatch) -> None:
+    """P1-7 反向:显式 at 块登记 cell 后不占流游标,但后续流式块取到的位子
+    撞上它时封行让位——否则流式块直接铺到显式块身上(旧版显式 at 不登记)。"""
+    from edaloop.generate import compile as compile_mod
+
+    monkeypatch.setattr(compile_mod, "_PLACE_INK", {"tiny": (150, 80)})
+    catalog = _catalog()
+    _tiny(catalog)
+    blocks = [
+        {"block_id": "tiny", "upstream_id": "", "instance": "i0", "at": "570,300",
+         "pins_binding": {"1": "GND"}},
+        {"block_id": "tiny", "upstream_id": "", "instance": "i1",
+         "pins_binding": {"1": "GND"}},
+    ]
+    res = _at_page_of(BlockPlan.model_validate({"blocks": blocks}), catalog)
+    # i0 显式位放行且登记;i1 流式首取 (570,300) 正撞登记 cell → 封行落新行
+    assert res["i0"] == ("570,300", "P1")
+    assert res["i1"] == ("180,440", "P1")  # 300 + 80(row_dy) + 60(gap)
+
+
+def test_spacing_clamped_to_page_height(monkeypatch) -> None:
+    """纵向 ceiling(2026-08-24 req-06 定案):esp32s3_pico_native_usb dy=964 >
+    A4 可用高 500 → sp 压到 ⌊250×500/964⌋=129,dy 缩到 497 可整块入页;
+    矮块(ldo dy=41)不受影响(ceiling_h=3048)。"""
+    from edaloop.generate import compile as compile_mod
+
+    monkeypatch.setattr(
+        compile_mod, "_INK_CELL",
+        {"block.pico": (896, 964), "block.ams1117_ldo_3v3": (856, 41)},
+    )
+    catalog = _catalog()
+    catalog["pico"] = BlockRecord(
+        block_id="pico", name="P", desc="x", category="power",
+        upstream=UpstreamRef(id="block.pico", ports={}),
+    )
+    actions = compile_actions(_plan_of(catalog, "pico"), catalog)
+    a = next(x for x in actions if x.kind == "block-apply")
+    assert a.args[a.args.index("--spacing") + 1] == "129"
+    # dy 随格距缩放:占位 497(300+497 ≤ 800 整页可容)
+    assert compile_mod._cell_for(catalog["pico"], 129)[1] == 497
