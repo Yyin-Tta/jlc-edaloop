@@ -2301,13 +2301,20 @@ class LoopController:
             return False
 
         trial_blocks = [a for a in actions if a.kind == "block-apply"]
-        if not trial_blocks:
-            return _fallback("no-upstream-blocks")
+        # place-only 计划同样入 pack(2026-09-02,req-08 复跑「2 小模块摊 3 页」
+        # 定性):freeform/标准件计划没有 block-apply,旧门槛 no-upstream-blocks
+        # 把它们整个拦在装箱外,退 compile 流式初值 → 5 个 SOT23 小件摊 3 页、
+        # 每页空白率 >80%。place 通道的试放-量测-装箱-重放链路本就完备(下文
+        # 与 block-apply 混跑),门槛只需同时放行两通道;真无一物可装才回退。
+        place_blocks = [a for a in actions if a.kind == "sch-place"]
+        if not trial_blocks and not place_blocks:
+            return _fallback("no-blocks")
         try:
             est = ink_cells(plan, self.catalog, spacing_default="250")
         except Exception as e:  # noqa: BLE001 —— 估算表异常同样回退流式
             return _fallback(f"ink:{type(e).__name__}:{str(e)[:80]}")
-        missing = [a.block_instance for a in trial_blocks if a.block_instance not in est]
+        missing = [a.block_instance for a in trial_blocks + place_blocks
+                   if a.block_instance not in est]
         if missing:
             return _fallback(f"ink-missing:{missing[0]}")
         # 试放画布保真(P0-3,2026-08-26):clear_all_pages 只清各窗口**活动页**,
@@ -2325,7 +2332,6 @@ class LoopController:
         # cell=est+2·PAD,est 偶尔低估也不至于让相邻框互叠(PAD=300 时 ldo3v3
         # 翼 324 越带的教训,run-47827896dd04)。
         _PAD = 450
-        place_blocks = [a for a in actions if a.kind == "sch-place"]
         # place 通道块同样试放(真机 req-07 round2 定案:_PLACE_INK 估算对 netport
         # 拉伸失真,P2/P3 全部 overlap 都发生在 place 块 est 框与实测框之间)。
         # 预演 lib-search(读)→ sch-place(网格位 P1)→ autoconnect(P1,netport
@@ -4022,6 +4028,70 @@ class LoopController:
             x2, y2 = max(x2, float(b["maxX"])), max(y2, float(b["maxY"]))
         return (x1, y1, x2, y2)
 
+    @staticmethod
+    def _pin_side(px: float, py: float,
+                  pins: list[tuple[float, float]]) -> str | None:
+        """引脚朝向:同件引脚端点的列/行聚类(2026-09-02 req-08 复跑定性)。
+
+        旧「贴本体边 ≤20」判定对**引线型符号**全员失效——组件 bbox 含引线
+        (DW01A 实测 bbox 40..275,本体核仅 145..225),脚端点缩在框内 20-180:
+        中排脚 gap up/down 恰 0-20 被判成上下侧,贴边判定不过又退回「离带边
+        最远」序(左脚先试右侧,PROTDW01:2 CSI 终态钉在右侧即此)。引脚在哪
+        侧不由 bbox 边定,由**同件脚端点的簇位**定:x 轴按 60 间隙分簇(DW01A
+        左列 45/95/130 与右列 230/245/270,列间 100 分开),最左簇朝左、最右
+        簇朝右;x 单簇再按 y 分上下行;都不可分(脚聚成一体/中心脚)→ None,
+        调用方退旧序(垂直出线本就合法,误判比漏判更糟)。"""
+        if not pins:
+            return None
+        xs = sorted(float(q[0]) for q in pins)
+        ys = sorted(float(q[1]) for q in pins)
+
+        def _clusters(vals: list[float]) -> list[list[float]]:
+            out, cur = [], [vals[0]]
+            for v in vals[1:]:
+                if v - cur[-1] <= 60.0:
+                    cur.append(v)
+                else:
+                    out.append(cur)
+                    cur = [v]
+            out.append(cur)
+            return out
+
+        cx = _clusters(xs)
+        if len(cx) >= 2:
+            if px <= cx[0][-1] + 2.0:
+                return "left"
+            if px >= cx[-1][0] - 2.0:
+                return "right"
+        cy = _clusters(ys)
+        if len(cy) >= 2:
+            if py >= cy[-1][0] - 2.0:
+                return "up"
+            if py <= cy[0][-1] + 2.0:
+                return "down"
+        return None
+
+    @staticmethod
+    def _mark_beyond_pin(side: str, px: float, py: float,
+                         mx: float, my: float) -> bool:
+        """标记锚是否在引脚的**外侧**(顺 side 方向越过脚端点)。own-body 豁免、
+        同侧判据共用的几何口径:锚越过脚端点朝外 → 至多擦自件引线(线不是
+        本体);锚在脚与本体之间/对侧 → 压体或穿体。垂直出线(沿轴零偏)不
+        算越过,由调用方按各自语义处理。"""
+        along = (mx - px) if side in ("left", "right") else (my - py)
+        sign = -1.0 if side in ("left", "down") else 1.0
+        return sign * along > 2.0
+
+    @staticmethod
+    def _mark_toward_body(side: str, px: float, py: float,
+                          mx: float, my: float) -> bool:
+        """标记锚是否朝**本体方向**偏过引脚端点(压体/穿体/斜蹭体三类违规的
+        统一口径)。顺 side 轴零偏(垂直出线/正上正下)不触发——顺边出线合法;
+        判据与 _mark_beyond_pin 互补,-2..+2 的垂直带双方都不触发。"""
+        along = (mx - px) if side in ("left", "right") else (my - py)
+        sign = -1.0 if side in ("left", "down") else 1.0
+        return sign * along < -2.0
+
     def _connect_stub(self, pin_ref: str, kind: str, net: str,
                       px: float, py: float,
                       part_pins: list[tuple[float, float]],
@@ -4059,36 +4129,54 @@ class LoopController:
         与 C7_N4 netport 同锚 (910,460) → 电源网 isGlobal 一点并轨,GND↔5V
         全局短接、四页 GND 齐灭,且并网后网对象粘死重落也修不回);目标脚
         自身(±2)不算障碍。AdapterError = 环境错,直接 None 让调用方退
-        planner 保连通。"""
+        planner 保连通。
+        选位分档(2026-09-02,req-08 复跑「网在左脚、标记钉右侧/本体上」定性):
+        侧位判定走 _pin_side(同件脚端点聚类,引线型符号 bbox 含引线、贴边判定
+        失效);严格档(全净)→ **同侧救援档**(压叠只在自件框=引线,方向在
+        本侧/顺边,他件全净)→ 全局最小压叠档(旧 fallback_best,可落对侧,
+        真无路时的最后手段)。"""
         from edaloop.generate import packer
         from edaloop.generate.adapter import AdapterError
 
         bx1, by1, bx2, by2 = packer.BAND
         span = self._mark_span(net, kind)  # 文字翼展,顺桩方向延伸
-        # 目标脚自己(及同点脚=同电节点)不算障碍:桩线从它出发
-        part_pins = [q for q in part_pins if abs(q[0] - px) + abs(q[1] - py) > 2]
-        # 方向序:引脚外侧优先。脚对 own_body 四边哪条最近(≤20,含引线外伸
-        # 几单位)即该边为外侧——符号脚都长在本体边上;外侧 → 两侧顺边(桩线
-        # 贴边平行不穿体,按带边空间排先后)→ **对侧垫底**:脚在边上,对侧桩
-        # 的桩线必横穿本体,只有外侧+顺边全灭时才轮到它(仍优于 planner 盲落
-        # 把标记钉进本体——(905,740) 钉 AMS1117 正中即盲落所为)。脚不贴边
-        # (热盘/中心脚/无 own_body)退旧序:带边空间降序。
-        room = {"up": by2 - py, "down": py - by1,
-                "left": px - bx1, "right": bx2 - px}
-        order = sorted(room, key=lambda dd: -room[dd])
-        if own_body:
+        # 侧位判定先行,**聚类含目标脚自身**:目标脚常夹在两簇间隙里
+        # (DW01A 中排脚 x=155 落在左簇尾 95 与右簇头 230 之间,滤掉它
+        # 再聚类就成了「中心脚」退贴边/距离序,侧位失效)。聚类不出
+        # (单簇/中心脚)再退自件贴边判定,最后退带边空间降序。
+        side = self._pin_side(px, py, part_pins)
+        if side is None and own_body:
             rx1, ry1, rx2, ry2 = own_body
             gap = {"left": px - rx1, "right": rx2 - px,
                    "up": ry2 - py, "down": py - ry1}
-            side = min(gap, key=lambda dd: gap[dd])
-            if gap[side] <= 20.0:
-                perp = ("up", "down") if side in ("left", "right") else ("left", "right")
-                order = [side, *sorted(perp, key=lambda dd: -room[dd]),
-                         {"left": "right", "right": "left",
-                          "up": "down", "down": "up"}[side]]
+            near = min(gap, key=lambda dd: gap[dd])
+            if gap[near] <= 20.0:
+                side = near
+        # 目标脚自己(及同点脚=同电节点)不算障碍:桩线从它出发
+        part_pins = [q for q in part_pins if abs(q[0] - px) + abs(q[1] - py) > 2]
+        # 方向序:引脚外侧优先 → 两侧顺边(桩线贴边平行不穿体,按带边空间
+        # 排先后)→ **对侧垫底**:对侧桩的桩线必横穿本体,只有外侧+顺边
+        # 全灭时才轮到它(仍优于 planner 盲落把标记钉进本体)。
+        room = {"up": by2 - py, "down": py - by1,
+                "left": px - bx1, "right": bx2 - px}
+        order = sorted(room, key=lambda dd: -room[dd])
+        if side:
+            perp = ("up", "down") if side in ("left", "right") else ("left", "right")
+            order = [side, *sorted(perp, key=lambda dd: -room[dd]),
+                     {"left": "right", "right": "left",
+                      "up": "down", "down": "up"}[side]]
         offsets = (30, 60, 90) if body_rects is None \
             else (30, 60, 90, 120, 150, 210, 270, 330)
         fallback_best: tuple[float, tuple[str, int]] | None = None  # (压叠面积, 候选)
+        # 同侧救援档(2026-09-02):压叠只落在自件框(bbox 含引线,压到的常是
+        # 引线不是本体核)且方向在本侧/顺边 → 仍优于对侧与全局最小压叠。引线
+        # 型符号左脚的左向候选几乎必然擦自件 bbox(DW01A 左列脚 45..130,bbox
+        # x1=40)——不豁免则左向全灭、扫掠翻到对侧,侧位规范形同虚设。
+        rescue_dirs: set[str] = set()
+        if side:
+            rescue_dirs = {side} | ({"up", "down"} if side in ("left", "right")
+                                    else {"left", "right"})
+        rescue_best: tuple[float, str, int] | None = None  # (ov_own, d, off)
         for d in order:
             for off in offsets:
                 ax, ay = px, py
@@ -4130,7 +4218,8 @@ class LoopController:
                     # 桩线段(脚→锚点)内缩 3 查:脚在本体渲染边内几单位是常态,
                     # 不内缩会把一切外伸桩全误杀
                     leg_ok = True
-                    overlap = 0.0
+                    ov_own = 0.0
+                    ov_foreign = 0.0
                     for (rx1, ry1, rx2, ry2) in body_rects:
                         if (rx1, ry1, rx2, ry2) != own_body \
                                 and _leg_hits_rect(px, py, ax, ay,
@@ -4140,12 +4229,22 @@ class LoopController:
                         ow = min(mrect[2], rx2) - max(mrect[0], rx1)
                         oh = min(mrect[3], ry2) - max(mrect[1], ry1)
                         if ow > 2 and oh > 2:
-                            overlap += ow * oh
+                            if own_body is not None and (rx1, ry1, rx2, ry2) == own_body:
+                                ov_own += ow * oh
+                            else:
+                                ov_foreign += ow * oh
                     if not leg_ok:
                         continue
-                    if overlap > 0.0:
-                        if fallback_best is None or overlap < fallback_best[0]:
-                            fallback_best = (overlap, (d, off))
+                    if ov_own > 0.0 and ov_foreign <= 0.0 and d in rescue_dirs:
+                        # 侧位保底候选:不动他件、只在自件框内蹭引线;同轮后续
+                        # 方向若有净空严格位仍在扫掠中先行返回,这里只记账
+                        if rescue_best is None \
+                                or (ov_own, off) < (rescue_best[0], rescue_best[2]):
+                            rescue_best = (ov_own, d, off)
+                        continue
+                    if ov_own + ov_foreign > 0.0:
+                        if fallback_best is None or (ov_own + ov_foreign) < fallback_best[0]:
+                            fallback_best = (ov_own + ov_foreign, (d, off))
                         continue
                 try:
                     rc, _o, _e = self.adapter.run(
@@ -4155,6 +4254,16 @@ class LoopController:
                     return None
                 if rc == 0:
                     return (d, off)
+        if rescue_best is not None:
+            d, off = rescue_best[1], rescue_best[2]
+            try:
+                rc, _o, _e = self.adapter.run(
+                    ["sch", "connect", "--pin", pin_ref, "--kind", kind,
+                     "--net", net, "--direction", d, "--offset", str(off)])
+            except AdapterError:
+                return None
+            if rc == 0:
+                return (d, off)
         if body_rects and fallback_best is not None:
             d, off = fallback_best[1]
             try:
@@ -4624,16 +4733,34 @@ class LoopController:
             mx, my = float(f["x"]), float(f["y"])
             anchor_out = (mx < bx1 - 5 or mx > bx2 + 5
                           or my < by1 - 5 or my > by2 + 5)
+            owner, _od = _pair(net, mx, my)
             on_body = False
             on_mark = False
             if not anchor_out:
                 # 判据 ②:标记墨迹(符号+文字翼)压器件本体(自件或他件)。
                 # 判据 ③:标记墨迹压他件标记墨迹。±2 容差:贴边擦过不算压。
+                # 自件豁免(2026-09-02):锚已越过脚端点朝外(_mark_beyond_pin)
+                # 时压到的只是引线(bbox 含引线)不是本体核——同侧救援档落下的
+                # 标记若再被 ② 收走,下一轮原位重落、再收走,页内三趟 reseat
+                # 全在原地打转(req-08 复跑 PROTDW01:2/5 的震荡即此)。配不上
+                # 脚/侧位判不出 → 豁免不生效,按旧口径自件照算。
                 mrect = self._mark_rect(f)
+                own_exempt_rect = None
+                if owner is not None:
+                    oc = next((c for c in parts if c["designator"] == owner[0]), None)
+                    if oc is not None:
+                        ob2 = _body(oc)
+                        opp = [(float(q["x"]), float(q["y"]))
+                               for q in (oc.get("pins") or []) if q.get("x") is not None]
+                        s2 = self._pin_side(owner[2], owner[3], opp)
+                        if ob2 is not None and s2 and self._mark_beyond_pin(
+                                s2, owner[2], owner[3], mx, my):
+                            own_exempt_rect = ob2
                 on_body = any(
                     mrect[0] < rx2 - 2 and mrect[2] > rx1 + 2
                     and mrect[1] < ry2 - 2 and mrect[3] > ry1 + 2
                     for (rx1, ry1, rx2, ry2) in body_rects
+                    if (rx1, ry1, rx2, ry2) != own_exempt_rect
                 )
                 on_mark = any(
                     mrect[0] < r2[2] - 2 and mrect[2] > r2[0] + 2
@@ -4644,7 +4771,6 @@ class LoopController:
             if not anchor_out and not on_body and not on_mark:
                 # ST2_IN2 锚 70 在带内,横排文字 80 宽伸到 -20,锚判据漏掉)。
                 # 桩方向 = 配对脚→锚;配不上脚方向未知,只信锚点。
-                owner, _od = _pair(net, mx, my)
                 if owner is None:
                     continue
                 k0 = self._mark_kind(str(f.get("componentType") or "netport"), net)
@@ -4657,7 +4783,6 @@ class LoopController:
                 if bx1 - 5 <= ix <= bx2 + 5 and by1 - 5 <= iy <= by2 + 5:
                     continue
             else:
-                owner, _od = _pair(net, mx, my)
                 if owner is None:
                     skipped.append(f"{net}@{mx:.0f},{my:.0f}:no-pin")
                     continue
@@ -4961,8 +5086,10 @@ class LoopController:
         外侧优先方向序(_connect_stub 改造)修好了确定性重落那部分,但 reseat
         失败退 planner 盲落(autoconnect)的标记无几何关(慢性病),终态仍有
         ~5% 锚在引脚**对侧**——桩线横穿本体。本扫尾在标记全部落定后重列一次:
-        同网近距标记锚(≤260,且本脚是该标记最近同网脚=独占)落在本件中心
-        坐标系的引脚对侧 → disconnect+带端点避让确定性重落;重落失败退
+        同网近距标记锚(≤260,且本脚是该标记最近同网脚=独占)朝本体方向偏过
+        脚端点(_mark_toward_body:压体/对侧/斜蹭统一口径;顺边垂直出线合法;
+        2026-09-02 前按件中心分半,「脚与中心之间」的压体锚漏网)→
+        disconnect+带端点避让确定性重落;重落失败退
         autoconnect 原样接回保电气。共享标记(一旗侍二脚/块接口 netport)
         不动——重落位属多脚折中,动了只会拆东墙。审计 mark-side-guard。"""
         from edaloop.generate.adapter import AdapterError
@@ -5032,7 +5159,19 @@ class LoopController:
                        and abs(qx - mx) + abs(qy - my) < own_dist - 1e-9
                        for qx, qy in same_net):
                     continue
-                if _side(mx - cx, my - cy) != opp[_side(px - cx, py - cy)]:
+                # 判据 2026-09-02 起引脚相对(_pin_side + _mark_toward_body):
+                # 旧中心口径按件中心分半,锚在脚与中心之间(压体)被判「同侧」
+                # 漏网——req-08 复跑 PROTDW01:2 CSI 锚 (125,300) 在左列脚
+                # (95,300) 与件中心 (157,·) 之间,终态压体无人收。新口径:锚朝
+                # 本体方向偏过脚端点(压体/对侧/斜蹭)即违规;顺边垂直出线合法;
+                # 侧位判不出(单簇符号)退旧中心对侧口径。
+                pside = self._pin_side(px, py, [(float(q["x"]), float(q["y"]))
+                                                for q in (c.get("pins") or [])
+                                                if q.get("x") is not None])
+                if pside is not None:
+                    if not self._mark_toward_body(pside, px, py, mx, my):
+                        continue
+                elif _side(mx - cx, my - cy) != opp[_side(px - cx, py - cy)]:
                     continue  # 同侧/垂直侧都合法(垂直=顺边出线)
                 cands.append((d, str(p.get("pinNumber")), pn, px, py, own, mi))
         if not cands:

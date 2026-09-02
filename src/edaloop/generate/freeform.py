@@ -154,6 +154,9 @@ def decompose(
                 upstream_id="",
                 instance=f"{prefix}_{part['suffix']}",
                 pins_binding=pins,
+                # module=模式 id:装箱亲和同页(2026-09-02 place-only 入 pack 后
+                # 生效——同模式的标准件组不该被行-货架流拆页)
+                module=pattern["id"],
                 provenance=f"自由拓扑模式 {pattern['id']}(确定性分解)",
             )
         )

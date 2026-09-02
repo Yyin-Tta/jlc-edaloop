@@ -52,6 +52,8 @@ def test_decompose_liion_wiring() -> None:
     # 电源/地已绑定
     assert dw01.pins_binding["6"] == "GND"
     assert fs.pins_binding["1"] == "GND"
+    # module=模式 id:装箱亲和同页(2026-09-02 place-only 入 pack 后生效)
+    assert all(b.module == "liion-protection" for b in blocks)
     assert notes
 
 

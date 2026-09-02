@@ -2678,6 +2678,174 @@ def test_connect_stub_extended_offset_tier(tmp_path) -> None:
             if c[:2] == ["sch", "connect"]] == ["right"]
 
 
+def test_connect_stub_leaded_symbol_side_by_pin_clusters(tmp_path) -> None:
+    """引线型符号侧位(run-e89808c395b8 PROTDW01:2 CSI 终态钉右侧定性):
+    bbox 含引线,脚端点缩在框内——左列 45/95/155、右列 230/245/270,「贴边
+    ≤20」对全员失效退带边距离序(旧序 right 先行,right/150 有严格净位直接
+    成选=标记落对侧)。_pin_side 列聚类(左列含目标脚 155)判 left;右侧
+    被他件墨迹封死、左右两向只蹭自件引线(bbox 而非本体核)→ 同侧救援档
+    兜底 left,不再落对侧。"""
+    chat = FakeChat("{}")
+    adapter = _RepackFakeAdapter("pass", [])
+    adapter.pins_by_page["P1"] = {
+        "U1": [{"pinNumber": "2", "x": 155, "y": 300, "net": ""}]}
+    lc = LoopController(_ir_with_rails(("12V", 12.0)), _catalog(), _candidates,
+                        chat, adapter, AuditLog(str(tmp_path)))
+    own = (40.0, 270.0, 275.0, 320.0)  # bbox 含引线:本体核仅 145..225
+    pins = [(45.0, 290.0), (95.0, 310.0), (155.0, 300.0),
+            (230.0, 290.0), (245.0, 300.0), (270.0, 305.0)]
+    # 上/下腿障封死顺边;右侧走廊(200..600)封死对侧与右出线长档
+    rects = [own, (120.0, 316.0, 190.0, 400.0), (120.0, 200.0, 190.0, 284.0),
+             (200.0, 284.0, 600.0, 316.0)]
+    assert lc._connect_stub("U1:2", "netport", "CSI", 155.0, 300.0, pins,
+                            body_rects=rects, own_body=own) == ("left", 60)
+    # 救援档是唯一成选:压叠候选只记账不发 connect,终局一桩
+    assert [(c[c.index("--direction") + 1], c[c.index("--offset") + 1])
+            for c in adapter.calls
+            if c[:2] == ["sch", "connect"]] == [("left", "60")]
+
+
+def test_mark_side_guard_pin_relative_catches_on_body(tmp_path) -> None:
+    """同侧扫尾判据引脚相对化(req-08 复跑第三形态:锚在脚与件中心之间——
+    旧中心分半口径判「同侧」漏网,PROTDW01:2 CSI 终态锚压本体无人收):
+    pside=left + _mark_toward_body(锚朝体偏过脚端点)→ 拆脚左向外侧重落;
+    右脚右标(UA:2)与越过脚端点的外侧标(UB:1)不触发。"""
+    chat = FakeChat("{}")
+    adapter = _RepackFakeAdapter("pass", [])
+    adapter.model["P1"] = {
+        "UA": {"minX": 400, "minY": 500, "maxX": 500, "maxY": 560},
+        "UB": {"minX": 700, "minY": 500, "maxX": 800, "maxY": 560},
+    }
+    adapter.pins_by_page["P1"] = {
+        "UA": [{"pinNumber": "1", "x": 395, "y": 530, "net": "A_N1"},
+               {"pinNumber": "2", "x": 505, "y": 530, "net": "B_N2"}],
+        "UB": [{"pinNumber": "1", "x": 695, "y": 530, "net": "A_N1"},
+               {"pinNumber": "2", "x": 805, "y": 530, "net": "GND"}],
+    }
+    adapter.netports["P1"] = [
+        # UA:1 左脚 (395,530),标记 (435,530) 在脚与件中心(450)之间——
+        # 旧中心口径 _side(-15)=left 判「同侧」漏网
+        {"primitiveId": "m1", "componentType": "netport", "net": "A_N1",
+         "x": 435, "y": 530},
+        {"primitiveId": "m2", "componentType": "netport", "net": "B_N2",
+         "x": 535, "y": 545},
+        {"primitiveId": "m3", "componentType": "netport", "net": "A_N1",
+         "x": 665, "y": 530},
+        {"primitiveId": "m4", "componentType": "netflag", "net": "GND",
+         "x": 835, "y": 530},
+    ]
+    lc = LoopController(_ir_with_rails(("12V", 12.0)), _catalog(),
+                        _candidates, chat, adapter, AuditLog(str(tmp_path)))
+    lc._fix_wrong_side_marks("P1", 1)
+    evs = _audit_events(str(tmp_path))
+    ev = next(e for e in evs if e.get("kind") == "mark-side-guard")
+    assert ev["wrongside"] == 1
+    assert ev["fixed"] == ["UA:1:A_N1->left/30"]
+    assert {c[c.index("--pin") + 1] for c in adapter.calls
+            if c[:2] == ["sch", "disconnect"]} == {"UA:1"}
+    new_mark = next(f for f in adapter.netports["P1"]
+                    if str(f.get("primitiveId", "")).startswith("cn_"))
+    assert (new_mark["x"], new_mark["y"]) == (365, 530)
+
+
+def test_reseat_escape_tolerates_beyond_pin_own_body_graze(tmp_path) -> None:
+    """reseat 判据② own-body 豁免(req-08 复跑震荡根因:同侧救援档落下的
+    合法标记,墨迹擦自件 bbox 引线区——bbox 含引线,压到的不是本体核——
+    下一轮判据②又收走,原位重落→再收走,页内三趟 reseat 全在原地打转):
+    锚已越过脚端点朝外(_mark_beyond_pin)→ 自件框豁免,不再触发;朝本体
+    方向的标记(UA:2 的锚在脚与中心之间)照常收走重落。"""
+    chat = FakeChat("{}")
+    adapter = _RepackFakeAdapter("pass", [])
+    # bbox 左缘 360 伸过左脚 395(引线区):左脚标记 (365,530) 墨迹必擦自件框
+    adapter.model["P1"] = {
+        "UA": {"minX": 360, "minY": 500, "maxX": 500, "maxY": 560},
+    }
+    adapter.pins_by_page["P1"] = {
+        "UA": [{"pinNumber": "1", "x": 395, "y": 530, "net": "A_N1"},
+               {"pinNumber": "2", "x": 505, "y": 530, "net": "B_N2"}],
+    }
+    adapter.netports["P1"] = [
+        {"primitiveId": "m1", "componentType": "netport", "net": "A_N1",
+         "x": 365, "y": 530},   # 越过脚端点朝外:合法(引线豁免)
+        {"primitiveId": "m2", "componentType": "netport", "net": "B_N2",
+         "x": 435, "y": 530},   # 朝本体方向:压体,触发重落
+    ]
+    lc = LoopController(_ir_with_rails(("12V", 12.0)), _catalog(),
+                        _candidates, chat, adapter, AuditLog(str(tmp_path)))
+    lc._reseat_escape_marks("P1", 1)
+    evs = _audit_events(str(tmp_path))
+    ev = next(e for e in evs if e.get("kind") == "freeze-pack-reseat")
+    assert ev["reseated"] == [{"pin": "UA:2", "net": "B_N2", "mark": "435,530",
+                               "dir": "right", "off": 30}]
+    assert ev["failed"] == [] and ev["skipped"] == []
+    # 只有朝体标记被拆重落;外侧合法标记原位不动(fake 记账 page:位号:网)
+    assert adapter.disconnects == ["P1:UA:B_N2"]
+    a1 = next(f for f in adapter.netports["P1"] if f["net"] == "A_N1")
+    assert (a1["x"], a1["y"]) == (365, 530)
+    b2 = next(f for f in adapter.netports["P1"]
+              if str(f.get("primitiveId", "")).startswith("cn_"))
+    assert (b2["x"], b2["y"]) == (535, 530)
+
+
+def test_repack_place_only_plan_packs_single_page(tmp_path) -> None:
+    """place-only 计划入 pack(req-08 复跑②:5 个 SOT23 小件摊 3 页、每页
+    空白率 >80%——freeform/标准件计划没有 block-apply,旧门槛
+    no-upstream-blocks 把它们整个拦在装箱外退 compile 流式初值,行-货架
+    页流把小件逐个摊页)。两通道都空才回退;place 块走既有的试放-量测-
+    装箱-重放链路(与 upstream 混跑同代码)。"""
+    plan = {
+        "blocks": [
+            {"block_id": "tactile-btn", "upstream_id": "", "instance": "btn1",
+             "pins_binding": {"1": "3V3", "2": "GND"}},
+            {"block_id": "tactile-btn", "upstream_id": "", "instance": "btn2",
+             "pins_binding": {"1": "3V3", "2": "GND"}},
+        ],
+        "nets": [],
+        "uncovered": [],
+        "confidence": 0.9,
+        "provenance": [],
+    }
+    catalog = _catalog()
+    catalog["tactile-btn"] = BlockRecord(
+        block_id="tactile-btn", name="轻触开关", desc="x",
+        category="peri", lcsc="C318884", pinout={"1": "A", "2": "B"},
+    )
+
+    def _cands(q=None):
+        return _candidates() + [
+            RetrievedBlock(
+                block_id="tactile-btn", name="轻触开关", desc="x",
+                category="peri", tags=[], parts=[], ports=[], provenance="",
+                lcsc="C318884", pinout={"1": "A", "2": "B"},
+                score=1.0, channels=["dense"],
+            )
+        ]
+
+    chat = FakeChat(json.dumps(plan, ensure_ascii=False))
+    adapter = _RepackFakeAdapter("pass", [])
+    # 轨只给 3V3(计划只绑 3V3/GND):多给 12V 会 MISSING_RAIL 同错 2 轮 HALT
+    lc = LoopController(
+        _ir_with_rails(("3V3", 3.3)), catalog,
+        _cands, chat, adapter, AuditLog(str(tmp_path)),
+    )
+    result = lc.run()
+    assert result.status == "PASS"
+    evs = _audit_events(str(tmp_path))
+    assert not [e for e in evs if e.get("kind") == "repack-fallback"]
+    pack_ev = next(e for e in evs if e.get("kind") == "repack-pack")
+    assert pack_ev["pages"] == 1
+    assert set(pack_ev["placements"]) == {"btn1", "btn2"}
+    assert all(p[0] == "P1" for p in pack_ev["placements"].values())
+    # 正式落图:两枚 place 落在装箱位(带内)且钉 P1;试放位在虚空带
+    prod = [c for c in adapter.calls if c[:2] == ["sch", "place"]
+            and float(c[c.index("--x") + 1]) < 1500]
+    assert len(prod) == 2
+    assert all(c[c.index("--doc") + 1] == "P1" for c in prod)
+    assert all(float(c[c.index("--x") + 1]) <= 1140 for c in prod)
+    assert {c[c.index("--designator") + 1] for c in prod} == {"BTN1", "BTN2"}
+    assert set(adapter.model.get("P1", {})) == {"BTN1", "BTN2"}
+
+
 def test_reseat_blind_guard_audits_bad_fallback(tmp_path) -> None:
     """盲退质量关(reseat 侧,unguarded 路径):全围死脚 _connect_stub 耗尽
     → planner 盲落进邻件本体 → 护栏检出、拆脚确定性重试(仍围死)、重退
