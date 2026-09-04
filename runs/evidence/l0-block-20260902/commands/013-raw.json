@@ -1,0 +1,50 @@
+{
+  "overall": 0,
+  "verdict": "unscored",
+  "dimensions": [
+    {
+      "id": "folded-labels",
+      "title": "标签折叠",
+      "status": "skipped",
+      "score": 0,
+      "weight": 1.2,
+      "reason": "页面无带 bbox 的 part 几何,五维全部未测"
+    },
+    {
+      "id": "reversed-labels",
+      "title": "标签反向",
+      "status": "skipped",
+      "score": 0,
+      "weight": 1.2,
+      "reason": "页面无带 bbox 的 part 几何,五维全部未测"
+    },
+    {
+      "id": "proximity",
+      "title": "外围贴核心",
+      "status": "skipped",
+      "score": 0,
+      "weight": 1,
+      "reason": "页面无带 bbox 的 part 几何,五维全部未测"
+    },
+    {
+      "id": "stub-tidiness",
+      "title": "长链/挤压",
+      "status": "skipped",
+      "score": 0,
+      "weight": 0.8,
+      "reason": "页面无带 bbox 的 part 几何,五维全部未测"
+    },
+    {
+      "id": "frame-fit",
+      "title": "版面整洁",
+      "status": "skipped",
+      "score": 0,
+      "weight": 0.5,
+      "reason": "页面无带 bbox 的 part 几何,五维全部未测"
+    }
+  ],
+  "componentCount": 1,
+  "scoredDims": 0,
+  "skippedDims": 5,
+  "summary": "sch layout-score: 页面无 part,未打分"
+}

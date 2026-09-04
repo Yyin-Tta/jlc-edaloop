@@ -1,0 +1,330 @@
+{
+  "ok": false,
+  "verdict": "fail",
+  "stages": [
+    {
+      "name": "layout-lint",
+      "status": "pass",
+      "errors": 0,
+      "warnings": 0,
+      "summary": "0 overlap, 0 pin-coincidence, 0 tight, 0 off-grid, 0 out-of-sheet, 0 no-bbox, 0 unchecked-pin, 0 unproven-pin, 0 invalid-geometry (zone-check=not-configured sheet-check=checked)",
+      "detail": {
+        "schemaVersion": 2,
+        "ok": true,
+        "strict": true,
+        "minGap": 2.54,
+        "componentCount": 7,
+        "withBBox": 7,
+        "skippedNonParts": 22,
+        "overlaps": null,
+        "tightSpacing": null,
+        "pinCoincidences": null,
+        "measurementUnit": "mm",
+        "coordinateUnit": "0.01inch",
+        "anchorGridRaw": 5,
+        "anchorGridUnit": "0.01inch",
+        "zoneCheckStatus": "not-configured",
+        "sheetCheckStatus": "checked",
+        "pinEps": 0,
+        "summary": "strict=true: 7 components (7 with bbox): 0 overlap, 0 tight (\u003c2.54mm), 0 pin-coincidence, 0 off-grid, 0 out-of-sheet, 0 unchecked-bbox, 0 unchecked-pins, 0 unproven-pins, 0 invalid-geometry; zoneCheck=not-configured sheetCheck=checked"
+      }
+    },
+    {
+      "name": "clusters",
+      "status": "pass",
+      "errors": 0,
+      "warnings": 0,
+      "summary": "7 个虚拟组:0 重叠 / 0 出图纸 / 0 过近",
+      "detail": {
+        "clusters": [
+          {
+            "designator": "C1",
+            "primitiveId": "f16e60215b74fabe",
+            "body": {
+              "minX": 124.5,
+              "minY": 546.5,
+              "maxX": 145.5,
+              "maxY": 563.5
+            },
+            "box": {
+              "minX": 28.5,
+              "minY": 546.5,
+              "maxX": 440.5,
+              "maxY": 563.5
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     C1       x=[124,146] y=[546,564]",
+              "wire              x=[95,115] y=[555,555]",
+              "wire              x=[155,350] y=[555,555]",
+              "netport  VDD      x=[28,86] y=[550,560]",
+              "netport  B_MINUS  x=[360,440] y=[550,560]"
+            ]
+          },
+          {
+            "designator": "TERMBATT",
+            "primitiveId": "11cf0cb627918396",
+            "body": {
+              "minX": 184.5,
+              "minY": 764.5,
+              "maxX": 205.5,
+              "maxY": 795.5
+            },
+            "box": {
+              "minX": 37.5,
+              "minY": 654.5,
+              "maxX": 205.5,
+              "maxY": 795.5
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     TERMBATT x=[184,206] y=[764,796]",
+              "wire              x=[110,175] y=[785,785]",
+              "wire              x=[175,175] y=[745,775]",
+              "netport  VBAT     x=[38,100] y=[780,790]",
+              "netport  B_MINUS  x=[170,180] y=[654,736]"
+            ]
+          },
+          {
+            "designator": "R2",
+            "primitiveId": "c2d44d34d792e4d1",
+            "body": {
+              "minX": 220.4999999999999,
+              "minY": 699.5,
+              "maxX": 229.4999999999999,
+              "maxY": 720.5
+            },
+            "box": {
+              "minX": 220.4999999999999,
+              "minY": 684.5,
+              "maxX": 335.5,
+              "maxY": 735.5
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     R2       x=[220,229] y=[700,720]",
+              "wire              x=[225,245] y=[730,730]",
+              "wire              x=[225,245] y=[690,690]",
+              "netport  B_MINUS  x=[254,336] y=[724,736]",
+              "netport  CSI      x=[254,312] y=[684,696]"
+            ]
+          },
+          {
+            "designator": "PROTFS",
+            "primitiveId": "086d6a2eb0732b02",
+            "body": {
+              "minX": 609.5,
+              "minY": 694.5,
+              "maxX": 690.5,
+              "maxY": 735.5
+            },
+            "box": {
+              "minX": 489.5,
+              "minY": 694.5,
+              "maxX": 810.5,
+              "maxY": 735.5
+            },
+            "markers": 6,
+            "wires": 6,
+            "members": [
+              "part     PROTFS   x=[610,690] y=[694,736]",
+              "wire              x=[580,600] y=[725,725]",
+              "wire              x=[580,600] y=[715,715]",
+              "wire              x=[700,720] y=[715,715]",
+              "wire              x=[700,720] y=[725,725]",
+              "wire              x=[700,720] y=[705,705]",
+              "wire              x=[580,600] y=[705,705]",
+              "netport  B_MINUS  x=[490,570] y=[720,730]",
+              "netport  FET_MID  x=[490,570] y=[710,720]",
+              "netport  FET_MID  x=[730,810] y=[710,720]",
+              "netport  OC       x=[730,780] y=[720,730]",
+              "netport  OD       x=[730,780] y=[700,710]",
+              "netport  P_MINUS  x=[490,570] y=[700,710]"
+            ]
+          },
+          {
+            "designator": "R1",
+            "primitiveId": "f17995b6170d07a0",
+            "body": {
+              "minX": 729.5,
+              "minY": 555.5,
+              "maxX": 750.5,
+              "maxY": 564.5
+            },
+            "box": {
+              "minX": 627.5,
+              "minY": 554.5,
+              "maxX": 846.5,
+              "maxY": 565.5
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     R1       x=[730,750] y=[556,564]",
+              "wire              x=[700,720] y=[560,560]",
+              "wire              x=[760,780] y=[560,560]",
+              "netport  VBAT     x=[628,690] y=[554,566]",
+              "netport  VDD      x=[790,846] y=[554,566]"
+            ]
+          },
+          {
+            "designator": "PROTDW01",
+            "primitiveId": "8491684f24c729e1",
+            "body": {
+              "minX": 939.5,
+              "minY": 694.5,
+              "maxX": 990.5,
+              "maxY": 735.5
+            },
+            "box": {
+              "minX": 843.5,
+              "minY": 694.5,
+              "maxX": 1110.5,
+              "maxY": 735.5
+            },
+            "markers": 5,
+            "wires": 5,
+            "members": [
+              "part     PROTDW01 x=[940,990] y=[694,736]",
+              "wire              x=[910,930] y=[725,725]",
+              "wire              x=[1000,1020] y=[725,725]",
+              "wire              x=[910,930] y=[715,715]",
+              "wire              x=[1000,1020] y=[715,715]",
+              "wire              x=[910,930] y=[705,705]",
+              "netport  OD       x=[850,900] y=[720,730]",
+              "netport  B_MINUS  x=[1030,1110] y=[720,730]",
+              "netport  CSI      x=[844,900] y=[710,720]",
+              "netflag  VDD      x=[1002,1030] y=[710,727]",
+              "netport  OC       x=[850,900] y=[700,710]"
+            ]
+          },
+          {
+            "designator": "TERMOUT",
+            "primitiveId": "ac363a29084ee062",
+            "body": {
+              "minX": 1089.5,
+              "minY": 519.5,
+              "maxX": 1110.5,
+              "maxY": 550.5
+            },
+            "box": {
+              "minX": 969.5,
+              "minY": 519.5,
+              "maxX": 1110.5,
+              "maxY": 550.5
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     TERMOUT  x=[1090,1110] y=[520,550]",
+              "wire              x=[1060,1080] y=[540,540]",
+              "wire              x=[1060,1080] y=[530,530]",
+              "netport  VBAT     x=[988,1050] y=[534,546]",
+              "netport  P_MINUS  x=[970,1050] y=[524,536]"
+            ]
+          }
+        ],
+        "findings": null,
+        "sheetUsable": {
+          "minX": 12,
+          "minY": 12,
+          "maxX": 1158,
+          "maxY": 813
+        }
+      }
+    },
+    {
+      "name": "check",
+      "status": "pass",
+      "errors": 0,
+      "warnings": 0,
+      "summary": "0 finding(s): 0 error/fatal, 0 warn/info",
+      "detail": {
+        "passed": true,
+        "summary": {
+          "floatingPins": 0,
+          "componentsWithFloating": 0,
+          "geomNetMismatches": 0,
+          "netMarkerMismatches": 0,
+          "multiNetWires": 0,
+          "wireCrossings": 0,
+          "wireOverPins": 0,
+          "zeroLengthWires": 0,
+          "danglingWires": 0,
+          "duplicateNetMarkers": 0,
+          "titleblockOverlaps": 0,
+          "markerOverlaps": 0,
+          "missingPartitions": 0,
+          "noteOutsideZones": 0,
+          "redundantNetMarkers": 0,
+          "foldedNetLabels": 0,
+          "reversedNetFlags": 0,
+          "polarityConventionOutliers": 0,
+          "total": 0
+        },
+        "findings": []
+      }
+    },
+    {
+      "name": "bridge-check",
+      "status": "pass",
+      "errors": 0,
+      "warnings": 0,
+      "summary": "0 bridge(short), 0 orphan-stub, 0 orphan-flag, 0 orphan-tree (21 wire tree(s))",
+      "detail": {
+        "passed": true,
+        "summary": {
+          "trees": 0,
+          "bridges": 0,
+          "orphans": 0,
+          "orphanFlags": 0,
+          "orphanTrees": 0,
+          "wireTreesTotal": 21
+        },
+        "trees": []
+      }
+    },
+    {
+      "name": "drc",
+      "status": "fail",
+      "errors": 0,
+      "warnings": 1,
+      "blockingReasons": [
+        "1 warn-level DRC violation (--strict;平台只回聚合数,逐条明细请在 EasyEDA 的 DRC 面板查看)"
+      ],
+      "summary": "0 fatal, 0 error, 1 warn, 0 info (total 1)",
+      "detail": {
+        "passed": false,
+        "fatal": 0,
+        "summary": {
+          "fatal": 0,
+          "error": 0,
+          "warn": 1,
+          "info": 0,
+          "unknown": 0,
+          "total": 1
+        },
+        "violations": [
+          {
+            "level": "warn",
+            "type": "warn",
+            "count": 1,
+            "raw": {
+              "count": 1,
+              "type": "warn"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "blockers": [
+    "drc: 1 warn-level DRC violation (--strict;平台只回聚合数,逐条明细请在 EasyEDA 的 DRC 面板查看)"
+  ],
+  "warnings": [
+    "drc: 1 条告警"
+  ]
+}

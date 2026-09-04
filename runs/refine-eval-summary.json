@@ -1,0 +1,754 @@
+{
+ "acceptance": {
+  "skipped": true,
+  "reason": "--offline (A 段需真 LLM parse)"
+ },
+ "acceptance_rows": [],
+ "inject": {
+  "total": 3,
+  "caught": 3
+ },
+ "inject_rows": [
+  {
+   "run": "runs/run-84826dc6df2c",
+   "drop": "rs485-max485",
+   "expect": "RS-485",
+   "caught": true,
+   "full_false_flag": false,
+   "func_total": 8
+  },
+  {
+   "run": "runs/run-9eeb15964da3",
+   "drop": "charger-tp4056",
+   "expect": "充电",
+   "caught": true,
+   "full_false_flag": false,
+   "func_total": 6
+  },
+  {
+   "run": "runs/run-52ddb0fd492e",
+   "drop": "mcu-esp32s3-wroom1-min",
+   "expect": "主控",
+   "caught": true,
+   "full_false_flag": false,
+   "func_total": 7
+  }
+ ],
+ "falsepos": {
+  "weak_violation": 0,
+  "false_flags": 0,
+  "runs": 51,
+  "e2e_round2_pass": 7,
+  "baseline_acknowledged": 70,
+  "baseline_unknown": 0,
+  "unreconstructable_runs": 13,
+  "unverifiable_flags": 0
+ },
+ "falsepos_rows": [
+  {
+   "run": "runs\\run-01e6089301b0",
+   "source": "req-11-isolated-dido-module.md",
+   "flags": 2,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "数字输出驱动",
+    "状态指示"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": []
+  },
+  {
+   "run": "runs\\run-03e0a1552638",
+   "source": "req-01-esp32s3-mini-2layer.md",
+   "flags": 2,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "test_points",
+    "mounting_holes"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": [
+    "mounting_holes",
+    "test_points"
+   ]
+  },
+  {
+   "run": "runs\\run-0492c04b1e1e",
+   "source": "req-04-smart-dial-oled.md",
+   "flags": 1,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "指示 LED"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": []
+  },
+  {
+   "run": "runs\\run-0d9b37c1e992",
+   "source": "req-03-ir-remote-hub.md",
+   "flags": 0,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [],
+   "baseline_unknown": [],
+   "historical_func_refs": []
+  },
+  {
+   "run": "runs\\run-0f5a66a95375",
+   "source": "req-02-rs485-sensor-hub.md",
+   "flags": 3,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "SWD调试",
+    "指示灯",
+    "测试点"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": []
+  },
+  {
+   "run": "runs\\run-11b6cfa6c889",
+   "source": "req-04-smart-dial-oled.md",
+   "flags": 2,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "显示",
+    "指示灯"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": []
+  },
+  {
+   "run": "runs\\run-1476d2ff133a",
+   "source": "req-11-isolated-dido-module.md",
+   "flags": 1,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "数字输出驱动"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": []
+  },
+  {
+   "run": "runs\\run-2992fbe59cc1",
+   "source": "req-11-isolated-dido-module.md",
+   "flags": 0,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [],
+   "baseline_unknown": [],
+   "historical_func_refs": [
+    "4 路数字输出"
+   ]
+  },
+  {
+   "run": "runs\\run-2a6f5ad7838b",
+   "source": "req-09-ambiguous-sensor-node.md",
+   "flags": 3,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "无线回传",
+    "SWD 调试",
+    "模拟量采集"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": []
+  },
+  {
+   "run": "runs\\run-2a6ff6a20c3f",
+   "source": "req-11-isolated-dido-module.md",
+   "flags": 1,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "数字输出驱动"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": []
+  },
+  {
+   "run": "runs\\run-3a1e6f37163a",
+   "source": "req-11-isolated-dido-module.md",
+   "flags": 1,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "数字输出驱动"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": []
+  },
+  {
+   "run": "runs\\run-41d47a3de359",
+   "source": "req-06-pico-native-usb-gateway.md",
+   "flags": 1,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "LED 指示"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": [
+    "LED 指示"
+   ]
+  },
+  {
+   "run": "runs\\run-4cb7ad1bbe44",
+   "source": "req-03-ir-remote-hub.md",
+   "flags": 1,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "LED指示"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": []
+  },
+  {
+   "run": "runs\\run-4edca9c10ead",
+   "source": "req-05-battery-ble-telemetry.md",
+   "flags": 1,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "用户指示"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": [
+    "用户指示"
+   ]
+  },
+  {
+   "run": "runs\\run-50125951d482",
+   "source": "req-13-env-sensor-motherboard.md",
+   "flags": 2,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "子节点插槽",
+    "调试与启动"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": [
+    "子节点插槽",
+    "调试与启动"
+   ]
+  },
+  {
+   "run": "runs\\run-52ddb0fd492e",
+   "source": "req-01-esp32s3-mini-2layer.md",
+   "flags": 3,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "用户 LED",
+    "测试点",
+    "结构固定"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": []
+  },
+  {
+   "run": "runs\\run-568b7fc4c3f2",
+   "source": "req-11-isolated-dido-module.md",
+   "flags": 1,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "4 路数字输出"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": [
+    "4 路数字输出"
+   ]
+  },
+  {
+   "run": "runs\\run-586a3c7cb96c",
+   "source": "req-05-battery-ble-telemetry.md",
+   "flags": 3,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "锂电充电",
+    "用户指示",
+    "I2C 扩展排针"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": [
+    "I2C 扩展排针",
+    "用户指示"
+   ]
+  },
+  {
+   "run": "runs\\run-67c9501def33",
+   "source": "req-09-ambiguous-sensor-node.md",
+   "flags": 2,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "模拟传感采集",
+    "数据回传"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": [
+    "数据回传",
+    "模拟传感采集"
+   ]
+  },
+  {
+   "run": "runs\\run-6b46e9d1aac2",
+   "source": "req-02-rs485-sensor-hub.md",
+   "flags": 0,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [],
+   "baseline_unknown": [],
+   "historical_func_refs": []
+  },
+  {
+   "run": "runs\\run-6b8ac67faa63",
+   "source": "req-01-esp32s3-mini-2layer.md",
+   "flags": 1,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "测试点"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": [
+    "测试点"
+   ]
+  },
+  {
+   "run": "runs\\run-6d3d060bc543",
+   "source": "req-06-pico-native-usb-gateway.md",
+   "flags": 0,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [],
+   "baseline_unknown": [],
+   "historical_func_refs": []
+  },
+  {
+   "run": "runs\\run-79068fd8930a",
+   "source": "req-10-esp32s3-industrial-4layer.md",
+   "flags": 0,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [],
+   "baseline_unknown": [],
+   "historical_func_refs": []
+  },
+  {
+   "run": "runs\\run-7b7005720cab",
+   "source": "req-10-esp32s3-industrial-4layer.md",
+   "flags": 1,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "mounting"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": [
+    "mounting"
+   ]
+  },
+  {
+   "run": "runs\\run-847be0ca88c1",
+   "source": "req-14-door-sensor-e2e.md",
+   "flags": 0,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [],
+   "baseline_unknown": [],
+   "historical_func_refs": []
+  },
+  {
+   "run": "runs\\run-84826dc6df2c",
+   "source": "req-02-rs485-sensor-hub.md",
+   "flags": 2,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "状态指示",
+    "测试点"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": []
+  },
+  {
+   "run": "runs\\run-887881cf9ac9",
+   "source": "req-11-isolated-dido-module.md",
+   "flags": 1,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "状态指示"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": []
+  },
+  {
+   "run": "runs\\run-888df4e91d4a",
+   "source": "req-01-esp32s3-mini-2layer.md",
+   "flags": 2,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "测试点",
+    "版本丝印"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": [
+    "测试点",
+    "版本丝印"
+   ]
+  },
+  {
+   "run": "runs\\run-8bbc50ea35f0",
+   "source": "req-02-rs485-sensor-hub.md",
+   "flags": 2,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "状态指示",
+    "测试点"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": []
+  },
+  {
+   "run": "runs\\run-8f3da8ac3cc7",
+   "source": "req-01-esp32s3-mini-2layer.md",
+   "flags": 3,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "power_led",
+    "user_led",
+    "test_points"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": []
+  },
+  {
+   "run": "runs\\run-98a9352ed5d0",
+   "source": "req-02-rs485-sensor-hub.md",
+   "flags": 0,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [],
+   "baseline_unknown": [],
+   "historical_func_refs": []
+  },
+  {
+   "run": "runs\\run-99602bafd9b2",
+   "source": "req-04-smart-dial-oled.md",
+   "flags": 0,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [],
+   "baseline_unknown": [],
+   "historical_func_refs": []
+  },
+  {
+   "run": "runs\\run-9d59bc747403",
+   "source": "req-11-isolated-dido-module.md",
+   "flags": 2,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "数字输入",
+    "数字输出"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": [
+    "数字输入",
+    "数字输出"
+   ]
+  },
+  {
+   "run": "runs\\run-9eeb15964da3",
+   "source": "req-05-battery-ble-telemetry.md",
+   "flags": 1,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "用户指示"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": []
+  },
+  {
+   "run": "runs\\run-a53fa38e6eb4",
+   "source": "req-06-pico-native-usb-gateway.md",
+   "flags": 1,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "LED 指示"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": [
+    "LED 指示"
+   ]
+  },
+  {
+   "run": "runs\\run-a5d307a30ab8",
+   "source": "req-02-rs485-sensor-hub.md",
+   "flags": 3,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "SWD 调试",
+    "LED 指示",
+    "测试点"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": []
+  },
+  {
+   "run": "runs\\run-b7a9b906225f",
+   "source": "req-09-ambiguous-sensor-node.md",
+   "flags": 2,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "数据回传",
+    "调试"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": []
+  },
+  {
+   "run": "runs\\run-b9f3e5b77c43",
+   "source": "req-01-esp32s3-mini-2layer.md",
+   "flags": 3,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "esp32_minimal_system",
+    "test_points",
+    "mounting_holes"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": [
+    "esp32_minimal_system",
+    "mounting_holes",
+    "test_points"
+   ]
+  },
+  {
+   "run": "runs\\run-bc0cdf40a1a5",
+   "source": "req-11-isolated-dido-module.md",
+   "flags": 0,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [],
+   "baseline_unknown": [],
+   "historical_func_refs": []
+  },
+  {
+   "run": "runs\\run-bf13c84c88c9",
+   "source": "req-01-esp32s3-mini-2layer.md",
+   "flags": 2,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "用户 LED",
+    "测试点"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": []
+  },
+  {
+   "run": "runs\\run-cfdfee7d28ed",
+   "source": "req-01-esp32s3-mini-2layer.md",
+   "flags": 1,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "板级工艺"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": [
+    "板级工艺"
+   ]
+  },
+  {
+   "run": "runs\\run-db243869e2a0",
+   "source": "req-04-smart-dial-oled.md",
+   "flags": 0,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [],
+   "baseline_unknown": [],
+   "historical_func_refs": []
+  },
+  {
+   "run": "runs\\run-dc608f3d7731",
+   "source": "req-01-esp32s3-mini-2layer.md",
+   "flags": 2,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "测试点",
+    "版本丝印"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": [
+    "测试点",
+    "版本丝印"
+   ]
+  },
+  {
+   "run": "runs\\run-e24df9eecbc3",
+   "source": "req-03-ir-remote-hub.md",
+   "flags": 0,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [],
+   "baseline_unknown": [],
+   "historical_func_refs": []
+  },
+  {
+   "run": "runs\\run-e41e9a1a3cad",
+   "source": "req-11-isolated-dido-module.md",
+   "flags": 1,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "状态指示 LED"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": []
+  },
+  {
+   "run": "runs\\run-e75708ebe56c",
+   "source": "req-03-ir-remote-hub.md",
+   "flags": 1,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "LED 指示"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": []
+  },
+  {
+   "run": "runs\\run-f3b686d848b0",
+   "source": "req-05-battery-ble-telemetry.md",
+   "flags": 1,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "用户指示"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": []
+  },
+  {
+   "run": "runs\\run-f4e0a23f694d",
+   "source": "req-02-rs485-sensor-hub.md",
+   "flags": 2,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "状态指示",
+    "测试点"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": []
+  },
+  {
+   "run": "runs\\run-f562b508902d",
+   "source": "req-12-hybrid-dual-mcu-gateway.md",
+   "flags": 2,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "SD 卡预留",
+    "结构固定"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": [
+    "SD 卡预留",
+    "结构固定"
+   ]
+  },
+  {
+   "run": "runs\\run-f9894051b1db",
+   "source": "req-09-ambiguous-sensor-node.md",
+   "flags": 2,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "模拟量采集",
+    "数据回传"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": [
+    "数据回传",
+    "模拟量采集"
+   ]
+  },
+  {
+   "run": "runs\\run-fa53596e34ec",
+   "source": "req-12-hybrid-dual-mcu-gateway.md",
+   "flags": 2,
+   "fp": [],
+   "not_weak": 0,
+   "baseline_acknowledged": [
+    "SD卡预留",
+    "结构固定"
+   ],
+   "baseline_unknown": [],
+   "historical_func_refs": [
+    "SD卡预留",
+    "结构固定"
+   ]
+  }
+ ],
+ "refine": {
+  "total": 4,
+  "hit": 4
+ },
+ "refine_rows": [
+  {
+   "run": "runs/run-afa41c6fe953",
+   "target": "resistor-std",
+   "decisions_injected": true,
+   "retry_query": "DW01A VDD 串联 100R 电阻(需求原文 100Ω):目录无 resi 限流电阻 终端电阻 DC 12-24V 宽压输入(防反接+TVS+保险丝)",
+   "retrieval_hit": true
+  },
+  {
+   "run": "runs/run-69aa8fc3cd8d",
+   "target": "resistor-std",
+   "decisions_injected": true,
+   "retry_query": "DW01A 外围阻容(100R VDD 串联电阻、1k CSI 电阻、0.1µF 终端电阻 限流电阻 去耦电容",
+   "retrieval_hit": true
+  },
+  {
+   "run": "runs/run-496b5a21f4b3",
+   "target": "led-indicator",
+   "decisions_injected": true,
+   "retry_query": "3 个指示灯(电源/心跳/总线活动,红/绿/黄):目录无 LED 块且无带 lc 电源指示 指示灯 心跳灯",
+   "retrieval_hit": true
+  },
+  {
+   "run": "runs/run-6ba4e2535cb1",
+   "target": "led-indicator",
+   "decisions_injected": true,
+   "retry_query": "状态指示 3×LED(电源/心跳/总线):目录无 LED 块或 lcsc 器件 led 状态 电源指示 状态指示",
+   "retrieval_hit": true
+  }
+ ],
+ "go": true
+}

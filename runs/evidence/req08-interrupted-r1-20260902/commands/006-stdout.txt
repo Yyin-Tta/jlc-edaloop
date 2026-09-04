@@ -1,0 +1,379 @@
+{
+  "id": "req_195048",
+  "ok": true,
+  "result": {
+    "passed": false,
+    "summary": {
+      "floatingPins": 1,
+      "componentsWithFloating": 1,
+      "geomNetMismatches": 0,
+      "netMarkerMismatches": 0,
+      "multiNetWires": 0,
+      "wireCrossings": 0,
+      "wireOverPins": 0,
+      "zeroLengthWires": 0,
+      "danglingWires": 0,
+      "duplicateNetMarkers": 0,
+      "titleblockOverlaps": 0,
+      "markerOverlaps": 10,
+      "missingPartitions": 3,
+      "noteOutsideZones": 0,
+      "redundantNetMarkers": 0,
+      "foldedNetLabels": 0,
+      "reversedNetFlags": 0,
+      "polarityConventionOutliers": 0,
+      "total": 14
+    },
+    "findings": [
+      {
+        "type": "floating-pin",
+        "level": "warn",
+        "designator": "JBATIN",
+        "primitiveId": "9b6a28b6e2ee0885",
+        "pins": [
+          "2"
+        ],
+        "pinDetails": [
+          {
+            "number": "2",
+            "name": "2",
+            "x": 160,
+            "y": 675
+          }
+        ],
+        "count": 1,
+        "message": "1 个引脚悬空(无导线连接,未打 NC 标识)"
+      },
+      {
+        "type": "marker-overlap",
+        "level": "warn",
+        "primitiveId": "005caf607fa4b781",
+        "markerNet": "FET_MID",
+        "message": "FET_MID(netport) 与 VBAT(netport) 视觉重叠 11.00×11.00 — 换方向/offset 或 stagger",
+        "componentType": "netport",
+        "primitiveIds": [
+          "005caf607fa4b781",
+          "7ec125cd38ed04c4"
+        ],
+        "bbox": {
+          "minX": 84.5,
+          "minY": 769.5,
+          "maxX": 165.5,
+          "maxY": 780.5
+        },
+        "other": {
+          "primitiveId": "7ec125cd38ed04c4",
+          "componentType": "netport",
+          "net": "VBAT",
+          "bbox": {
+            "minX": 154.5,
+            "minY": 724.5,
+            "maxX": 165.5,
+            "maxY": 787.5
+          }
+        },
+        "overlapX": 11,
+        "overlapY": 11
+      },
+      {
+        "type": "marker-overlap",
+        "level": "warn",
+        "primitiveId": "03ad545410a8f640",
+        "markerNet": "OD_GATE",
+        "message": "OD_GATE(netport) 与 VDD(netflag) 视觉重叠 18.50×7.50 — 换方向/offset 或 stagger",
+        "componentType": "netport",
+        "primitiveIds": [
+          "03ad545410a8f640",
+          "7b0cdcda2d3c0e08"
+        ],
+        "bbox": {
+          "minX": 824.5,
+          "minY": 779.5,
+          "maxX": 905.5,
+          "maxY": 790.5
+        },
+        "other": {
+          "primitiveId": "7b0cdcda2d3c0e08",
+          "componentType": "netflag",
+          "net": "VDD",
+          "bbox": {
+            "minX": 887,
+            "minY": 769.5,
+            "maxX": 915.5,
+            "maxY": 787
+          }
+        },
+        "overlapX": 18.5,
+        "overlapY": 7.5
+      },
+      {
+        "type": "marker-overlap",
+        "level": "warn",
+        "primitiveId": "03ad545410a8f640",
+        "markerNet": "OD_GATE",
+        "message": "OD_GATE(netport) 与 B_NEG(netflag) 视觉重叠 6.00×11.00 — 换方向/offset 或 stagger",
+        "componentType": "netport",
+        "primitiveIds": [
+          "03ad545410a8f640",
+          "7d766af2eee9533b"
+        ],
+        "bbox": {
+          "minX": 824.5,
+          "minY": 779.5,
+          "maxX": 905.5,
+          "maxY": 790.5
+        },
+        "other": {
+          "primitiveId": "7d766af2eee9533b",
+          "componentType": "netflag",
+          "net": "B_NEG",
+          "bbox": {
+            "minX": 894.5,
+            "minY": 779.5,
+            "maxX": 900.5,
+            "maxY": 790.5
+          }
+        },
+        "overlapX": 6,
+        "overlapY": 11
+      },
+      {
+        "type": "marker-overlap",
+        "level": "warn",
+        "primitiveId": "174e4abd9a4fc774",
+        "markerNet": "B_NEG",
+        "message": "B_NEG(netport) 与 CS_SENSE(netport) 视觉重叠 11.00×11.00 — 换方向/offset 或 stagger",
+        "componentType": "netport",
+        "primitiveIds": [
+          "174e4abd9a4fc774",
+          "5210e44c04a75bab"
+        ],
+        "bbox": {
+          "minX": 819.5,
+          "minY": 656.5,
+          "maxX": 830.5,
+          "maxY": 725.5
+        },
+        "other": {
+          "primitiveId": "5210e44c04a75bab",
+          "componentType": "netport",
+          "net": "CS_SENSE",
+          "bbox": {
+            "minX": 793.5,
+            "minY": 684.5,
+            "maxX": 880.5,
+            "maxY": 695.5
+          }
+        },
+        "overlapX": 11,
+        "overlapY": 11
+      },
+      {
+        "type": "marker-overlap",
+        "level": "warn",
+        "primitiveId": "174e4abd9a4fc774",
+        "markerNet": "B_NEG",
+        "message": "B_NEG(netport) 与 P_NEG(netport) 视觉重叠 11.00×11.00 — 换方向/offset 或 stagger",
+        "componentType": "netport",
+        "primitiveIds": [
+          "174e4abd9a4fc774",
+          "89490490d7438ec1"
+        ],
+        "bbox": {
+          "minX": 819.5,
+          "minY": 656.5,
+          "maxX": 830.5,
+          "maxY": 725.5
+        },
+        "other": {
+          "primitiveId": "89490490d7438ec1",
+          "componentType": "netport",
+          "net": "P_NEG",
+          "bbox": {
+            "minX": 771.5,
+            "minY": 684.5,
+            "maxX": 840.5,
+            "maxY": 695.5
+          }
+        },
+        "overlapX": 11,
+        "overlapY": 11
+      },
+      {
+        "type": "marker-overlap",
+        "level": "warn",
+        "primitiveId": "38a8f35b3d299a02",
+        "markerNet": "OD_GATE",
+        "message": "OD_GATE(netport) 与 B_NEG(netport) 视觉重叠 34.00×11.00 — 换方向/offset 或 stagger",
+        "componentType": "netport",
+        "primitiveIds": [
+          "38a8f35b3d299a02",
+          "5a8d9a75a1bc1a60"
+        ],
+        "bbox": {
+          "minX": 339.5,
+          "minY": 779.5,
+          "maxX": 420.5,
+          "maxY": 790.5
+        },
+        "other": {
+          "primitiveId": "5a8d9a75a1bc1a60",
+          "componentType": "netport",
+          "net": "B_NEG",
+          "bbox": {
+            "minX": 304.5,
+            "minY": 779.5,
+            "maxX": 373.5,
+            "maxY": 790.5
+          }
+        },
+        "overlapX": 34,
+        "overlapY": 11
+      },
+      {
+        "type": "marker-overlap",
+        "level": "warn",
+        "primitiveId": "5210e44c04a75bab",
+        "markerNet": "CS_SENSE",
+        "message": "CS_SENSE(netport) 与 P_NEG(netport) 视觉重叠 47.00×11.00 — 换方向/offset 或 stagger",
+        "componentType": "netport",
+        "primitiveIds": [
+          "5210e44c04a75bab",
+          "89490490d7438ec1"
+        ],
+        "bbox": {
+          "minX": 793.5,
+          "minY": 684.5,
+          "maxX": 880.5,
+          "maxY": 695.5
+        },
+        "other": {
+          "primitiveId": "89490490d7438ec1",
+          "componentType": "netport",
+          "net": "P_NEG",
+          "bbox": {
+            "minX": 771.5,
+            "minY": 684.5,
+            "maxX": 840.5,
+            "maxY": 695.5
+          }
+        },
+        "overlapX": 47,
+        "overlapY": 11
+      },
+      {
+        "type": "marker-overlap",
+        "level": "warn",
+        "primitiveId": "76447fac2aaf8b35",
+        "markerNet": "P_NEG",
+        "message": "P_NEG(netport) 与 OC_GATE(netport) 视觉重叠 11.00×11.00 — 换方向/offset 或 stagger",
+        "componentType": "netport",
+        "primitiveIds": [
+          "76447fac2aaf8b35",
+          "d48176559e42d71e"
+        ],
+        "bbox": {
+          "minX": 251.5,
+          "minY": 669.5,
+          "maxX": 320.5,
+          "maxY": 680.5
+        },
+        "other": {
+          "primitiveId": "d48176559e42d71e",
+          "componentType": "netport",
+          "net": "OC_GATE",
+          "bbox": {
+            "minX": 299.5,
+            "minY": 644.5,
+            "maxX": 310.5,
+            "maxY": 725.5
+          }
+        },
+        "overlapX": 11,
+        "overlapY": 11
+      },
+      {
+        "type": "marker-overlap",
+        "level": "warn",
+        "primitiveId": "7b0cdcda2d3c0e08",
+        "markerNet": "VDD",
+        "message": "VDD(netflag) 与 B_NEG(netflag) 视觉重叠 6.00×7.50 — 换方向/offset 或 stagger",
+        "componentType": "netflag",
+        "primitiveIds": [
+          "7b0cdcda2d3c0e08",
+          "7d766af2eee9533b"
+        ],
+        "bbox": {
+          "minX": 887,
+          "minY": 769.5,
+          "maxX": 915.5,
+          "maxY": 787
+        },
+        "other": {
+          "primitiveId": "7d766af2eee9533b",
+          "componentType": "netflag",
+          "net": "B_NEG",
+          "bbox": {
+            "minX": 894.5,
+            "minY": 779.5,
+            "maxX": 900.5,
+            "maxY": 790.5
+          }
+        },
+        "overlapX": 6,
+        "overlapY": 7.5
+      },
+      {
+        "type": "marker-overlap",
+        "level": "warn",
+        "primitiveId": "c33c319416d804bf",
+        "markerNet": "VBAT",
+        "message": "VBAT(netport) 与 OC_GATE(netport) 视觉重叠 11.00×11.00 — 换方向/offset 或 stagger",
+        "componentType": "netport",
+        "primitiveIds": [
+          "c33c319416d804bf",
+          "d48176559e42d71e"
+        ],
+        "bbox": {
+          "minX": 292.5,
+          "minY": 679.5,
+          "maxX": 355.5,
+          "maxY": 690.5
+        },
+        "other": {
+          "primitiveId": "d48176559e42d71e",
+          "componentType": "netport",
+          "net": "OC_GATE",
+          "bbox": {
+            "minX": 299.5,
+            "minY": 644.5,
+            "maxX": 310.5,
+            "maxY": 725.5
+          }
+        },
+        "overlapX": 11,
+        "overlapY": 11
+      },
+      {
+        "type": "missing-partition",
+        "level": "warn",
+        "count": 7,
+        "message": "7 个器件的页没有功能分区框 — 铁律#15:`sch zones set` → `sch zone-draw`(整纸版式 `--mode partition`);交付前必须有"
+      },
+      {
+        "type": "missing-note",
+        "level": "warn",
+        "count": 7,
+        "message": "7 个器件的页没有电路说明(区名标签不算)— 每模块 1~3 行 `sch note`:作用 + 关键参数 + 设计要点;交付前必须有"
+      },
+      {
+        "type": "missing-titleblock",
+        "level": "warn",
+        "count": 3,
+        "message": "图签未填:Name(图纸标题)、Drawed(设计者)、Description(图纸说明) — 交付图必须能认领(`sch titleblock --data '{\"Name\":\"…\",\"Drawed\":\"…\"}'`)"
+      }
+    ]
+  },
+  "type": "response",
+  "version": "v1"
+}

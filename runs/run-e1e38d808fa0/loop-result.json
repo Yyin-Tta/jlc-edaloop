@@ -1,0 +1,20 @@
+{
+ "status": "PASS",
+ "review_required": false,
+ "failure_class": "",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "67505f0f6cf8",
+   "gate_verdict": "not-run",
+   "findings": [
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='B+/B- 电芯接入端子(单节 18650):目录无电池接线端子/焊盘块,需板级端子或焊盘;网络 B+/B- 已预留' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='P+/P- 保护后输出焊盘:目录无输出焊盘块;P+ 与 B+ 同网(保护串在 B- 回路),P- 即 FS8205A S1 输出网络' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True"
+   ],
+   "feedback": "",
+   "halted": "",
+   "failure_class": ""
+  }
+ ],
+ "delivery": {}
+}

@@ -1,0 +1,6 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 4 blocks, status=PASS
+
+- [CRITIC_DECOUPLING@prot_dw01] DW01 的 VDD(pin5) 仅经 r_vdd100(100Ω) 接 B+,未在 VDD 与 B- 之间放置去耦电容。DW01 典型应用电路要求 VDD-B- 间加 0.1µF 电容,既稳定供电,也能在 B+ 瞬间接触不良/插拔电池时为 IC 供电并配合 100Ω 抑制浪涌,避免误触发或过充检测失效。 | 建议: 在 VDD_100R 网络与 B- 之间增加一颗 0.1µF 陶瓷电容(目录 capacitor-ceramic 或 decoupling-caps-bank)
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

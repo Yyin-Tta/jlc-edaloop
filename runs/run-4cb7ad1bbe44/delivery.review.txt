@@ -1,0 +1,10 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 5 blocks, status=PASS
+
+- [CRITIC_DECOUPLING@ldo3v3] AMS1117 输入/输出去耦电容(10µF+100nF / 22µF+100nF)在 uncovered 中明确列为无法生成,块内也未包含,当前设计 LDO 无任何去耦电容,存在振荡与瞬态不稳风险 | 建议: 增加通用 R/C 通道或手动添加输入输出电容,使 ldo3v3 的去耦电容落地
+- [CRITIC_DECOUPLING@eeprom_ir] AT24C02 VCC(引脚8)的 100nF 去耦电容无法生成(uncovered 已列出),I2C 器件缺去耦可能导致总线通信异常 | 建议: 补充 VCC 对 GND 的 100nF 陶瓷电容,靠近引脚 8/4 放置
+- [CRITIC_PULL_RESISTORS@eeprom_ir] SDA/SCL 上拉电阻 4.7k×2 无法生成(uncovered 已列出),I2C 总线为开漏结构,无上拉则总线无法工作;且当前设计中无 I2C 主机,SDA/SCL 悬空无对端 | 建议: 补充 SDA/SCL 上拉 4.7k 至 3V3,并确认 I2C 主机(MCU)存在
+- [CRITIC_PULL_RESISTORS@btn_boot_rst] RESET/EN 的 10k 上拉 + 100nF RC 消抖无法生成(uncovered 已列出),EN 悬空时主控复位电平不确定,IO0/BOOT 也无默认上拉 | 建议: 补充 EN 上拉 10k + 100nF 到地,IO0 加默认上拉/下拉确定启动模式
+- [CRITIC_THERMAL@ldo3v3] sizing_recommendations 给出 Tj≈136°C、裕量 -30°C,即结温超过 125°C 上限,AMS1117(SOT-223)散热明显不足,长期工作可靠性风险高 | 建议: 降低负载电流(拆分电源/改用 BUCK)或加强散热(加大铺铜/加散热铜区),必要时换封装或改开关电源
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

@@ -1,0 +1,51 @@
+{
+ "status": "HALT",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "a00ef7d2be00",
+   "gate_verdict": "fail",
+   "findings": [
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:1 个块缺 v_supply 区间或单边(ldo_3v3)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='5V', pin='', xy='') evidence='轨 5V 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/2(覆盖率 0%),缺 i_typ:chg_tp4056, ldo_3v3' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='VBAT', pin='', xy='') evidence='轨 VBAT 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/1(覆盖率 0%),缺 i_typ:boost_mt3608' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/1(覆盖率 0%),缺 i_typ:mcu_esp32s3' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='用户指示：蓝色用户 LED ×1（目录无单 LED/指示灯块，MCU GPIO 驱动网络 LED_USER 已预留）' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='I2C 扩展排针 2x4（3V3/GND/SDA/SCL/INT/备用×2，目录无排针/连接器块）' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='GPIO 测试点/排针网络（3V3/5V/BAT/GND/CHG_OK/LED_USER/SDA/SCL，目录无测试点块）' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='18650 电池座（目录无电池座/电池夹器件，VBAT 网络已预留）' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='TL431 分压电阻与红色告警 LED（TL431 器件可放，但分压/限流阻值与 LED 本体需原理图阶段补全，Q2 阈值未定）' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False"
+   ],
+   "feedback": "[GATE_FAIL@clusters] type=out-of-sheet → 修复:重新规划:按 evidence 调整块选择/端口绑定",
+   "halted": ""
+  },
+  {
+   "round_no": 2,
+   "plan_id": "a9c2c702e850",
+   "gate_verdict": "fail",
+   "findings": [
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:1 个块缺 v_supply 区间或单边(ldo_3v3)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/1(覆盖率 0%),缺 i_typ:mcu_esp32s3' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='5V', pin='', xy='') evidence='轨 5V 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/2(覆盖率 0%),缺 i_typ:chg_tp4056, ldo_3v3' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='VBAT', pin='', xy='') evidence='轨 VBAT 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/1(覆盖率 0%),缺 i_typ:boost_mt3608' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='18650 电池座（目录无对应器件/块，需 VBAT 端子）' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='用户蓝色 LED ×1（目录无 LED 器件）' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='低压告警红色 LED（目录无 LED 器件，TL431 阴极已留 ALARM_LED 网络）' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='TP4056 充电状态双 LED（充电红/满绿，目录无 LED 器件）' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='I2C 扩展排针 2x4（目录无连接器/排针器件，SDA/SCL 需从 MCU GPIO 预留）' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='GPIO 测试点/排针网络 3V3/5V/BAT/GND/CHG_OK/LED_USER/SDA/SCL（目录无测试点/排针器件）' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False"
+   ],
+   "feedback": "",
+   "halted": "同错 2 轮:GATE_FAIL,升级人工"
+  }
+ ],
+ "delivery": {}
+}

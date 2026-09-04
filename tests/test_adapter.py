@@ -12,6 +12,22 @@ def _adapter(handler) -> EasyedaAdapter:
     return EasyedaAdapter(runner=handler)
 
 
+def test_explicit_window_route_wins_over_project_and_environment(monkeypatch) -> None:
+    calls: list[list[str]] = []
+    monkeypatch.setenv("EDALOOP_WINDOW", "env-window")
+
+    def runner(args):
+        calls.append(list(args))
+        return 0, "{}", ""
+
+    adapter = EasyedaAdapter(
+        runner=runner, project="demo-project", window="explicit-window"
+    )
+    adapter.run(["sch", "pages"])
+
+    assert calls == [["sch", "pages", "--window", "explicit-window"]]
+
+
 def test_check_version_ok() -> None:
     a = _adapter(lambda args: (0, "easyeda-agent v1.2.10\n", ""))
     assert a.check_version() == "1.2.10"
@@ -59,6 +75,18 @@ def test_run_json_parse_error_raises() -> None:
     a = _adapter(lambda args: (0, "not json", ""))
     with pytest.raises(AdapterError, match="JSON 解析失败"):
         a.run_json(["x"])
+
+
+def test_run_json_with_rc_preserves_command_status_and_stderr() -> None:
+    a = _adapter(
+        lambda args: (2, json.dumps({"verdict": "pass"}), "gate warning")
+    )
+
+    rc, payload, err = a.run_json_with_rc(["sch", "gate", "--json"])
+
+    assert rc == 2
+    assert payload == {"verdict": "pass"}
+    assert err == "gate warning"
 
 
 def test_subprocess_timeout_kills_tree_and_raises_adapter_error(monkeypatch) -> None:

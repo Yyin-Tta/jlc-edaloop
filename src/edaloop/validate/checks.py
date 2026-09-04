@@ -395,6 +395,10 @@ _FUNC_SYNONYMS: list[tuple[str, str]] = [
     (r"rs-?485|modbus", r"rs485|max485|sp3485|485"),
     (r"usb|type-?c|网口|rj45", r"usb|typec|rj45"),
     (r"接口|端子|排针|插针", r"terminal|interface|header|conn|排针|端子"),
+    (r"现场侧端子|现场端子", r"terminal|interface|header|conn|端子|现场"),
+    (r"备用.?5v|备用电源|备用输入", r"terminal|power|or|ss34|diode"),
+    (r"门磁|霍尔", r"hall|magnet|reed|sensing|sensor"),
+    (r"按键|按钮|buttons?", r"button|btn|reset|boot|human-input"),
     (r"遥测|上报|数据上传", r"comms|uart|rs485|ble|esp32"),
     (r"低压|告警|欠压", r"lowvolt|alarm|tl431|欠压|低压"),
     (r"测试点|test.?point", r"testpoint|测试点|探针"),
@@ -455,6 +459,17 @@ def _block_corpus(plan: BlockPlan, catalog: dict | None) -> tuple[set[str], set[
             fused = re.sub(r"[-_]", "", b.block_id.lower())
             if len(fused) >= 3:
                 pseudo_toks.add(fused)
+            # Planner-only instances preserve useful intent that is absent from
+            # the catalog record.  Expand the conventional prefixes into labels
+            # so functional coverage can use them without guessing from a page
+            # drawing (j_* = connector/terminal, btn* = button).
+            bid = b.block_id.lower()
+            if bid.startswith("j_") or bid.startswith("jx_"):
+                pseudo_toks.update({"terminal", "connector", "interface"})
+            if bid.startswith("btn") or "button" in bid:
+                pseudo_toks.update({"button", "human-input"})
+            if bid.startswith("hall") or "magnet" in bid:
+                pseudo_toks.update({"hall", "magnet", "sensor"})
     return toks, lab_toks, cjk, pseudo_toks
 
 
@@ -462,7 +477,13 @@ def _block_corpus(plan: BlockPlan, catalog: dict | None) -> tuple[set[str], set[
 _LAB_QUALIFIERS = ("support", "isolat")
 
 
-def _right_hits(brx: str, toks: set[str], lab_toks: set[str], cjk: str) -> bool:
+def _right_hits(
+    brx: str,
+    toks: set[str],
+    lab_toks: set[str],
+    cjk: str,
+    pseudo_toks: set[str] | None = None,
+) -> bool:
     """词表右侧对语料:≥5 字符右词可命中全文词元(前缀);短右词只认**标签**词元——
     叙述文里的共词(ch340 desc 的「目标 MCU」)不算;标签侧允许前缀(mcu_main 是
     planner 声明的主控实例)但含修饰词的复合词不算(mcu-support/mcusupport)。
@@ -475,13 +496,22 @@ def _right_hits(brx: str, toks: set[str], lab_toks: set[str], cjk: str) -> bool:
         m = re.match(brx, t)
         if m and not any(q in t for q in _LAB_QUALIFIERS):
             return True
+    for t in pseudo_toks or set():
+        if re.match(brx, t) and not any(q in t for q in _LAB_QUALIFIERS):
+            return True
     return bool(cjk and re.search(brx, cjk))
 
 
-def _func_probe_hits(text: str, toks: set[str], lab_toks: set[str], cjk: str) -> bool:
+def _func_probe_hits(
+    text: str,
+    toks: set[str],
+    lab_toks: set[str],
+    cjk: str,
+    pseudo_toks: set[str] | None = None,
+) -> bool:
     """单一探测文本对语料:词表(双语)→ ascii 词元(短词认标签/长词认全文)→ CJK bigram,任一命中。"""
     for frx, brx in _FUNC_SYNONYMS:
-        if re.search(frx, text) and _right_hits(brx, toks, lab_toks, cjk):
+        if re.search(frx, text) and _right_hits(brx, toks, lab_toks, cjk, pseudo_toks):
             return True
     for tok in set(re.findall(r"[a-z0-9][a-z0-9_-]{2,}", text)):
         if tok in _FUNC_STOP:
@@ -523,7 +553,7 @@ def _func_covered(name: str, full: str, corpus: tuple[set[str], set[str], str, s
     name 提取不到信号(空名/纯停用词)才退化用全文全机制。
     """
     toks, lab_toks, cjk, pseudo_toks = corpus
-    if name.strip() and _func_probe_hits(name, toks, lab_toks, cjk):
+    if name.strip() and _func_probe_hits(name, toks, lab_toks, cjk, pseudo_toks):
         return True
     if name.strip() and _func_has_signal(name):
         for tok in set(re.findall(r"[a-z0-9][a-z0-9_-]{2,}", full)):
@@ -534,7 +564,7 @@ def _func_covered(name: str, full: str, corpus: tuple[set[str], set[str], str, s
             if fused in pseudo_toks or any(fused.startswith(t) for t in pseudo_toks):
                 return True
         return False
-    return bool(full.strip()) and _func_probe_hits(full, toks, lab_toks, cjk)
+    return bool(full.strip()) and _func_probe_hits(full, toks, lab_toks, cjk, pseudo_toks)
 
 
 def check_func_covered(ir: DesignIR, plan: BlockPlan, catalog: dict | None = None) -> list[Finding]:
@@ -866,6 +896,8 @@ def check_topology_sanity(
             continue
         bound = set(b.pins_binding)
         for pin_no, pin_name in pinout.items():
+            if pin_no in set(b.no_connect):
+                continue
             n = str(pin_name).upper()
             if any(h in n for h in _PWR_PIN_HINTS) and pin_no not in bound:
                 findings.append(

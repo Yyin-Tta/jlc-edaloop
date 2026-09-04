@@ -1,0 +1,11 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 12 blocks, status=PASS
+
+- [CRITIC_THERMAL@ldo_3v3] sizing 给出 Tj≈136°C、裕量 -30°C,AMS1117 5V→3.3V 在当前负载下结温已超 125°C 上限,SOT-223 仅靠铺铜无法散掉约 1.7W 功耗 | 建议: 降低负载电流、改用 DC-DC(如 TPS56x39/MP1584)替代 LDO,或至少降额并强制加大散热铺铜/过孔阵列
+- [CRITIC_POWER_INTEGRITY@ldo_3v3] AMS1117 压差约 1.1V,5V 输入时 3.3V 输出余量虽够,但 thermal 核算已显示功耗明显超标(>1W 无有效散热) | 建议: 在 power-integrity 层面确认 3V3 总电流需求;若 >300mA 应改开关电源方案,而非依赖 1117 满载运行
+- [CRITIC_PULL_RESISTORS@mcu_u1] NRST 仅有 100nF 复位电容(c_nrst),缺少 10k 上拉电阻;STM32 NRST 内部弱上拉不可靠,干拢环境下易误复位,且 uncovered 清单已自行确认缺件 | 建议: 补充 r_nrst 10k 上拉至 3V3,与 c_nrst 构成标准 RC 复位网络
+- [CRITIC_INTERFACE_PROTECTION@rs485_u2] 块描述提到 A/B 侧需 TVS 保护,但目录绑定中无 TVS 器件实例落到 RS485_A/RS485_B 网络;RS-485 长线外接端子属典型浪涌/ESD 暴露点 | 建议: 在 RS485_A/B 对 GND 各加一支 TVS(如 SM712 专用 RS-485 保护管),靠近端子放置
+- [CRITIC_PULL_RESISTORS@rs485_u2] 块描述要求 A/B 总线侧 10k 上拉/下拉偏置电阻与 120Ω 终端电阻,但 blocks 中无对应电阻实例,总线空闲态偏置缺失会导致通信误码 | 建议: 补充 A 上拉 10k 至 3V3/5V、B 下拉 10k 至 GND,以及 120Ω 终端电阻(跳线使能)
+- [CRITIC_INTERFACE_PROTECTION@mcu_u1] 晶振 8MHz 及 22pF 负载电容未落图(uncovered 已列),MCU 无时钟源无法工作,属设计层缺口而非仅缺件 | 建议: 扩展 capacitor-std 标准值表纳入 22p,或选型含内部负载电容的晶振/改用 HSI 并更新固件时钟配置
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

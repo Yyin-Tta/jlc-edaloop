@@ -1,0 +1,3 @@
+
+[trial-freeze] status=FREEZE audit=runs\run-fd3f51113bdc
+[trial-freeze] 页面已冻结,到 EasyEDA 检查;看完 sch clear --doc P1 / --doc P2 清理

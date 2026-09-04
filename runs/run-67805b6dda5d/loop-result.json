@@ -1,0 +1,29 @@
+{
+ "status": "PASS",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "42c29e424225",
+   "gate_verdict": "pass",
+   "findings": [
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='目录无 B+/B-/P+/P- 焊盘/端子实体块,以上电与输出焊盘以网络名 B+/B-/P+/P- 表达,需在原理图上补焊盘符号' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True"
+   ],
+   "feedback": "",
+   "halted": ""
+  }
+ ],
+ "delivery": {
+  "svg": "D:\\gyt-pro\\jlc-edaloop\\runs\\run-67805b6dda5d\\delivery-P1.svg",
+  "svg_pages": [
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-67805b6dda5d\\delivery-P1.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-67805b6dda5d\\delivery-P2.svg"
+  ],
+  "netlist": "runs\\run-67805b6dda5d\\delivery.net.json",
+  "netlist_sha256_16": "cab1161c59d5e14f",
+  "bom": "runs\\run-67805b6dda5d\\delivery.bom.json",
+  "bom_total": 0.0737,
+  "swap": "runs\\run-67805b6dda5d\\delivery.swap.txt",
+  "review": "runs\\run-67805b6dda5d\\delivery.review.txt",
+  "review_findings": 1
+ }
+}

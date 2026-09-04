@@ -1,0 +1,18 @@
+{
+  "id": "req_193257",
+  "ok": true,
+  "result": {
+    "passed": true,
+    "summary": {
+      "trees": 0,
+      "bridges": 0,
+      "orphans": 0,
+      "orphanFlags": 0,
+      "orphanTrees": 0,
+      "wireTreesTotal": 0
+    },
+    "trees": []
+  },
+  "type": "response",
+  "version": "v1"
+}

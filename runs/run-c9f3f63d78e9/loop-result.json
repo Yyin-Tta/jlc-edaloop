@@ -1,0 +1,56 @@
+{
+ "status": "HALT",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "a3b8e601425a",
+   "gate_verdict": "fail",
+   "findings": [
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='3 个指示灯 LED(电源/心跳/总线)——目录无 LED 块或带 lcsc 的 LED 器件;已预留 LED_HB/LED_BUS 控制 GPIO 网络' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='SWD 4-pin 调试排针——目录无排针/连接器块;已预留 SWDIO/SWCLK/3V3/GND 网络' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='3V3/GND 测试点——目录无测试点器件' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='AMS1117 LDO——目录无 AMS1117,已用 SY8089 buck 替代实现 3.3V 轨(如必须 LDO 需补充器件)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=overlap' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=overlap' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False"
+   ],
+   "feedback": "[GATE_FAIL@clusters] type=overlap → 修复:放置几何问题:给冲突块设置 params.spacing(如 300;过宽块编译器会自动截到 A4 内)或 at 空位(A4 页内坐标,x∈[100,1100] y∈[300,780];编译器优先读这两个字段)",
+   "halted": ""
+  },
+  {
+   "round_no": 2,
+   "plan_id": "e1490a3f2784",
+   "gate_verdict": "fail",
+   "findings": [
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='指示灯:目录无 LED 块,电源/心跳/总线活动 3 个 LED(红/绿/黄)无法覆盖' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='测试点:3V3/GND 测试点无对应目录块' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='SWD 4-pin 排针:目录无独立排针块,SWDIO/SWCLK 网络已由 MCU 引出但连接器缺失' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=overlap' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=overlap' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=overlap' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False"
+   ],
+   "feedback": "",
+   "halted": "同错 2 轮:GATE_FAIL,升级人工"
+  }
+ ],
+ "delivery": {}
+}

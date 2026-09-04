@@ -1,0 +1,1 @@
+layout-lint: 0 overlap(s), 0 pin-coincidence(s), 1 tight pair(s), 0 off-grid anchor(s), 0 out-of-sheet, 0 unchecked bbox(s), 0 unchecked pin-set(s), 0 unproven pin-set(s), 0 invalid geometry value(s), zone-check=not-configured sheet-check=checked

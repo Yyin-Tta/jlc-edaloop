@@ -1,0 +1,21 @@
+{
+  "id": "req_263075",
+  "type": "response",
+  "version": "v1",
+  "createdAt": "2026-09-02T19:31:23.3134503Z",
+  "ok": true,
+  "result": {
+    "count": 0,
+    "scope": "activePage",
+    "texts": []
+  },
+  "context": {
+    "projectUuid": "5c5728757764408aaa9cbf1895e48e9d",
+    "projectName": "edaloop-block-baseline",
+    "documentUuid": "f83ed65a7d62827c",
+    "documentType": "schematic",
+    "tabId": "f83ed65a7d62827c@5c5728757764408aaa9cbf1895e48e9d"
+  },
+  "seq": 635,
+  "seqAbandoned": 0
+}

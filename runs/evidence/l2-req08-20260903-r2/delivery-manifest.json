@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "edaloop.req08.delivery-evidence.v1",
+  "project": "edaloop-req08-baseline",
+  "window": "465b7b92-f68b-42ed-9b16-0e6fc5579dea",
+  "page": "P1",
+  "status": "review-required",
+  "gate": {
+    "verdict": "fail",
+    "blocking": [
+      {
+        "check": "drc",
+        "fatal": 0,
+        "error": 0,
+        "warn": 1,
+        "detail": "EasyEDA returned aggregate warning only; review in native DRC panel"
+      }
+    ]
+  },
+  "hardMetrics": {
+    "bodyOverlap": 0,
+    "clusterOverlap": 0,
+    "outOfSheet": 0,
+    "floatingPins": 0,
+    "bridgeOrphan": 0,
+    "checkFindings": 0,
+    "clusterTight": 0,
+    "blankRatio": 0.9905661811080463,
+    "inkBlankRatio": 0.9145839823912179
+  },
+  "artifacts": [
+    {
+      "path": "artifacts/req08-P1.svg",
+      "kind": "schematic_svg",
+      "sha256": "af5e6fb4239751f72839c3837637e87381aa7866c7d81d6f724e9febf319d6f9"
+    },
+    {
+      "path": "artifacts/req08-P1.enet",
+      "kind": "schematic_netlist",
+      "sha256": "87acbd859e1d9b8797409161910d594bc747d6b024aede2ba55873169afdc59b"
+    },
+    {
+      "path": "artifacts/req08-BOM.csv",
+      "kind": "schematic_bom",
+      "sha256": "137d793331bccd4f0ebf61188dc554fd23203c9f07ea1a15e8416069b7e7671a",
+      "lcscEnrichment": "7/7",
+      "enrichmentRuntime": "PYTHONUTF8=1"
+    }
+  ],
+  "nextAction": "Open EasyEDA native DRC panel, identify the aggregate warning, and rerun the three-engine hard-metric replay before considering v2 readiness."
+}

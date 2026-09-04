@@ -1,0 +1,5 @@
+[sizing:led-resistor@led_pwr] (3.3V-2V)/5mA = 260 → 推荐 270Ω (E24)
+    功率 P=(V-Vf)×I=6.5mW → 0603(1/10W) 起步
+
+[sizing:led-resistor@led_act] (3.3V-2V)/5mA = 260 → 推荐 270Ω (E24)
+    功率 P=(V-Vf)×I=6.5mW → 0603(1/10W) 起步

@@ -1,0 +1,46 @@
+[sizing:fuse-rating@j5vin] I_hold≥1.25×120mA = 0.15 → 推荐 I_hold≥0.15A(自恢复 PPTC 按此档)
+    输入 I_load=120mA ← ENGINEERING-DEFAULT 输入口负载电流典型(轨 imax 缺)
+    输入 系数 PPTC_DERATE=1.25 ← 工程系数白名单 _COEFFS
+    降额 25% 防浪涌误动作;PPTC 恢复后保持电流会随温度下降,高温环境再降额
+
+[sizing:reg-caps@ldo3v3] ldo @ 1000mA = 1000 → 推荐 见 notes(惯例值)
+    输入 I_out=1000mA ← 参数槽 electrical.i_max=1A(wmsc C6186 paramVOList)
+    C_IN: 10µF 钽/陶瓷 + 100nF 就近(AMS1117 数据手册惯例)
+    C_OUT: 22µF + 100nF(LDO 依赖输出电容环路稳定,不可省)
+    负载 1000mA → LDO 压差功耗=(Vin-Vout)×I,注意散热铜
+
+[sizing:thermal@ldo3v3] Tj=25+1.7W×65°C/W = 135.5 → 推荐 Tj≈136°C(裕量-30°C)
+    输入 V_in=5V ← IR rail 5V=5V
+    输入 V_out=3.3V ← IR rail 3V3=3.3V
+    输入 I_out=1000mA ← 参数槽 electrical.i_max=1A(wmsc C6186 paramVOList)
+    输入 R_ja=65°C/W ← ENGINEERING-DEFAULT SOT-223 典型 Rja(槽 rja 缺)
+    输入 T_amb=25°C ← ENGINEERING-DEFAULT 室温缺省 25°C
+    ⚠ 热裕量不足,建议加大铜箔或改封装
+    估算结温 136°C(上限 105°C,裕量 -30°C)
+    裕量 <20°C:加铺铜/散热过孔或换封装;R_ja 取决于铺铜面积, datasheet 典型值为最小铺铜条件
+
+[sizing:fuse-rating@dcdc_iso] I_hold≥1.25×120mA = 0.15 → 推荐 I_hold≥0.15A(自恢复 PPTC 按此档)
+    输入 I_load=120mA ← ENGINEERING-DEFAULT 输入口负载电流典型(轨 imax 缺)
+    输入 系数 PPTC_DERATE=1.25 ← 工程系数白名单 _COEFFS
+    降额 25% 防浪涌误动作;PPTC 恢复后保持电流会随温度下降,高温环境再降额
+
+[sizing:reg-caps@dcdc_iso] buck @ 120mA = 120 → 推荐 见 notes(惯例值)
+    输入 I_out=120mA ← ENGINEERING-DEFAULT 输入口负载电流典型(轨 imax 缺)
+    C_IN: 22µF×2 低 ESR 陶瓷(开关纹波电流吸收)
+    C_OUT: 22µF×2 + 按 ΔI_L 与允许纹波调整:C=ΔI_L/(8×f_sw×ΔV_ripple)
+    负载 120mA → LDO 压差功耗=(Vin-Vout)×I,注意散热铜
+    ⚠ 隔离 DC-DC 模块:按开关惯例值给,以模块 datasheet 为准
+
+[sizing:led-resistor@led_pwr] (3.3V-2V)/5mA = 260 → 推荐 270Ω (E24)
+    输入 V_rail=3.3V ← IR rail 3V3=3.3V
+    输入 V_f=2V ← ENGINEERING-DEFAULT LED 通用红光典型 Vf(槽 vf 缺)
+    输入 I_f=5mA ← ENGINEERING-DEFAULT 指示灯惯例 5mA(槽 if 缺)
+    功率 P=(V-Vf)×I=6.5mW → 0603(1/10W) 起步
+
+[sizing:led-resistor@led_di] (轨电压未知) = 0 → 推荐 n/a
+    输入 V_rail=? ← 
+    ⚠ 限流电阻无法确定:驱动网 LED_DI 不是声明轨且家族兜底不出(不猜)
+
+[sizing:led-resistor@led_do] (轨电压未知) = 0 → 推荐 n/a
+    输入 V_rail=? ← 
+    ⚠ 限流电阻无法确定:驱动网 LED_DO 不是声明轨且家族兜底不出(不猜)

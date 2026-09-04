@@ -1,0 +1,72 @@
+{
+  "status": "found",
+  "host": "127.0.0.1",
+  "ports": "60832-60841",
+  "found": {
+    "port": 60832,
+    "service": "easyeda-agent",
+    "raw": {
+      "service": "easyeda-agent",
+      "version": "v1.1.1",
+      "status": "ok",
+      "port": 60832,
+      "windows": [
+        {
+          "windowId": "dfde8f43-ebbf-434e-85a7-993b3315a529",
+          "connectorVersion": "1.1.1",
+          "easyedaVersion": "3.2.184",
+          "capabilities": [
+            "schematic.v1",
+            "pcb.v1"
+          ],
+          "context": {
+            "projectUuid": "993e2ad9b7944f92b44333b630a754da",
+            "projectName": "edaloop-w2-req01",
+            "documentUuid": "7c4a751c5136cb01",
+            "documentType": "schematic",
+            "tabId": "7c4a751c5136cb01@993e2ad9b7944f92b44333b630a754da"
+          },
+          "connectedAt": "2026-08-22T13:37:26.3902148Z",
+          "lastSeen": "2026-08-22T13:46:05.9168516Z",
+          "connectorVersionOk": true
+        }
+      ],
+      "writeHealth": {
+        "dfde8f43-ebbf-434e-85a7-993b3315a529": {
+          "samples": 20,
+          "failures": 3,
+          "failureRate": 0.15,
+          "consecutiveFailures": 1,
+          "degraded": false,
+          "verified": 0,
+          "lastFailureAction": "schematic.components.list",
+          "lastFailureAt": "2026-08-22T13:45:46Z",
+          "actions": {
+            "schematic.component.place": {
+              "samples": 4,
+              "failures": 2,
+              "failureRate": 0.5,
+              "consecutiveFailures": 0,
+              "verified": 0,
+              "degraded": false
+            },
+            "schematic.components.list": {
+              "samples": 1,
+              "failures": 1,
+              "failureRate": 1,
+              "consecutiveFailures": 1,
+              "verified": 0,
+              "degraded": false
+            }
+          }
+        }
+      }
+    }
+  },
+  "checked": [
+    {
+      "port": 60832,
+      "status": "ok"
+    }
+  ]
+}

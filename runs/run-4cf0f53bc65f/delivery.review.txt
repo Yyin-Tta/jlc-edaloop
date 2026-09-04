@@ -1,0 +1,7 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 4 blocks, status=PASS
+
+- [CRITIC_DECOUPLING@prot_dw01] DW01 的 VDD(pin5 经 100R 接 B+)与 B- 之间没有任何去耦电容;DW01/FS8205 保护板标配在 VDD(或 100R 之后)到 B- 挂 0.1µF,缺电容会使过流/过放阈值易受噪声干扰误触发 | 建议: 在 VDD_100R(100R 靠 IC 一侧)与 B- 之间加 0.1µF 陶瓷电容
+- [CRITIC_INTERFACE_PROTECTION@prot_dw01] DW01 pin4(TD,测试脚,应接地)未绑定任何网络,悬空可能导致 IC 进入异常测试状态 | 建议: 将 pin4 TD 绑定到 B-(GND)
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

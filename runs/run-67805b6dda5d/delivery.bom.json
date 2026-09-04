@@ -1,0 +1,34 @@
+{
+ "total": 0.0737,
+ "priced_lines": 2,
+ "no_price": [
+  "resistor-std(无 C 号)"
+ ],
+ "no_stock": [],
+ "details": [
+  {
+   "ref": "C2927799",
+   "qty": 1,
+   "unit": 0.0258,
+   "line": 0.0258,
+   "stock": 24980,
+   "smt_type": "extended"
+  },
+  {
+   "ref": "C2830320",
+   "qty": 1,
+   "unit": 0.0479,
+   "line": 0.0479,
+   "stock": 117580,
+   "smt_type": "extended"
+  },
+  {
+   "ref": "resistor-std",
+   "qty": 2,
+   "price": null,
+   "note": "no-lcsc",
+   "smt_type": "unknown"
+  }
+ ],
+ "smt_note": "库类型近似判定(JLC SMT API 无公开契约,R13 兜底):basic=基础库(免上料费倾向),extended=扩展库"
+}

@@ -1,0 +1,51 @@
+{
+  "clusters": [
+    {
+      "designator": "PROTFS",
+      "primitiveId": "786b1937873a0c6f",
+      "body": {
+        "minX": 3319.5,
+        "minY": 5209.5,
+        "maxX": 3400.5,
+        "maxY": 5250.5
+      },
+      "box": {
+        "minX": 3114.5,
+        "minY": 5209.5,
+        "maxX": 3525.5,
+        "maxY": 5250.5
+      },
+      "markers": 6,
+      "wires": 6,
+      "members": [
+        "part     PROTFS   x=[3320,3400] y=[5210,5250]",
+        "wire              x=[3290,3310] y=[5240,5240]",
+        "wire              x=[3255,3310] y=[5230,5230]",
+        "wire              x=[3410,3430] y=[5230,5230]",
+        "wire              x=[3205,3310] y=[5220,5220]",
+        "wire              x=[3410,3465] y=[5220,5220]",
+        "wire              x=[3410,3465] y=[5240,5240]",
+        "netport  B_MINUS  x=[3200,3280] y=[5234,5246]",
+        "netport  FET_MID  x=[3164,3246] y=[5224,5236]",
+        "netport  FET_MID  x=[3440,3520] y=[5224,5236]",
+        "netport  P_MINUS  x=[3114,3196] y=[5214,5226]",
+        "netport  OD       x=[3474,3526] y=[5214,5226]",
+        "netport  OC       x=[3474,3526] y=[5234,5246]"
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "type": "out-of-sheet",
+      "a": "PROTFS",
+      "note": "右沿 3526 \u003e 1158、上沿 5250 \u003e 813",
+      "level": "ERROR"
+    }
+  ],
+  "sheetUsable": {
+    "minX": 12,
+    "minY": 12,
+    "maxX": 1158,
+    "maxY": 813
+  }
+}

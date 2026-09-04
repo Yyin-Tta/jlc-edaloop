@@ -1,0 +1,22 @@
+{
+ "rows": {
+  "req-06-pico-native-usb-gateway.md": {
+   "req": "req-06-pico-native-usb-gateway.md",
+   "status": "PASS",
+   "rounds": 1,
+   "n_rounds": 1
+  },
+  "req-10-esp32s3-industrial-4layer.md": {
+   "req": "req-10-esp32s3-industrial-4layer.md",
+   "status": "PASS",
+   "rounds": 1,
+   "n_rounds": 1
+  },
+  "req-12-hybrid-dual-mcu-gateway.md": {
+   "req": "req-12-hybrid-dual-mcu-gateway.md",
+   "status": "PASS",
+   "rounds": 1,
+   "n_rounds": 1
+  }
+ }
+}

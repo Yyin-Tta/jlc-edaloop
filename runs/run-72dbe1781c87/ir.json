@@ -1,0 +1,91 @@
+{
+  "id": "72dbe1781c87",
+  "source": "req-08-liion-protection-freeform.md",
+  "created": "2026-09-03T03:09:50.346276Z",
+  "functions": [
+    {
+      "name": "过充保护",
+      "desc": "DW01A 保护 IC 检测电芯电压(VDD 经 100R 接 B+),过充时经 OC 端驱动 FS8205A 充电 NMOS 关断充电回路",
+      "constraints": [
+        "保护 IC 指定 DW01A,功率开关指定 FS8205A",
+        "无 MCU、无充电指示,纯硬件保护板",
+        "过充阈值未给数值,拟按 DW01A 内置默认阈值(见 Q1)"
+      ]
+    },
+    {
+      "name": "过放保护",
+      "desc": "DW01A 检测电芯电压过低时,经 OD 端驱动 FS8205A 放电 NMOS 关断放电回路",
+      "constraints": [
+        "过放阈值未给数值,拟按 DW01A 内置默认阈值(见 Q1)"
+      ]
+    },
+    {
+      "name": "过流/短路保护",
+      "desc": "DW01A CSI 端经 1k 接 B-,采样 FS8205A 导通压降检测放电回路电流,过流/短路时经 OD 关断放电 MOS",
+      "constraints": [
+        "过流动作电流未指定,由 FS8205A 导通电阻与 DW01A 过流检测阈值共同决定"
+      ]
+    },
+    {
+      "name": "充放电双向关断(功率级)",
+      "desc": "FS8205A 两只 NMOS 串联(共漏)置于 B- 回路,OC/OD 分别独立控制充电/放电方向关断,实现双向阻断",
+      "constraints": [
+        "FS8205A 双管共漏串联,B- 回路双向关断"
+      ]
+    }
+  ],
+  "interfaces": [
+    {
+      "type": "端子",
+      "spec": "B+/B- 电芯接入端子(电芯侧)"
+    },
+    {
+      "type": "焊盘",
+      "spec": "P+/P- 保护后输出,含 P 焊盘(输出侧)"
+    }
+  ],
+  "power": {
+    "inputs": [
+      "单节 18650 锂电池(B+/B- 接入)"
+    ],
+    "rails": [
+      {
+        "name": "VDD",
+        "voltage": null,
+        "v_min": 3.0,
+        "v_max": 4.2,
+        "imax": null,
+        "source": "B+ 经 100R 接 DW01A VDD,单节锂电电压域"
+      }
+    ],
+    "protection": null
+  },
+  "env": {
+    "temp": null,
+    "size": null,
+    "cost_target": null,
+    "fab": null
+  },
+  "open_questions": [
+    {
+      "id": "Q1",
+      "question": "过充/过放/过流保护阈值的具体数值需求未给出,是否直接采用 DW01A 内置默认阈值?",
+      "options": [
+        "采用 DW01A datasheet 默认阈值",
+        "由客户指定阈值"
+      ],
+      "answer": ""
+    },
+    {
+      "id": "Q2",
+      "question": "是否要求支持 0V 电池充电?(不同 DW01 版本对该功能的支持不同,需求未说明)",
+      "options": [
+        "需要 0V 充电功能",
+        "不需要 0V 充电功能"
+      ],
+      "answer": ""
+    }
+  ],
+  "revision": 1,
+  "decisions": {}
+}

@@ -1,0 +1,10 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 33 blocks, status=PASS
+
+- [CRITIC_INTERFACE_PROTECTION@u_uln2003] ULN2003 是单芯片、单地器件:输入 DOUT1-4 来自逻辑侧(参考 GND 的 MCU GPIO),而其 GND(脚8)接 GND_ISO、COM(脚9)接 5V_ISO。这使一颗无隔离芯片同时跨越隔离两侧,破坏了 GND/GND_ISO 隔离体系,隔离形同虚设。 | 建议: 把 ULN2003 完整放到隔离侧(逻辑信号经光耦/磁隔离过隔离带),或改为 ULN2003 全部在逻辑侧、其输出驱动继电器等隔离器件;总之单颗 ULN2003 的输入参考地与 GND 脚必须同
+- [CRITIC_INTERFACE_PROTECTION@u_uln2003] COM 脚(9)接 5V_ISO,但 DO1-4 输出驱动的现场感性负载由 24V_FIELD 供电(见 t_field_24v),续流二极管会把感性负载的反激钳位到 COM(5V_ISO),钳位电压远低于负载电源 24V,续流二极管将持续过流甚至损坏芯片,且 5V_ISO 轨会被反灌。 | 建议: COM 脚应接到被驱动感性负载的供电轨(24V_FIELD),而不是 5V_ISO;ULN2003 的 GND/COM 与负载电源须同域。
+- [CRITIC_INTERFACE_PROTECTION@t_field_24v] 24V 现场电源端子(t_field_24v)及数字输入端子(t_di12/t_di34)均无 TVS/ESD 保护、24V 输入无防反接与过压保护;工业现场 24V 长线输入直接经 2.2k 电阻进光耦 LED,浪涌/误接高压易损坏 PC817 与相邻电路。 | 建议: 在 24V 输入端加 TVS(如 SMBJ 系列按 24V 系统选钳位)和防反接(串联二极管或 P-MOS);每路 DI 输入加稳压/TVS 钳位,DO 端子侧也建议加 TVS。
+- [CRITIC_THERMAL@u_ldo3v3] sizing 已算出 Tj≈136°C、裕量为负(-30°C):5V→3.3V 用 AMS1117 在实际负载下热耗散明显超标,靠提示‘铺铜加固’无法弥补,SOT-223 封装将过热关断或降额失效。 | 建议: 改用小型降压 BUCK(如 MP1584/TPS54331 类)产生 3.3V,或拆分负载(如仅给 MCU 供电时核算实际电流,确认 AMS1117 功耗在 SOT-223 热阻可承受范围),并明确散热铜箔面积要求。
+- [CRITIC_POWER_INTEGRITY@u_iso5v] B0505S 隔离轨 5V_ISO 同时要给 4 路 PC817 上拉(collector 上拉电阻描述指向 VISO)和 ULN2003 逻辑侧(COM/GND 域混用问题另报),而 B0505S-1WR2 仅 1W 且无稳压、纹波大,uncovered 也承认 LC 滤波未落实(仅 10µF 电容替代),副边轨质量与容量规划不足。 | 建议: 核算隔离侧总功耗;若 5V_ISO 还需承担较大负载,改用功率余量更大的隔离模块或加 LDO 稳压;按模块 datasheet 要
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

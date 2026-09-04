@@ -1,0 +1,40 @@
+{
+ "status": "PASS",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "d37f2bd4b7eb",
+   "gate_verdict": "pass",
+   "findings": [
+    "code='MISSING_RAIL' where=Where(ref='', net='VBAT', pin='', xy='') evidence='DesignIR 电源轨 VBAT(3-4.2V) 在 BlockPlan 任何端口绑定中都未出现(按轨家族 3.7|main 归一比对)' severity='error' suggested_fix_class='REBIND_NET' weak=False",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='B+/B- 与 P+/P- 焊盘端子(物理焊接/输出焊盘):目录无焊盘/端子块,需原理图上以网络标号 B_PLUS/B_MINUS/P_MINUS 呈现,P+ 即 B_PLUS' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True"
+   ],
+   "feedback": "[MISSING_RAIL@VBAT] DesignIR 电源轨 VBAT(3-4.2V) 在 BlockPlan 任何端口绑定中都未出现(按轨家族 3.7|main 归一比对) → 修复:把缺失的网络补进对应块的绑定:upstream 块用 ports_binding,place 通道器件用 pins_binding(引脚号→网名);同名引脚族(VSS*/VDD*/EP)都要绑",
+   "halted": ""
+  },
+  {
+   "round_no": 2,
+   "plan_id": "3180d924b6fd",
+   "gate_verdict": "pass",
+   "findings": [],
+   "feedback": "",
+   "halted": ""
+  }
+ ],
+ "delivery": {
+  "svg": "E:\\jlc-edaloop\\runs\\run-afde62784807\\delivery-P1.svg",
+  "svg_pages": [
+   "E:\\jlc-edaloop\\runs\\run-afde62784807\\delivery-P1.svg",
+   "E:\\jlc-edaloop\\runs\\run-afde62784807\\delivery-P2.svg",
+   "E:\\jlc-edaloop\\runs\\run-afde62784807\\delivery-P3.svg",
+   "E:\\jlc-edaloop\\runs\\run-afde62784807\\delivery-P4.svg"
+  ],
+  "netlist": "runs\\run-afde62784807\\delivery.net.json",
+  "netlist_sha256_16": "383eaa757905a913",
+  "bom": "runs\\run-afde62784807\\delivery.bom.json",
+  "bom_total": 0.0737,
+  "swap": "runs\\run-afde62784807\\delivery.swap.txt",
+  "review": "runs\\run-afde62784807\\delivery.review.txt",
+  "review_findings": 3
+ }
+}

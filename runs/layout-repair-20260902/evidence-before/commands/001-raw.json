@@ -1,0 +1,74 @@
+{
+  "status": "found",
+  "host": "127.0.0.1",
+  "ports": "60832-60841",
+  "found": {
+    "port": 60832,
+    "service": "easyeda-agent",
+    "raw": {
+      "service": "easyeda-agent",
+      "version": "v1.2.10",
+      "status": "ok",
+      "port": 60832,
+      "windows": [
+        {
+          "windowId": "a14a0804-7cfd-4dc5-ae99-a56fab5f345b",
+          "connectorVersion": "1.2.10",
+          "easyedaVersion": "3.2.175",
+          "capabilities": [
+            "schematic.v1",
+            "pcb.v1"
+          ],
+          "context": {
+            "projectUuid": "7c0361b40cbf4b60b68383bcfa69f362",
+            "projectName": "edaloop",
+            "documentUuid": "5da5dd85446fec65",
+            "documentType": "schematic",
+            "tabId": "5da5dd85446fec65@7c0361b40cbf4b60b68383bcfa69f362"
+          },
+          "connectedAt": "2026-09-02T03:37:46.5201097Z",
+          "lastSeen": "2026-09-02T11:44:31.8979359Z",
+          "connectorVersionOk": true
+        }
+      ],
+      "writeHealth": {
+        "a14a0804-7cfd-4dc5-ae99-a56fab5f345b": {
+          "samples": 20,
+          "failures": 0,
+          "failureRate": 0,
+          "consecutiveFailures": 0,
+          "degraded": false,
+          "verified": 0
+        }
+      }
+    }
+  },
+  "versionGate": {
+    "cli": "v1.2.10",
+    "daemon": "v1.2.10",
+    "connectors": [
+      "1.2.10"
+    ],
+    "verdict": "ok",
+    "findings": [
+      {
+        "component": "daemon",
+        "version": "v1.2.10",
+        "severity": "ok",
+        "reason": "与 CLI 同版 v1.2.10"
+      },
+      {
+        "component": "connector",
+        "version": "1.2.10",
+        "severity": "ok",
+        "reason": "与 CLI 同版 v1.2.10"
+      }
+    ]
+  },
+  "checked": [
+    {
+      "port": 60832,
+      "status": "ok"
+    }
+  ]
+}

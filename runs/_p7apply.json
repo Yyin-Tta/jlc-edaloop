@@ -1,0 +1,9 @@
+⚠ 版本错位(connector):CLI v1.2.10 ≠ connector v1.2.8(仅差 patch)—— 插件市场渠道本就滞后,多半能用,但一旦行为对不上先怀疑这里
+    重装连接器 .eext(同版才严格对齐):
+      1. 下载同版 .eext:https://github.com/zhoushoujianwork/easyeda-agent/releases/latest
+      2. EasyEDA「扩展管理 → 已安装」**先卸载旧的**(uuid 相同,不卸载直接导入会静默失败)
+      3. 导入新的 .eext
+      4. **完全退出并重启 EasyEDA** —— 重导入不会重载已开窗口,旧窗口会继续跑旧代码并抢 daemon
+      (插件市场版可原地自动更新但**滞后**于 CLI;要严格同版走 GitHub Release。)
+停手:上一轮已**实测**量过这一块在本页放不下 —— vehicle_input_tps54360_5v 实测 759×791 —— 图签把可用区切成 L 形:走图签上方要高 ≤ 615(本体 791,差 176),走图签左侧要宽 ≤ 456(本体 759,差 303)—— 两条都不满足。**这不是摆放问题:再挪、再压 `--per-row`、再调 margin/gutter 都不会让它变小。**三条出路(A4-only,不换纸):① 让它独占一页 —— `easyeda sch page-new --name <页名>` 后在新页 `block-apply`;② 继续分页 —— 把本页其余模块搬到新页,腾出整幅给它;③ 把组收小 —— `easyeda sch clusters` 看「组高 vs 本体高」,被自己 marker 撑大的脚用 `sch disconnect --pin X:n` + `sch connect --pin X:n --direction left|right` 改标签朝向(竖排标签能把组撑高数倍:实测本体 21 高的电容,组高 134,改横向后 58)。
+(画布未改动。确认要再放一次:加 `--max-attempts 0`)

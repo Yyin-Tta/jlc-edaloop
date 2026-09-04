@@ -1,0 +1,43 @@
+{
+ "status": "PASS",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "435acffddbbe",
+   "gate_verdict": "pass",
+   "findings": [
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:3 个块缺 v_supply 区间或单边(ldo_3v3, i2c_iso, rs485_xcvr)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='5V', pin='', xy='') evidence='轨 5V 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/1(覆盖率 0%),缺 i_typ:ldo_3v3' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/3(覆盖率 0%),缺 i_typ:mcu_stm32, i2c_iso, rs485_xcvr' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='4 个 2x8 子节点插槽排针(3V3/GND/SDA/SCL/INT1/INT2/AIN/GPIO):目录无排针/连接器块,无法落图;插槽侧 SDA/SCL 应接 I2C_SDA_B/I2C_SCL_B,INT1-4/AIN/GPIO 需接主控空闲脚' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='SWD 4-pin 调试排针(SWDIO/SWCLK/3V3/GND):目录无排针块,SWDIO/SWCLK 网络已备好但接插件缺失' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='RS485_DE 方向控制信号当前无主控脚绑定(MCU 空闲脚需分配)及 A/B 端子接线端子:目录无端子块' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='入口 TVS 保护器件:目录无 TVS/ESD 器件,仅有 PTC 保险丝已覆盖' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='LED 限流电阻取值:DesignIR 无 sizing 建议,目录 LED 块内阻值待 sizing 通道给出,未发明阻值' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='FUNC_UNCOVERED' where=Where(ref='子节点插槽', net='', pin='', xy='') evidence='IR 功能「子节点插槽」在计划 20 块的词表/词元匹配中无覆盖证据(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='FUNC_UNCOVERED' where=Where(ref='调试与启动', net='', pin='', xy='') evidence='IR 功能「调试与启动」在计划 20 块的词表/词元匹配中无覆盖证据(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True"
+   ],
+   "feedback": "",
+   "halted": ""
+  }
+ ],
+ "delivery": {
+  "svg": "D:\\gyt-pro\\jlc-edaloop\\runs\\run-50125951d482\\delivery-P1.svg",
+  "svg_pages": [
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-50125951d482\\delivery-P1.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-50125951d482\\delivery-P2.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-50125951d482\\delivery-P3.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-50125951d482\\delivery-P4.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-50125951d482\\delivery-P5.svg"
+  ],
+  "netlist": "runs\\run-50125951d482\\delivery.net.json",
+  "netlist_sha256_16": "08caccd63df50caa",
+  "bom": "runs\\run-50125951d482\\delivery.bom.json",
+  "bom_total": 2.6659,
+  "swap": "runs\\run-50125951d482\\delivery.swap.txt",
+  "sizing": "runs\\run-50125951d482\\delivery.sizing.txt",
+  "sizing_count": 9,
+  "review": "runs\\run-50125951d482\\delivery.review.txt",
+  "review_findings": 6
+ }
+}

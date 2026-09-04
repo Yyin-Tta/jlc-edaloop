@@ -1,0 +1,1 @@
+sch nets: 0 组网名变体 / 2 张单引脚网 —— 先统一网名(block-apply 用 --bind)再进 S6

@@ -1,0 +1,191 @@
+[watchdog 11:50:34] attempt 1 å¼€è·‘
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 457, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 432, in main
+    return _cmd_eval(args)
+           ^^^^^^^^^^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 162, in _cmd_eval
+    summary = run_w3_loop_eval(tier=args.tier)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\evals_w3.py", line 136, in run_w3_loop_eval
+    _health_check()
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\evals_w3.py", line 79, in _health_check
+    raise RuntimeError(
+RuntimeError: Á¬½ÓÆ÷ÎŞÏìÓ¦(EasyEDA ¿ÉÄÜ¼ÙËÀ):ÇëÖØÆô EasyEDA Pro ²¢´ò¿ª¹¤³Ì,È»ºóÖØÅÜÍ¬Ò»ÃüÁî¡ª¡ª¶ÏµãÒÑ±£´æ,½«´ÓÊ£ÓàĞèÇó¼ÌĞø
+[watchdog 11:50:58] attempt 1 exit=1 è¿›åº¦ 0/1
+[watchdog 11:51:29] attempt 2 å¼€è·‘
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 457, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 432, in main
+    return _cmd_eval(args)
+           ^^^^^^^^^^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 162, in _cmd_eval
+    summary = run_w3_loop_eval(tier=args.tier)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\evals_w3.py", line 136, in run_w3_loop_eval
+    _health_check()
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\evals_w3.py", line 79, in _health_check
+    raise RuntimeError(
+RuntimeError: Á¬½ÓÆ÷ÎŞÏìÓ¦(EasyEDA ¿ÉÄÜ¼ÙËÀ):ÇëÖØÆô EasyEDA Pro ²¢´ò¿ª¹¤³Ì,È»ºóÖØÅÜÍ¬Ò»ÃüÁî¡ª¡ª¶ÏµãÒÑ±£´æ,½«´ÓÊ£ÓàĞèÇó¼ÌĞø
+[watchdog 11:51:53] attempt 2 exit=1 è¿›åº¦ 0/1
+[watchdog 11:52:24] attempt 3 å¼€è·‘
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 457, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 432, in main
+    return _cmd_eval(args)
+           ^^^^^^^^^^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 162, in _cmd_eval
+    summary = run_w3_loop_eval(tier=args.tier)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\evals_w3.py", line 136, in run_w3_loop_eval
+    _health_check()
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\evals_w3.py", line 79, in _health_check
+    raise RuntimeError(
+RuntimeError: Á¬½ÓÆ÷ÎŞÏìÓ¦(EasyEDA ¿ÉÄÜ¼ÙËÀ):ÇëÖØÆô EasyEDA Pro ²¢´ò¿ª¹¤³Ì,È»ºóÖØÅÜÍ¬Ò»ÃüÁî¡ª¡ª¶ÏµãÒÑ±£´æ,½«´ÓÊ£ÓàĞèÇó¼ÌĞø
+[watchdog 11:52:48] attempt 3 exit=1 è¿›åº¦ 0/1
+[watchdog 11:53:19] attempt 4 å¼€è·‘
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 457, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 432, in main
+    return _cmd_eval(args)
+           ^^^^^^^^^^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 162, in _cmd_eval
+    summary = run_w3_loop_eval(tier=args.tier)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\evals_w3.py", line 136, in run_w3_loop_eval
+    _health_check()
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\evals_w3.py", line 79, in _health_check
+    raise RuntimeError(
+RuntimeError: Á¬½ÓÆ÷ÎŞÏìÓ¦(EasyEDA ¿ÉÄÜ¼ÙËÀ):ÇëÖØÆô EasyEDA Pro ²¢´ò¿ª¹¤³Ì,È»ºóÖØÅÜÍ¬Ò»ÃüÁî¡ª¡ª¶ÏµãÒÑ±£´æ,½«´ÓÊ£ÓàĞèÇó¼ÌĞø
+[watchdog 11:53:43] attempt 4 exit=1 è¿›åº¦ 0/1
+[watchdog 11:54:13] attempt 5 å¼€è·‘
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 457, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 432, in main
+    return _cmd_eval(args)
+           ^^^^^^^^^^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 162, in _cmd_eval
+    summary = run_w3_loop_eval(tier=args.tier)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\evals_w3.py", line 136, in run_w3_loop_eval
+    _health_check()
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\evals_w3.py", line 79, in _health_check
+    raise RuntimeError(
+RuntimeError: Á¬½ÓÆ÷ÎŞÏìÓ¦(EasyEDA ¿ÉÄÜ¼ÙËÀ):ÇëÖØÆô EasyEDA Pro ²¢´ò¿ª¹¤³Ì,È»ºóÖØÅÜÍ¬Ò»ÃüÁî¡ª¡ª¶ÏµãÒÑ±£´æ,½«´ÓÊ£ÓàĞèÇó¼ÌĞø
+[watchdog 11:54:38] attempt 5 exit=1 è¿›åº¦ 0/1
+[watchdog 11:55:08] attempt 6 å¼€è·‘
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 457, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 432, in main
+    return _cmd_eval(args)
+           ^^^^^^^^^^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 162, in _cmd_eval
+    summary = run_w3_loop_eval(tier=args.tier)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\evals_w3.py", line 136, in run_w3_loop_eval
+    _health_check()
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\evals_w3.py", line 79, in _health_check
+    raise RuntimeError(
+RuntimeError: Á¬½ÓÆ÷ÎŞÏìÓ¦(EasyEDA ¿ÉÄÜ¼ÙËÀ):ÇëÖØÆô EasyEDA Pro ²¢´ò¿ª¹¤³Ì,È»ºóÖØÅÜÍ¬Ò»ÃüÁî¡ª¡ª¶ÏµãÒÑ±£´æ,½«´ÓÊ£ÓàĞèÇó¼ÌĞø
+[watchdog 11:55:33] attempt 6 exit=1 è¿›åº¦ 0/1
+[watchdog 11:56:03] attempt 7 å¼€è·‘
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 457, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 432, in main
+    return _cmd_eval(args)
+           ^^^^^^^^^^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 162, in _cmd_eval
+    summary = run_w3_loop_eval(tier=args.tier)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\evals_w3.py", line 136, in run_w3_loop_eval
+    _health_check()
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\evals_w3.py", line 79, in _health_check
+    raise RuntimeError(
+RuntimeError: Á¬½ÓÆ÷ÎŞÏìÓ¦(EasyEDA ¿ÉÄÜ¼ÙËÀ):ÇëÖØÆô EasyEDA Pro ²¢´ò¿ª¹¤³Ì,È»ºóÖØÅÜÍ¬Ò»ÃüÁî¡ª¡ª¶ÏµãÒÑ±£´æ,½«´ÓÊ£ÓàĞèÇó¼ÌĞø
+[watchdog 11:56:28] attempt 7 exit=1 è¿›åº¦ 0/1
+[watchdog 11:56:58] attempt 8 å¼€è·‘
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 457, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 432, in main
+    return _cmd_eval(args)
+           ^^^^^^^^^^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 162, in _cmd_eval
+    summary = run_w3_loop_eval(tier=args.tier)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\evals_w3.py", line 136, in run_w3_loop_eval
+    _health_check()
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\evals_w3.py", line 79, in _health_check
+    raise RuntimeError(
+RuntimeError: Á¬½ÓÆ÷ÎŞÏìÓ¦(EasyEDA ¿ÉÄÜ¼ÙËÀ):ÇëÖØÆô EasyEDA Pro ²¢´ò¿ª¹¤³Ì,È»ºóÖØÅÜÍ¬Ò»ÃüÁî¡ª¡ª¶ÏµãÒÑ±£´æ,½«´ÓÊ£ÓàĞèÇó¼ÌĞø
+[watchdog 11:57:23] attempt 8 exit=1 è¿›åº¦ 0/1
+[watchdog 11:57:53] attempt 9 å¼€è·‘
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 457, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 432, in main
+    return _cmd_eval(args)
+           ^^^^^^^^^^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 162, in _cmd_eval
+    summary = run_w3_loop_eval(tier=args.tier)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\evals_w3.py", line 136, in run_w3_loop_eval
+    _health_check()
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\evals_w3.py", line 79, in _health_check
+    raise RuntimeError(
+RuntimeError: Á¬½ÓÆ÷ÎŞÏìÓ¦(EasyEDA ¿ÉÄÜ¼ÙËÀ):ÇëÖØÆô EasyEDA Pro ²¢´ò¿ª¹¤³Ì,È»ºóÖØÅÜÍ¬Ò»ÃüÁî¡ª¡ª¶ÏµãÒÑ±£´æ,½«´ÓÊ£ÓàĞèÇó¼ÌĞø
+[watchdog 11:58:18] attempt 9 exit=1 è¿›åº¦ 0/1
+[watchdog 11:58:48] attempt 10 å¼€è·‘
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 457, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 432, in main
+    return _cmd_eval(args)
+           ^^^^^^^^^^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 162, in _cmd_eval
+    summary = run_w3_loop_eval(tier=args.tier)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\evals_w3.py", line 136, in run_w3_loop_eval
+    _health_check()
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\evals_w3.py", line 79, in _health_check
+    raise RuntimeError(
+RuntimeError: Á¬½ÓÆ÷ÎŞÏìÓ¦(EasyEDA ¿ÉÄÜ¼ÙËÀ):ÇëÖØÆô EasyEDA Pro ²¢´ò¿ª¹¤³Ì,È»ºóÖØÅÜÍ¬Ò»ÃüÁî¡ª¡ª¶ÏµãÒÑ±£´æ,½«´ÓÊ£ÓàĞèÇó¼ÌĞø
+[watchdog 11:59:13] attempt 10 exit=1 è¿›åº¦ 0/1
+[watchdog] 10 æ¬¡å°è¯•åä»æœªå…¨ç»¿,è½¬äººå·¥

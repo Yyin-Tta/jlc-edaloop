@@ -1,0 +1,8 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 7 blocks, status=PASS
+
+- [CRITIC_POWER_INTEGRITY@chg_tp4056 / boost_mt3608] 充电路径无负载隔离：TP4056 的 VSYS 直接与 VBAT 同网，升压模块 MT3608 的 VIN 也接 VBAT。充电期间系统负载（升压→5V→LDO→ESP32）直接挂在电池上，会干扰 TP4056 的充电终止判断（电流终止阈值约 1/10 C），可能导致永远充不满或反复重启充电循环。 | 建议: 增加负载共享（power-path）设计：如使用带 P-MOS 负载切换的 TP4056 经典 power-path 电路，或将系统负载改由充电器输入侧经理想二极管/B
+- [CRITIC_POWER_INTEGRITY@boost_mt3608] EN 直接绑定到 VBAT（常使能）：升压模块 24 小时待机，即使系统休眠也会持续从电池抽取静态电流（MT3608 自身静态电流加反馈分压电阻漏电数百 µA 级），18650 长期存放会被放空至过放。 | 建议: 将 EN 改接到可控信号（如 MCU GPIO 经分压/使能逻辑，或接低电池告警 lowvolt_ALM 联动），系统休眠或低电时关闭升压；同时核对反馈分压电阻取值以降低漏电。
+- [CRITIC_INTERFACE_PROTECTION@mcu_esp32s3] U0TXD/U0RXD 烧录口通常引出到排针/外部编程器，属于外部长线接口，当前方案未见任何 ESD/串阻防护；且该接口在插拔编程器时与 USB 5V 域存在潜在共地/浪涌路径。 | 建议: 在 MCU_TX/MCU_RX 上串 100Ω~220Ω 电阻并可加低容 ESD 管（如 ESDA5V3）到地，排针上同时引出 GND 并在丝印标注 TX/RX 方向。
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

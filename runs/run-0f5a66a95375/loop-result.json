@@ -1,0 +1,38 @@
+{
+ "status": "PASS",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "cda5fe422d0a",
+   "gate_verdict": "pass",
+   "findings": [
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='3 个指示灯(电源/心跳/总线,红/绿/黄):目录无 LED 块或 LED 器件' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='3V3/GND 测试点:目录无测试点器件' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='SWD 4-pin 排针连接器:目录无排针/连接器器件(已绑 SWDIO/SWCLK 信号网,差物理排针)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='AMS1117 LDO:目录无,已用 SY8089 buck 3.3V 替代,若必须 LDO 需补目录' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True"
+   ],
+   "feedback": "",
+   "halted": ""
+  }
+ ],
+ "delivery": {
+  "svg": "E:\\jlc-edaloop\\runs\\run-0f5a66a95375\\delivery-P1.svg",
+  "svg_pages": [
+   "E:\\jlc-edaloop\\runs\\run-0f5a66a95375\\delivery-P1.svg",
+   "E:\\jlc-edaloop\\runs\\run-0f5a66a95375\\delivery-P2.svg",
+   "E:\\jlc-edaloop\\runs\\run-0f5a66a95375\\delivery-P3.svg",
+   "E:\\jlc-edaloop\\runs\\run-0f5a66a95375\\delivery-P4.svg",
+   "E:\\jlc-edaloop\\runs\\run-0f5a66a95375\\delivery-P5.svg",
+   "E:\\jlc-edaloop\\runs\\run-0f5a66a95375\\delivery-P6.svg"
+  ],
+  "netlist": "runs\\run-0f5a66a95375\\delivery.net.json",
+  "netlist_sha256_16": "a03fe38688c60987",
+  "bom": "runs\\run-0f5a66a95375\\delivery.bom.json",
+  "bom_total": 3.0217,
+  "swap": "runs\\run-0f5a66a95375\\delivery.swap.txt",
+  "sizing": "runs\\run-0f5a66a95375\\delivery.sizing.txt",
+  "sizing_count": 4,
+  "review": "runs\\run-0f5a66a95375\\delivery.review.txt",
+  "review_findings": 3
+ }
+}

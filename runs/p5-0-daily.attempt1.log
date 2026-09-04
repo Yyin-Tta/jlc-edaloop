@@ -1,0 +1,18 @@
+{'req': 'req-01-esp32s3-mini-2layer.md', 'status': 'HALT', 'rounds': None, 'n_rounds': 3}
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 457, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 432, in main
+    return _cmd_eval(args)
+           ^^^^^^^^^^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 162, in _cmd_eval
+    summary = run_w3_loop_eval(tier=args.tier)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\evals_w3.py", line 136, in run_w3_loop_eval
+    _health_check()
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\evals_w3.py", line 79, in _health_check
+    raise RuntimeError(
+RuntimeError: 连接器无响应(EasyEDA 可能假死):请重启 EasyEDA Pro 并打开工程,然后重跑同一命令——断点已保存,将从剩余需求继续

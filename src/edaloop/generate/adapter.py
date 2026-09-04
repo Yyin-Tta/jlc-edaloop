@@ -22,13 +22,19 @@ class GateResult:
 
 
 class EasyedaAdapter:
-    def __init__(self, bin_path: str | None = None, runner=None, project: str | None = None) -> None:
+    def __init__(
+        self,
+        bin_path: str | None = None,
+        runner=None,
+        project: str | None = None,
+        window: str | None = None,
+    ) -> None:
         import os
 
         self._bin = bin_path or self._discover()
         self._runner = runner or self._subprocess_run
         self._project = project or os.environ.get("EDALOOP_PROJECT", "")
-        self._window = os.environ.get("EDALOOP_WINDOW", "")
+        self._window = window or os.environ.get("EDALOOP_WINDOW", "")
         self._window_resolved = bool(self._window)
 
     def _resolve_window(self) -> None:
@@ -178,18 +184,38 @@ class EasyedaAdapter:
             raise AdapterError(f"daemon 未找到: {data.get('status')}")
         return data
 
-    def run_json(self, args: list[str]) -> dict:
+    def run_json_with_rc(self, args: list[str]) -> tuple[int, object, str]:
+        """Run a command, parse JSON, and preserve its process result.
+
+        Most callers only need the decoded payload and should continue using
+        :meth:`run_json`.  Gate callers also need the command-level return
+        code: a connector can emit a syntactically valid report while exiting
+        non-zero, and that report must not be promoted to a verified PASS.
+        """
+
         import json
 
         rc, out, err = self.run(args)
         try:
-            return json.loads(out)
+            payload = json.loads(out)
         except json.JSONDecodeError as e:
             raise AdapterError(
                 f"JSON 解析失败(rc={rc}): {e}\n"
                 f"stdout(len={len(out)})={out[-1500:] if len(out) < 1500 else out[:1500]}\n"
                 f"stderr(len={len(err)})={err[-3000:]}"
             ) from e
+        return rc, payload, err or ""
+
+    def run_json(self, args: list[str]) -> dict:
+        """Run a command and return its decoded JSON payload.
+
+        This preserves the historical interface; callers that need to make a
+        decision from the process return code should use
+        :meth:`run_json_with_rc` instead.
+        """
+
+        _rc, payload, _err = self.run_json_with_rc(args)
+        return payload
 
     def apply_and_gate(self, actions: list) -> list[dict]:
         results = []

@@ -1,0 +1,48 @@
+req-07-motor-driver-board.md
+Traceback (most recent call last):
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\generate\adapter.py", line 146, in run_json
+    return json.loads(out)
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\admin\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\admin\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\json\decoder.py", line 338, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\admin\AppData\Roaming\uv\python\cpython-3.12-windows-x86_64-none\Lib\json\decoder.py", line 356, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\loop\controller.py", line 1546, in _repack_actions
+    try:
+         
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\loop\controller.py", line 1765, in _run_json_retry
+    for i in range(attempts):
+    ^^^^^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\loop\controller.py", line 1759, in _run_json_retry
+    ) from e
+             
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\generate\adapter.py", line 148, in run_json
+    raise AdapterError(
+edaloop.generate.adapter.AdapterError: JSON 解析失败(rc=3221225794): Expecting value: line 1 column 1 (char 0)
+stdout(len=0)=
+stderr(len=0)=
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\evals_w3.py", line 139, in run_w3_loop_eval
+    ir, result = stage_run(body, source=name, max_rounds=max_rounds, dry_run=dry_run)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\generate\pipeline.py", line 142, in stage_run
+    result = controller.run()
+             ^^^^^^^^^^^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\loop\controller.py", line 235, in run
+    self._repack_actions(actions, plan, round_no)
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\loop\controller.py", line 1547, in _repack_actions
+    resp = self._run_json_retry(act.args)
+       ^^^^^^^^^^^^
+NameError: name 'AdapterError' is not defined

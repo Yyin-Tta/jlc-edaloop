@@ -1,0 +1,1 @@
+{"connections":[{"pin":"SWDHDR1:2","kind":"netport","net":"SWDIO"}],"rules":{"offsetRange":[18,40],"offsetStep":6}}

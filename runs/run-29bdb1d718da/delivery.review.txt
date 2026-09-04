@@ -1,0 +1,8 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 2 blocks, status=PASS
+
+- [CRITIC_DECOUPLING@prot_dw01] DW01 是 IC 且目录中未提供去耦电容块(仅 uncovered 提及需手工补挂 100R/1k 电阻,未提 VCC 对 B- 的 0.1μF 去耦电容,DW01A 典型应用必配) | 建议: 在原理图阶段为 DW01 VCC(pin 5,100R 之后)对 G(pin 6)补 0.1μF 去耦电容,并列入手工补挂清单
+- [CRITIC_PULL_RESISTORS@prot_dw01] DW01 引脚 4(TD)在 pins_binding 中未绑定接地;TD 悬空可能导致保护逻辑异常 | 建议: 补绑 pin 4 TD 到 B-(地),与块描述一致
+- [CRITIC_INTERFACE_PROTECTION@prot_fs] P+/P- 电池输出端子为外部可触碰接口,无 ESD/防反接保护;uncovered 仅列出端子块缺失,未提示保护措施 | 建议: 在输出端子处考虑 ESD 保护或至少在 BOM 评审时评估;若下游有充电输入,需注意防反接
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

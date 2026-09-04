@@ -217,9 +217,15 @@ async def _do_run(
         delivery = json.loads(lr.read_text(encoding="utf-8")).get("delivery") or {}
     status_line = {
         "PASS": f"✅ **PASS**({len(result.rounds)} 轮收敛)",
+        "LAYOUT_REVIEW_REQUIRED": (
+            "⚠️ **需人工布局复核**(电气/结构门禁已完成,页面可读性仍有问题)"
+        ),
         "HALT": "⛔ **HALT**(同错升级人工)",
         "FAIL": f"❌ **FAIL**({len(result.rounds)} 轮未收敛)",
     }.get(result.status, result.status)
+    failure_class = getattr(result, "failure_class", "")
+    if failure_class:
+        status_line += f"\n失败分类:`{failure_class}`"
     rounds_detail = "\n".join(
         f"- 轮 {r.round_no}:gate={r.gate_verdict},blocking={len([f for f in r.findings if not f.weak])}"
         + (f",halted={r.halted}" if r.halted else "")

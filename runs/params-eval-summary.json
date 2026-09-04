@@ -1,0 +1,265 @@
+{
+ "rows": [
+  {
+   "name": "D1 GPIO 驱动 LED 限流 10k vs 建议 270(单轨推断,通道 B 网相交)",
+   "kind": "defect",
+   "caught": true,
+   "codes": [
+    "MISSING_RAIL",
+    "PARAM_OFF_SPEC"
+   ]
+  },
+  {
+   "name": "D2 buck 输出电容 100n vs 建议 2.7µ(1A 纹波公式,通道 B 网对相等)",
+   "kind": "defect",
+   "caught": true,
+   "codes": [
+    "ELECTRICAL_DATA_DEBT",
+    "RAIL_BUDGET_UNKNOWN",
+    "PARAM_OFF_SPEC"
+   ]
+  },
+  {
+   "name": "D3 混装判别:两只 GPIO LED 一对(330)一错(47k),只错者被标",
+   "kind": "defect",
+   "caught": true,
+   "codes": [
+    "MISSING_RAIL",
+    "PARAM_OFF_SPEC"
+   ]
+  },
+  {
+   "name": "C1 GPIO LED 限流取建议 E24 邻档 330(容差内)",
+   "kind": "clean",
+   "false_kill": false,
+   "codes": [
+    "MISSING_RAIL"
+   ]
+  },
+  {
+   "name": "C2 buck 输出 22µ 超规格(工程裕量)+ 100n 去耦共存同网对",
+   "kind": "clean",
+   "false_kill": false,
+   "codes": [
+    "ELECTRICAL_DATA_DEBT",
+    "RAIL_BUDGET_UNKNOWN"
+   ]
+  },
+  {
+   "name": "C3 缺件不判:LED 块内自带限流,图上无外部 std R",
+   "kind": "clean",
+   "false_kill": false,
+   "codes": [
+    "MISSING_RAIL"
+   ]
+  },
+  {
+   "name": "C4 无轨降级:建议 n/a(rec_value 空)不进比对",
+   "kind": "clean",
+   "false_kill": false,
+   "codes": []
+  },
+  {
+   "name": "C5 轨直挂 LED 歧义不判:驱动网=3V3 轨,同节点上拉 R 与限流拓扑不可分",
+   "kind": "clean",
+   "false_kill": false,
+   "codes": []
+  },
+  {
+   "name": "C6 无关 std R 不判:未触任何建议网(MCU 复位上拉)",
+   "kind": "clean",
+   "false_kill": false,
+   "codes": [
+    "ELECTRICAL_DATA_DEBT",
+    "RAIL_BUDGET_UNKNOWN"
+   ]
+  }
+ ],
+ "defects_total": 3,
+ "defects_caught": 3,
+ "clean_total": 6,
+ "false_kills": 0,
+ "critic": {
+  "skipped": true,
+  "reason": "--offline (critic 需真 LLM)"
+ },
+ "power_coverage": {
+  "power_total": 22,
+  "power_covered": 18,
+  "coverage": 0.8181818181818182,
+  "uncovered": [
+   "battery-18650-holder",
+   "battery-dw01-protection",
+   "mos-fs8205a-dual",
+   "battery-cr1220"
+  ],
+  "hardcode_gaps": []
+ },
+ "power_rows": [
+  {
+   "block_id": "usb-c-power-entry",
+   "advice_kinds": [
+    "tvs-rating",
+    "fuse-rating"
+   ],
+   "degraded_kinds": []
+  },
+  {
+   "block_id": "dc-terminal-5v-input",
+   "advice_kinds": [
+    "fuse-rating"
+   ],
+   "degraded_kinds": []
+  },
+  {
+   "block_id": "dc-terminal-wide-input",
+   "advice_kinds": [
+    "tvs-rating",
+    "fuse-rating"
+   ],
+   "degraded_kinds": []
+  },
+  {
+   "block_id": "battery-18650-holder",
+   "advice_kinds": [],
+   "degraded_kinds": []
+  },
+  {
+   "block_id": "charger-tp4056",
+   "advice_kinds": [
+    "tvs-rating",
+    "fuse-rating"
+   ],
+   "degraded_kinds": []
+  },
+  {
+   "block_id": "boost-mt3608",
+   "advice_kinds": [
+    "reg-caps"
+   ],
+   "degraded_kinds": []
+  },
+  {
+   "block_id": "ldo-ams1117-3v3",
+   "advice_kinds": [
+    "reg-caps",
+    "thermal"
+   ],
+   "degraded_kinds": []
+  },
+  {
+   "block_id": "low-battery-alarm-tl431",
+   "advice_kinds": [
+    "divider"
+   ],
+   "degraded_kinds": []
+  },
+  {
+   "block_id": "isolated-dc-b0505s",
+   "advice_kinds": [
+    "tvs-rating",
+    "fuse-rating",
+    "reg-caps"
+   ],
+   "degraded_kinds": []
+  },
+  {
+   "block_id": "up-bq24074_powerpath_charger",
+   "advice_kinds": [
+    "tvs-rating",
+    "fuse-rating"
+   ],
+   "degraded_kinds": []
+  },
+  {
+   "block_id": "up-pmos_highside_softstart",
+   "advice_kinds": [
+    "tvs-rating",
+    "fuse-rating"
+   ],
+   "degraded_kinds": []
+  },
+  {
+   "block_id": "up-sy8089_buck_3v3",
+   "advice_kinds": [
+    "reg-caps"
+   ],
+   "degraded_kinds": []
+  },
+  {
+   "block_id": "up-tps63802_buckboost_3v8",
+   "advice_kinds": [
+    "reg-caps"
+   ],
+   "degraded_kinds": [
+    "buck-ripple"
+   ]
+  },
+  {
+   "block_id": "up-xl1509_buck_12v_5v",
+   "advice_kinds": [
+    "reg-caps",
+    "buck-ripple"
+   ],
+   "degraded_kinds": []
+  },
+  {
+   "block_id": "ldo-1117-1v8",
+   "advice_kinds": [
+    "reg-caps"
+   ],
+   "degraded_kinds": []
+  },
+  {
+   "block_id": "battery-dw01-protection",
+   "advice_kinds": [],
+   "degraded_kinds": []
+  },
+  {
+   "block_id": "mos-fs8205a-dual",
+   "advice_kinds": [],
+   "degraded_kinds": []
+  },
+  {
+   "block_id": "buck-mp1584",
+   "advice_kinds": [
+    "reg-caps"
+   ],
+   "degraded_kinds": [
+    "buck-ripple"
+   ]
+  },
+  {
+   "block_id": "buck-tps5430",
+   "advice_kinds": [
+    "reg-caps"
+   ],
+   "degraded_kinds": [
+    "buck-ripple"
+   ]
+  },
+  {
+   "block_id": "ldo-rt9193-18",
+   "advice_kinds": [
+    "reg-caps"
+   ],
+   "degraded_kinds": []
+  },
+  {
+   "block_id": "battery-cr1220",
+   "advice_kinds": [],
+   "degraded_kinds": []
+  },
+  {
+   "block_id": "buck-mp2359",
+   "advice_kinds": [
+    "reg-caps"
+   ],
+   "degraded_kinds": [
+    "buck-ripple"
+   ]
+  }
+ ],
+ "hardcode_gaps": [],
+ "go": true
+}

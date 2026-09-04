@@ -1,0 +1,43 @@
+{
+ "status": "HALT",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "e044524cc7af",
+   "gate_verdict": "fail",
+   "findings": [
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:1 个块缺 v_supply 区间或单边(ldo1)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/1(覆盖率 0%),缺 i_typ:mcu1' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='5V', pin='', xy='') evidence='轨 5V 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/2(覆盖率 0%),缺 i_typ:ch340n1, ldo1' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='5V 双路(USB-C 与端子)防倒灌的肖特基/理想二极管:目录无二极管器件,需补充器件或库外选型' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='4 个测试点(3V3/5V/GND/EN):目录无测试点块或器件' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='用户 LED 的 GPIO 具体引脚分配:MCU 块未暴露通用 GPIO 端口,LED_CTRL 网络待定;驱动极性待 open question Q2 决策' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=overlap a=RCC1 b=R7' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=overlap a=Q1 b=R8' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=overlap a=Q1 b=R7' severity='error' suggested_fix_class='RELAYOUT' weak=False"
+   ],
+   "feedback": "[GATE_FAIL@clusters] type=overlap a=RCC1 b=R7 → 修复:放置几何问题:给冲突块设置 params.spacing(如 300;过宽块编译器会自动截到 A4 内)或 at 空位(A4 页内坐标,x∈[100,1100] y∈[300,780];编译器优先读这两个字段)\nsizing 建议值(确定性公式,输入出处见 delivery.sizing.txt;采纳时用 resistor-std/capacitor-std 块 + params.value 表内标准值,值不要发明):\n- fuse-rating@usbc1: I_hold≥0.15A(自恢复 PPTC 按此档)\n- fuse-rating@term5v1: I_hold≥0.15A(自恢复 PPTC 按此档)\n- reg-caps@ldo1: 见 notes(惯例值)\n- thermal@ldo1: Tj≈136°C(裕量-30°C)\n- led-resistor@led_pwr: 推荐 620(就近换表内值)",
+   "halted": ""
+  },
+  {
+   "round_no": 2,
+   "plan_id": "3f1a5f964ec6",
+   "gate_verdict": "fail",
+   "findings": [
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:1 个块缺 v_supply 区间或单边(ldo1)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='5V', pin='', xy='') evidence='轨 5V 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/2(覆盖率 0%),缺 i_typ:ldo1, ch340n1' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/1(覆盖率 0%),缺 i_typ:mcu1' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='5V 双输入防倒灌:目录无肖特基/理想二极管器件,5V_TERM 与 USB 5V 汇流前需外加防倒灌元件' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='4 个测试点(3V3/5V/GND/EN):目录无测试点器件' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='USB-C CC 5.1k 下拉(Q3 未决):usb-c-power-entry 块端口未暴露 CC1/CC2,若需 C-to-C 兼容需另行扩展' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='用户 LED 的 GPIO 引出:MCU 块端口未暴露通用 GPIO,LED_USER_GPIO 需在原理图阶段落到具体空闲 GPIO 并标注驱动极性' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=overlap a=Q1 b=R6' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=overlap a=Q1 b=Q2' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet a=J2' severity='error' suggested_fix_class='REPLAN' weak=False"
+   ],
+   "feedback": "",
+   "halted": "同错 2 轮:GATE_FAIL,升级人工"
+  }
+ ],
+ "delivery": {}
+}

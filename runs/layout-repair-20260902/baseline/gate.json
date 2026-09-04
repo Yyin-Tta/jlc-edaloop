@@ -1,0 +1,429 @@
+{
+  "ok": true,
+  "verdict": "pass",
+  "stages": [
+    {
+      "name": "layout-lint",
+      "status": "pass",
+      "errors": 0,
+      "warnings": 0,
+      "summary": "0 overlap, 0 pin-coincidence, 0 tight, 0 off-grid, 0 out-of-sheet, 0 no-bbox, 0 unchecked-pin, 0 unproven-pin, 0 invalid-geometry (zone-check=not-configured sheet-check=checked)",
+      "detail": {
+        "schemaVersion": 2,
+        "ok": true,
+        "minGap": 2.54,
+        "componentCount": 6,
+        "withBBox": 6,
+        "skippedNonParts": 18,
+        "overlaps": null,
+        "tightSpacing": null,
+        "pinCoincidences": null,
+        "measurementUnit": "mm",
+        "coordinateUnit": "0.01inch",
+        "anchorGridRaw": 5,
+        "anchorGridUnit": "0.01inch",
+        "zoneCheckStatus": "not-configured",
+        "sheetCheckStatus": "checked",
+        "pinEps": 0,
+        "summary": "strict=false: 6 components (6 with bbox): 0 overlap, 0 tight (\u003c2.54mm), 0 pin-coincidence, 0 off-grid, 0 out-of-sheet, 0 unchecked-bbox, 0 unchecked-pins, 0 unproven-pins, 0 invalid-geometry; zoneCheck=not-configured sheetCheck=checked"
+      }
+    },
+    {
+      "name": "clusters",
+      "status": "pass",
+      "errors": 0,
+      "warnings": 0,
+      "summary": "6 个虚拟组:0 重叠 / 0 出图纸 / 0 过近",
+      "detail": {
+        "clusters": [
+          {
+            "designator": "PROTDW2",
+            "primitiveId": "feab1406658c3375",
+            "body": {
+              "minX": 234.5,
+              "minY": 649.5,
+              "maxX": 285.5,
+              "maxY": 690.5
+            },
+            "box": {
+              "minX": 79.5,
+              "minY": 649.5,
+              "maxX": 351.5,
+              "maxY": 776.5
+            },
+            "markers": 4,
+            "wires": 4,
+            "members": [
+              "part     PROTDW2  x=[234,286] y=[650,690]",
+              "wire              x=[170,225] y=[660,660]",
+              "wire              x=[295,315] y=[670,670]",
+              "wire              x=[295,295] y=[680,710]",
+              "wire              x=[225,285] y=[670,670]",
+              "netport  GATE_OC  x=[80,160] y=[654,666]",
+              "netflag  VDD      x=[297,326] y=[664,682]",
+              "netport  GND      x=[290,300] y=[720,776]",
+              "netport  CSI      x=[294,352] y=[664,676]"
+            ]
+          },
+          {
+            "designator": "JBAT1",
+            "primitiveId": "069cd7ac78714226",
+            "body": {
+              "minX": 159.5,
+              "minY": 764.5,
+              "maxX": 180.5,
+              "maxY": 795.5
+            },
+            "box": {
+              "minX": 144.5,
+              "minY": 678.5,
+              "maxX": 252.5,
+              "maxY": 795.5
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     JBAT1    x=[160,180] y=[764,796]",
+              "wire              x=[150,150] y=[745,775]",
+              "wire              x=[150,180] y=[785,785]",
+              "netport  GND      x=[144,156] y=[678,736]",
+              "netport  VBAT     x=[190,252] y=[780,790]"
+            ]
+          },
+          {
+            "designator": "JPOUT1",
+            "primitiveId": "76edd6a6eee58dc0",
+            "body": {
+              "minX": 174.5,
+              "minY": 559.5,
+              "maxX": 195.49999999999997,
+              "maxY": 590.5
+            },
+            "box": {
+              "minX": 174.5,
+              "minY": 559.5,
+              "maxX": 342.5,
+              "maxY": 688.5
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     JPOUT1   x=[174,195] y=[560,590]",
+              "wire              x=[205,270] y=[570,570]",
+              "wire              x=[205,205] y=[580,610]",
+              "netport  VBAT     x=[280,342] y=[564,576]",
+              "netport  P_NEG    x=[200,210] y=[620,688]"
+            ]
+          },
+          {
+            "designator": "PROTFS83",
+            "primitiveId": "4e34efe25889f4a0",
+            "body": {
+              "minX": 469.5,
+              "minY": 754.5,
+              "maxX": 550.5,
+              "maxY": 795.5
+            },
+            "box": {
+              "minX": 310,
+              "minY": 754.5,
+              "maxX": 845.5,
+              "maxY": 795.5
+            },
+            "markers": 5,
+            "wires": 6,
+            "members": [
+              "part     PROTFS83 x=[470,550] y=[754,796]",
+              "wire              x=[310,460] y=[765,765]",
+              "wire              x=[560,755] y=[775,775]",
+              "wire              x=[395,460] y=[785,785]",
+              "wire              x=[560,620] y=[765,765]",
+              "wire              x=[560,580] y=[785,785]",
+              "wire              x=[460,490] y=[775,775]",
+              "netport  FET_MID  x=[764,846] y=[770,780]",
+              "netport  P_NEG    x=[316,386] y=[780,790]",
+              "netport  GATE_OC  x=[630,710] y=[760,770]",
+              "netport  GATE_OD  x=[590,670] y=[780,790]",
+              "netport  FET_MID  x=[500,580] y=[770,780]"
+            ]
+          },
+          {
+            "designator": "R4",
+            "primitiveId": "0c72690b814b324d",
+            "body": {
+              "minX": 519.4999999999999,
+              "minY": 685.5000000000001,
+              "maxX": 540.4999999999999,
+              "maxY": 694.5000000000001
+            },
+            "box": {
+              "minX": 401.5,
+              "minY": 593.5,
+              "maxX": 555.5,
+              "maxY": 695.5
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     R4       x=[519,540] y=[686,695]",
+              "wire              x=[480,510] y=[690,690]",
+              "wire              x=[550,550] y=[660,690]",
+              "netport  P_NEG    x=[402,470] y=[684,696]",
+              "netport  CSI      x=[544,556] y=[594,650]"
+            ]
+          },
+          {
+            "designator": "R3",
+            "primitiveId": "4e5e6e71900a392e",
+            "body": {
+              "minX": 814.5,
+              "minY": 685.5,
+              "maxX": 835.5,
+              "maxY": 694.5
+            },
+            "box": {
+              "minX": 712.5,
+              "minY": 684.5,
+              "maxX": 931.5,
+              "maxY": 695.5
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     R3       x=[814,836] y=[686,694]",
+              "wire              x=[785,805] y=[690,690]",
+              "wire              x=[845,865] y=[690,690]",
+              "netport  VBAT     x=[712,776] y=[684,696]",
+              "netport  VDD      x=[874,932] y=[684,696]"
+            ]
+          }
+        ],
+        "findings": null,
+        "sheetUsable": {
+          "minX": 12,
+          "minY": 12,
+          "maxX": 1158,
+          "maxY": 813
+        }
+      }
+    },
+    {
+      "name": "check",
+      "status": "pass",
+      "errors": 0,
+      "warnings": 7,
+      "summary": "7 finding(s): 0 error/fatal, 7 warn/info",
+      "detail": {
+        "passed": false,
+        "summary": {
+          "floatingPins": 2,
+          "componentsWithFloating": 1,
+          "geomNetMismatches": 0,
+          "netMarkerMismatches": 0,
+          "multiNetWires": 0,
+          "wireCrossings": 0,
+          "wireOverPins": 0,
+          "zeroLengthWires": 0,
+          "danglingWires": 1,
+          "duplicateNetMarkers": 0,
+          "titleblockOverlaps": 0,
+          "markerOverlaps": 2,
+          "missingPartitions": 3,
+          "noteOutsideZones": 0,
+          "redundantNetMarkers": 0,
+          "foldedNetLabels": 0,
+          "reversedNetFlags": 0,
+          "polarityConventionOutliers": 0,
+          "total": 7
+        },
+        "findings": [
+          {
+            "type": "floating-pin",
+            "level": "warn",
+            "designator": "PROTDW2",
+            "primitiveId": "feab1406658c3375",
+            "pins": [
+              "1",
+              "4"
+            ],
+            "pinDetails": [
+              {
+                "number": "1",
+                "name": "OD",
+                "x": 225,
+                "y": 680
+              },
+              {
+                "number": "4",
+                "name": "NC",
+                "x": 295,
+                "y": 660
+              }
+            ],
+            "count": 2,
+            "message": "2 个引脚悬空(无导线连接,未打 NC 标识)"
+          },
+          {
+            "type": "dangling-wire",
+            "level": "warn",
+            "wirePrimitiveId": "dc8ae097f5f05132",
+            "message": "疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除)",
+            "at": {
+              "x": 310,
+              "y": 765
+            }
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "primitiveId": "0295ff5ea41d23f7",
+            "markerNet": "CSI",
+            "message": "CSI(netport) 与 VDD(netflag) 视觉重叠 28.50×11.00 — 换方向/offset 或 stagger",
+            "componentType": "netport",
+            "primitiveIds": [
+              "0295ff5ea41d23f7",
+              "ffff9be0e4442192"
+            ],
+            "bbox": {
+              "minX": 294.5,
+              "minY": 664.5,
+              "maxX": 351.5,
+              "maxY": 675.5
+            },
+            "other": {
+              "primitiveId": "ffff9be0e4442192",
+              "componentType": "netflag",
+              "net": "VDD",
+              "bbox": {
+                "minX": 297,
+                "minY": 664.5,
+                "maxX": 325.5,
+                "maxY": 682
+              }
+            },
+            "overlapX": 28.5,
+            "overlapY": 11
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "designator": "PROTFS83",
+            "primitiveId": "4e34efe25889f4a0",
+            "message": "PROTFS83(part) 与 FET_MID(netport) 视觉重叠 51.00×11.00 — 换方向/offset 或 stagger",
+            "componentType": "part",
+            "primitiveIds": [
+              "4e34efe25889f4a0",
+              "b353c31375a0b978"
+            ],
+            "bbox": {
+              "minX": 469.5,
+              "minY": 754.5,
+              "maxX": 550.5,
+              "maxY": 795.5
+            },
+            "other": {
+              "primitiveId": "b353c31375a0b978",
+              "componentType": "netport",
+              "net": "FET_MID",
+              "bbox": {
+                "minX": 499.5,
+                "minY": 769.5,
+                "maxX": 580.5,
+                "maxY": 780.5
+              }
+            },
+            "overlapX": 51,
+            "overlapY": 11
+          },
+          {
+            "type": "missing-partition",
+            "level": "warn",
+            "count": 6,
+            "message": "6 个器件的页没有功能分区框 — 铁律#15:`sch zones set` → `sch zone-draw`(整纸版式 `--mode partition`);交付前必须有"
+          },
+          {
+            "type": "missing-note",
+            "level": "warn",
+            "count": 6,
+            "message": "6 个器件的页没有电路说明(区名标签不算)— 每模块 1~3 行 `sch note`:作用 + 关键参数 + 设计要点;交付前必须有"
+          },
+          {
+            "type": "missing-titleblock",
+            "level": "warn",
+            "count": 3,
+            "message": "图签未填:Name(图纸标题)、Drawed(设计者)、Description(图纸说明) — 交付图必须能认领(`sch titleblock --data '{\"Name\":\"…\",\"Drawed\":\"…\"}'`)"
+          }
+        ]
+      }
+    },
+    {
+      "name": "bridge-check",
+      "status": "pass",
+      "errors": 0,
+      "warnings": 1,
+      "summary": "0 bridge(short), 1 orphan-stub, 0 orphan-flag, 0 orphan-tree (18 wire tree(s))",
+      "detail": {
+        "passed": false,
+        "summary": {
+          "trees": 1,
+          "bridges": 0,
+          "orphans": 1,
+          "orphanFlags": 0,
+          "orphanTrees": 0,
+          "wireTreesTotal": 18
+        },
+        "trees": [
+          {
+            "kind": "ORPHAN",
+            "type": "orphan-stub",
+            "level": "warn",
+            "wireIds": [
+              "dc8ae097f5f05132"
+            ],
+            "flagIds": [],
+            "pins": [
+              "PROTFS83:3"
+            ],
+            "nets": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "drc",
+      "status": "pass",
+      "errors": 0,
+      "warnings": 4,
+      "summary": "0 fatal, 0 error, 4 warn, 0 info (total 4)",
+      "detail": {
+        "passed": false,
+        "fatal": 0,
+        "summary": {
+          "fatal": 0,
+          "error": 0,
+          "warn": 4,
+          "info": 0,
+          "unknown": 0,
+          "total": 4
+        },
+        "violations": [
+          {
+            "level": "warn",
+            "type": "warn",
+            "count": 4,
+            "raw": {
+              "count": 4,
+              "type": "warn"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "blockers": null,
+  "warnings": [
+    "check: 7 条告警",
+    "bridge-check: 1 条告警",
+    "drc: 4 条告警"
+  ]
+}

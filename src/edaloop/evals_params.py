@@ -220,11 +220,13 @@ _CRITIC_SAMPLES = [
 ]
 
 
-def _critic_eval() -> dict:
+def _critic_eval(*, offline: bool = False) -> dict:
     import os
 
     from edaloop.loop.critic import review_plan
 
+    if offline:
+        return {"skipped": True, "reason": "--offline (critic 需真 LLM)"}
     if not (os.environ.get("EDALOOP_LLM_KEY") or os.environ.get("OPENAI_API_KEY")):
         return {"skipped": True, "reason": "EDALOOP_LLM_KEY 未配置(critic 需真 LLM)"}
     from edaloop.llm.openai_compat import get_llm
@@ -316,7 +318,7 @@ def _critic_str(critic: dict) -> str:
     return f"{critic['caught']}/{critic['total']}"
 
 
-def run_params_eval() -> dict:
+def run_params_eval(*, offline: bool = False) -> dict:
     rows: list[dict] = []
     for s in _param_samples():
         codes = _run(s["ir"], s["plan"])
@@ -331,7 +333,7 @@ def run_params_eval() -> dict:
     caught = sum(1 for r in defects if r["caught"])
     false_kills = sum(1 for r in cleans if r["false_kill"])
 
-    critic = _critic_eval()
+    critic = _critic_eval(offline=offline)
     coverage = _power_coverage()
 
     go = (

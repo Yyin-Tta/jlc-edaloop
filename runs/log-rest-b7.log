@@ -1,0 +1,4 @@
+[watchdog 13:39:27] attempt 1 开跑
+skip(done) req-06-pico-native-usb-gateway.md: {'req': 'req-06-pico-native-usb-gateway.md', 'status': 'PASS', 'rounds': 1, 'n_rounds': 1}
+[watchdog 13:58:58] attempt 1 exit=1 进度 3/3
+[watchdog] 全部 PASS,收工

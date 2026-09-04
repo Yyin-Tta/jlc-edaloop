@@ -49,9 +49,14 @@ def test_decompose_liion_wiring() -> None:
     # DW01 的 OD/OC 与 FS 的 G1/G2(6/4) 交叉互联:同网名即连通
     assert dw01.pins_binding["1"] == fs.pins_binding["6"]
     assert dw01.pins_binding["3"] == fs.pins_binding["4"]
+    # The two common-drain pins are one node, not GND and not two
+    # independent auto-generated nets.
+    assert fs.pins_binding["2"] == fs.pins_binding["5"] == "liion_FMID"
+    assert fs.pins_binding["2"] != "GND"
     # 电源/地已绑定
     assert dw01.pins_binding["6"] == "GND"
     assert fs.pins_binding["1"] == "GND"
+    assert dw01.no_connect == ["4"]
     # module=模式 id:装箱亲和同页(2026-09-02 place-only 入 pack 后生效)
     assert all(b.module == "liion-protection" for b in blocks)
     assert notes

@@ -1,0 +1,164 @@
+{
+  "id": "req_261991",
+  "ok": true,
+  "result": {
+    "passed": false,
+    "summary": {
+      "floatingPins": 0,
+      "componentsWithFloating": 0,
+      "geomNetMismatches": 0,
+      "netMarkerMismatches": 0,
+      "multiNetWires": 0,
+      "wireCrossings": 0,
+      "wireOverPins": 0,
+      "zeroLengthWires": 0,
+      "danglingWires": 3,
+      "duplicateNetMarkers": 0,
+      "titleblockOverlaps": 1,
+      "markerOverlaps": 2,
+      "missingPartitions": 3,
+      "noteOutsideZones": 0,
+      "redundantNetMarkers": 0,
+      "foldedNetLabels": 0,
+      "reversedNetFlags": 0,
+      "polarityConventionOutliers": 0,
+      "total": 9
+    },
+    "findings": [
+      {
+        "type": "dangling-wire",
+        "level": "warn",
+        "wirePrimitiveId": "25d556d6bdef28e2",
+        "message": "疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除)",
+        "at": {
+          "x": 270,
+          "y": 735
+        }
+      },
+      {
+        "type": "dangling-wire",
+        "level": "warn",
+        "wirePrimitiveId": "d50afc34cb3c3ee8",
+        "message": "疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除)",
+        "at": {
+          "x": 520,
+          "y": 345
+        }
+      },
+      {
+        "type": "dangling-wire",
+        "level": "warn",
+        "wirePrimitiveId": "e3f0285282aa4d50",
+        "message": "疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除)",
+        "at": {
+          "x": 310,
+          "y": 725
+        }
+      },
+      {
+        "type": "titleblock-overlap",
+        "level": "warn",
+        "primitiveId": "5571348e173a47bb",
+        "markerNet": "LED10_N2",
+        "message": "LED10_N2(netport) 侵入标题栏 keep-out（重叠 11.00×28.50）— 移出图签区或换连线方向",
+        "componentType": "netport",
+        "bbox": {
+          "minX": 584.5,
+          "minY": 169.5,
+          "maxX": 595.5,
+          "maxY": 200.5
+        },
+        "keepout": {
+          "minX": 468,
+          "minY": 0,
+          "maxX": 1170,
+          "maxY": 198
+        },
+        "overlapX": 11,
+        "overlapY": 28.5
+      },
+      {
+        "type": "marker-overlap",
+        "level": "warn",
+        "primitiveId": "0119f02c240d32bf",
+        "markerNet": "LEDM2D_P",
+        "message": "LEDM2D_P(netport) 与 LEDM2B_P(netport) 视觉重叠 11.00×73.00 — 换方向/offset 或 stagger",
+        "componentType": "netport",
+        "primitiveIds": [
+          "0119f02c240d32bf",
+          "96758610eed0307f"
+        ],
+        "bbox": {
+          "minX": 784.5,
+          "minY": 463.5,
+          "maxX": 795.5,
+          "maxY": 550.5
+        },
+        "other": {
+          "primitiveId": "96758610eed0307f",
+          "componentType": "netport",
+          "net": "LEDM2B_P",
+          "bbox": {
+            "minX": 784.5,
+            "minY": 449.5,
+            "maxX": 795.5,
+            "maxY": 536.5
+          }
+        },
+        "overlapX": 11,
+        "overlapY": 73
+      },
+      {
+        "type": "marker-overlap",
+        "level": "warn",
+        "designator": "ULNM2",
+        "primitiveId": "285d90a23fc80ea8",
+        "message": "ULNM2(part) 与 STEP2_B(netport) 视觉重叠 31.00×11.00 — 换方向/offset 或 stagger",
+        "componentType": "part",
+        "primitiveIds": [
+          "285d90a23fc80ea8",
+          "8cbb111f07ea149b"
+        ],
+        "bbox": {
+          "minX": 259.5,
+          "minY": 702.5,
+          "maxX": 320.5,
+          "maxY": 797.5
+        },
+        "other": {
+          "primitiveId": "8cbb111f07ea149b",
+          "componentType": "netport",
+          "net": "STEP2_B",
+          "bbox": {
+            "minX": 209.5,
+            "minY": 769.5,
+            "maxX": 290.5,
+            "maxY": 780.5
+          }
+        },
+        "overlapX": 31,
+        "overlapY": 11
+      },
+      {
+        "type": "missing-partition",
+        "level": "warn",
+        "count": 14,
+        "message": "14 个器件的页已分成 12 个功能模块(虚拟组/认领)但一个分区框都没画 — 铁律#15:`sch zone-draw --mode partition`;被拒(partitionOverlap / titleBlockHits)就先跑 `sch zone-plan` 看逐条 ✗ —— 它点名是哪两个区顶住、还差多少,并给出一条 `sch zone move --zone \u003c区\u003e --dx/--dy \u003c量\u003e` 的最小挪动;挪完再画,整页重排 `sch zone-arrange --apply` 或拆页是最后一档"
+      },
+      {
+        "type": "missing-note",
+        "level": "warn",
+        "count": 14,
+        "message": "14 个器件的页没有电路说明(区名标签不算)— 每模块 1~3 行 `sch note`:作用 + 关键参数 + 设计要点;交付前必须有"
+      },
+      {
+        "type": "missing-titleblock",
+        "level": "warn",
+        "count": 3,
+        "message": "图签未填:Name(图纸标题)、Drawed(设计者)、Description(图纸说明) — 交付图必须能认领(`sch titleblock --data '{\"Name\":\"…\",\"Drawed\":\"…\"}'`)"
+      }
+    ]
+  },
+  "type": "response",
+  "version": "v1"
+}

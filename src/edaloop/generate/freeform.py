@@ -28,16 +28,19 @@ PATTERNS: list[dict] = [
                     "5": "{p}_VDD",
                     "6": "GND",
                 },
+                "no_connect": ["4"],  # DW01A CT/NC:显式非连接,不可伪造普通网络
             },
             {
                 "block_id": "mos-fs8205a-dual",
                 "suffix": "fs",
                 "pins": {
                     "1": "GND",
-                    "2": "GND",
+                    # FS8205A is a common-drain dual MOSFET: pins 2 and 5
+                    # are the same electrical node and must share one net.
+                    "2": "{p}_FMID",
                     "3": "{p}_BMINUS",
                     "4": "{p}_OC",
-                    "5": "GND",
+                    "5": "{p}_FMID",
                     "6": "{p}_OD",
                 },
             },
@@ -154,6 +157,7 @@ def decompose(
                 upstream_id="",
                 instance=f"{prefix}_{part['suffix']}",
                 pins_binding=pins,
+                no_connect=list(part.get("no_connect", [])),
                 # module=模式 id:装箱亲和同页(2026-09-02 place-only 入 pack 后
                 # 生效——同模式的标准件组不该被行-货架流拆页)
                 module=pattern["id"],

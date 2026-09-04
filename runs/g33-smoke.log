@@ -1,0 +1,138 @@
+[watchdog 15:18:48] attempt 1 å¼€è·‘
+{'req': 'req-01-esp32s3-mini-2layer.md', 'status': 'HALT', 'rounds': None, 'n_rounds': 3}
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 457, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 432, in main
+    return _cmd_eval(args)
+           ^^^^^^^^^^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 162, in _cmd_eval
+    summary = run_w3_loop_eval(tier=args.tier)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\evals_w3.py", line 136, in run_w3_loop_eval
+    _health_check()
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\evals_w3.py", line 79, in _health_check
+    raise RuntimeError(
+RuntimeError: Á¬½ÓÆ÷ÎŞÏìÓ¦(EasyEDA ¿ÉÄÜ¼ÙËÀ):ÇëÖØÆô EasyEDA Pro ²¢´ò¿ª¹¤³Ì,È»ºóÖØÅÜÍ¬Ò»ÃüÁî¡ª¡ª¶ÏµãÒÑ±£´æ,½«´ÓÊ£ÓàĞèÇó¼ÌĞø
+[watchdog 15:35:56] attempt 1 exit=1 è¿›åº¦ 0/1
+[watchdog 15:35:56] ç¯å¢ƒä¸è‡ªæ´½,å°è¯•æ¢å¤
+no connected window for project "edaloop" (run `easyeda daemon health`)
+[watchdog] è½»æ¢å¤æ— æ•ˆ,é‡å¯ EasyEDA(å…ˆä¼˜é›…å…³å†å¼ºæ€)
+³É¹¦: ¸ø½ø³Ì "lceda-pro.exe" ·¢ËÍÁËÖÕÖ¹ĞÅºÅ£¬½ø³ÌµÄ PID Îª 15704¡£
+³É¹¦: ¸ø½ø³Ì "lceda-pro.exe" ·¢ËÍÁËÖÕÖ¹ĞÅºÅ£¬½ø³ÌµÄ PID Îª 18020¡£
+³É¹¦: ¸ø½ø³Ì "lceda-pro.exe" ·¢ËÍÁËÖÕÖ¹ĞÅºÅ£¬½ø³ÌµÄ PID Îª 14572¡£
+³É¹¦: ¸ø½ø³Ì "lceda-pro.exe" ·¢ËÍÁËÖÕÖ¹ĞÅºÅ£¬½ø³ÌµÄ PID Îª 8600¡£
+´íÎó: ÎŞ·¨ÖÕÖ¹½ø³Ì "lceda-pro.exe"£¬Æä PID Îª 8852¡£
+Ô­Òò: Ö»ÄÜÇ¿ĞĞÖÕÖ¹Õâ¸ö½ø³Ì(´ø /F Ñ¡Ïî)¡£
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+{
+  "id": "req_48250",
+  "type": "response",
+  "version": "v1",
+  "createdAt": "2026-08-24T07:37:34.5657808Z",
+  "ok": true,
+  "result": {
+    "message": "å›å½’çœ‹é—¨ç‹—:è¯·æ‰“å¼€å·¥ç¨‹ edaloop å¹¶åˆ‡åˆ°åŸç†å›¾é¡µ(äº‘ç«¯å·¥ç¨‹é‡å¯åä¸è‡ªåŠ¨æ¢å¤)",
+    "shown": true,
+    "type": "warn"
+  },
+  "context": {
+    "documentUuid": "tab_page1",
+    "documentType": "home",
+    "tabId": "tab_page1"
+  },
+  "seq": 1,
+  "seqAbandoned": 0
+}
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+{
+  "id": "req_48257",
+  "type": "response",
+  "version": "v1",
+  "createdAt": "2026-08-24T07:39:00.1951157Z",
+  "ok": true,
+  "result": {
+    "message": "å›å½’çœ‹é—¨ç‹—:è¯·æ‰“å¼€å·¥ç¨‹ edaloop å¹¶åˆ‡åˆ°åŸç†å›¾é¡µ(äº‘ç«¯å·¥ç¨‹é‡å¯åä¸è‡ªåŠ¨æ¢å¤)",
+    "shown": true,
+    "type": "warn"
+  },
+  "context": {
+    "documentUuid": "tab_page1",
+    "documentType": "home",
+    "tabId": "tab_page1"
+  },
+  "seq": 2,
+  "seqAbandoned": 0
+}
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+{
+  "id": "req_48264",
+  "type": "response",
+  "version": "v1",
+  "createdAt": "2026-08-24T07:40:25.7408306Z",
+  "ok": true,
+  "result": {
+    "message": "å›å½’çœ‹é—¨ç‹—:è¯·æ‰“å¼€å·¥ç¨‹ edaloop å¹¶åˆ‡åˆ°åŸç†å›¾é¡µ(äº‘ç«¯å·¥ç¨‹é‡å¯åä¸è‡ªåŠ¨æ¢å¤)",
+    "shown": true,
+    "type": "warn"
+  },
+  "context": {
+    "documentUuid": "tab_page1",
+    "documentType": "home",
+    "tabId": "tab_page1"
+  },
+  "seq": 3,
+  "seqAbandoned": 0
+}
+[watchdog] æ¢å¤å¤±è´¥(å¤§æ¦‚ç‡:äº‘ç«¯å·¥ç¨‹æœªæ¢å¤ä¸” CLI æ— æ³•å¼€å·¥ç¨‹)â€”â€”è½¬äººå·¥:è¯·åœ¨ EasyEDA æ‰“å¼€ edaloop åé‡è·‘ bash runs/p5-0-watchdog.sh smoke runs/g33-smoke.log
+[watchdog] è½¬äººå·¥
+[watchdog 15:47:19] attempt 1 å¼€è·‘
+{'req': 'req-01-esp32s3-mini-2layer.md', 'status': 'PASS', 'rounds': 1, 'n_rounds': 1}
+{'req': 'req-08-liion-protection-freeform.md', 'status': 'PASS', 'rounds': 2, 'n_rounds': 2}
+{'req': 'req-11-isolated-dido-module.md', 'status': 'PASS', 'rounds': 1, 'n_rounds': 1}
+{
+ "rows": [
+  {
+   "req": "req-01-esp32s3-mini-2layer.md",
+   "status": "PASS",
+   "rounds": 1,
+   "n_rounds": 1
+  },
+  {
+   "req": "req-08-liion-protection-freeform.md",
+   "status": "PASS",
+   "rounds": 2,
+   "n_rounds": 2
+  },
+  {
+   "req": "req-11-isolated-dido-module.md",
+   "status": "PASS",
+   "rounds": 1,
+   "n_rounds": 1
+  }
+ ],
+ "pass@3": 1.0,
+ "pass@5": 1.0,
+ "go3": true,
+ "go5": true
+}
+[watchdog 16:10:38] attempt 1 exit=0 è¿›åº¦ 3/3
+[watchdog] å…¨éƒ¨ PASS,æ”¶å·¥

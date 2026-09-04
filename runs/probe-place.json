@@ -1,0 +1,30 @@
+⚠ connector looks DEGRADED under load (recent EFFECT failure rate 5%, 1 consecutive failures) — this write may have LANDED despite the failure (假失败定律): verify with a light read before resending, and do NOT blind-retry. Worst road(s): schematic.component.delete
+{
+  "id": "req_30284",
+  "type": "response",
+  "version": "v1",
+  "createdAt": "2026-08-22T13:15:32.8906408Z",
+  "ok": false,
+  "result": {
+    "degraded": {
+      "consecutiveFailures": 1,
+      "degraded": true,
+      "degradedActions": [
+        "schematic.component.delete"
+      ],
+      "fakeFailures": 0,
+      "fakeSuccesses": 0,
+      "recentFailureRate": 0.05,
+      "recentSamples": 20,
+      "verifiedSamples": 0
+    }
+  },
+  "warnings": [
+    "connector looks DEGRADED under load (recent EFFECT failure rate 5%, 1 consecutive failures) — this write may have LANDED despite the failure (假失败定律): verify with a light read before resending, and do NOT blind-retry. Worst road(s): schematic.component.delete"
+  ],
+  "error": {
+    "code": "DISPATCH_FAILED",
+    "message": "connector did not respond",
+    "detail": "context deadline exceeded"
+  }
+}

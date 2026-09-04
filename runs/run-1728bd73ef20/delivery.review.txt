@@ -1,0 +1,7 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 7 blocks, status=PASS
+
+- [CRITIC_POWER_INTEGRITY@prot_dw01] DW01 的 GND/VSS(引脚6)被绑定到电芯负极 B-。标准 DW01+FS8205A 电路中 VSS 必须接保护管之后的负载侧负极 P-,这样 CS(经 1k 接 B-)与 VSS 之间才能检测到双 MOS 上的压降实现过流/短路保护。当前 pin6=B- 且 CSI 经 1k 也接 B-,CS 与 VSS 同电位,过流检测永远为零,保护功能失效。 | 建议: 将 prot_dw01 引脚 6 的绑定从 B- 改为 P-(负载侧负极,即 FS8205A 输出端),保持
+- [CRITIC_INTERFACE_PROTECTION@term_cell] term_cell 端子直接接电芯 B+/B-,uncovered 中已指出缺 PPTC 保险丝无法落图,但这是电池输入路径的核心过流保护,缺失属于安全级缺陷而非可选件,仅留在 uncovered 清单不足以标记风险。 | 建议: 在 term_cell 正极串入保险丝/PPTC(B+ 路径),若器件库确无 PPTC,至少在 BOM 备注强制外置保险丝,不可放行无保险丝的电芯输入。
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

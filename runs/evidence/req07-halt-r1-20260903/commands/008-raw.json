@@ -1,0 +1,38 @@
+{
+  "id": "req_261236",
+  "ok": true,
+  "result": {
+    "passed": false,
+    "fatal": 1,
+    "summary": {
+      "fatal": 0,
+      "error": 1,
+      "warn": 37,
+      "info": 0,
+      "unknown": 0,
+      "total": 38
+    },
+    "violations": [
+      {
+        "level": "error",
+        "type": "error",
+        "count": 1,
+        "raw": {
+          "count": 1,
+          "type": "error"
+        }
+      },
+      {
+        "level": "warn",
+        "type": "warn",
+        "count": 37,
+        "raw": {
+          "count": 37,
+          "type": "warn"
+        }
+      }
+    ]
+  },
+  "type": "response",
+  "version": "v1"
+}

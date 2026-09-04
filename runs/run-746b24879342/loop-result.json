@@ -1,0 +1,30 @@
+{
+ "status": "PASS",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "13a39c5e2de9",
+   "gate_verdict": "pass",
+   "findings": [
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='电芯焊盘 B+/B- 与保护输出端子 P+/P-(含 P 焊盘):目录无焊盘/端子/连接器类块,仅以网络名引出,落图时需补物理焊盘' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True"
+   ],
+   "feedback": "",
+   "halted": ""
+  }
+ ],
+ "delivery": {
+  "svg": "D:\\gyt-pro\\jlc-edaloop\\runs\\run-746b24879342\\delivery-P1.svg",
+  "svg_pages": [
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-746b24879342\\delivery-P1.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-746b24879342\\delivery-P2.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-746b24879342\\delivery-P3.svg"
+  ],
+  "netlist": "runs\\run-746b24879342\\delivery.net.json",
+  "netlist_sha256_16": "9db9ecb3aa4bff53",
+  "bom": "runs\\run-746b24879342\\delivery.bom.json",
+  "bom_total": 0.0737,
+  "swap": "runs\\run-746b24879342\\delivery.swap.txt",
+  "review": "runs\\run-746b24879342\\delivery.review.txt",
+  "review_findings": 0
+ }
+}

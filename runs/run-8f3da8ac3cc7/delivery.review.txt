@@ -1,0 +1,9 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 6 blocks, status=PASS
+
+- [CRITIC_PULL_RESISTORS@usb_conn] USB-C CC1/CC2 各 5.1kΩ 下拉电阻未放置(uncovered 明确列出),无 CC 下拉则 UFP 无法被主机识别、甚至无法取电,USB 烧录/供电功能失效 | 建议: 必须补上 CC1/CC2 各 5.1kΩ 下拉(若目录无标准电阻通道,应扩充目录或改用带 CC 逻辑的连接器方案),否则不应放板
+- [CRITIC_INTERFACE_PROTECTION@usb_conn] USB-C 为外部热插拔接口,UD+/UD-/VBUS 无任何 ESD/TVS 保护块(usb_conn 描述中 '由 ESD 块或走线处理',但设计中不存在该 ESD 块) | 建议: 在 USB_DP/USB_DM(及 VBUS)靠近连接器处增加 USB2.0 ESD 阵列(如 ESDA/USBLC6 类),DP/DN 双取向短接可在 ESD 块后合并以简化保护
+- [CRITIC_POWER_INTEGRITY@ldo_3v3] 3V3 轨仅由 AMS1117 单一来源,但 uncovered 显示计划中还有 '5V 接线端子与 USB 5V 共轨且需防倒灌' 的双输入意图,防倒灌器件缺失,若端子引入外部 5V 会与 USB VBUS 互相倒灌 | 建议: 若保留 5V 端子双供电,必须加理想二极管/肖特基防倒灌(或干脆取消端子、仅 USB 供电);同时注意外部 5V 波动直接进入 AMS1117 输入
+- [CRITIC_THERMAL@ldo_3v3] AMS1117 结温估算约 136°C(裕量 -30°C),已超过安全工作上限,块描述中 '压差余量按峰值电流算够' 与热结果矛盾 | 建议: 换用效率更高的 DC-DC(如同步 BUCK)或低dropout/更大封装 LDO,并降低该 LDO 的持续电流需求(ESP32-S3 WiFi 峰值约 0.5A,5V→3.3V 压降 1.7V 功耗过高)
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

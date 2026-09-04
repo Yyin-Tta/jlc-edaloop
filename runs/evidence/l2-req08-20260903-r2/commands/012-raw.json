@@ -1,0 +1,166 @@
+{
+  "id": "req_272234",
+  "type": "response",
+  "version": "v1",
+  "createdAt": "2026-09-03T04:09:05.3116556Z",
+  "ok": true,
+  "result": {
+    "count": 12,
+    "scope": "activePage",
+    "texts": [
+      {
+        "bold": null,
+        "color": "#5A5A5A",
+        "content": "FS8205A: 共漏双 NMOS，B_MINUS/P_MINUS 双向关断",
+        "fontName": null,
+        "fontSize": 10,
+        "italic": null,
+        "primitiveId": "8ab4d3253c6a32ad",
+        "rotation": 0,
+        "x": 240,
+        "y": 644.5
+      },
+      {
+        "bold": null,
+        "color": "#AA00AA",
+        "content": "g4",
+        "fontName": null,
+        "fontSize": 22,
+        "italic": null,
+        "primitiveId": "a6483cc73c498f84",
+        "rotation": 0,
+        "x": 949.5,
+        "y": 582.5
+      },
+      {
+        "bold": null,
+        "color": "#5A5A5A",
+        "content": "DW01A: 单节锂电保护控制\nVDD/VSS 供电，OC/OD 驱动保护 MOS",
+        "fontName": null,
+        "fontSize": 10,
+        "italic": null,
+        "primitiveId": "f9956ef6c50beb69",
+        "rotation": 0,
+        "x": 875,
+        "y": 644.5
+      },
+      {
+        "bold": null,
+        "color": "#5A5A5A",
+        "content": "输出端子: 电池正负端\nVBAT / P_MINUS 对外连接",
+        "fontName": null,
+        "fontSize": 10,
+        "italic": null,
+        "primitiveId": "948aa88b10d66511",
+        "rotation": 0,
+        "x": 960,
+        "y": 469.5
+      },
+      {
+        "bold": null,
+        "color": "#AA00AA",
+        "content": "g2",
+        "fontName": null,
+        "fontSize": 22,
+        "italic": null,
+        "primitiveId": "46853051dffbfe3a",
+        "rotation": 0,
+        "x": 469.5,
+        "y": 767.5
+      },
+      {
+        "bold": null,
+        "color": "#AA00AA",
+        "content": "g1",
+        "fontName": null,
+        "fontSize": 22,
+        "italic": null,
+        "primitiveId": "057cd08151127a42",
+        "rotation": 0,
+        "x": 831,
+        "y": 767.5
+      },
+      {
+        "bold": null,
+        "color": "#AA00AA",
+        "content": "g3",
+        "fontName": null,
+        "fontSize": 22,
+        "italic": null,
+        "primitiveId": "9f43902d03e8cb09",
+        "rotation": 0,
+        "x": 200.4999999999999,
+        "y": 767.5
+      },
+      {
+        "bold": null,
+        "color": "#AA00AA",
+        "content": "r1-sense",
+        "fontName": null,
+        "fontSize": 22,
+        "italic": null,
+        "primitiveId": "c919fd7a36db2b8a",
+        "rotation": 0,
+        "x": 607.5,
+        "y": 597.5
+      },
+      {
+        "bold": null,
+        "color": "#AA00AA",
+        "content": "c1-decoupling",
+        "fontName": null,
+        "fontSize": 22,
+        "italic": null,
+        "primitiveId": "9db3dd355cf2c5a9",
+        "rotation": 0,
+        "x": 16,
+        "y": 595.5
+      },
+      {
+        "bold": null,
+        "color": "#5A5A5A",
+        "content": "CSI采样: 100R",
+        "fontName": null,
+        "fontSize": 8,
+        "italic": null,
+        "primitiveId": "6ca410fab56313f2",
+        "rotation": 0,
+        "x": 210,
+        "y": 634.5
+      },
+      {
+        "bold": null,
+        "color": "#5A5A5A",
+        "content": "C1: 100nF VDD 去耦",
+        "fontName": null,
+        "fontSize": 8,
+        "italic": null,
+        "primitiveId": "a4addecf6f3ebc2e",
+        "rotation": 0,
+        "x": 30,
+        "y": 496.5
+      },
+      {
+        "bold": null,
+        "color": "#5A5A5A",
+        "content": "R1: 100R VBAT 采样",
+        "fontName": null,
+        "fontSize": 8,
+        "italic": null,
+        "primitiveId": "f9d016e79f63e94e",
+        "rotation": 0,
+        "x": 620,
+        "y": 504.5
+      }
+    ]
+  },
+  "context": {
+    "projectUuid": "e7c2a07bcd504214a0607cad9475b2ba",
+    "projectName": "edaloop-req08-baseline",
+    "documentUuid": "bdc3e70fabdde6cb",
+    "documentType": "schematic",
+    "tabId": "bdc3e70fabdde6cb@e7c2a07bcd504214a0607cad9475b2ba"
+  },
+  "seq": 10672,
+  "seqAbandoned": 0
+}

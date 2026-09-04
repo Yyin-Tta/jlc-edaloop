@@ -1,0 +1,89 @@
+{
+  "overall": 89.5,
+  "verdict": "good",
+  "dimensions": [
+    {
+      "id": "folded-labels",
+      "title": "标签折叠",
+      "status": "scored",
+      "score": 100,
+      "weight": 1.2
+    },
+    {
+      "id": "reversed-labels",
+      "title": "标签反向",
+      "status": "scored",
+      "score": 100,
+      "weight": 1.2
+    },
+    {
+      "id": "proximity",
+      "title": "外围贴核心",
+      "status": "skipped",
+      "score": 0,
+      "weight": 1,
+      "reason": "页面无可评的 R/C/L 无源件(或无核心大件可参照)"
+    },
+    {
+      "id": "stub-tidiness",
+      "title": "长链/挤压",
+      "status": "scored",
+      "score": 58,
+      "weight": 0.8,
+      "attributions": [
+        {
+          "dimension": "stub-tidiness",
+          "target": "U4",
+          "penalty": 10,
+          "message": "U4 与其 8 个标记连成跨度 535 的长链(\u003e250)— 收短最远标记的 offset",
+          "fix": "easyeda sch disconnect --pin U4:4 \u0026\u0026 easyeda sch connect --x 460 --y 695 --kind netport --net  --direction left --offset 24",
+          "at": {
+            "x": 510,
+            "y": 710
+          }
+        },
+        {
+          "dimension": "stub-tidiness",
+          "target": "L2↔Q1",
+          "penalty": 8,
+          "message": "L2 与 Q1 同排净距 91 \u003c 117(相向水平 netport 标签最小距)— 拉开间距(sch distribute --axis x)或把一侧标签换 direction"
+        },
+        {
+          "dimension": "stub-tidiness",
+          "target": "R18↔R19",
+          "penalty": 8,
+          "message": "R18 与 R19 同排净距 99 \u003c 117(相向水平 netport 标签最小距)— 拉开间距(sch distribute --axis x)或把一侧标签换 direction"
+        },
+        {
+          "dimension": "stub-tidiness",
+          "target": "R19↔R20",
+          "penalty": 8,
+          "message": "R19 与 R20 同排净距 99 \u003c 117(相向水平 netport 标签最小距)— 拉开间距(sch distribute --axis x)或把一侧标签换 direction"
+        },
+        {
+          "dimension": "stub-tidiness",
+          "target": "R20↔U4",
+          "penalty": 8,
+          "message": "R20 与 U4 同排净距 69 \u003c 117(相向水平 netport 标签最小距)— 拉开间距(sch distribute --axis x)或把一侧标签换 direction"
+        }
+      ]
+    },
+    {
+      "id": "frame-fit",
+      "title": "版面整洁",
+      "status": "skipped",
+      "score": 0,
+      "weight": 0.5,
+      "reason": "components.list 未暴露 text 图元 bbox,且分区框几何不在 workflow state — 未测(≠满分)"
+    }
+  ],
+  "dimensionScores": {
+    "folded-labels": 100,
+    "reversed-labels": 100,
+    "stub-tidiness": 58
+  },
+  "componentCount": 79,
+  "scoredDims": 3,
+  "skippedDims": 2,
+  "summary": "sch layout-score: 综合 89.5 [good] — 3 维已测 / 2 维未测(skipped≠满分),79 图元"
+}

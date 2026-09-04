@@ -1,0 +1,441 @@
+placed D1     diode.ss34_sma     @ 180,1100 [grid]
+placed D2     esd.usblc6_2sc6    @ 450,1100 [grid]
+placed J1     conn.usb_c_16p     @ 720,1100 [grid]
+placed R4     res.5k1_0402       @ 990,1100 [grid]
+placed R5     res.5k1_0402       @ 180,1370 [grid]
+placed D3     tvs.smaj5v0_sma    @ 450,1370 [grid]
+layout ✓ no overlap or pin coincidence involving this instance
+autoconnect: 28 connection(s), mode=connect — 28 new, 0 already-connected, 0 conflict
+  note: no sheet bbox exposed — title-block keep-out is provisional and was NOT geometrically enforced
+  ✓ J1:A4B9 → D1_N1 [netport]: right offset=18 end=(790.00,1070.00) score=71.80
+      wire=497128bdff35158f flag=fe43f3841895e847
+      rejected down  offset=18 score=251.80 — netport folded vertical — label reads sideways
+      rejected left  offset=78 score=50607.80 — 引出方向与引脚朝外方向相反 —— 桩线要穿过/绕过器件本体
+      rejected up    offset=48 score=1000000154.80 — stub crosses a non-target pin (hard reject)
+  ✓ J1:B4A9 → D1_N1 [netport]: left offset=18 end=(660.00,1110.00) score=81.80
+      wire=574ab4eda2e31bc5 flag=59d86cbe60b35c3f
+      rejected right offset=78 score=50597.80 — 引出方向与引脚朝外方向相反 —— 桩线要穿过/绕过器件本体
+      rejected down  offset=18 score=1000000251.80 — stub crosses a non-target pin (hard reject)
+      rejected up    offset=18 score=1000000251.80 — stub crosses a non-target pin (hard reject)
+  ✓ D1:A → D1_N1 [netport]: right offset=18 end=(220.00,1100.00) score=-28.20
+      wire=af669e15e14f8c9a flag=1057a643d035a03c
+      rejected down  offset=18 score=151.80 — netport folded vertical — label reads sideways
+      rejected up    offset=18 score=151.80 — netport folded vertical — label reads sideways
+      rejected left  offset=18 score=50501.80 — 引出方向与引脚朝外方向相反 —— 桩线要穿过/绕过器件本体
+  ✓ D3:K → D1_N1 [netport]: left offset=18 end=(410.00,1370.00) score=-18.20
+      wire=5bb3f16d85fd158e flag=7128dd52838f61eb
+      rejected down  offset=18 score=151.80 — netport folded vertical — label reads sideways
+      rejected up    offset=18 score=151.80 — netport folded vertical — label reads sideways
+      rejected right offset=24 score=50492.40 — 引出方向与引脚朝外方向相反 —— 桩线要穿过/绕过器件本体
+  ✓ D2:VBUS → D1_N1 [netport]: right offset=18 end=(515.00,1100.00) score=1071.80
+      ⚠ WARN 落点带痕(score=1072):label collides with an existing flag/port/label —— 建议挪件腾位后重连
+      wire=5c11e5238c756900 flag=127ac5bafb99d3f2
+      rejected left  offset=78 score=50607.80 — 引出方向与引脚朝外方向相反 —— 桩线要穿过/绕过器件本体
+      rejected down  offset=18 score=1000000251.80 — stub crosses a non-target pin (hard reject)
+      rejected up    offset=18 score=1000000251.80 — stub crosses a non-target pin (hard reject)
+  ✓ D1:K → 5V [power]: left offset=18 end=(140.00,1100.00) score=-18.20
+      wire=a012676c280d02fc flag=d258400e7e5f3079
+      rejected up    offset=18 score=-8.20 — offset cost
+      rejected down  offset=18 score=1.80 — offset cost
+      rejected right offset=18 score=60501.80 — 引出方向与引脚朝外方向相反 —— 桩线要穿过/绕过器件本体
+  ✓ J1:CC1 → D1_N3 [netport]: left offset=18 end=(660.00,1070.00) score=81.80
+      wire=2390ddc14d40a7da flag=ac7d86c353f7456b
+      rejected down  offset=18 score=251.80 — netport folded vertical — label reads sideways
+      rejected right offset=78 score=51597.80 — 引出方向与引脚朝外方向相反 —— 桩线要穿过/绕过器件本体
+      rejected up    offset=18 score=1000000251.80 — stub crosses a non-target pin (hard reject)
+  ✓ R4:1 → D1_N3 [netport]: left offset=18 end=(950.00,1100.00) score=-18.20
+      wire=2dbb5eb3712fd8d3 flag=a66411000b920aec
+      rejected down  offset=18 score=151.80 — netport folded vertical — label reads sideways
+      rejected up    offset=18 score=151.80 — netport folded vertical — label reads sideways
+      rejected right offset=24 score=50492.40 — 引出方向与引脚朝外方向相反 —— 桩线要穿过/绕过器件本体
+  ✓ J1:CC2 → D1_N4 [netport]: right offset=18 end=(790.00,1120.00) score=71.80
+      wire=bd8caf71495c8d38 flag=45cd159745cfe642
+      rejected up    offset=18 score=251.80 — netport folded vertical — label reads sideways
+      rejected left  offset=78 score=51607.80 — 引出方向与引脚朝外方向相反 —— 桩线要穿过/绕过器件本体
+      rejected down  offset=18 score=1000000251.80 — stub crosses a non-target pin (hard reject)
+  ✓ R5:1 → D1_N4 [netport]: left offset=18 end=(140.00,1370.00) score=-18.20
+      wire=55c1187b308f9693 flag=c6c638d730dd4339
+      rejected down  offset=18 score=151.80 — netport folded vertical — label reads sideways
+      rejected up    offset=18 score=151.80 — netport folded vertical — label reads sideways
+      rejected right offset=24 score=50492.40 — 引出方向与引脚朝外方向相反 —— 桩线要穿过/绕过器件本体
+  ✓ J1:DP1 → USB_DP3 [netport]: left offset=92 end=(590.00,1080.00) score=89.20
+      wire=9c9c50503a3ab8c7 flag=090a2e1cd751ab30
+      rejected right offset=78 score=51597.80 — 引出方向与引脚朝外方向相反 —— 桩线要穿过/绕过器件本体
+      rejected up    offset=18 score=1000000251.80 — stub crosses a non-target pin (hard reject)
+      rejected down  offset=18 score=2000000251.80 — stub crosses a non-target pin (hard reject)
+  ✓ J1:DP2 → USB_DP3 [netport]: right offset=164 end=(935.00,1110.00) score=86.40
+      wire=be99c67fe7c19de3 flag=4776def11c8276a5
+      rejected left  offset=78 score=51607.80 — 引出方向与引脚朝外方向相反 —— 桩线要穿过/绕过器件本体
+      rejected down  offset=18 score=1000000251.80 — stub crosses a non-target pin (hard reject)
+      rejected up    offset=18 score=2000000251.80 — stub crosses a non-target pin (hard reject)
+  ✓ D2:3 → USB_DP3 [netport]: left offset=285 end=(120.00,1090.00) score=108.50
+      ⚠ WARN 落点带痕(score=108):stub runs close to a pin fanout channel; offset cost —— 建议挪件腾位后重连
+      wire=e0d2029c4712d165 flag=43c7e61043d69585
+      rejected down  offset=18 score=251.80 — netport folded vertical — label reads sideways
+      rejected right offset=78 score=51597.80 — 引出方向与引脚朝外方向相反 —— 桩线要穿过/绕过器件本体
+      rejected up    offset=18 score=1000000151.80 — stub crosses a non-target pin (hard reject)
+  ✓ D2:4 → USB_DP3 [netport]: right offset=92 end=(585.00,1090.00) score=79.20
+      wire=c6380647e05be758 flag=1cd5e659a957b7b6
+      rejected down  offset=18 score=251.80 — netport folded vertical — label reads sideways
+      rejected left  offset=78 score=50607.80 — 引出方向与引脚朝外方向相反 —— 桩线要穿过/绕过器件本体
+      rejected up    offset=18 score=2000000151.80 — stub crosses a non-target pin (hard reject)
+  ✓ J1:DN1 → USB_DM3 [netport]: left offset=18 end=(660.00,1090.00) score=1081.80
+      ⚠ WARN 落点带痕(score=1082):label collides with an existing flag/port/label —— 建议挪件腾位后重连
+      wire=503031476026c6ce flag=200ca24ab69da55b
+      rejected right offset=78 score=50597.80 — 引出方向与引脚朝外方向相反 —— 桩线要穿过/绕过器件本体
+      rejected down  offset=18 score=2000000251.80 — stub crosses a non-target pin (hard reject)
+      rejected up    offset=18 score=2000000251.80 — stub crosses a non-target pin (hard reject)
+  ✓ J1:DN2 → USB_DM3 [netport]: right offset=18 end=(790.00,1100.00) score=1071.80
+      ⚠ WARN 落点带痕(score=1072):label collides with an existing flag/port/label —— 建议挪件腾位后重连
+      wire=7f355eca71c09cc6 flag=66f32d58e59202b9
+      rejected left  offset=78 score=51607.80 — 引出方向与引脚朝外方向相反 —— 桩线要穿过/绕过器件本体
+      rejected down  offset=18 score=1000000251.80 — stub crosses a non-target pin (hard reject)
+      rejected up    offset=18 score=2000000251.80 — stub crosses a non-target pin (hard reject)
+  ✓ D2:1 → USB_DM3 [netport]: left offset=272 end=(135.00,1110.00) score=107.20
+      ⚠ WARN 落点带痕(score=107):stub runs close to a pin fanout channel; offset cost —— 建议挪件腾位后重连
+      wire=a38dd02f870b5c45 flag=7201a20246f37f44
+      rejected up    offset=18 score=251.80 — netport folded vertical — label reads sideways
+      rejected right offset=78 score=51597.80 — 引出方向与引脚朝外方向相反 —— 桩线要穿过/绕过器件本体
+      rejected down  offset=18 score=2000000151.80 — stub crosses a non-target pin (hard reject)
+  ✓ D2:6 → USB_DM3 [netport]: up offset=18 end=(495.00,1130.00) score=251.80
+      ⚠ WARN 落点带痕(score=252):stub runs close to a pin fanout channel; netport folded vertical — label reads sideways; offset cost —— 建议挪件腾位后重连
+      wire=f1d952cf50833f73 flag=93f4a30d578c5c6e
+      rejected right offset=18 score=1071.80 — label collides with an existing flag/port/label
+      rejected left  offset=78 score=50607.80 — 引出方向与引脚朝外方向相反 —— 桩线要穿过/绕过器件本体
+      rejected down  offset=30 score=2000000153.00 — stub crosses a non-target pin (hard reject)
+  ✓ J1:A1B12 → GND [gnd]: right offset=18 end=(790.00,1080.00) score=1081.80
+      ⚠ WARN 落点带痕(score=1082):label collides with an existing flag/port/label —— 建议挪件腾位后重连
+      wire=df5cad33a949c6f8 flag=ab6164d1bc546560
+      rejected left  offset=18 score=60601.80 — 引出方向与引脚朝外方向相反 —— 桩线要穿过/绕过器件本体
+      rejected down  offset=18 score=2000000091.80 — stub crosses a non-target pin (hard reject)
+      rejected up    offset=48 score=2000000104.80 — stub crosses a non-target pin (hard reject)
+  ✓ J1:B1A12 → GND [gnd]: up offset=18 end=(680.00,1140.00) score=101.80
+      ⚠ WARN 落点带痕(score=102):stub runs close to a pin fanout channel; offset cost —— 建议挪件腾位后重连
+      wire=293d3051b32831a2 flag=f6d25e42ce238e2e
+      rejected left  offset=18 score=1081.80 — label collides with an existing flag/port/label
+      rejected right offset=18 score=60601.80 — 引出方向与引脚朝外方向相反 —— 桩线要穿过/绕过器件本体
+      rejected down  offset=54 score=1999999995.40 — stub crosses a non-target pin (hard reject)
+  ✓ J1:10 → GND [gnd]: down offset=18 end=(715.00,1030.00) score=-28.20
+      wire=27ea26cdfa8109ef flag=78242c4aa9c24fed
+      rejected left  offset=48 score=4.80 — offset cost
+      rejected up    offset=78 score=50607.80 — 引出方向与引脚朝外方向相反 —— 桩线要穿过/绕过器件本体
+      rejected right offset=66 score=1000000006.60 — stub crosses a non-target pin (hard reject)
+  ✓ J1:11 → GND [gnd]: down offset=48 end=(735.00,1000.00) score=-25.20
+      wire=8832ef0d23c103b3 flag=552157ace8cfa396
+      rejected right offset=48 score=4.80 — offset cost
+      rejected up    offset=78 score=50607.80 — 引出方向与引脚朝外方向相反 —— 桩线要穿过/绕过器件本体
+      rejected left  offset=66 score=1000000006.60 — stub crosses a non-target pin (hard reject)
+  ✓ J1:8 → GND [gnd]: up offset=18 end=(715.00,1160.00) score=-18.20
+      wire=f56c5b9d18ea73ab flag=31d233fd849a0316
+      rejected left  offset=66 score=6.60 — offset cost
+      rejected down  offset=78 score=50597.80 — 引出方向与引脚朝外方向相反 —— 桩线要穿过/绕过器件本体
+      rejected right offset=66 score=1000000006.60 — stub crosses a non-target pin (hard reject)
+  ✓ J1:9 → GND [gnd]: up offset=48 end=(735.00,1190.00) score=-15.20
+      wire=790f5f7da7c57ad2 flag=ab32ef516f6e94b4
+      rejected right offset=48 score=4.80 — offset cost
+      rejected down  offset=78 score=50597.80 — 引出方向与引脚朝外方向相反 —— 桩线要穿过/绕过器件本体
+      rejected left  offset=66 score=1000001006.60 — stub crosses a non-target pin (hard reject)
+  ✓ D3:A → GND [gnd]: right offset=18 end=(490.00,1370.00) score=-18.20
+      wire=da7b2d6ec46115a3 flag=a3bd69e8438ac122
+      rejected down  offset=18 score=-8.20 — offset cost
+      rejected up    offset=18 score=1.80 — offset cost
+      rejected left  offset=18 score=60501.80 — 引出方向与引脚朝外方向相反 —— 桩线要穿过/绕过器件本体
+  ✓ D2:GND → GND [gnd]: left offset=18 end=(385.00,1100.00) score=81.80
+      wire=f607385c61cff563 flag=2666b4017a6931d4
+      rejected right offset=18 score=60601.80 — 引出方向与引脚朝外方向相反 —— 桩线要穿过/绕过器件本体
+      rejected down  offset=18 score=2000000091.80 — stub crosses a non-target pin (hard reject)
+      rejected up    offset=18 score=2000000101.80 — stub crosses a non-target pin (hard reject)
+  ✓ R4:2 → GND [gnd]: right offset=36 end=(1045.00,1100.00) score=-16.40
+      wire=aad2a9c64a86600b flag=e14ab37baf799cd6
+      rejected down  offset=18 score=-8.20 — offset cost
+      rejected up    offset=18 score=1.80 — offset cost
+      rejected left  offset=18 score=61501.80 — 引出方向与引脚朝外方向相反 —— 桩线要穿过/绕过器件本体
+  ✓ R5:2 → GND [gnd]: right offset=18 end=(220.00,1370.00) score=-18.20
+      wire=732a9e0a4165498d flag=3764addb23e8aa78
+      rejected down  offset=18 score=-8.20 — offset cost
+      rejected up    offset=18 score=1.80 — offset cost
+      rejected left  offset=18 score=60501.80 — 引出方向与引脚朝外方向相反 —— 桩线要穿过/绕过器件本体
+reconcile ✗ net D1_N1: missing J1.A4B9, J1.B4A9, D1.2, D3.2, D2.5
+reconcile ✗ net 5V: missing D1.1
+reconcile ✗ net D1_N3: missing J1.A5, R4.1
+reconcile ✗ net D1_N4: missing J1.B5, R5.1
+reconcile ✗ net USB_DP3: missing J1.A6, J1.B6, D2.3, D2.4
+reconcile ✗ net USB_DM3: missing J1.A7, J1.B7, D2.1, D2.6
+reconcile ✗ net GND: missing J1.A1B12, J1.B1A12, J1.11, J1.10, J1.9, J1.8, D3.1, D2.2, R4.2, R5.2
+clusters ✗ 虚拟组 D2 ↔ J1 的图元重叠 56×11 —— 两组各自的 marker/桩线压在一起了
+clusters ✗ 虚拟组 J1 ↔ R4 的图元重叠 9×11 —— 两组各自的 marker/桩线压在一起了
+clusters: 8 个组、2 处硬伤 —— 详情与门禁跑 `easyeda sch clusters --strict`
+grouped ✓ g2 (usbc_ufp_power_or(D1)) — 6 件
+{
+  "ok": "applied-mismatch",
+  "blockId": "block.usbc_ufp_power_or",
+  "blockState": "ready",
+  "instance": "D1",
+  "origin": {
+    "requestedX": 180,
+    "requestedY": 1100,
+    "x": 180,
+    "y": 1100,
+    "relocated": false
+  },
+  "placed": [
+    {
+      "role": "D_OR",
+      "part": "diode.ss34_sma",
+      "designator": "D1",
+      "primitiveId": "57dde8849de2ee1e",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "009407eaaa604eb9b6f73cc3868f316d",
+      "lcsc": "C8678",
+      "x": 180,
+      "y": 1100,
+      "layout": "grid"
+    },
+    {
+      "role": "ESD",
+      "part": "esd.usblc6_2sc6",
+      "designator": "D2",
+      "primitiveId": "e32bdbd68b5ca9f7",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "1e5e214711544da8ba71fb2137ae703f",
+      "lcsc": "C2687116",
+      "x": 450,
+      "y": 1100,
+      "layout": "grid"
+    },
+    {
+      "role": "J",
+      "part": "conn.usb_c_16p",
+      "designator": "J1",
+      "primitiveId": "50d8295962b5f3f5",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "fafc5d2de09d4595b0cc7abedc0530e6",
+      "lcsc": "C9900012665",
+      "x": 720,
+      "y": 1100,
+      "layout": "grid"
+    },
+    {
+      "role": "R_CC1",
+      "part": "res.5k1_0402",
+      "designator": "R4",
+      "primitiveId": "9c66849d16f9be98",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "ef1f93374e0c4079b48a2d1a3cec8f6b",
+      "lcsc": "C25905",
+      "x": 990,
+      "y": 1100,
+      "layout": "grid"
+    },
+    {
+      "role": "R_CC2",
+      "part": "res.5k1_0402",
+      "designator": "R5",
+      "primitiveId": "ad866c82fe8fa5c2",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "ef1f93374e0c4079b48a2d1a3cec8f6b",
+      "lcsc": "C25905",
+      "x": 180,
+      "y": 1370,
+      "layout": "grid"
+    },
+    {
+      "role": "TVS",
+      "part": "tvs.smaj5v0_sma",
+      "designator": "D3",
+      "primitiveId": "35208f7611a86179",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "ab97a3eab36340a1abf8e0b21c8b4d22",
+      "lcsc": "C1979411",
+      "x": 450,
+      "y": 1370,
+      "layout": "grid"
+    }
+  ],
+  "nets": [
+    {
+      "net": "D1_N1",
+      "kind": "netport",
+      "members": [
+        "J1:VBUS*",
+        "D1:A",
+        "D3:K",
+        "D2:VBUS"
+      ],
+      "roles": [
+        "J.VBUS*",
+        "D_OR.A",
+        "TVS.K",
+        "ESD.VBUS"
+      ]
+    },
+    {
+      "net": "5V",
+      "kind": "power",
+      "port": "5V_BUS",
+      "bound": true,
+      "members": [
+        "D1:K"
+      ],
+      "roles": [
+        "D_OR.K"
+      ]
+    },
+    {
+      "net": "D1_N3",
+      "kind": "netport",
+      "members": [
+        "J1:CC1",
+        "R4:1"
+      ],
+      "roles": [
+        "J.CC1",
+        "R_CC1.1"
+      ]
+    },
+    {
+      "net": "D1_N4",
+      "kind": "netport",
+      "members": [
+        "J1:CC2",
+        "R5:1"
+      ],
+      "roles": [
+        "J.CC2",
+        "R_CC2.1"
+      ]
+    },
+    {
+      "net": "USB_DP3",
+      "kind": "netport",
+      "port": "USB_DP",
+      "bound": true,
+      "members": [
+        "J1:DP1",
+        "J1:DP2",
+        "D2:I/O2*"
+      ],
+      "roles": [
+        "J.DP1",
+        "J.DP2",
+        "ESD.I/O2*"
+      ]
+    },
+    {
+      "net": "USB_DM3",
+      "kind": "netport",
+      "port": "USB_DM",
+      "bound": true,
+      "members": [
+        "J1:DN1",
+        "J1:DN2",
+        "D2:I/O1*"
+      ],
+      "roles": [
+        "J.DN1",
+        "J.DN2",
+        "ESD.I/O1*"
+      ]
+    },
+    {
+      "net": "GND",
+      "kind": "gnd",
+      "port": "GND",
+      "bound": true,
+      "members": [
+        "J1:GND*",
+        "J1:EP*",
+        "D3:A",
+        "D2:GND",
+        "R4:2",
+        "R5:2"
+      ],
+      "roles": [
+        "J.GND*",
+        "J.EP*",
+        "TVS.A",
+        "ESD.GND",
+        "R_CC1.2",
+        "R_CC2.2"
+      ]
+    }
+  ],
+  "warnings": [
+    "虚拟组 D2 ↔ J1 的图元重叠 56×11 —— 两组各自的 marker/桩线压在一起了",
+    "虚拟组 J1 ↔ R4 的图元重叠 9×11 —— 两组各自的 marker/桩线压在一起了"
+  ],
+  "unconsumedConstraints": [
+    "pcb_layout",
+    "placement",
+    "signals"
+  ],
+  "note": "block-apply v1 executes parts/internal_nets/ports only; the listed constraint maps were NOT applied",
+  "groupId": "g2",
+  "groupName": "usbc_ufp_power_or(D1)",
+  "diffs": [
+    {
+      "net": "D1_N1",
+      "missing": [
+        "J1.A4B9",
+        "J1.B4A9",
+        "D1.2",
+        "D3.2",
+        "D2.5"
+      ]
+    },
+    {
+      "net": "5V",
+      "missing": [
+        "D1.1"
+      ]
+    },
+    {
+      "net": "D1_N3",
+      "missing": [
+        "J1.A5",
+        "R4.1"
+      ]
+    },
+    {
+      "net": "D1_N4",
+      "missing": [
+        "J1.B5",
+        "R5.1"
+      ]
+    },
+    {
+      "net": "USB_DP3",
+      "missing": [
+        "J1.A6",
+        "J1.B6",
+        "D2.3",
+        "D2.4"
+      ]
+    },
+    {
+      "net": "USB_DM3",
+      "missing": [
+        "J1.A7",
+        "J1.B7",
+        "D2.1",
+        "D2.6"
+      ]
+    },
+    {
+      "net": "GND",
+      "missing": [
+        "J1.A1B12",
+        "J1.B1A12",
+        "J1.11",
+        "J1.10",
+        "J1.9",
+        "J1.8",
+        "D3.1",
+        "D2.2",
+        "R4.2",
+        "R5.2"
+      ]
+    }
+  ]
+}
+block-apply: 7 net(s) do not match the plan — run `easyeda sch bridge-check` and fix before trusting this instance

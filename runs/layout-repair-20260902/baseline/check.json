@@ -1,0 +1,148 @@
+{
+  "id": "req_187732",
+  "ok": true,
+  "result": {
+    "passed": false,
+    "summary": {
+      "floatingPins": 2,
+      "componentsWithFloating": 1,
+      "geomNetMismatches": 0,
+      "netMarkerMismatches": 0,
+      "multiNetWires": 0,
+      "wireCrossings": 0,
+      "wireOverPins": 0,
+      "zeroLengthWires": 0,
+      "danglingWires": 1,
+      "duplicateNetMarkers": 0,
+      "titleblockOverlaps": 0,
+      "markerOverlaps": 2,
+      "missingPartitions": 3,
+      "noteOutsideZones": 0,
+      "redundantNetMarkers": 0,
+      "foldedNetLabels": 0,
+      "reversedNetFlags": 0,
+      "polarityConventionOutliers": 0,
+      "total": 7
+    },
+    "findings": [
+      {
+        "type": "floating-pin",
+        "level": "warn",
+        "designator": "PROTDW2",
+        "primitiveId": "feab1406658c3375",
+        "pins": [
+          "1",
+          "4"
+        ],
+        "pinDetails": [
+          {
+            "number": "1",
+            "name": "OD",
+            "x": 225,
+            "y": 680
+          },
+          {
+            "number": "4",
+            "name": "NC",
+            "x": 295,
+            "y": 660
+          }
+        ],
+        "count": 2,
+        "message": "2 个引脚悬空(无导线连接,未打 NC 标识)"
+      },
+      {
+        "type": "dangling-wire",
+        "level": "warn",
+        "wirePrimitiveId": "dc8ae097f5f05132",
+        "message": "疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除)",
+        "at": {
+          "x": 310,
+          "y": 765
+        }
+      },
+      {
+        "type": "marker-overlap",
+        "level": "warn",
+        "primitiveId": "0295ff5ea41d23f7",
+        "markerNet": "CSI",
+        "message": "CSI(netport) 与 VDD(netflag) 视觉重叠 28.50×11.00 — 换方向/offset 或 stagger",
+        "componentType": "netport",
+        "primitiveIds": [
+          "0295ff5ea41d23f7",
+          "ffff9be0e4442192"
+        ],
+        "bbox": {
+          "minX": 294.5,
+          "minY": 664.5,
+          "maxX": 351.5,
+          "maxY": 675.5
+        },
+        "other": {
+          "primitiveId": "ffff9be0e4442192",
+          "componentType": "netflag",
+          "net": "VDD",
+          "bbox": {
+            "minX": 297,
+            "minY": 664.5,
+            "maxX": 325.5,
+            "maxY": 682
+          }
+        },
+        "overlapX": 28.5,
+        "overlapY": 11
+      },
+      {
+        "type": "marker-overlap",
+        "level": "warn",
+        "designator": "PROTFS83",
+        "primitiveId": "4e34efe25889f4a0",
+        "message": "PROTFS83(part) 与 FET_MID(netport) 视觉重叠 51.00×11.00 — 换方向/offset 或 stagger",
+        "componentType": "part",
+        "primitiveIds": [
+          "4e34efe25889f4a0",
+          "b353c31375a0b978"
+        ],
+        "bbox": {
+          "minX": 469.5,
+          "minY": 754.5,
+          "maxX": 550.5,
+          "maxY": 795.5
+        },
+        "other": {
+          "primitiveId": "b353c31375a0b978",
+          "componentType": "netport",
+          "net": "FET_MID",
+          "bbox": {
+            "minX": 499.5,
+            "minY": 769.5,
+            "maxX": 580.5,
+            "maxY": 780.5
+          }
+        },
+        "overlapX": 51,
+        "overlapY": 11
+      },
+      {
+        "type": "missing-partition",
+        "level": "warn",
+        "count": 6,
+        "message": "6 个器件的页没有功能分区框 — 铁律#15:`sch zones set` → `sch zone-draw`(整纸版式 `--mode partition`);交付前必须有"
+      },
+      {
+        "type": "missing-note",
+        "level": "warn",
+        "count": 6,
+        "message": "6 个器件的页没有电路说明(区名标签不算)— 每模块 1~3 行 `sch note`:作用 + 关键参数 + 设计要点;交付前必须有"
+      },
+      {
+        "type": "missing-titleblock",
+        "level": "warn",
+        "count": 3,
+        "message": "图签未填:Name(图纸标题)、Drawed(设计者)、Description(图纸说明) — 交付图必须能认领(`sch titleblock --data '{\"Name\":\"…\",\"Drawed\":\"…\"}'`)"
+      }
+    ]
+  },
+  "type": "response",
+  "version": "v1"
+}

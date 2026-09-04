@@ -1,0 +1,2 @@
+sch bridge-check: 0 problem tree(s) — 0 wire-bridge(s) (real short), 0 orphan-stub(s) (dangling stub), 0 orphan-flag(s) (flag on no wire), 0 orphan-tree(s) (tree touching no pin) across 28 wire tree(s)
+✓ no bridges or orphans

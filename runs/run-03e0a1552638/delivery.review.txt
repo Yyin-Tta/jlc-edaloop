@@ -1,0 +1,8 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 14 blocks, status=PASS
+
+- [CRITIC_INTERFACE_PROTECTION@ch340n1] CH340N 的 UD+/UD- 差分对未绑定到 USB_DP/USB_DM 网络(ports_binding 中缺失)，USB 数据链路实际悬空，烧录/串口功能不可用；同时 usb_c1 块描述称“仅供电不传数据”，与实际使用 USB 数据的设计意图矛盾 | 建议: 在 ch340n1 的 ports_binding 中补充 UD+→USB_DP、UD-→USB_DM，并修正 usb_c1 块描述为供电+数据模式；确认差分对 90Ω 阻抗与等长约束
+- [CRITIC_POWER_INTEGRITY@usb_c1] USB-C 与 5V 端子(j5v1)两路输入直接共轨(均绑到 5V 网络)，但目录无肖特基/理想二极管，未落实防倒灌 ORing，端子供电时可能向 USB-C 口倒灌 | 建议: 人工补充理想二极管(如 LM66100)或肖特基(PMEG/SS34)分别串入两路输入后再汇合；若为减少压损选理想二极管，注意 USB-C 5V 经二极管后进入 AMS1117 仍满足压差
+- [CRITIC_PULL_RESISTORS@ch340n1] CH340N 的 V3 引脚内部 3.3V 输出仅接了 100nF(c_ch340_v3)，但该电容网络 CH340_V3 未与 CH340N 块任何端口绑定，V3 可能实际悬空 | 建议: 在 ch340n1 的 ports_binding 中补充 V3→CH340_V3，确保 V3 引脚按数据表外接电容接地
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

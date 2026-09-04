@@ -1,0 +1,43 @@
+{
+ "status": "PASS",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "6715b60f8754",
+   "gate_verdict": "pass",
+   "findings": [
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:1 个块缺 v_supply 区间或单边(ldo_3v3)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='5V', pin='', xy='') evidence='轨 5V 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/2(覆盖率 0%),缺 i_typ:chg_tp4056, ldo_3v3' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='VBAT', pin='', xy='') evidence='轨 VBAT 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/1(覆盖率 0%),缺 i_typ:boost_mt3608' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/1(覆盖率 0%),缺 i_typ:mcu_esp32s3' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='蓝色用户 LED ×1:目录无 LED 器件/块' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='I2C 2x4 排针扩展(3V3/GND/SDA/SCL/INT/备用):目录无排针连接器块,且 MCU 块未引出 I2C/INT 端口' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='18650 电池座:目录无电池座/电池连接器块' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='TP4056 外围电容(VIN 100nF+10µF、BAT 10µF)与 AMS1117 输入输出电容:目录无标准 capacitor-std 通道可选值表' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='[自由拓扑:lowvolt-alarm] TL431 基准比较:SENSE 分压自 VBAT(阈值由外分压定,见 sizing:divider),ALM 下拉点亮红 LED' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True"
+   ],
+   "feedback": "",
+   "halted": ""
+  }
+ ],
+ "delivery": {
+  "svg": "E:\\jlc-edaloop\\runs\\run-f3b686d848b0\\delivery-P1.svg",
+  "svg_pages": [
+   "E:\\jlc-edaloop\\runs\\run-f3b686d848b0\\delivery-P1.svg",
+   "E:\\jlc-edaloop\\runs\\run-f3b686d848b0\\delivery-P2.svg",
+   "E:\\jlc-edaloop\\runs\\run-f3b686d848b0\\delivery-P3.svg",
+   "E:\\jlc-edaloop\\runs\\run-f3b686d848b0\\delivery-P4.svg",
+   "E:\\jlc-edaloop\\runs\\run-f3b686d848b0\\delivery-P5.svg",
+   "E:\\jlc-edaloop\\runs\\run-f3b686d848b0\\delivery-P6.svg"
+  ],
+  "netlist": "runs\\run-f3b686d848b0\\delivery.net.json",
+  "netlist_sha256_16": "75e58fd85ec76045",
+  "bom": "runs\\run-f3b686d848b0\\delivery.bom.json",
+  "bom_total": 5.6996,
+  "swap": "runs\\run-f3b686d848b0\\delivery.swap.txt",
+  "sizing": "runs\\run-f3b686d848b0\\delivery.sizing.txt",
+  "sizing_count": 8,
+  "review": "runs\\run-f3b686d848b0\\delivery.review.txt",
+  "review_findings": 3
+ }
+}

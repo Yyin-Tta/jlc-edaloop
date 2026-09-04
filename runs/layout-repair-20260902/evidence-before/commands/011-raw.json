@@ -1,0 +1,20 @@
+{
+  "ok": true,
+  "totalNets": 9,
+  "singlePinNets": [
+    {
+      "net": "$43N122",
+      "pins": 1,
+      "parts": [
+        "PROTFS83"
+      ]
+    },
+    {
+      "net": "GATE_OD",
+      "pins": 1,
+      "parts": [
+        "PROTFS83"
+      ]
+    }
+  ]
+}

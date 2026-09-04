@@ -1,0 +1,208 @@
+{
+  "ok": "applied",
+  "blockId": "block.usbc_ufp_power_or",
+  "blockState": "ready",
+  "instance": "D1",
+  "origin": {
+    "requestedX": 150,
+    "requestedY": 300,
+    "x": 150,
+    "y": 300,
+    "relocated": false
+  },
+  "placed": [
+    {
+      "role": "D_OR",
+      "part": "diode.ss34_sma",
+      "designator": "D1",
+      "primitiveId": "45d21083306a9629",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "009407eaaa604eb9b6f73cc3868f316d",
+      "lcsc": "C8678",
+      "x": 150,
+      "y": 300,
+      "layout": "grid"
+    },
+    {
+      "role": "ESD",
+      "part": "esd.usblc6_2sc6",
+      "designator": "D3",
+      "primitiveId": "71663547f1fc52d6",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "1e5e214711544da8ba71fb2137ae703f",
+      "lcsc": "C2687116",
+      "x": 420,
+      "y": 300,
+      "layout": "grid"
+    },
+    {
+      "role": "J",
+      "part": "conn.usb_c_16p",
+      "designator": "J1",
+      "primitiveId": "8cfdbeec2eaf193d",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "fafc5d2de09d4595b0cc7abedc0530e6",
+      "lcsc": "C9900012665",
+      "x": 690,
+      "y": 300,
+      "layout": "grid"
+    },
+    {
+      "role": "R_CC1",
+      "part": "res.5k1_0402",
+      "designator": "R1",
+      "primitiveId": "c3df64287d8d594d",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "ef1f93374e0c4079b48a2d1a3cec8f6b",
+      "lcsc": "C25905",
+      "x": 960,
+      "y": 300,
+      "layout": "grid"
+    },
+    {
+      "role": "R_CC2",
+      "part": "res.5k1_0402",
+      "designator": "R2",
+      "primitiveId": "57451a67757cf81e",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "ef1f93374e0c4079b48a2d1a3cec8f6b",
+      "lcsc": "C25905",
+      "x": 150,
+      "y": 570,
+      "layout": "grid"
+    },
+    {
+      "role": "TVS",
+      "part": "tvs.smaj5v0_sma",
+      "designator": "D4",
+      "primitiveId": "b40ae59ba863c714",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "fbafe715cf2a4ad58ba384c7d477da09",
+      "lcsc": "C143135",
+      "x": 420,
+      "y": 570,
+      "layout": "grid"
+    }
+  ],
+  "nets": [
+    {
+      "net": "D1_N1",
+      "kind": "netport",
+      "members": [
+        "J1:VBUS*",
+        "D1:A",
+        "D4:K",
+        "D3:VBUS"
+      ],
+      "roles": [
+        "J.VBUS*",
+        "D_OR.A",
+        "TVS.K",
+        "ESD.VBUS"
+      ]
+    },
+    {
+      "net": "5V",
+      "kind": "power",
+      "port": "5V_BUS",
+      "bound": true,
+      "members": [
+        "D1:K"
+      ],
+      "roles": [
+        "D_OR.K"
+      ]
+    },
+    {
+      "net": "D1_N3",
+      "kind": "netport",
+      "members": [
+        "J1:CC1",
+        "R1:1"
+      ],
+      "roles": [
+        "J.CC1",
+        "R_CC1.1"
+      ]
+    },
+    {
+      "net": "D1_N4",
+      "kind": "netport",
+      "members": [
+        "J1:CC2",
+        "R2:1"
+      ],
+      "roles": [
+        "J.CC2",
+        "R_CC2.1"
+      ]
+    },
+    {
+      "net": "USB_DP",
+      "kind": "netport",
+      "port": "USB_DP",
+      "bound": true,
+      "members": [
+        "J1:DP1",
+        "J1:DP2",
+        "D3:I/O2*"
+      ],
+      "roles": [
+        "J.DP1",
+        "J.DP2",
+        "ESD.I/O2*"
+      ]
+    },
+    {
+      "net": "USB_DM",
+      "kind": "netport",
+      "port": "USB_DM",
+      "bound": true,
+      "members": [
+        "J1:DN1",
+        "J1:DN2",
+        "D3:I/O1*"
+      ],
+      "roles": [
+        "J.DN1",
+        "J.DN2",
+        "ESD.I/O1*"
+      ]
+    },
+    {
+      "net": "GND",
+      "kind": "gnd",
+      "port": "GND",
+      "bound": true,
+      "members": [
+        "J1:GND*",
+        "J1:EP*",
+        "D4:A",
+        "D3:GND",
+        "R1:2",
+        "R2:2"
+      ],
+      "roles": [
+        "J.GND*",
+        "J.EP*",
+        "TVS.A",
+        "ESD.GND",
+        "R_CC1.2",
+        "R_CC2.2"
+      ]
+    }
+  ],
+  "warnings": [
+    "虚拟组 D3 ↔ J1 的图元重叠 56×11 —— 两组各自的 marker/桩线压在一起了",
+    "虚拟组 J1 ↔ R1 的图元重叠 3×11 —— 两组各自的 marker/桩线压在一起了"
+  ],
+  "unconsumedConstraints": [
+    "pcb_layout",
+    "placement",
+    "signals"
+  ],
+  "note": "block-apply v1 executes parts/internal_nets/ports only; the listed constraint maps were NOT applied",
+  "groupId": "g1",
+  "groupName": "usbc_ufp_power_or(D1)",
+  "reconciled": true
+}

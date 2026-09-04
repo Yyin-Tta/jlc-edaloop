@@ -1,0 +1,19 @@
+{
+  "id": "req_588396",
+  "type": "response",
+  "version": "v1",
+  "createdAt": "2026-08-25T13:17:29.9400066Z",
+  "ok": true,
+  "result": {
+    "value": "{\"nrect\":4,\"ntext\":4,\"probe\":[[\"rect err\",\"TypeError: rects[0].getState is not a function\"],[\"text err\",\"TypeError: texts[0].getState is not a function\"]]}"
+  },
+  "context": {
+    "projectUuid": "7c0361b40cbf4b60b68383bcfa69f362",
+    "projectName": "edaloop",
+    "documentUuid": "b44a9c749a2fc16c",
+    "documentType": "schematic",
+    "tabId": "b44a9c749a2fc16c@7c0361b40cbf4b60b68383bcfa69f362"
+  },
+  "seq": 30718,
+  "seqAbandoned": 0
+}

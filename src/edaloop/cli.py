@@ -25,13 +25,39 @@ def build_parser() -> argparse.ArgumentParser:
     p_run.add_argument("--dry-run", action="store_true", help="只跑 plan+validate,不落图(无 EasyEDA)")
     p_run.add_argument("--answers", default=None, help="questions 答案文件(JSON: {Q1: 'A 方案...', ...})回灌主链路")
     p_run.add_argument("--ir", default=None, help="refine 产出的 IR-v2 JSON 路径(跳过解析,直接用增量 IR 跑)")
+    p_run.add_argument("--plan", default=None, help="重放 BlockPlan JSON 或包含 round-plan 事件的 audit.jsonl")
+    p_run.add_argument("--project", default=None, help="按 EasyEDA 工程名/uuid 路由真机写操作")
+    p_run.add_argument("--window", default=None, help="按 EasyEDA windowId 路由；优先于 --project")
 
     p_ingest = sub.add_parser("ingest", help="M6:datasheet PDF 入库(提取 + 交叉校验)")
     p_ingest.add_argument("pdf", nargs="+", help="datasheet PDF 路径(可多个)")
 
     p_eval = sub.add_parser("eval", help="跑 evals 金标准集")
     p_eval.add_argument("--subset", default=None, help="子集:w1-retrieval / w3-loop")
+    p_eval.add_argument(
+        "--offline",
+        action="store_true",
+        help="离线评测:跳过需要外部 LLM 的子项,保留 skipped 证据",
+    )
     p_eval.add_argument("--tier", default=None, help="w3-loop 层级:easy(4)/medium(5)/hard(5) 难度层,smoke(3~12min)/daily(8)/rest(全量减 daily,发版增量) 回归级,all(真全量重跑);electrical(P4-3 注入式电气缺陷样本);params(P4-4 参数核对闭环:错值拦截+电源块覆盖+critic 捕获);refine(P4-5 验收规格+功能覆盖+refine 转化);都不走 E2E")
+
+    p_evidence = sub.add_parser(
+        "evidence",
+        aliases=["collect", "collect-l0"],
+        help="L0 只读取证:health/pages/逐页检查+网表,写原子 manifest",
+    )
+    p_evidence.add_argument(
+        "--out",
+        default=None,
+        help="输出目录(默认 runs/evidence/l0-<timestamp>-<id>)",
+    )
+    p_evidence.add_argument("--project", default=None, help="按工程名/uuid 路由")
+    p_evidence.add_argument("--window", default=None, help="按 EasyEDA windowId 路由")
+    p_evidence.add_argument(
+        "--stop-on-health-failure",
+        action="store_true",
+        help="health 失败后跳过逐页探针(默认仍继续取证)",
+    )
 
     p_q = sub.add_parser("questions", help="弱门禁确认队列:DesignIR open_questions + uncovered 项")
     p_q.add_argument("input", help="需求文件路径(md/txt)")
@@ -77,7 +103,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_plan.add_argument("--top-k", type=int, default=12)
     p_plan.add_argument("--db", default=None)
 
-    p_apply = sub.add_parser("apply", help="M3b:BlockPlan → block-apply 落图 → sch gate(真机)")
+    p_apply = sub.add_parser(
+        "apply",
+        help="M3b 低层实验入口:落图+gate 诊断(不产生工程 PASS;交付请用 run)",
+    )
     p_apply.add_argument("plan", help="plan 命令产出的 BlockPlan JSON 路径")
     p_apply.add_argument("--seeds", default="seeds/blocks.jsonl")
 
@@ -154,19 +183,52 @@ def _cmd_eval(args: argparse.Namespace) -> int:
             # P4-4 参数核对闭环 harness(错值拦截/干净零误杀/电源块覆盖/来源表/critic)
             from edaloop.evals_params import run_params_eval
 
-            summary = run_params_eval()
+            summary = run_params_eval(offline=args.offline)
             return 0 if summary["go"] else 1
         if args.tier == "refine":
             # P4-5 验收规格/功能覆盖/refine 闭环 harness(生成率/可执行率/注入/零误伤/转化)
             from edaloop.evals_refine import run_refine_eval
 
-            summary = run_refine_eval()
+            summary = run_refine_eval(offline=args.offline)
             return 0 if summary["go"] else 1
         from edaloop.evals_w3 import run_w3_loop_eval
 
         summary = run_w3_loop_eval(tier=args.tier)
         return 0 if summary["go3"] and summary["go5"] else 1
     raise NotImplementedError(f"eval subset '{args.subset}' 尚未实现")
+
+
+def _cmd_evidence(args: argparse.Namespace) -> int:
+    from edaloop.evidence import collect_l0
+    from edaloop.generate.adapter import EasyedaAdapter
+
+    adapter = EasyedaAdapter(project=args.project)
+    if args.window:
+        # An explicit window is a routing choice, not a schematic mutation.
+        # Pin it before collection so adapter discovery cannot select another
+        # open project while the probes are running.
+        adapter._window = args.window
+        adapter._window_resolved = True
+    manifest = collect_l0(
+        args.out,
+        adapter=adapter,
+        project=args.project,
+        window=args.window,
+        stop_on_health_failure=args.stop_on_health_failure,
+    )
+    summaries = manifest.get("summaries") or {}
+    print(
+        f"evidence: {manifest.get('status')} pages={summaries.get('pageCount', 0)} "
+        f"probes={summaries.get('probeCount', 0)}"
+    )
+    if summaries.get("overlapPages"):
+        print(f"  overlap pages: {', '.join(summaries['overlapPages'])}")
+    if summaries.get("blankSpacePages"):
+        print(f"  high-blank pages: {', '.join(summaries['blankSpacePages'])}")
+    print(f"manifest -> {manifest.get('manifestPath')}")
+    # A complete artifact containing a failing schematic is still useful
+    # evidence; only transport/collection failure makes the command fail.
+    return 0 if manifest.get("complete") and manifest.get("healthOk") else 1
 
 
 def _cmd_plan(args: argparse.Namespace) -> int:
@@ -198,13 +260,19 @@ def _cmd_apply(args: argparse.Namespace) -> int:
     plan = BlockPlan.model_validate_json(Path(args.plan).read_text(encoding="utf-8"))
     summary = stage_apply(plan, catalog=load_catalog(args.seeds))
     print(f"gate verdict: {summary['gate_verdict']}")
+    if not summary.get("verification", {}).get("verified", False):
+        print("  unverified: apply 绕过终态布局/阶段契约/交付检查;请使用 edaloop run")
     for r in summary["results"]:
         if r["kind"] == "block-apply":
             print(f"  apply {r.get('instance')}: {r.get('status')}")
     if summary["apply_failures"]:
         print(f"apply failures: {len(summary['apply_failures'])}")
     print(f"audit -> {summary['audit_dir']}")
-    return 0 if summary["gate_verdict"] == "pass" and not summary["apply_failures"] else 1
+    return 0 if (
+        summary.get("verification", {}).get("verified", False)
+        and summary["gate_verdict"] == "pass"
+        and not summary["apply_failures"]
+    ) else 1
 
 
 def _cmd_run(args: argparse.Namespace) -> int:
@@ -235,12 +303,20 @@ def _cmd_run(args: argparse.Namespace) -> int:
         answers=answers,
         ir_path=ir_path,
         retry_queries=[r.get("query") for r in (retry_queries or []) if r.get("query")],
+        project=args.project,
+        window=args.window,
+        plan_path=args.plan,
     )
     print(f"run {ir.id}: status={result.status}")
+    if getattr(result, "review_required", False):
+        print("  layout review: required (LAYOUT_REVIEW_REQUIRED)")
+    if getattr(result, "failure_class", ""):
+        print(f"  failure class: {result.failure_class}")
     for r in result.rounds:
         blocking = [f for f in r.findings if not f.weak]
         print(
             f"  round {r.round_no}: gate={r.gate_verdict} blocking={len(blocking)}"
+            + (f" class={r.failure_class}" if getattr(r, "failure_class", "") else "")
             + (f" halted={r.halted}" if r.halted else "")
         )
     if result.status == "PASS" and result.converged_round:
@@ -468,6 +544,8 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_retrieve(args)
     if args.command == "eval":
         return _cmd_eval(args)
+    if args.command in {"evidence", "collect", "collect-l0"}:
+        return _cmd_evidence(args)
     if args.command == "plan":
         return _cmd_plan(args)
     if args.command == "apply":

@@ -1,0 +1,32 @@
+[watchdog 04:58:57] attempt 1 开跑
+{'req': 'req-01-esp32s3-mini-2layer.md', 'status': 'PASS', 'rounds': 1, 'n_rounds': 1}
+{'req': 'req-08-liion-protection-freeform.md', 'status': 'PASS', 'rounds': 1, 'n_rounds': 1}
+{'req': 'req-11-isolated-dido-module.md', 'status': 'PASS', 'rounds': 1, 'n_rounds': 1}
+{
+ "rows": [
+  {
+   "req": "req-01-esp32s3-mini-2layer.md",
+   "status": "PASS",
+   "rounds": 1,
+   "n_rounds": 1
+  },
+  {
+   "req": "req-08-liion-protection-freeform.md",
+   "status": "PASS",
+   "rounds": 1,
+   "n_rounds": 1
+  },
+  {
+   "req": "req-11-isolated-dido-module.md",
+   "status": "PASS",
+   "rounds": 1,
+   "n_rounds": 1
+  }
+ ],
+ "pass@3": 1.0,
+ "pass@5": 1.0,
+ "go3": true,
+ "go5": true
+}
+[watchdog 05:19:07] attempt 1 exit=0 进度 3/3
+[watchdog] 全部 PASS,收工

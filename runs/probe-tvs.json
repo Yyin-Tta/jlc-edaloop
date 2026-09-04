@@ -1,0 +1,220 @@
+placed D1     diode.ss34_sma     @ 180,300 [grid]
+placed D2     esd.usblc6_2sc6    @ 450,300 [grid]
+placed J1     conn.usb_c_16p     @ 720,300 [grid]
+placed R4     res.5k1_0402       @ 990,300 [grid]
+placed R5     res.5k1_0402       @ 180,570 [grid]
+adopt ? D3: 顺序证据作废:连接器在这中间放弃了 1 个动作(最近被放弃的: req_23445, req_144195, req_760, req_3539, req_3643, req_8867, req_8874, req_8886, req_8910, req_8934, req_8963, req_30117, req_30216)——被放弃的 handler 仍在跑,**它的效果可能稍后才落地**,所以这段时间里关于那次 place 的任何结论都不成立 —— 所以「(450,570) ±5 附近没有新器件」不构成任何证据,这次 place 到底落没落地**无法判断**
+  证据档:可证(连接器 FIFO 顺序序号)—— 连接器在这中间放弃了 1 个动作(最近被放弃的: req_23445, req_144195, req_760, req_3539, req_3643, req_8867, req_8874, req_8886, req_8910, req_8934, req_8963, req_30117, req_30216)——被放弃的 handler 仍在跑,**它的效果可能稍后才落地**,所以这段时间里关于那次 place 的任何结论都不成立
+  判不了时的下一步(按顺序,每条都能直接跑):
+    1) easyeda sch save                 # 先把已经落地的东西钉住
+    2) 完全退出并重启 EasyEDA            # 清掉连接器 action 队列的 wedge,此后回读才可信
+    3) easyeda sch list                 # 看 (450,570) ±5 有没有多出来的器件
+    4) 有 → easyeda sch prim-delete --ids <那个 id> 清掉再重跑;没有 → 这次 place 确实没落地,直接重跑
+rollback ✗ PARTIAL STATE: no reliable primitiveId for D3: 顺序证据作废:连接器在这中间放弃了 1 个动作(最近被放弃的: req_23445, req_144195, req_760, req_3539, req_3643, req_8867, req_8874, req_8886, req_8910, req_8934, req_8963, req_30117, req_30216)——被放弃的 handler 仍在跑,**它的效果可能稍后才落地**,所以这段时间里关于那次 place 的任何结论都不成立 —— 所以「(450,570) ±5 附近没有新器件」不构成任何证据,这次 place 到底落没落地**无法判断**; delete error: 1576797d2719ea20: schematic.component.delete reported deleted=false; 1751389b50250d23: schematic.component.delete reported deleted=false; 2f8d7b5fe34ddb67: schematic.component.delete reported deleted=false; wiring was not started
+{
+  "ok": "failed-partial",
+  "blockId": "block.usbc_ufp_power_or",
+  "blockState": "ready",
+  "instance": "D1",
+  "origin": {
+    "requestedX": 180,
+    "requestedY": 300,
+    "x": 180,
+    "y": 300,
+    "relocated": false
+  },
+  "placed": [
+    {
+      "role": "D_OR",
+      "part": "diode.ss34_sma",
+      "designator": "D1",
+      "primitiveId": "1751389b50250d23",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "009407eaaa604eb9b6f73cc3868f316d",
+      "lcsc": "C8678",
+      "x": 180,
+      "y": 300,
+      "layout": "grid"
+    },
+    {
+      "role": "ESD",
+      "part": "esd.usblc6_2sc6",
+      "designator": "D2",
+      "primitiveId": "2f8d7b5fe34ddb67",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "1e5e214711544da8ba71fb2137ae703f",
+      "lcsc": "C2687116",
+      "x": 450,
+      "y": 300,
+      "layout": "grid"
+    },
+    {
+      "role": "J",
+      "part": "conn.usb_c_16p",
+      "designator": "J1",
+      "primitiveId": "1576797d2719ea20",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "fafc5d2de09d4595b0cc7abedc0530e6",
+      "lcsc": "C9900012665",
+      "x": 720,
+      "y": 300,
+      "layout": "grid"
+    },
+    {
+      "role": "R_CC1",
+      "part": "res.5k1_0402",
+      "designator": "R4",
+      "primitiveId": "7943754be7549109",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "ef1f93374e0c4079b48a2d1a3cec8f6b",
+      "lcsc": "C25905",
+      "x": 990,
+      "y": 300,
+      "layout": "grid"
+    },
+    {
+      "role": "R_CC2",
+      "part": "res.5k1_0402",
+      "designator": "R5",
+      "primitiveId": "f225b0c00ed03213",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "ef1f93374e0c4079b48a2d1a3cec8f6b",
+      "lcsc": "C25905",
+      "x": 180,
+      "y": 570,
+      "layout": "grid"
+    }
+  ],
+  "nets": [
+    {
+      "net": "D1_N1",
+      "kind": "netport",
+      "members": [
+        "J1:VBUS*",
+        "D1:A",
+        "D3:K",
+        "D2:VBUS"
+      ],
+      "roles": [
+        "J.VBUS*",
+        "D_OR.A",
+        "TVS.K",
+        "ESD.VBUS"
+      ]
+    },
+    {
+      "net": "5V",
+      "kind": "power",
+      "port": "5V_BUS",
+      "bound": true,
+      "members": [
+        "D1:K"
+      ],
+      "roles": [
+        "D_OR.K"
+      ]
+    },
+    {
+      "net": "D1_N3",
+      "kind": "netport",
+      "members": [
+        "J1:CC1",
+        "R4:1"
+      ],
+      "roles": [
+        "J.CC1",
+        "R_CC1.1"
+      ]
+    },
+    {
+      "net": "D1_N4",
+      "kind": "netport",
+      "members": [
+        "J1:CC2",
+        "R5:1"
+      ],
+      "roles": [
+        "J.CC2",
+        "R_CC2.1"
+      ]
+    },
+    {
+      "net": "USB_DP",
+      "kind": "netport",
+      "port": "USB_DP",
+      "bound": true,
+      "members": [
+        "J1:DP1",
+        "J1:DP2",
+        "D2:I/O2*"
+      ],
+      "roles": [
+        "J.DP1",
+        "J.DP2",
+        "ESD.I/O2*"
+      ]
+    },
+    {
+      "net": "USB_DM",
+      "kind": "netport",
+      "port": "USB_DM",
+      "bound": true,
+      "members": [
+        "J1:DN1",
+        "J1:DN2",
+        "D2:I/O1*"
+      ],
+      "roles": [
+        "J.DN1",
+        "J.DN2",
+        "ESD.I/O1*"
+      ]
+    },
+    {
+      "net": "GND",
+      "kind": "gnd",
+      "port": "GND",
+      "bound": true,
+      "members": [
+        "J1:GND*",
+        "J1:EP*",
+        "D3:A",
+        "D2:GND",
+        "R4:2",
+        "R5:2"
+      ],
+      "roles": [
+        "J.GND*",
+        "J.EP*",
+        "TVS.A",
+        "ESD.GND",
+        "R_CC1.2",
+        "R_CC2.2"
+      ]
+    }
+  ],
+  "unconsumedConstraints": [
+    "pcb_layout",
+    "placement",
+    "signals"
+  ],
+  "note": "block-apply v1 executes parts/internal_nets/ports only; the listed constraint maps were NOT applied",
+  "failure": "place D3 (tvs.smaj5v0_sma): schematic.component.place failed: connector did not respond",
+  "partialState": true,
+  "rollback": {
+    "attemptedPrimitiveIds": [
+      "1576797d2719ea20",
+      "1751389b50250d23",
+      "2f8d7b5fe34ddb67",
+      "7943754be7549109",
+      "f225b0c00ed03213"
+    ],
+    "missingPrimitiveIds": [
+      "D3: 顺序证据作废:连接器在这中间放弃了 1 个动作(最近被放弃的: req_23445, req_144195, req_760, req_3539, req_3643, req_8867, req_8874, req_8886, req_8910, req_8934, req_8963, req_30117, req_30216)——被放弃的 handler 仍在跑,**它的效果可能稍后才落地**,所以这段时间里关于那次 place 的任何结论都不成立 —— 所以「(450,570) ±5 附近没有新器件」不构成任何证据,这次 place 到底落没落地**无法判断**"
+    ],
+    "verified": true,
+    "complete": false,
+    "deleteError": "1576797d2719ea20: schematic.component.delete reported deleted=false; 1751389b50250d23: schematic.component.delete reported deleted=false; 2f8d7b5fe34ddb67: schematic.component.delete reported deleted=false"
+  }
+}
+block-apply stopped before wiring: place D3 (tvs.smaj5v0_sma): schematic.component.place failed: connector did not respond; PARTIAL STATE: no reliable primitiveId for D3: 顺序证据作废:连接器在这中间放弃了 1 个动作(最近被放弃的: req_23445, req_144195, req_760, req_3539, req_3643, req_8867, req_8874, req_8886, req_8910, req_8934, req_8963, req_30117, req_30216)——被放弃的 handler 仍在跑,**它的效果可能稍后才落地**,所以这段时间里关于那次 place 的任何结论都不成立 —— 所以「(450,570) ±5 附近没有新器件」不构成任何证据,这次 place 到底落没落地**无法判断**; delete error: 1576797d2719ea20: schematic.component.delete reported deleted=false; 1751389b50250d23: schematic.component.delete reported deleted=false; 2f8d7b5fe34ddb67: schematic.component.delete reported deleted=false; wiring was not started

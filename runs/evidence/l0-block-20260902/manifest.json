@@ -1,0 +1,2075 @@
+{
+  "schemaVersion": "edaloop.easyeda-evidence.l0.v1",
+  "runId": "445e32072ac645cc942026aaf8718ff9",
+  "collector": "edaloop.evidence.collect_l0",
+  "startedAt": "2026-09-02T14:57:19.544266+00:00",
+  "endedAt": "2026-09-02T14:57:24.653964+00:00",
+  "complete": true,
+  "status": "complete",
+  "readOnly": true,
+  "scope": {
+    "project": "edaloop-block-baseline",
+    "window": ""
+  },
+  "healthOk": true,
+  "pages": [
+    {
+      "name": "P1",
+      "uuid": "f83ed65a7d62827c",
+      "ref": "P1",
+      "parentSchematicUuid": "73b38aeb15a9f0ac"
+    }
+  ],
+  "plannedProbes": [
+    {
+      "name": "health",
+      "page": null,
+      "argv": [
+        "daemon",
+        "health",
+        "--project",
+        "edaloop-block-baseline"
+      ]
+    },
+    {
+      "name": "pages",
+      "page": null,
+      "argv": [
+        "sch",
+        "pages",
+        "--project",
+        "edaloop-block-baseline"
+      ]
+    },
+    {
+      "name": "list",
+      "page": "P1",
+      "argv": [
+        "sch",
+        "list",
+        "--include-pins",
+        "--include-bbox",
+        "--page",
+        "P1",
+        "--project",
+        "edaloop-block-baseline"
+      ]
+    },
+    {
+      "name": "clusters",
+      "page": "P1",
+      "argv": [
+        "sch",
+        "clusters",
+        "--json",
+        "--members",
+        "--strict",
+        "--doc",
+        "P1",
+        "--project",
+        "edaloop-block-baseline"
+      ]
+    },
+    {
+      "name": "layout-lint",
+      "page": "P1",
+      "argv": [
+        "sch",
+        "layout-lint",
+        "--json",
+        "--strict",
+        "--doc",
+        "P1",
+        "--project",
+        "edaloop-block-baseline"
+      ]
+    },
+    {
+      "name": "check",
+      "page": "P1",
+      "argv": [
+        "sch",
+        "check",
+        "--json",
+        "--strict",
+        "--page",
+        "P1",
+        "--project",
+        "edaloop-block-baseline"
+      ]
+    },
+    {
+      "name": "bridge-check",
+      "page": "P1",
+      "argv": [
+        "sch",
+        "bridge-check",
+        "--json",
+        "--doc",
+        "P1",
+        "--project",
+        "edaloop-block-baseline"
+      ]
+    },
+    {
+      "name": "drc",
+      "page": "P1",
+      "argv": [
+        "sch",
+        "drc",
+        "--json",
+        "--strict",
+        "--doc",
+        "P1",
+        "--project",
+        "edaloop-block-baseline"
+      ]
+    },
+    {
+      "name": "gate",
+      "page": "P1",
+      "argv": [
+        "sch",
+        "gate",
+        "--json",
+        "--strict",
+        "--doc",
+        "P1",
+        "--project",
+        "edaloop-block-baseline"
+      ]
+    },
+    {
+      "name": "read",
+      "page": "P1",
+      "argv": [
+        "sch",
+        "read",
+        "--page",
+        "P1",
+        "--project",
+        "edaloop-block-baseline"
+      ]
+    },
+    {
+      "name": "sheet-geometry",
+      "page": "P1",
+      "argv": [
+        "sch",
+        "sheet-geometry",
+        "--json",
+        "--doc",
+        "P1",
+        "--project",
+        "edaloop-block-baseline"
+      ]
+    },
+    {
+      "name": "text-list",
+      "page": "P1",
+      "argv": [
+        "sch",
+        "text-list",
+        "--page",
+        "P1",
+        "--project",
+        "edaloop-block-baseline"
+      ]
+    },
+    {
+      "name": "layout-score",
+      "page": "P1",
+      "argv": [
+        "sch",
+        "layout-score",
+        "--json",
+        "--doc",
+        "P1",
+        "--project",
+        "edaloop-block-baseline"
+      ]
+    },
+    {
+      "name": "nets",
+      "page": null,
+      "argv": [
+        "sch",
+        "nets",
+        "--json",
+        "--strict",
+        "--project",
+        "edaloop-block-baseline"
+      ]
+    },
+    {
+      "name": "netlist",
+      "page": null,
+      "argv": [
+        "sch",
+        "netlist",
+        "--project",
+        "edaloop-block-baseline"
+      ]
+    }
+  ],
+  "commands": [
+    {
+      "index": 1,
+      "name": "health",
+      "page": null,
+      "argv": [
+        "daemon",
+        "health",
+        "--project",
+        "edaloop-block-baseline"
+      ],
+      "startedAt": "2026-09-02T14:57:19.550275+00:00",
+      "endedAt": "2026-09-02T14:57:19.659313+00:00",
+      "durationMs": 111.452,
+      "returnCode": 0,
+      "stdout": "{\n  \"status\": \"found\",\n  \"host\": \"127.0.0.1\",\n  \"ports\": \"60832-60841\",\n  \"found\": {\n    \"port\": 60832,\n    \"service\": \"easyeda-agent\",\n    \"raw\": {\n      \"service\": \"easyeda-agent\",\n      \"version\": \"v1.2.10\",\n      \"status\": \"ok\",\n      \"port\": 60832,\n      \"windows\": [\n        {\n          \"windowId\": \"465b7b92-f68b-42ed-9b16-0e6fc5579dea\",\n          \"connectorVersion\": \"1.2.10\",\n          \"easyedaVersion\": \"3.2.175\",\n          \"capabilities\": [\n            \"schematic.v1\",\n            \"pcb.v1\"\n          ],\n          \"context\": {\n            \"projectUuid\": \"e7c2a07bcd504214a0607cad9475b2ba\",\n            \"projectName\": \"edaloop-req08-baseline\",\n            \"documentUuid\": \"bdc3e70fabdde6cb\",\n            \"documentType\": \"schematic\",\n            \"tabId\": \"bdc3e70fabdde6cb@e7c2a07bcd504214a0607cad9475b2ba\"\n          },\n          \"connectedAt\": \"2026-09-02T14:55:27.5211949Z\",\n          \"lastSeen\": \"2026-09-02T14:57:17.5183229Z\",\n          \"connectorVersionOk\": true\n        },\n        {\n          \"windowId\": \"b80d7ee5-3e51-467f-a513-17de38379036\",\n          \"connectorVersion\": \"1.2.10\",\n          \"easyedaVersion\": \"3.2.175\",\n          \"capabilities\": [\n            \"schematic.v1\",\n            \"pcb.v1\"\n          ],\n          \"context\": {\n            \"projectUuid\": \"7d17ff6aa40b4252914acbf836d4991b\",\n            \"projectName\": \"edaloop-req07-baseline\",\n            \"documentUuid\": \"a02b4d70c4ef0f40\",\n            \"documentType\": \"schematic\",\n            \"tabId\": \"a02b4d70c4ef0f40@7d17ff6aa40b4252914acbf836d4991b\"\n          },\n          \"connectedAt\": \"2026-09-02T14:55:53.7566865Z\",\n          \"lastSeen\": \"2026-09-02T14:57:18.5147884Z\",\n          \"connectorVersionOk\": true\n        },\n        {\n          \"windowId\": \"ecfb10c2-2486-4ced-b36e-58cc8c8c6593\",\n          \"connectorVersion\": \"1.2.10\",\n          \"easyedaVersion\": \"3.2.175\",\n          \"capabilities\": [\n            \"schematic.v1\",\n            \"pcb.v1\"\n          ],\n          \"context\": {\n            \"projectUuid\": \"5c5728757764408aaa9cbf1895e48e9d\",\n            \"projectName\": \"edaloop-block-baseline\",\n            \"documentUuid\": \"f83ed65a7d62827c\",\n            \"documentType\": \"schematic\",\n            \"tabId\": \"f83ed65a7d62827c@5c5728757764408aaa9cbf1895e48e9d\"\n          },\n          \"connectedAt\": \"2026-09-02T14:56:20.4323009Z\",\n          \"lastSeen\": \"2026-09-02T14:57:17.230323Z\",\n          \"connectorVersionOk\": true\n        }\n      ]\n    }\n  },\n  \"versionGate\": {\n    \"cli\": \"v1.2.10\",\n    \"daemon\": \"v1.2.10\",\n    \"connectors\": [\n      \"1.2.10\"\n    ],\n    \"verdict\": \"ok\",\n    \"findings\": [\n      {\n        \"component\": \"daemon\",\n        \"version\": \"v1.2.10\",\n        \"severity\": \"ok\",\n        \"reason\": \"与 CLI 同版 v1.2.10\"\n      },\n      {\n        \"component\": \"connector\",\n        \"version\": \"1.2.10\",\n        \"severity\": \"ok\",\n        \"reason\": \"与 CLI 同版 v1.2.10\"\n      }\n    ]\n  },\n  \"checked\": [\n    {\n      \"port\": 60832,\n      \"status\": \"ok\"\n    }\n  ]\n}\n",
+      "stderr": "✓ 版本一致性:CLI / daemon / connector 对齐 v1.2.10\n",
+      "stdoutSha256": "262b755c5e5cb68dc71aa0e58fb84b812c9939e540c18f23f2de711a49e34dc8",
+      "stderrSha256": "89f0486352d9bb5126e96661f8d90d284888d013a3de6c8c814b16bf1e3aa2c9",
+      "rawJsonSha256": "e1ae546f6ec26c4f1b1812af898e65f8d8473ce24725c9c25e5d2a81a22d21fe",
+      "parsedJson": {
+        "status": "found",
+        "host": "127.0.0.1",
+        "ports": "60832-60841",
+        "found": {
+          "port": 60832,
+          "service": "easyeda-agent",
+          "raw": {
+            "service": "easyeda-agent",
+            "version": "v1.2.10",
+            "status": "ok",
+            "port": 60832,
+            "windows": [
+              {
+                "windowId": "465b7b92-f68b-42ed-9b16-0e6fc5579dea",
+                "connectorVersion": "1.2.10",
+                "easyedaVersion": "3.2.175",
+                "capabilities": [
+                  "schematic.v1",
+                  "pcb.v1"
+                ],
+                "context": {
+                  "projectUuid": "e7c2a07bcd504214a0607cad9475b2ba",
+                  "projectName": "edaloop-req08-baseline",
+                  "documentUuid": "bdc3e70fabdde6cb",
+                  "documentType": "schematic",
+                  "tabId": "bdc3e70fabdde6cb@e7c2a07bcd504214a0607cad9475b2ba"
+                },
+                "connectedAt": "2026-09-02T14:55:27.5211949Z",
+                "lastSeen": "2026-09-02T14:57:17.5183229Z",
+                "connectorVersionOk": true
+              },
+              {
+                "windowId": "b80d7ee5-3e51-467f-a513-17de38379036",
+                "connectorVersion": "1.2.10",
+                "easyedaVersion": "3.2.175",
+                "capabilities": [
+                  "schematic.v1",
+                  "pcb.v1"
+                ],
+                "context": {
+                  "projectUuid": "7d17ff6aa40b4252914acbf836d4991b",
+                  "projectName": "edaloop-req07-baseline",
+                  "documentUuid": "a02b4d70c4ef0f40",
+                  "documentType": "schematic",
+                  "tabId": "a02b4d70c4ef0f40@7d17ff6aa40b4252914acbf836d4991b"
+                },
+                "connectedAt": "2026-09-02T14:55:53.7566865Z",
+                "lastSeen": "2026-09-02T14:57:18.5147884Z",
+                "connectorVersionOk": true
+              },
+              {
+                "windowId": "ecfb10c2-2486-4ced-b36e-58cc8c8c6593",
+                "connectorVersion": "1.2.10",
+                "easyedaVersion": "3.2.175",
+                "capabilities": [
+                  "schematic.v1",
+                  "pcb.v1"
+                ],
+                "context": {
+                  "projectUuid": "5c5728757764408aaa9cbf1895e48e9d",
+                  "projectName": "edaloop-block-baseline",
+                  "documentUuid": "f83ed65a7d62827c",
+                  "documentType": "schematic",
+                  "tabId": "f83ed65a7d62827c@5c5728757764408aaa9cbf1895e48e9d"
+                },
+                "connectedAt": "2026-09-02T14:56:20.4323009Z",
+                "lastSeen": "2026-09-02T14:57:17.230323Z",
+                "connectorVersionOk": true
+              }
+            ]
+          }
+        },
+        "versionGate": {
+          "cli": "v1.2.10",
+          "daemon": "v1.2.10",
+          "connectors": [
+            "1.2.10"
+          ],
+          "verdict": "ok",
+          "findings": [
+            {
+              "component": "daemon",
+              "version": "v1.2.10",
+              "severity": "ok",
+              "reason": "与 CLI 同版 v1.2.10"
+            },
+            {
+              "component": "connector",
+              "version": "1.2.10",
+              "severity": "ok",
+              "reason": "与 CLI 同版 v1.2.10"
+            }
+          ]
+        },
+        "checked": [
+          {
+            "port": 60832,
+            "status": "ok"
+          }
+        ]
+      },
+      "rawJson": {
+        "status": "found",
+        "host": "127.0.0.1",
+        "ports": "60832-60841",
+        "found": {
+          "port": 60832,
+          "service": "easyeda-agent",
+          "raw": {
+            "service": "easyeda-agent",
+            "version": "v1.2.10",
+            "status": "ok",
+            "port": 60832,
+            "windows": [
+              {
+                "windowId": "465b7b92-f68b-42ed-9b16-0e6fc5579dea",
+                "connectorVersion": "1.2.10",
+                "easyedaVersion": "3.2.175",
+                "capabilities": [
+                  "schematic.v1",
+                  "pcb.v1"
+                ],
+                "context": {
+                  "projectUuid": "e7c2a07bcd504214a0607cad9475b2ba",
+                  "projectName": "edaloop-req08-baseline",
+                  "documentUuid": "bdc3e70fabdde6cb",
+                  "documentType": "schematic",
+                  "tabId": "bdc3e70fabdde6cb@e7c2a07bcd504214a0607cad9475b2ba"
+                },
+                "connectedAt": "2026-09-02T14:55:27.5211949Z",
+                "lastSeen": "2026-09-02T14:57:17.5183229Z",
+                "connectorVersionOk": true
+              },
+              {
+                "windowId": "b80d7ee5-3e51-467f-a513-17de38379036",
+                "connectorVersion": "1.2.10",
+                "easyedaVersion": "3.2.175",
+                "capabilities": [
+                  "schematic.v1",
+                  "pcb.v1"
+                ],
+                "context": {
+                  "projectUuid": "7d17ff6aa40b4252914acbf836d4991b",
+                  "projectName": "edaloop-req07-baseline",
+                  "documentUuid": "a02b4d70c4ef0f40",
+                  "documentType": "schematic",
+                  "tabId": "a02b4d70c4ef0f40@7d17ff6aa40b4252914acbf836d4991b"
+                },
+                "connectedAt": "2026-09-02T14:55:53.7566865Z",
+                "lastSeen": "2026-09-02T14:57:18.5147884Z",
+                "connectorVersionOk": true
+              },
+              {
+                "windowId": "ecfb10c2-2486-4ced-b36e-58cc8c8c6593",
+                "connectorVersion": "1.2.10",
+                "easyedaVersion": "3.2.175",
+                "capabilities": [
+                  "schematic.v1",
+                  "pcb.v1"
+                ],
+                "context": {
+                  "projectUuid": "5c5728757764408aaa9cbf1895e48e9d",
+                  "projectName": "edaloop-block-baseline",
+                  "documentUuid": "f83ed65a7d62827c",
+                  "documentType": "schematic",
+                  "tabId": "f83ed65a7d62827c@5c5728757764408aaa9cbf1895e48e9d"
+                },
+                "connectedAt": "2026-09-02T14:56:20.4323009Z",
+                "lastSeen": "2026-09-02T14:57:17.230323Z",
+                "connectorVersionOk": true
+              }
+            ]
+          }
+        },
+        "versionGate": {
+          "cli": "v1.2.10",
+          "daemon": "v1.2.10",
+          "connectors": [
+            "1.2.10"
+          ],
+          "verdict": "ok",
+          "findings": [
+            {
+              "component": "daemon",
+              "version": "v1.2.10",
+              "severity": "ok",
+              "reason": "与 CLI 同版 v1.2.10"
+            },
+            {
+              "component": "connector",
+              "version": "1.2.10",
+              "severity": "ok",
+              "reason": "与 CLI 同版 v1.2.10"
+            }
+          ]
+        },
+        "checked": [
+          {
+            "port": 60832,
+            "status": "ok"
+          }
+        ]
+      },
+      "rawJsonText": "{\n  \"status\": \"found\",\n  \"host\": \"127.0.0.1\",\n  \"ports\": \"60832-60841\",\n  \"found\": {\n    \"port\": 60832,\n    \"service\": \"easyeda-agent\",\n    \"raw\": {\n      \"service\": \"easyeda-agent\",\n      \"version\": \"v1.2.10\",\n      \"status\": \"ok\",\n      \"port\": 60832,\n      \"windows\": [\n        {\n          \"windowId\": \"465b7b92-f68b-42ed-9b16-0e6fc5579dea\",\n          \"connectorVersion\": \"1.2.10\",\n          \"easyedaVersion\": \"3.2.175\",\n          \"capabilities\": [\n            \"schematic.v1\",\n            \"pcb.v1\"\n          ],\n          \"context\": {\n            \"projectUuid\": \"e7c2a07bcd504214a0607cad9475b2ba\",\n            \"projectName\": \"edaloop-req08-baseline\",\n            \"documentUuid\": \"bdc3e70fabdde6cb\",\n            \"documentType\": \"schematic\",\n            \"tabId\": \"bdc3e70fabdde6cb@e7c2a07bcd504214a0607cad9475b2ba\"\n          },\n          \"connectedAt\": \"2026-09-02T14:55:27.5211949Z\",\n          \"lastSeen\": \"2026-09-02T14:57:17.5183229Z\",\n          \"connectorVersionOk\": true\n        },\n        {\n          \"windowId\": \"b80d7ee5-3e51-467f-a513-17de38379036\",\n          \"connectorVersion\": \"1.2.10\",\n          \"easyedaVersion\": \"3.2.175\",\n          \"capabilities\": [\n            \"schematic.v1\",\n            \"pcb.v1\"\n          ],\n          \"context\": {\n            \"projectUuid\": \"7d17ff6aa40b4252914acbf836d4991b\",\n            \"projectName\": \"edaloop-req07-baseline\",\n            \"documentUuid\": \"a02b4d70c4ef0f40\",\n            \"documentType\": \"schematic\",\n            \"tabId\": \"a02b4d70c4ef0f40@7d17ff6aa40b4252914acbf836d4991b\"\n          },\n          \"connectedAt\": \"2026-09-02T14:55:53.7566865Z\",\n          \"lastSeen\": \"2026-09-02T14:57:18.5147884Z\",\n          \"connectorVersionOk\": true\n        },\n        {\n          \"windowId\": \"ecfb10c2-2486-4ced-b36e-58cc8c8c6593\",\n          \"connectorVersion\": \"1.2.10\",\n          \"easyedaVersion\": \"3.2.175\",\n          \"capabilities\": [\n            \"schematic.v1\",\n            \"pcb.v1\"\n          ],\n          \"context\": {\n            \"projectUuid\": \"5c5728757764408aaa9cbf1895e48e9d\",\n            \"projectName\": \"edaloop-block-baseline\",\n            \"documentUuid\": \"f83ed65a7d62827c\",\n            \"documentType\": \"schematic\",\n            \"tabId\": \"f83ed65a7d62827c@5c5728757764408aaa9cbf1895e48e9d\"\n          },\n          \"connectedAt\": \"2026-09-02T14:56:20.4323009Z\",\n          \"lastSeen\": \"2026-09-02T14:57:17.230323Z\",\n          \"connectorVersionOk\": true\n        }\n      ]\n    }\n  },\n  \"versionGate\": {\n    \"cli\": \"v1.2.10\",\n    \"daemon\": \"v1.2.10\",\n    \"connectors\": [\n      \"1.2.10\"\n    ],\n    \"verdict\": \"ok\",\n    \"findings\": [\n      {\n        \"component\": \"daemon\",\n        \"version\": \"v1.2.10\",\n        \"severity\": \"ok\",\n        \"reason\": \"与 CLI 同版 v1.2.10\"\n      },\n      {\n        \"component\": \"connector\",\n        \"version\": \"1.2.10\",\n        \"severity\": \"ok\",\n        \"reason\": \"与 CLI 同版 v1.2.10\"\n      }\n    ]\n  },\n  \"checked\": [\n    {\n      \"port\": 60832,\n      \"status\": \"ok\"\n    }\n  ]\n}",
+      "jsonParseError": null,
+      "exception": null,
+      "stdoutPath": "commands/001-stdout.txt",
+      "stderrPath": "commands/001-stderr.txt",
+      "rawJsonPath": "commands/001-raw.json"
+    },
+    {
+      "index": 2,
+      "name": "pages",
+      "page": null,
+      "argv": [
+        "sch",
+        "pages",
+        "--project",
+        "edaloop-block-baseline"
+      ],
+      "startedAt": "2026-09-02T14:57:19.665316+00:00",
+      "endedAt": "2026-09-02T14:57:20.022822+00:00",
+      "durationMs": 361.003,
+      "returnCode": 0,
+      "stdout": "{\n  \"id\": \"req_193093\",\n  \"type\": \"response\",\n  \"version\": \"v1\",\n  \"createdAt\": \"2026-09-02T14:57:20.020041Z\",\n  \"ok\": true,\n  \"result\": {\n    \"pages\": [\n      {\n        \"name\": \"P1\",\n        \"parentSchematicUuid\": \"73b38aeb15a9f0ac\",\n        \"uuid\": \"f83ed65a7d62827c\"\n      }\n    ],\n    \"schematics\": [\n      {\n        \"name\": \"schematic1\",\n        \"page\": [\n          {\n            \"name\": \"p1\",\n            \"parentSchematicUuid\": \"73b38aeb15a9f0ac\",\n            \"uuid\": \"f83ed65a7d62827c\"\n          }\n        ],\n        \"parentProjectUuid\": \"5c5728757764408aaa9cbf1895e48e9d\",\n        \"uuid\": \"73b38aeb15a9f0ac\"\n      }\n    ]\n  },\n  \"context\": {\n    \"projectUuid\": \"5c5728757764408aaa9cbf1895e48e9d\",\n    \"projectName\": \"edaloop-block-baseline\",\n    \"documentUuid\": \"f83ed65a7d62827c\",\n    \"documentType\": \"schematic\",\n    \"tabId\": \"f83ed65a7d62827c@5c5728757764408aaa9cbf1895e48e9d\"\n  },\n  \"seq\": 2,\n  \"seqAbandoned\": 0\n}\n",
+      "stderr": "",
+      "stdoutSha256": "878c42e8c1d99111fef61ae3bf1e4df7dfa69ed4fa90f08d7bea837bf706c818",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawJsonSha256": "55018b86d8e4aa922bf045459df9fda3d4cea502d21c9f420480abe3bb8cc435",
+      "parsedJson": {
+        "id": "req_193093",
+        "type": "response",
+        "version": "v1",
+        "createdAt": "2026-09-02T14:57:20.020041Z",
+        "ok": true,
+        "result": {
+          "pages": [
+            {
+              "name": "P1",
+              "parentSchematicUuid": "73b38aeb15a9f0ac",
+              "uuid": "f83ed65a7d62827c"
+            }
+          ],
+          "schematics": [
+            {
+              "name": "schematic1",
+              "page": [
+                {
+                  "name": "p1",
+                  "parentSchematicUuid": "73b38aeb15a9f0ac",
+                  "uuid": "f83ed65a7d62827c"
+                }
+              ],
+              "parentProjectUuid": "5c5728757764408aaa9cbf1895e48e9d",
+              "uuid": "73b38aeb15a9f0ac"
+            }
+          ]
+        },
+        "context": {
+          "projectUuid": "5c5728757764408aaa9cbf1895e48e9d",
+          "projectName": "edaloop-block-baseline",
+          "documentUuid": "f83ed65a7d62827c",
+          "documentType": "schematic",
+          "tabId": "f83ed65a7d62827c@5c5728757764408aaa9cbf1895e48e9d"
+        },
+        "seq": 2,
+        "seqAbandoned": 0
+      },
+      "rawJson": {
+        "id": "req_193093",
+        "type": "response",
+        "version": "v1",
+        "createdAt": "2026-09-02T14:57:20.020041Z",
+        "ok": true,
+        "result": {
+          "pages": [
+            {
+              "name": "P1",
+              "parentSchematicUuid": "73b38aeb15a9f0ac",
+              "uuid": "f83ed65a7d62827c"
+            }
+          ],
+          "schematics": [
+            {
+              "name": "schematic1",
+              "page": [
+                {
+                  "name": "p1",
+                  "parentSchematicUuid": "73b38aeb15a9f0ac",
+                  "uuid": "f83ed65a7d62827c"
+                }
+              ],
+              "parentProjectUuid": "5c5728757764408aaa9cbf1895e48e9d",
+              "uuid": "73b38aeb15a9f0ac"
+            }
+          ]
+        },
+        "context": {
+          "projectUuid": "5c5728757764408aaa9cbf1895e48e9d",
+          "projectName": "edaloop-block-baseline",
+          "documentUuid": "f83ed65a7d62827c",
+          "documentType": "schematic",
+          "tabId": "f83ed65a7d62827c@5c5728757764408aaa9cbf1895e48e9d"
+        },
+        "seq": 2,
+        "seqAbandoned": 0
+      },
+      "rawJsonText": "{\n  \"id\": \"req_193093\",\n  \"type\": \"response\",\n  \"version\": \"v1\",\n  \"createdAt\": \"2026-09-02T14:57:20.020041Z\",\n  \"ok\": true,\n  \"result\": {\n    \"pages\": [\n      {\n        \"name\": \"P1\",\n        \"parentSchematicUuid\": \"73b38aeb15a9f0ac\",\n        \"uuid\": \"f83ed65a7d62827c\"\n      }\n    ],\n    \"schematics\": [\n      {\n        \"name\": \"schematic1\",\n        \"page\": [\n          {\n            \"name\": \"p1\",\n            \"parentSchematicUuid\": \"73b38aeb15a9f0ac\",\n            \"uuid\": \"f83ed65a7d62827c\"\n          }\n        ],\n        \"parentProjectUuid\": \"5c5728757764408aaa9cbf1895e48e9d\",\n        \"uuid\": \"73b38aeb15a9f0ac\"\n      }\n    ]\n  },\n  \"context\": {\n    \"projectUuid\": \"5c5728757764408aaa9cbf1895e48e9d\",\n    \"projectName\": \"edaloop-block-baseline\",\n    \"documentUuid\": \"f83ed65a7d62827c\",\n    \"documentType\": \"schematic\",\n    \"tabId\": \"f83ed65a7d62827c@5c5728757764408aaa9cbf1895e48e9d\"\n  },\n  \"seq\": 2,\n  \"seqAbandoned\": 0\n}",
+      "jsonParseError": null,
+      "exception": null,
+      "stdoutPath": "commands/002-stdout.txt",
+      "stderrPath": "commands/002-stderr.txt",
+      "rawJsonPath": "commands/002-raw.json"
+    },
+    {
+      "index": 3,
+      "name": "list",
+      "page": "P1",
+      "argv": [
+        "sch",
+        "list",
+        "--include-pins",
+        "--include-bbox",
+        "--page",
+        "P1",
+        "--project",
+        "edaloop-block-baseline"
+      ],
+      "startedAt": "2026-09-02T14:57:20.031831+00:00",
+      "endedAt": "2026-09-02T14:57:20.604015+00:00",
+      "durationMs": 574.153,
+      "returnCode": 0,
+      "stdout": "{\n  \"id\": \"req_193109\",\n  \"type\": \"response\",\n  \"version\": \"v1\",\n  \"createdAt\": \"2026-09-02T14:57:20.6016702Z\",\n  \"ok\": true,\n  \"result\": {\n    \"components\": [\n      {\n        \"addIntoBom\": true,\n        \"addIntoPcb\": true,\n        \"bbox\": {\n          \"maxX\": 1170,\n          \"maxY\": 825,\n          \"minX\": 0,\n          \"minY\": 0\n        },\n        \"component\": {\n          \"libraryUuid\": \"0819f05c4eef4c71ace90d822a990e87\",\n          \"name\": \"Drawing-Symbol_A4\",\n          \"uuid\": \"68297ea016c9c3a0\"\n        },\n        \"componentType\": \"sheet\",\n        \"device\": {\n          \"libraryUuid\": \"0819f05c4eef4c71ace90d822a990e87\",\n          \"name\": \"\",\n          \"uuid\": \"68297ea016c9c3a0\"\n        },\n        \"mirror\": false,\n        \"name\": \"\",\n        \"net\": \"\",\n        \"otherProperty\": {\n          \"@Assembly Variant\": \"Basic\",\n          \"@Board Name\": \"Board1\",\n          \"@Create Date\": \"2026-09-02\",\n          \"@Create Time\": \"22:49:24\",\n          \"@Page Count\": \"1\",\n          \"@Page Name\": \"P1\",\n          \"@Page No\": \"1\",\n          \"@Project Name\": \"edaloop-block-baseline\",\n          \"@Schematic Name\": \"Schematic1\",\n          \"@Update Date\": \"2026-09-02\",\n          \"@Update Time\": \"22:49:25\",\n          \"Blade Width\": \"10\",\n          \"Border\": \"1\",\n          \"Color\": \"\",\n          \"Company\": \"嘉立创EDA\",\n          \"Description\": \"\",\n          \"Drawed\": \"\",\n          \"Height\": \"825\",\n          \"Page Size\": \"A4\",\n          \"Part Number\": \"\",\n          \"Region Start\": \"1\",\n          \"Reviewed\": \"\",\n          \"Size\": \"A4\",\n          \"Title Block\": \"0\",\n          \"Title Block Position\": \"3\",\n          \"Version\": \"V1.0\",\n          \"Width\": \"1170\",\n          \"X Region Count\": \"6\",\n          \"Y Region Count\": \"4\"\n        },\n        \"pins\": [],\n        \"pinsAvailable\": true,\n        \"primitiveId\": \"c319b6b09a6ee6b0\",\n        \"rotation\": 0,\n        \"subPartName\": \"pid8a0e77bacb214e\",\n        \"symbol\": {\n          \"libraryUuid\": \"0819f05c4eef4c71ace90d822a990e87\",\n          \"name\": \"Drawing-Symbol_A4\",\n          \"uuid\": \"98da0ab9f06c1543\"\n        },\n        \"x\": 0,\n        \"y\": 0\n      }\n    ],\n    \"count\": 1,\n    \"wires\": []\n  },\n  \"context\": {\n    \"projectUuid\": \"5c5728757764408aaa9cbf1895e48e9d\",\n    \"projectName\": \"edaloop-block-baseline\",\n    \"documentUuid\": \"f83ed65a7d62827c\",\n    \"documentType\": \"schematic\",\n    \"tabId\": \"f83ed65a7d62827c@5c5728757764408aaa9cbf1895e48e9d\"\n  },\n  \"seq\": 7,\n  \"seqAbandoned\": 0\n}\n",
+      "stderr": "",
+      "stdoutSha256": "27a2d31b08bce91015fd8e1cb8f22684861c41565b417c5b66339977c79f261f",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawJsonSha256": "3c9163054faccc07dfdae614b94fcf3114fe5a551816d69f52116af176ca4942",
+      "parsedJson": {
+        "id": "req_193109",
+        "type": "response",
+        "version": "v1",
+        "createdAt": "2026-09-02T14:57:20.6016702Z",
+        "ok": true,
+        "result": {
+          "components": [
+            {
+              "addIntoBom": true,
+              "addIntoPcb": true,
+              "bbox": {
+                "maxX": 1170,
+                "maxY": 825,
+                "minX": 0,
+                "minY": 0
+              },
+              "component": {
+                "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+                "name": "Drawing-Symbol_A4",
+                "uuid": "68297ea016c9c3a0"
+              },
+              "componentType": "sheet",
+              "device": {
+                "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+                "name": "",
+                "uuid": "68297ea016c9c3a0"
+              },
+              "mirror": false,
+              "name": "",
+              "net": "",
+              "otherProperty": {
+                "@Assembly Variant": "Basic",
+                "@Board Name": "Board1",
+                "@Create Date": "2026-09-02",
+                "@Create Time": "22:49:24",
+                "@Page Count": "1",
+                "@Page Name": "P1",
+                "@Page No": "1",
+                "@Project Name": "edaloop-block-baseline",
+                "@Schematic Name": "Schematic1",
+                "@Update Date": "2026-09-02",
+                "@Update Time": "22:49:25",
+                "Blade Width": "10",
+                "Border": "1",
+                "Color": "",
+                "Company": "嘉立创EDA",
+                "Description": "",
+                "Drawed": "",
+                "Height": "825",
+                "Page Size": "A4",
+                "Part Number": "",
+                "Region Start": "1",
+                "Reviewed": "",
+                "Size": "A4",
+                "Title Block": "0",
+                "Title Block Position": "3",
+                "Version": "V1.0",
+                "Width": "1170",
+                "X Region Count": "6",
+                "Y Region Count": "4"
+              },
+              "pins": [],
+              "pinsAvailable": true,
+              "primitiveId": "c319b6b09a6ee6b0",
+              "rotation": 0,
+              "subPartName": "pid8a0e77bacb214e",
+              "symbol": {
+                "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+                "name": "Drawing-Symbol_A4",
+                "uuid": "98da0ab9f06c1543"
+              },
+              "x": 0,
+              "y": 0
+            }
+          ],
+          "count": 1,
+          "wires": []
+        },
+        "context": {
+          "projectUuid": "5c5728757764408aaa9cbf1895e48e9d",
+          "projectName": "edaloop-block-baseline",
+          "documentUuid": "f83ed65a7d62827c",
+          "documentType": "schematic",
+          "tabId": "f83ed65a7d62827c@5c5728757764408aaa9cbf1895e48e9d"
+        },
+        "seq": 7,
+        "seqAbandoned": 0
+      },
+      "rawJson": {
+        "id": "req_193109",
+        "type": "response",
+        "version": "v1",
+        "createdAt": "2026-09-02T14:57:20.6016702Z",
+        "ok": true,
+        "result": {
+          "components": [
+            {
+              "addIntoBom": true,
+              "addIntoPcb": true,
+              "bbox": {
+                "maxX": 1170,
+                "maxY": 825,
+                "minX": 0,
+                "minY": 0
+              },
+              "component": {
+                "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+                "name": "Drawing-Symbol_A4",
+                "uuid": "68297ea016c9c3a0"
+              },
+              "componentType": "sheet",
+              "device": {
+                "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+                "name": "",
+                "uuid": "68297ea016c9c3a0"
+              },
+              "mirror": false,
+              "name": "",
+              "net": "",
+              "otherProperty": {
+                "@Assembly Variant": "Basic",
+                "@Board Name": "Board1",
+                "@Create Date": "2026-09-02",
+                "@Create Time": "22:49:24",
+                "@Page Count": "1",
+                "@Page Name": "P1",
+                "@Page No": "1",
+                "@Project Name": "edaloop-block-baseline",
+                "@Schematic Name": "Schematic1",
+                "@Update Date": "2026-09-02",
+                "@Update Time": "22:49:25",
+                "Blade Width": "10",
+                "Border": "1",
+                "Color": "",
+                "Company": "嘉立创EDA",
+                "Description": "",
+                "Drawed": "",
+                "Height": "825",
+                "Page Size": "A4",
+                "Part Number": "",
+                "Region Start": "1",
+                "Reviewed": "",
+                "Size": "A4",
+                "Title Block": "0",
+                "Title Block Position": "3",
+                "Version": "V1.0",
+                "Width": "1170",
+                "X Region Count": "6",
+                "Y Region Count": "4"
+              },
+              "pins": [],
+              "pinsAvailable": true,
+              "primitiveId": "c319b6b09a6ee6b0",
+              "rotation": 0,
+              "subPartName": "pid8a0e77bacb214e",
+              "symbol": {
+                "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+                "name": "Drawing-Symbol_A4",
+                "uuid": "98da0ab9f06c1543"
+              },
+              "x": 0,
+              "y": 0
+            }
+          ],
+          "count": 1,
+          "wires": []
+        },
+        "context": {
+          "projectUuid": "5c5728757764408aaa9cbf1895e48e9d",
+          "projectName": "edaloop-block-baseline",
+          "documentUuid": "f83ed65a7d62827c",
+          "documentType": "schematic",
+          "tabId": "f83ed65a7d62827c@5c5728757764408aaa9cbf1895e48e9d"
+        },
+        "seq": 7,
+        "seqAbandoned": 0
+      },
+      "rawJsonText": "{\n  \"id\": \"req_193109\",\n  \"type\": \"response\",\n  \"version\": \"v1\",\n  \"createdAt\": \"2026-09-02T14:57:20.6016702Z\",\n  \"ok\": true,\n  \"result\": {\n    \"components\": [\n      {\n        \"addIntoBom\": true,\n        \"addIntoPcb\": true,\n        \"bbox\": {\n          \"maxX\": 1170,\n          \"maxY\": 825,\n          \"minX\": 0,\n          \"minY\": 0\n        },\n        \"component\": {\n          \"libraryUuid\": \"0819f05c4eef4c71ace90d822a990e87\",\n          \"name\": \"Drawing-Symbol_A4\",\n          \"uuid\": \"68297ea016c9c3a0\"\n        },\n        \"componentType\": \"sheet\",\n        \"device\": {\n          \"libraryUuid\": \"0819f05c4eef4c71ace90d822a990e87\",\n          \"name\": \"\",\n          \"uuid\": \"68297ea016c9c3a0\"\n        },\n        \"mirror\": false,\n        \"name\": \"\",\n        \"net\": \"\",\n        \"otherProperty\": {\n          \"@Assembly Variant\": \"Basic\",\n          \"@Board Name\": \"Board1\",\n          \"@Create Date\": \"2026-09-02\",\n          \"@Create Time\": \"22:49:24\",\n          \"@Page Count\": \"1\",\n          \"@Page Name\": \"P1\",\n          \"@Page No\": \"1\",\n          \"@Project Name\": \"edaloop-block-baseline\",\n          \"@Schematic Name\": \"Schematic1\",\n          \"@Update Date\": \"2026-09-02\",\n          \"@Update Time\": \"22:49:25\",\n          \"Blade Width\": \"10\",\n          \"Border\": \"1\",\n          \"Color\": \"\",\n          \"Company\": \"嘉立创EDA\",\n          \"Description\": \"\",\n          \"Drawed\": \"\",\n          \"Height\": \"825\",\n          \"Page Size\": \"A4\",\n          \"Part Number\": \"\",\n          \"Region Start\": \"1\",\n          \"Reviewed\": \"\",\n          \"Size\": \"A4\",\n          \"Title Block\": \"0\",\n          \"Title Block Position\": \"3\",\n          \"Version\": \"V1.0\",\n          \"Width\": \"1170\",\n          \"X Region Count\": \"6\",\n          \"Y Region Count\": \"4\"\n        },\n        \"pins\": [],\n        \"pinsAvailable\": true,\n        \"primitiveId\": \"c319b6b09a6ee6b0\",\n        \"rotation\": 0,\n        \"subPartName\": \"pid8a0e77bacb214e\",\n        \"symbol\": {\n          \"libraryUuid\": \"0819f05c4eef4c71ace90d822a990e87\",\n          \"name\": \"Drawing-Symbol_A4\",\n          \"uuid\": \"98da0ab9f06c1543\"\n        },\n        \"x\": 0,\n        \"y\": 0\n      }\n    ],\n    \"count\": 1,\n    \"wires\": []\n  },\n  \"context\": {\n    \"projectUuid\": \"5c5728757764408aaa9cbf1895e48e9d\",\n    \"projectName\": \"edaloop-block-baseline\",\n    \"documentUuid\": \"f83ed65a7d62827c\",\n    \"documentType\": \"schematic\",\n    \"tabId\": \"f83ed65a7d62827c@5c5728757764408aaa9cbf1895e48e9d\"\n  },\n  \"seq\": 7,\n  \"seqAbandoned\": 0\n}",
+      "jsonParseError": null,
+      "exception": null,
+      "stdoutPath": "commands/003-stdout.txt",
+      "stderrPath": "commands/003-stderr.txt",
+      "rawJsonPath": "commands/003-raw.json"
+    },
+    {
+      "index": 4,
+      "name": "clusters",
+      "page": "P1",
+      "argv": [
+        "sch",
+        "clusters",
+        "--json",
+        "--members",
+        "--strict",
+        "--doc",
+        "P1",
+        "--project",
+        "edaloop-block-baseline"
+      ],
+      "startedAt": "2026-09-02T14:57:20.611015+00:00",
+      "endedAt": "2026-09-02T14:57:20.940189+00:00",
+      "durationMs": 331.22,
+      "returnCode": 0,
+      "stdout": "{\n  \"clusters\": [],\n  \"findings\": null,\n  \"sheetUsable\": {\n    \"minX\": 12,\n    \"minY\": 12,\n    \"maxX\": 1158,\n    \"maxY\": 813\n  }\n}\n",
+      "stderr": "",
+      "stdoutSha256": "c1108759f887ac4a1bc7c9afc087819de5d2235ed8195336cdb525c1bdcdf963",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawJsonSha256": "02e721537d383f7b7cf4a6e943d842b2471691300851a23d5d4e806d95f40294",
+      "parsedJson": {
+        "clusters": [],
+        "findings": null,
+        "sheetUsable": {
+          "minX": 12,
+          "minY": 12,
+          "maxX": 1158,
+          "maxY": 813
+        }
+      },
+      "rawJson": {
+        "clusters": [],
+        "findings": null,
+        "sheetUsable": {
+          "minX": 12,
+          "minY": 12,
+          "maxX": 1158,
+          "maxY": 813
+        }
+      },
+      "rawJsonText": "{\n  \"clusters\": [],\n  \"findings\": null,\n  \"sheetUsable\": {\n    \"minX\": 12,\n    \"minY\": 12,\n    \"maxX\": 1158,\n    \"maxY\": 813\n  }\n}",
+      "jsonParseError": null,
+      "exception": null,
+      "stdoutPath": "commands/004-stdout.txt",
+      "stderrPath": "commands/004-stderr.txt",
+      "rawJsonPath": "commands/004-raw.json"
+    },
+    {
+      "index": 5,
+      "name": "layout-lint",
+      "page": "P1",
+      "argv": [
+        "sch",
+        "layout-lint",
+        "--json",
+        "--strict",
+        "--doc",
+        "P1",
+        "--project",
+        "edaloop-block-baseline"
+      ],
+      "startedAt": "2026-09-02T14:57:20.947197+00:00",
+      "endedAt": "2026-09-02T14:57:21.097113+00:00",
+      "durationMs": 151.597,
+      "returnCode": 0,
+      "stdout": "{\n  \"schemaVersion\": 2,\n  \"ok\": true,\n  \"strict\": true,\n  \"minGap\": 2.54,\n  \"componentCount\": 0,\n  \"withBBox\": 0,\n  \"skippedNonParts\": 1,\n  \"overlaps\": null,\n  \"tightSpacing\": null,\n  \"pinCoincidences\": null,\n  \"measurementUnit\": \"mm\",\n  \"coordinateUnit\": \"0.01inch\",\n  \"anchorGridRaw\": 5,\n  \"anchorGridUnit\": \"0.01inch\",\n  \"zoneCheckStatus\": \"not-configured\",\n  \"sheetCheckStatus\": \"checked\",\n  \"pinEps\": 0,\n  \"summary\": \"strict=true: 0 components (0 with bbox): 0 overlap, 0 tight (\\u003c2.54mm), 0 pin-coincidence, 0 off-grid, 0 out-of-sheet, 0 unchecked-bbox, 0 unchecked-pins, 0 unproven-pins, 0 invalid-geometry; zoneCheck=not-configured sheetCheck=checked\"\n}\n",
+      "stderr": "",
+      "stdoutSha256": "713c2da83a362bd02ce7c7b318e9e9b6bf38263200e0df47bdf05e6fb7a32e8d",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawJsonSha256": "629b956b3c58698917c3640b67898e20c02be828422587abc9a51b112dc16c50",
+      "parsedJson": {
+        "schemaVersion": 2,
+        "ok": true,
+        "strict": true,
+        "minGap": 2.54,
+        "componentCount": 0,
+        "withBBox": 0,
+        "skippedNonParts": 1,
+        "overlaps": null,
+        "tightSpacing": null,
+        "pinCoincidences": null,
+        "measurementUnit": "mm",
+        "coordinateUnit": "0.01inch",
+        "anchorGridRaw": 5,
+        "anchorGridUnit": "0.01inch",
+        "zoneCheckStatus": "not-configured",
+        "sheetCheckStatus": "checked",
+        "pinEps": 0,
+        "summary": "strict=true: 0 components (0 with bbox): 0 overlap, 0 tight (<2.54mm), 0 pin-coincidence, 0 off-grid, 0 out-of-sheet, 0 unchecked-bbox, 0 unchecked-pins, 0 unproven-pins, 0 invalid-geometry; zoneCheck=not-configured sheetCheck=checked"
+      },
+      "rawJson": {
+        "schemaVersion": 2,
+        "ok": true,
+        "strict": true,
+        "minGap": 2.54,
+        "componentCount": 0,
+        "withBBox": 0,
+        "skippedNonParts": 1,
+        "overlaps": null,
+        "tightSpacing": null,
+        "pinCoincidences": null,
+        "measurementUnit": "mm",
+        "coordinateUnit": "0.01inch",
+        "anchorGridRaw": 5,
+        "anchorGridUnit": "0.01inch",
+        "zoneCheckStatus": "not-configured",
+        "sheetCheckStatus": "checked",
+        "pinEps": 0,
+        "summary": "strict=true: 0 components (0 with bbox): 0 overlap, 0 tight (<2.54mm), 0 pin-coincidence, 0 off-grid, 0 out-of-sheet, 0 unchecked-bbox, 0 unchecked-pins, 0 unproven-pins, 0 invalid-geometry; zoneCheck=not-configured sheetCheck=checked"
+      },
+      "rawJsonText": "{\n  \"schemaVersion\": 2,\n  \"ok\": true,\n  \"strict\": true,\n  \"minGap\": 2.54,\n  \"componentCount\": 0,\n  \"withBBox\": 0,\n  \"skippedNonParts\": 1,\n  \"overlaps\": null,\n  \"tightSpacing\": null,\n  \"pinCoincidences\": null,\n  \"measurementUnit\": \"mm\",\n  \"coordinateUnit\": \"0.01inch\",\n  \"anchorGridRaw\": 5,\n  \"anchorGridUnit\": \"0.01inch\",\n  \"zoneCheckStatus\": \"not-configured\",\n  \"sheetCheckStatus\": \"checked\",\n  \"pinEps\": 0,\n  \"summary\": \"strict=true: 0 components (0 with bbox): 0 overlap, 0 tight (\\u003c2.54mm), 0 pin-coincidence, 0 off-grid, 0 out-of-sheet, 0 unchecked-bbox, 0 unchecked-pins, 0 unproven-pins, 0 invalid-geometry; zoneCheck=not-configured sheetCheck=checked\"\n}",
+      "jsonParseError": null,
+      "exception": null,
+      "stdoutPath": "commands/005-stdout.txt",
+      "stderrPath": "commands/005-stderr.txt",
+      "rawJsonPath": "commands/005-raw.json"
+    },
+    {
+      "index": 6,
+      "name": "check",
+      "page": "P1",
+      "argv": [
+        "sch",
+        "check",
+        "--json",
+        "--strict",
+        "--page",
+        "P1",
+        "--project",
+        "edaloop-block-baseline"
+      ],
+      "startedAt": "2026-09-02T14:57:21.106187+00:00",
+      "endedAt": "2026-09-02T14:57:22.028260+00:00",
+      "durationMs": 924.437,
+      "returnCode": 1,
+      "stdout": "{\n  \"id\": \"req_193204\",\n  \"ok\": true,\n  \"result\": {\n    \"passed\": false,\n    \"summary\": {\n      \"floatingPins\": 0,\n      \"componentsWithFloating\": 0,\n      \"geomNetMismatches\": 0,\n      \"netMarkerMismatches\": 0,\n      \"multiNetWires\": 0,\n      \"wireCrossings\": 0,\n      \"wireOverPins\": 0,\n      \"zeroLengthWires\": 0,\n      \"danglingWires\": 0,\n      \"duplicateNetMarkers\": 0,\n      \"titleblockOverlaps\": 0,\n      \"markerOverlaps\": 0,\n      \"missingPartitions\": 1,\n      \"noteOutsideZones\": 0,\n      \"redundantNetMarkers\": 0,\n      \"foldedNetLabels\": 0,\n      \"reversedNetFlags\": 0,\n      \"polarityConventionOutliers\": 0,\n      \"total\": 1\n    },\n    \"findings\": [\n      {\n        \"type\": \"missing-titleblock\",\n        \"level\": \"warn\",\n        \"count\": 3,\n        \"message\": \"图签未填:Name(图纸标题)、Drawed(设计者)、Description(图纸说明) — 交付图必须能认领(`sch titleblock --data '{\\\"Name\\\":\\\"…\\\",\\\"Drawed\\\":\\\"…\\\"}'`)\"\n      }\n    ]\n  },\n  \"type\": \"response\",\n  \"version\": \"v1\"\n}\n",
+      "stderr": "sch check: 1 blocking finding(s) (--strict; info 级不计入)\n",
+      "stdoutSha256": "57eb926ed110971ca9fa067477e6dbbb6923fad6e4a57a026f52cbedf1a20730",
+      "stderrSha256": "8ea3db7507f2b71d4b66001fe8eafc27567e77f983aa4141648c026681379a9f",
+      "rawJsonSha256": "386126638bb8f6e4a05e61559ae613f15e467d51da63421b3afb689e39a386c8",
+      "parsedJson": {
+        "id": "req_193204",
+        "ok": true,
+        "result": {
+          "passed": false,
+          "summary": {
+            "floatingPins": 0,
+            "componentsWithFloating": 0,
+            "geomNetMismatches": 0,
+            "netMarkerMismatches": 0,
+            "multiNetWires": 0,
+            "wireCrossings": 0,
+            "wireOverPins": 0,
+            "zeroLengthWires": 0,
+            "danglingWires": 0,
+            "duplicateNetMarkers": 0,
+            "titleblockOverlaps": 0,
+            "markerOverlaps": 0,
+            "missingPartitions": 1,
+            "noteOutsideZones": 0,
+            "redundantNetMarkers": 0,
+            "foldedNetLabels": 0,
+            "reversedNetFlags": 0,
+            "polarityConventionOutliers": 0,
+            "total": 1
+          },
+          "findings": [
+            {
+              "type": "missing-titleblock",
+              "level": "warn",
+              "count": 3,
+              "message": "图签未填:Name(图纸标题)、Drawed(设计者)、Description(图纸说明) — 交付图必须能认领(`sch titleblock --data '{\"Name\":\"…\",\"Drawed\":\"…\"}'`)"
+            }
+          ]
+        },
+        "type": "response",
+        "version": "v1"
+      },
+      "rawJson": {
+        "id": "req_193204",
+        "ok": true,
+        "result": {
+          "passed": false,
+          "summary": {
+            "floatingPins": 0,
+            "componentsWithFloating": 0,
+            "geomNetMismatches": 0,
+            "netMarkerMismatches": 0,
+            "multiNetWires": 0,
+            "wireCrossings": 0,
+            "wireOverPins": 0,
+            "zeroLengthWires": 0,
+            "danglingWires": 0,
+            "duplicateNetMarkers": 0,
+            "titleblockOverlaps": 0,
+            "markerOverlaps": 0,
+            "missingPartitions": 1,
+            "noteOutsideZones": 0,
+            "redundantNetMarkers": 0,
+            "foldedNetLabels": 0,
+            "reversedNetFlags": 0,
+            "polarityConventionOutliers": 0,
+            "total": 1
+          },
+          "findings": [
+            {
+              "type": "missing-titleblock",
+              "level": "warn",
+              "count": 3,
+              "message": "图签未填:Name(图纸标题)、Drawed(设计者)、Description(图纸说明) — 交付图必须能认领(`sch titleblock --data '{\"Name\":\"…\",\"Drawed\":\"…\"}'`)"
+            }
+          ]
+        },
+        "type": "response",
+        "version": "v1"
+      },
+      "rawJsonText": "{\n  \"id\": \"req_193204\",\n  \"ok\": true,\n  \"result\": {\n    \"passed\": false,\n    \"summary\": {\n      \"floatingPins\": 0,\n      \"componentsWithFloating\": 0,\n      \"geomNetMismatches\": 0,\n      \"netMarkerMismatches\": 0,\n      \"multiNetWires\": 0,\n      \"wireCrossings\": 0,\n      \"wireOverPins\": 0,\n      \"zeroLengthWires\": 0,\n      \"danglingWires\": 0,\n      \"duplicateNetMarkers\": 0,\n      \"titleblockOverlaps\": 0,\n      \"markerOverlaps\": 0,\n      \"missingPartitions\": 1,\n      \"noteOutsideZones\": 0,\n      \"redundantNetMarkers\": 0,\n      \"foldedNetLabels\": 0,\n      \"reversedNetFlags\": 0,\n      \"polarityConventionOutliers\": 0,\n      \"total\": 1\n    },\n    \"findings\": [\n      {\n        \"type\": \"missing-titleblock\",\n        \"level\": \"warn\",\n        \"count\": 3,\n        \"message\": \"图签未填:Name(图纸标题)、Drawed(设计者)、Description(图纸说明) — 交付图必须能认领(`sch titleblock --data '{\\\"Name\\\":\\\"…\\\",\\\"Drawed\\\":\\\"…\\\"}'`)\"\n      }\n    ]\n  },\n  \"type\": \"response\",\n  \"version\": \"v1\"\n}",
+      "jsonParseError": null,
+      "exception": null,
+      "stdoutPath": "commands/006-stdout.txt",
+      "stderrPath": "commands/006-stderr.txt",
+      "rawJsonPath": "commands/006-raw.json"
+    },
+    {
+      "index": 7,
+      "name": "bridge-check",
+      "page": "P1",
+      "argv": [
+        "sch",
+        "bridge-check",
+        "--json",
+        "--doc",
+        "P1",
+        "--project",
+        "edaloop-block-baseline"
+      ],
+      "startedAt": "2026-09-02T14:57:22.034728+00:00",
+      "endedAt": "2026-09-02T14:57:22.137076+00:00",
+      "durationMs": 103.605,
+      "returnCode": 0,
+      "stdout": "{\n  \"id\": \"req_193255\",\n  \"ok\": true,\n  \"result\": {\n    \"passed\": true,\n    \"summary\": {\n      \"trees\": 0,\n      \"bridges\": 0,\n      \"orphans\": 0,\n      \"orphanFlags\": 0,\n      \"orphanTrees\": 0,\n      \"wireTreesTotal\": 0\n    },\n    \"trees\": []\n  },\n  \"type\": \"response\",\n  \"version\": \"v1\"\n}\n",
+      "stderr": "",
+      "stdoutSha256": "fed27523394910a4cdd2b98ac2ff79aa2fb40d1363216f8815128b18ffab72d8",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawJsonSha256": "0e26231a357ee74c2695edf763b65bc9999641d79959b511b4c5c77e78c496c5",
+      "parsedJson": {
+        "id": "req_193255",
+        "ok": true,
+        "result": {
+          "passed": true,
+          "summary": {
+            "trees": 0,
+            "bridges": 0,
+            "orphans": 0,
+            "orphanFlags": 0,
+            "orphanTrees": 0,
+            "wireTreesTotal": 0
+          },
+          "trees": []
+        },
+        "type": "response",
+        "version": "v1"
+      },
+      "rawJson": {
+        "id": "req_193255",
+        "ok": true,
+        "result": {
+          "passed": true,
+          "summary": {
+            "trees": 0,
+            "bridges": 0,
+            "orphans": 0,
+            "orphanFlags": 0,
+            "orphanTrees": 0,
+            "wireTreesTotal": 0
+          },
+          "trees": []
+        },
+        "type": "response",
+        "version": "v1"
+      },
+      "rawJsonText": "{\n  \"id\": \"req_193255\",\n  \"ok\": true,\n  \"result\": {\n    \"passed\": true,\n    \"summary\": {\n      \"trees\": 0,\n      \"bridges\": 0,\n      \"orphans\": 0,\n      \"orphanFlags\": 0,\n      \"orphanTrees\": 0,\n      \"wireTreesTotal\": 0\n    },\n    \"trees\": []\n  },\n  \"type\": \"response\",\n  \"version\": \"v1\"\n}",
+      "jsonParseError": null,
+      "exception": null,
+      "stdoutPath": "commands/007-stdout.txt",
+      "stderrPath": "commands/007-stderr.txt",
+      "rawJsonPath": "commands/007-raw.json"
+    },
+    {
+      "index": 8,
+      "name": "drc",
+      "page": "P1",
+      "argv": [
+        "sch",
+        "drc",
+        "--json",
+        "--strict",
+        "--doc",
+        "P1",
+        "--project",
+        "edaloop-block-baseline"
+      ],
+      "startedAt": "2026-09-02T14:57:22.143371+00:00",
+      "endedAt": "2026-09-02T14:57:22.253472+00:00",
+      "durationMs": 111.127,
+      "returnCode": 0,
+      "stdout": "{\n  \"id\": \"req_193265\",\n  \"ok\": true,\n  \"result\": {\n    \"passed\": true,\n    \"fatal\": 0,\n    \"summary\": {\n      \"fatal\": 0,\n      \"error\": 0,\n      \"warn\": 0,\n      \"info\": 0,\n      \"unknown\": 0,\n      \"total\": 0\n    },\n    \"violations\": []\n  },\n  \"type\": \"response\",\n  \"version\": \"v1\"\n}\n",
+      "stderr": "",
+      "stdoutSha256": "85a15dea34aa101f1c016000922bf186dbdcdc3c991f25193b2d41fae750a265",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawJsonSha256": "db9425d30d7f6d93f5aa740f367292fb8600ba5bcfe7e6ca44b5240c87f57a2d",
+      "parsedJson": {
+        "id": "req_193265",
+        "ok": true,
+        "result": {
+          "passed": true,
+          "fatal": 0,
+          "summary": {
+            "fatal": 0,
+            "error": 0,
+            "warn": 0,
+            "info": 0,
+            "unknown": 0,
+            "total": 0
+          },
+          "violations": []
+        },
+        "type": "response",
+        "version": "v1"
+      },
+      "rawJson": {
+        "id": "req_193265",
+        "ok": true,
+        "result": {
+          "passed": true,
+          "fatal": 0,
+          "summary": {
+            "fatal": 0,
+            "error": 0,
+            "warn": 0,
+            "info": 0,
+            "unknown": 0,
+            "total": 0
+          },
+          "violations": []
+        },
+        "type": "response",
+        "version": "v1"
+      },
+      "rawJsonText": "{\n  \"id\": \"req_193265\",\n  \"ok\": true,\n  \"result\": {\n    \"passed\": true,\n    \"fatal\": 0,\n    \"summary\": {\n      \"fatal\": 0,\n      \"error\": 0,\n      \"warn\": 0,\n      \"info\": 0,\n      \"unknown\": 0,\n      \"total\": 0\n    },\n    \"violations\": []\n  },\n  \"type\": \"response\",\n  \"version\": \"v1\"\n}",
+      "jsonParseError": null,
+      "exception": null,
+      "stdoutPath": "commands/008-stdout.txt",
+      "stderrPath": "commands/008-stderr.txt",
+      "rawJsonPath": "commands/008-raw.json"
+    },
+    {
+      "index": 9,
+      "name": "gate",
+      "page": "P1",
+      "argv": [
+        "sch",
+        "gate",
+        "--json",
+        "--strict",
+        "--doc",
+        "P1",
+        "--project",
+        "edaloop-block-baseline"
+      ],
+      "startedAt": "2026-09-02T14:57:22.260727+00:00",
+      "endedAt": "2026-09-02T14:57:23.025993+00:00",
+      "durationMs": 767.611,
+      "returnCode": 1,
+      "stdout": "{\n  \"ok\": false,\n  \"verdict\": \"fail\",\n  \"stages\": [\n    {\n      \"name\": \"layout-lint\",\n      \"status\": \"pass\",\n      \"errors\": 0,\n      \"warnings\": 0,\n      \"summary\": \"0 overlap, 0 pin-coincidence, 0 tight, 0 off-grid, 0 out-of-sheet, 0 no-bbox, 0 unchecked-pin, 0 unproven-pin, 0 invalid-geometry (zone-check=not-configured sheet-check=checked)\",\n      \"detail\": {\n        \"schemaVersion\": 2,\n        \"ok\": true,\n        \"strict\": true,\n        \"minGap\": 2.54,\n        \"componentCount\": 0,\n        \"withBBox\": 0,\n        \"skippedNonParts\": 1,\n        \"overlaps\": null,\n        \"tightSpacing\": null,\n        \"pinCoincidences\": null,\n        \"measurementUnit\": \"mm\",\n        \"coordinateUnit\": \"0.01inch\",\n        \"anchorGridRaw\": 5,\n        \"anchorGridUnit\": \"0.01inch\",\n        \"zoneCheckStatus\": \"not-configured\",\n        \"sheetCheckStatus\": \"checked\",\n        \"pinEps\": 0,\n        \"summary\": \"strict=true: 0 components (0 with bbox): 0 overlap, 0 tight (\\u003c2.54mm), 0 pin-coincidence, 0 off-grid, 0 out-of-sheet, 0 unchecked-bbox, 0 unchecked-pins, 0 unproven-pins, 0 invalid-geometry; zoneCheck=not-configured sheetCheck=checked\"\n      }\n    },\n    {\n      \"name\": \"clusters\",\n      \"status\": \"pass\",\n      \"errors\": 0,\n      \"warnings\": 0,\n      \"summary\": \"0 个虚拟组:0 重叠 / 0 出图纸 / 0 过近\",\n      \"detail\": {\n        \"clusters\": [],\n        \"findings\": null,\n        \"sheetUsable\": {\n          \"minX\": 12,\n          \"minY\": 12,\n          \"maxX\": 1158,\n          \"maxY\": 813\n        }\n      }\n    },\n    {\n      \"name\": \"check\",\n      \"status\": \"fail\",\n      \"errors\": 0,\n      \"warnings\": 1,\n      \"blockingReasons\": [\n        \"1 个 warn finding (--strict;info 不阻塞): missing-titleblock×1\"\n      ],\n      \"summary\": \"1 finding(s): 0 error/fatal, 1 warn/info\",\n      \"detail\": {\n        \"passed\": false,\n        \"summary\": {\n          \"floatingPins\": 0,\n          \"componentsWithFloating\": 0,\n          \"geomNetMismatches\": 0,\n          \"netMarkerMismatches\": 0,\n          \"multiNetWires\": 0,\n          \"wireCrossings\": 0,\n          \"wireOverPins\": 0,\n          \"zeroLengthWires\": 0,\n          \"danglingWires\": 0,\n          \"duplicateNetMarkers\": 0,\n          \"titleblockOverlaps\": 0,\n          \"markerOverlaps\": 0,\n          \"missingPartitions\": 1,\n          \"noteOutsideZones\": 0,\n          \"redundantNetMarkers\": 0,\n          \"foldedNetLabels\": 0,\n          \"reversedNetFlags\": 0,\n          \"polarityConventionOutliers\": 0,\n          \"total\": 1\n        },\n        \"findings\": [\n          {\n            \"type\": \"missing-titleblock\",\n            \"level\": \"warn\",\n            \"count\": 3,\n            \"message\": \"图签未填:Name(图纸标题)、Drawed(设计者)、Description(图纸说明) — 交付图必须能认领(`sch titleblock --data '{\\\"Name\\\":\\\"…\\\",\\\"Drawed\\\":\\\"…\\\"}'`)\"\n          }\n        ]\n      }\n    },\n    {\n      \"name\": \"bridge-check\",\n      \"status\": \"pass\",\n      \"errors\": 0,\n      \"warnings\": 0,\n      \"summary\": \"0 bridge(short), 0 orphan-stub, 0 orphan-flag, 0 orphan-tree (0 wire tree(s))\",\n      \"detail\": {\n        \"passed\": true,\n        \"summary\": {\n          \"trees\": 0,\n          \"bridges\": 0,\n          \"orphans\": 0,\n          \"orphanFlags\": 0,\n          \"orphanTrees\": 0,\n          \"wireTreesTotal\": 0\n        },\n        \"trees\": []\n      }\n    },\n    {\n      \"name\": \"drc\",\n      \"status\": \"pass\",\n      \"errors\": 0,\n      \"warnings\": 0,\n      \"summary\": \"0 fatal, 0 error, 0 warn, 0 info (total 0)\",\n      \"detail\": {\n        \"passed\": true,\n        \"fatal\": 0,\n        \"summary\": {\n          \"fatal\": 0,\n          \"error\": 0,\n          \"warn\": 0,\n          \"info\": 0,\n          \"unknown\": 0,\n          \"total\": 0\n        },\n        \"violations\": []\n      }\n    }\n  ],\n  \"blockers\": [\n    \"check: 1 个 warn finding (--strict;info 不阻塞): missing-titleblock×1\"\n  ],\n  \"warnings\": [\n    \"check: 1 条告警\"\n  ]\n}\n",
+      "stderr": "sch gate: FAIL — check: 1 个 warn finding (--strict;info 不阻塞): missing-titleblock×1\n",
+      "stdoutSha256": "ca90263c5f7a5401afb434d6c28ac4e700e45d7bdf8935fb02e831559daf75e9",
+      "stderrSha256": "f76644dd9073d6aa7739aec8da131826101e4a0cbd9e04431e1e1a30f3652da6",
+      "rawJsonSha256": "d5a5e577e29a3ca19840a8f3f5170bfd757805f72be328feccfb046034daf66d",
+      "parsedJson": {
+        "ok": false,
+        "verdict": "fail",
+        "stages": [
+          {
+            "name": "layout-lint",
+            "status": "pass",
+            "errors": 0,
+            "warnings": 0,
+            "summary": "0 overlap, 0 pin-coincidence, 0 tight, 0 off-grid, 0 out-of-sheet, 0 no-bbox, 0 unchecked-pin, 0 unproven-pin, 0 invalid-geometry (zone-check=not-configured sheet-check=checked)",
+            "detail": {
+              "schemaVersion": 2,
+              "ok": true,
+              "strict": true,
+              "minGap": 2.54,
+              "componentCount": 0,
+              "withBBox": 0,
+              "skippedNonParts": 1,
+              "overlaps": null,
+              "tightSpacing": null,
+              "pinCoincidences": null,
+              "measurementUnit": "mm",
+              "coordinateUnit": "0.01inch",
+              "anchorGridRaw": 5,
+              "anchorGridUnit": "0.01inch",
+              "zoneCheckStatus": "not-configured",
+              "sheetCheckStatus": "checked",
+              "pinEps": 0,
+              "summary": "strict=true: 0 components (0 with bbox): 0 overlap, 0 tight (<2.54mm), 0 pin-coincidence, 0 off-grid, 0 out-of-sheet, 0 unchecked-bbox, 0 unchecked-pins, 0 unproven-pins, 0 invalid-geometry; zoneCheck=not-configured sheetCheck=checked"
+            }
+          },
+          {
+            "name": "clusters",
+            "status": "pass",
+            "errors": 0,
+            "warnings": 0,
+            "summary": "0 个虚拟组:0 重叠 / 0 出图纸 / 0 过近",
+            "detail": {
+              "clusters": [],
+              "findings": null,
+              "sheetUsable": {
+                "minX": 12,
+                "minY": 12,
+                "maxX": 1158,
+                "maxY": 813
+              }
+            }
+          },
+          {
+            "name": "check",
+            "status": "fail",
+            "errors": 0,
+            "warnings": 1,
+            "blockingReasons": [
+              "1 个 warn finding (--strict;info 不阻塞): missing-titleblock×1"
+            ],
+            "summary": "1 finding(s): 0 error/fatal, 1 warn/info",
+            "detail": {
+              "passed": false,
+              "summary": {
+                "floatingPins": 0,
+                "componentsWithFloating": 0,
+                "geomNetMismatches": 0,
+                "netMarkerMismatches": 0,
+                "multiNetWires": 0,
+                "wireCrossings": 0,
+                "wireOverPins": 0,
+                "zeroLengthWires": 0,
+                "danglingWires": 0,
+                "duplicateNetMarkers": 0,
+                "titleblockOverlaps": 0,
+                "markerOverlaps": 0,
+                "missingPartitions": 1,
+                "noteOutsideZones": 0,
+                "redundantNetMarkers": 0,
+                "foldedNetLabels": 0,
+                "reversedNetFlags": 0,
+                "polarityConventionOutliers": 0,
+                "total": 1
+              },
+              "findings": [
+                {
+                  "type": "missing-titleblock",
+                  "level": "warn",
+                  "count": 3,
+                  "message": "图签未填:Name(图纸标题)、Drawed(设计者)、Description(图纸说明) — 交付图必须能认领(`sch titleblock --data '{\"Name\":\"…\",\"Drawed\":\"…\"}'`)"
+                }
+              ]
+            }
+          },
+          {
+            "name": "bridge-check",
+            "status": "pass",
+            "errors": 0,
+            "warnings": 0,
+            "summary": "0 bridge(short), 0 orphan-stub, 0 orphan-flag, 0 orphan-tree (0 wire tree(s))",
+            "detail": {
+              "passed": true,
+              "summary": {
+                "trees": 0,
+                "bridges": 0,
+                "orphans": 0,
+                "orphanFlags": 0,
+                "orphanTrees": 0,
+                "wireTreesTotal": 0
+              },
+              "trees": []
+            }
+          },
+          {
+            "name": "drc",
+            "status": "pass",
+            "errors": 0,
+            "warnings": 0,
+            "summary": "0 fatal, 0 error, 0 warn, 0 info (total 0)",
+            "detail": {
+              "passed": true,
+              "fatal": 0,
+              "summary": {
+                "fatal": 0,
+                "error": 0,
+                "warn": 0,
+                "info": 0,
+                "unknown": 0,
+                "total": 0
+              },
+              "violations": []
+            }
+          }
+        ],
+        "blockers": [
+          "check: 1 个 warn finding (--strict;info 不阻塞): missing-titleblock×1"
+        ],
+        "warnings": [
+          "check: 1 条告警"
+        ]
+      },
+      "rawJson": {
+        "ok": false,
+        "verdict": "fail",
+        "stages": [
+          {
+            "name": "layout-lint",
+            "status": "pass",
+            "errors": 0,
+            "warnings": 0,
+            "summary": "0 overlap, 0 pin-coincidence, 0 tight, 0 off-grid, 0 out-of-sheet, 0 no-bbox, 0 unchecked-pin, 0 unproven-pin, 0 invalid-geometry (zone-check=not-configured sheet-check=checked)",
+            "detail": {
+              "schemaVersion": 2,
+              "ok": true,
+              "strict": true,
+              "minGap": 2.54,
+              "componentCount": 0,
+              "withBBox": 0,
+              "skippedNonParts": 1,
+              "overlaps": null,
+              "tightSpacing": null,
+              "pinCoincidences": null,
+              "measurementUnit": "mm",
+              "coordinateUnit": "0.01inch",
+              "anchorGridRaw": 5,
+              "anchorGridUnit": "0.01inch",
+              "zoneCheckStatus": "not-configured",
+              "sheetCheckStatus": "checked",
+              "pinEps": 0,
+              "summary": "strict=true: 0 components (0 with bbox): 0 overlap, 0 tight (<2.54mm), 0 pin-coincidence, 0 off-grid, 0 out-of-sheet, 0 unchecked-bbox, 0 unchecked-pins, 0 unproven-pins, 0 invalid-geometry; zoneCheck=not-configured sheetCheck=checked"
+            }
+          },
+          {
+            "name": "clusters",
+            "status": "pass",
+            "errors": 0,
+            "warnings": 0,
+            "summary": "0 个虚拟组:0 重叠 / 0 出图纸 / 0 过近",
+            "detail": {
+              "clusters": [],
+              "findings": null,
+              "sheetUsable": {
+                "minX": 12,
+                "minY": 12,
+                "maxX": 1158,
+                "maxY": 813
+              }
+            }
+          },
+          {
+            "name": "check",
+            "status": "fail",
+            "errors": 0,
+            "warnings": 1,
+            "blockingReasons": [
+              "1 个 warn finding (--strict;info 不阻塞): missing-titleblock×1"
+            ],
+            "summary": "1 finding(s): 0 error/fatal, 1 warn/info",
+            "detail": {
+              "passed": false,
+              "summary": {
+                "floatingPins": 0,
+                "componentsWithFloating": 0,
+                "geomNetMismatches": 0,
+                "netMarkerMismatches": 0,
+                "multiNetWires": 0,
+                "wireCrossings": 0,
+                "wireOverPins": 0,
+                "zeroLengthWires": 0,
+                "danglingWires": 0,
+                "duplicateNetMarkers": 0,
+                "titleblockOverlaps": 0,
+                "markerOverlaps": 0,
+                "missingPartitions": 1,
+                "noteOutsideZones": 0,
+                "redundantNetMarkers": 0,
+                "foldedNetLabels": 0,
+                "reversedNetFlags": 0,
+                "polarityConventionOutliers": 0,
+                "total": 1
+              },
+              "findings": [
+                {
+                  "type": "missing-titleblock",
+                  "level": "warn",
+                  "count": 3,
+                  "message": "图签未填:Name(图纸标题)、Drawed(设计者)、Description(图纸说明) — 交付图必须能认领(`sch titleblock --data '{\"Name\":\"…\",\"Drawed\":\"…\"}'`)"
+                }
+              ]
+            }
+          },
+          {
+            "name": "bridge-check",
+            "status": "pass",
+            "errors": 0,
+            "warnings": 0,
+            "summary": "0 bridge(short), 0 orphan-stub, 0 orphan-flag, 0 orphan-tree (0 wire tree(s))",
+            "detail": {
+              "passed": true,
+              "summary": {
+                "trees": 0,
+                "bridges": 0,
+                "orphans": 0,
+                "orphanFlags": 0,
+                "orphanTrees": 0,
+                "wireTreesTotal": 0
+              },
+              "trees": []
+            }
+          },
+          {
+            "name": "drc",
+            "status": "pass",
+            "errors": 0,
+            "warnings": 0,
+            "summary": "0 fatal, 0 error, 0 warn, 0 info (total 0)",
+            "detail": {
+              "passed": true,
+              "fatal": 0,
+              "summary": {
+                "fatal": 0,
+                "error": 0,
+                "warn": 0,
+                "info": 0,
+                "unknown": 0,
+                "total": 0
+              },
+              "violations": []
+            }
+          }
+        ],
+        "blockers": [
+          "check: 1 个 warn finding (--strict;info 不阻塞): missing-titleblock×1"
+        ],
+        "warnings": [
+          "check: 1 条告警"
+        ]
+      },
+      "rawJsonText": "{\n  \"ok\": false,\n  \"verdict\": \"fail\",\n  \"stages\": [\n    {\n      \"name\": \"layout-lint\",\n      \"status\": \"pass\",\n      \"errors\": 0,\n      \"warnings\": 0,\n      \"summary\": \"0 overlap, 0 pin-coincidence, 0 tight, 0 off-grid, 0 out-of-sheet, 0 no-bbox, 0 unchecked-pin, 0 unproven-pin, 0 invalid-geometry (zone-check=not-configured sheet-check=checked)\",\n      \"detail\": {\n        \"schemaVersion\": 2,\n        \"ok\": true,\n        \"strict\": true,\n        \"minGap\": 2.54,\n        \"componentCount\": 0,\n        \"withBBox\": 0,\n        \"skippedNonParts\": 1,\n        \"overlaps\": null,\n        \"tightSpacing\": null,\n        \"pinCoincidences\": null,\n        \"measurementUnit\": \"mm\",\n        \"coordinateUnit\": \"0.01inch\",\n        \"anchorGridRaw\": 5,\n        \"anchorGridUnit\": \"0.01inch\",\n        \"zoneCheckStatus\": \"not-configured\",\n        \"sheetCheckStatus\": \"checked\",\n        \"pinEps\": 0,\n        \"summary\": \"strict=true: 0 components (0 with bbox): 0 overlap, 0 tight (\\u003c2.54mm), 0 pin-coincidence, 0 off-grid, 0 out-of-sheet, 0 unchecked-bbox, 0 unchecked-pins, 0 unproven-pins, 0 invalid-geometry; zoneCheck=not-configured sheetCheck=checked\"\n      }\n    },\n    {\n      \"name\": \"clusters\",\n      \"status\": \"pass\",\n      \"errors\": 0,\n      \"warnings\": 0,\n      \"summary\": \"0 个虚拟组:0 重叠 / 0 出图纸 / 0 过近\",\n      \"detail\": {\n        \"clusters\": [],\n        \"findings\": null,\n        \"sheetUsable\": {\n          \"minX\": 12,\n          \"minY\": 12,\n          \"maxX\": 1158,\n          \"maxY\": 813\n        }\n      }\n    },\n    {\n      \"name\": \"check\",\n      \"status\": \"fail\",\n      \"errors\": 0,\n      \"warnings\": 1,\n      \"blockingReasons\": [\n        \"1 个 warn finding (--strict;info 不阻塞): missing-titleblock×1\"\n      ],\n      \"summary\": \"1 finding(s): 0 error/fatal, 1 warn/info\",\n      \"detail\": {\n        \"passed\": false,\n        \"summary\": {\n          \"floatingPins\": 0,\n          \"componentsWithFloating\": 0,\n          \"geomNetMismatches\": 0,\n          \"netMarkerMismatches\": 0,\n          \"multiNetWires\": 0,\n          \"wireCrossings\": 0,\n          \"wireOverPins\": 0,\n          \"zeroLengthWires\": 0,\n          \"danglingWires\": 0,\n          \"duplicateNetMarkers\": 0,\n          \"titleblockOverlaps\": 0,\n          \"markerOverlaps\": 0,\n          \"missingPartitions\": 1,\n          \"noteOutsideZones\": 0,\n          \"redundantNetMarkers\": 0,\n          \"foldedNetLabels\": 0,\n          \"reversedNetFlags\": 0,\n          \"polarityConventionOutliers\": 0,\n          \"total\": 1\n        },\n        \"findings\": [\n          {\n            \"type\": \"missing-titleblock\",\n            \"level\": \"warn\",\n            \"count\": 3,\n            \"message\": \"图签未填:Name(图纸标题)、Drawed(设计者)、Description(图纸说明) — 交付图必须能认领(`sch titleblock --data '{\\\"Name\\\":\\\"…\\\",\\\"Drawed\\\":\\\"…\\\"}'`)\"\n          }\n        ]\n      }\n    },\n    {\n      \"name\": \"bridge-check\",\n      \"status\": \"pass\",\n      \"errors\": 0,\n      \"warnings\": 0,\n      \"summary\": \"0 bridge(short), 0 orphan-stub, 0 orphan-flag, 0 orphan-tree (0 wire tree(s))\",\n      \"detail\": {\n        \"passed\": true,\n        \"summary\": {\n          \"trees\": 0,\n          \"bridges\": 0,\n          \"orphans\": 0,\n          \"orphanFlags\": 0,\n          \"orphanTrees\": 0,\n          \"wireTreesTotal\": 0\n        },\n        \"trees\": []\n      }\n    },\n    {\n      \"name\": \"drc\",\n      \"status\": \"pass\",\n      \"errors\": 0,\n      \"warnings\": 0,\n      \"summary\": \"0 fatal, 0 error, 0 warn, 0 info (total 0)\",\n      \"detail\": {\n        \"passed\": true,\n        \"fatal\": 0,\n        \"summary\": {\n          \"fatal\": 0,\n          \"error\": 0,\n          \"warn\": 0,\n          \"info\": 0,\n          \"unknown\": 0,\n          \"total\": 0\n        },\n        \"violations\": []\n      }\n    }\n  ],\n  \"blockers\": [\n    \"check: 1 个 warn finding (--strict;info 不阻塞): missing-titleblock×1\"\n  ],\n  \"warnings\": [\n    \"check: 1 条告警\"\n  ]\n}",
+      "jsonParseError": null,
+      "exception": null,
+      "stdoutPath": "commands/009-stdout.txt",
+      "stderrPath": "commands/009-stderr.txt",
+      "rawJsonPath": "commands/009-raw.json"
+    },
+    {
+      "index": 10,
+      "name": "read",
+      "page": "P1",
+      "argv": [
+        "sch",
+        "read",
+        "--page",
+        "P1",
+        "--project",
+        "edaloop-block-baseline"
+      ],
+      "startedAt": "2026-09-02T14:57:23.034999+00:00",
+      "endedAt": "2026-09-02T14:57:23.574723+00:00",
+      "durationMs": 542.464,
+      "returnCode": 0,
+      "stdout": "{\n  \"id\": \"req_193466\",\n  \"type\": \"response\",\n  \"version\": \"v1\",\n  \"createdAt\": \"2026-09-02T14:57:23.5727238Z\",\n  \"ok\": true,\n  \"result\": {\n    \"check\": {\n      \"findings\": [],\n      \"passed\": true,\n      \"summary\": {\n        \"componentsWithFloating\": 0,\n        \"danglingWires\": 0,\n        \"floatingPins\": 0,\n        \"geomNetMismatches\": 0,\n        \"multiNetWires\": 0,\n        \"netMarkerMismatches\": 0,\n        \"polarityConventionOutliers\": 0,\n        \"total\": 0,\n        \"wireCrossings\": 0,\n        \"wireOverPins\": 0,\n        \"zeroLengthWires\": 0\n      }\n    },\n    \"componentCount\": 1,\n    \"components\": [\n      {\n        \"componentType\": \"sheet\",\n        \"designator\": \"\",\n        \"footprint\": \"\",\n        \"name\": \"\",\n        \"pins\": [],\n        \"primitiveId\": \"c319b6b09a6ee6b0\",\n        \"supplierId\": \"\",\n        \"uniqueId\": \"\",\n        \"x\": 0,\n        \"y\": 0\n      }\n    ],\n    \"floatingPinCount\": 0,\n    \"floatingPins\": [],\n    \"netCount\": 0,\n    \"nets\": []\n  },\n  \"context\": {\n    \"projectUuid\": \"5c5728757764408aaa9cbf1895e48e9d\",\n    \"projectName\": \"edaloop-block-baseline\",\n    \"documentUuid\": \"f83ed65a7d62827c\",\n    \"documentType\": \"schematic\",\n    \"tabId\": \"f83ed65a7d62827c@5c5728757764408aaa9cbf1895e48e9d\"\n  },\n  \"seq\": 90,\n  \"seqAbandoned\": 0\n}\n",
+      "stderr": "",
+      "stdoutSha256": "49dfc6dbf511e3aed93fcf38169e2a97c5d228a53a6c310b49f828d4ac7a6a9d",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawJsonSha256": "7a2e9437e297714b1d3c4a055b13a84b7cbb4f7c19d0952041ac5561e899f62f",
+      "parsedJson": {
+        "id": "req_193466",
+        "type": "response",
+        "version": "v1",
+        "createdAt": "2026-09-02T14:57:23.5727238Z",
+        "ok": true,
+        "result": {
+          "check": {
+            "findings": [],
+            "passed": true,
+            "summary": {
+              "componentsWithFloating": 0,
+              "danglingWires": 0,
+              "floatingPins": 0,
+              "geomNetMismatches": 0,
+              "multiNetWires": 0,
+              "netMarkerMismatches": 0,
+              "polarityConventionOutliers": 0,
+              "total": 0,
+              "wireCrossings": 0,
+              "wireOverPins": 0,
+              "zeroLengthWires": 0
+            }
+          },
+          "componentCount": 1,
+          "components": [
+            {
+              "componentType": "sheet",
+              "designator": "",
+              "footprint": "",
+              "name": "",
+              "pins": [],
+              "primitiveId": "c319b6b09a6ee6b0",
+              "supplierId": "",
+              "uniqueId": "",
+              "x": 0,
+              "y": 0
+            }
+          ],
+          "floatingPinCount": 0,
+          "floatingPins": [],
+          "netCount": 0,
+          "nets": []
+        },
+        "context": {
+          "projectUuid": "5c5728757764408aaa9cbf1895e48e9d",
+          "projectName": "edaloop-block-baseline",
+          "documentUuid": "f83ed65a7d62827c",
+          "documentType": "schematic",
+          "tabId": "f83ed65a7d62827c@5c5728757764408aaa9cbf1895e48e9d"
+        },
+        "seq": 90,
+        "seqAbandoned": 0
+      },
+      "rawJson": {
+        "id": "req_193466",
+        "type": "response",
+        "version": "v1",
+        "createdAt": "2026-09-02T14:57:23.5727238Z",
+        "ok": true,
+        "result": {
+          "check": {
+            "findings": [],
+            "passed": true,
+            "summary": {
+              "componentsWithFloating": 0,
+              "danglingWires": 0,
+              "floatingPins": 0,
+              "geomNetMismatches": 0,
+              "multiNetWires": 0,
+              "netMarkerMismatches": 0,
+              "polarityConventionOutliers": 0,
+              "total": 0,
+              "wireCrossings": 0,
+              "wireOverPins": 0,
+              "zeroLengthWires": 0
+            }
+          },
+          "componentCount": 1,
+          "components": [
+            {
+              "componentType": "sheet",
+              "designator": "",
+              "footprint": "",
+              "name": "",
+              "pins": [],
+              "primitiveId": "c319b6b09a6ee6b0",
+              "supplierId": "",
+              "uniqueId": "",
+              "x": 0,
+              "y": 0
+            }
+          ],
+          "floatingPinCount": 0,
+          "floatingPins": [],
+          "netCount": 0,
+          "nets": []
+        },
+        "context": {
+          "projectUuid": "5c5728757764408aaa9cbf1895e48e9d",
+          "projectName": "edaloop-block-baseline",
+          "documentUuid": "f83ed65a7d62827c",
+          "documentType": "schematic",
+          "tabId": "f83ed65a7d62827c@5c5728757764408aaa9cbf1895e48e9d"
+        },
+        "seq": 90,
+        "seqAbandoned": 0
+      },
+      "rawJsonText": "{\n  \"id\": \"req_193466\",\n  \"type\": \"response\",\n  \"version\": \"v1\",\n  \"createdAt\": \"2026-09-02T14:57:23.5727238Z\",\n  \"ok\": true,\n  \"result\": {\n    \"check\": {\n      \"findings\": [],\n      \"passed\": true,\n      \"summary\": {\n        \"componentsWithFloating\": 0,\n        \"danglingWires\": 0,\n        \"floatingPins\": 0,\n        \"geomNetMismatches\": 0,\n        \"multiNetWires\": 0,\n        \"netMarkerMismatches\": 0,\n        \"polarityConventionOutliers\": 0,\n        \"total\": 0,\n        \"wireCrossings\": 0,\n        \"wireOverPins\": 0,\n        \"zeroLengthWires\": 0\n      }\n    },\n    \"componentCount\": 1,\n    \"components\": [\n      {\n        \"componentType\": \"sheet\",\n        \"designator\": \"\",\n        \"footprint\": \"\",\n        \"name\": \"\",\n        \"pins\": [],\n        \"primitiveId\": \"c319b6b09a6ee6b0\",\n        \"supplierId\": \"\",\n        \"uniqueId\": \"\",\n        \"x\": 0,\n        \"y\": 0\n      }\n    ],\n    \"floatingPinCount\": 0,\n    \"floatingPins\": [],\n    \"netCount\": 0,\n    \"nets\": []\n  },\n  \"context\": {\n    \"projectUuid\": \"5c5728757764408aaa9cbf1895e48e9d\",\n    \"projectName\": \"edaloop-block-baseline\",\n    \"documentUuid\": \"f83ed65a7d62827c\",\n    \"documentType\": \"schematic\",\n    \"tabId\": \"f83ed65a7d62827c@5c5728757764408aaa9cbf1895e48e9d\"\n  },\n  \"seq\": 90,\n  \"seqAbandoned\": 0\n}",
+      "jsonParseError": null,
+      "exception": null,
+      "stdoutPath": "commands/010-stdout.txt",
+      "stderrPath": "commands/010-stderr.txt",
+      "rawJsonPath": "commands/010-raw.json"
+    },
+    {
+      "index": 11,
+      "name": "sheet-geometry",
+      "page": "P1",
+      "argv": [
+        "sch",
+        "sheet-geometry",
+        "--json",
+        "--doc",
+        "P1",
+        "--project",
+        "edaloop-block-baseline"
+      ],
+      "startedAt": "2026-09-02T14:57:23.584725+00:00",
+      "endedAt": "2026-09-02T14:57:23.708139+00:00",
+      "durationMs": 125.683,
+      "returnCode": 0,
+      "stdout": "{\n  \"id\": \"req_193479\",\n  \"ok\": true,\n  \"result\": {\n    \"sheet\": {\n      \"template\": \"a-series-landscape\",\n      \"bbox\": {\n        \"minX\": 0,\n        \"minY\": 0,\n        \"maxX\": 1170,\n        \"maxY\": 825\n      }\n    },\n    \"titleBlock\": {\n      \"visible\": false,\n      \"source\": \"none\"\n    },\n    \"keepouts\": [],\n    \"warnings\": [\n      \"title block is hidden (showTitleBlock=false); no title-block keep-out emitted\"\n    ]\n  },\n  \"type\": \"response\",\n  \"version\": \"v1\"\n}\n",
+      "stderr": "",
+      "stdoutSha256": "742573a8769c96ba936267a618cc1417e51ff8a001c0c07b36b85492ba011837",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawJsonSha256": "d3f8c0e90eab35827e8ceaf291eac8c59e35b2222daa586c1c2e68a6518c7801",
+      "parsedJson": {
+        "id": "req_193479",
+        "ok": true,
+        "result": {
+          "sheet": {
+            "template": "a-series-landscape",
+            "bbox": {
+              "minX": 0,
+              "minY": 0,
+              "maxX": 1170,
+              "maxY": 825
+            }
+          },
+          "titleBlock": {
+            "visible": false,
+            "source": "none"
+          },
+          "keepouts": [],
+          "warnings": [
+            "title block is hidden (showTitleBlock=false); no title-block keep-out emitted"
+          ]
+        },
+        "type": "response",
+        "version": "v1"
+      },
+      "rawJson": {
+        "id": "req_193479",
+        "ok": true,
+        "result": {
+          "sheet": {
+            "template": "a-series-landscape",
+            "bbox": {
+              "minX": 0,
+              "minY": 0,
+              "maxX": 1170,
+              "maxY": 825
+            }
+          },
+          "titleBlock": {
+            "visible": false,
+            "source": "none"
+          },
+          "keepouts": [],
+          "warnings": [
+            "title block is hidden (showTitleBlock=false); no title-block keep-out emitted"
+          ]
+        },
+        "type": "response",
+        "version": "v1"
+      },
+      "rawJsonText": "{\n  \"id\": \"req_193479\",\n  \"ok\": true,\n  \"result\": {\n    \"sheet\": {\n      \"template\": \"a-series-landscape\",\n      \"bbox\": {\n        \"minX\": 0,\n        \"minY\": 0,\n        \"maxX\": 1170,\n        \"maxY\": 825\n      }\n    },\n    \"titleBlock\": {\n      \"visible\": false,\n      \"source\": \"none\"\n    },\n    \"keepouts\": [],\n    \"warnings\": [\n      \"title block is hidden (showTitleBlock=false); no title-block keep-out emitted\"\n    ]\n  },\n  \"type\": \"response\",\n  \"version\": \"v1\"\n}",
+      "jsonParseError": null,
+      "exception": null,
+      "stdoutPath": "commands/011-stdout.txt",
+      "stderrPath": "commands/011-stderr.txt",
+      "rawJsonPath": "commands/011-raw.json"
+    },
+    {
+      "index": 12,
+      "name": "text-list",
+      "page": "P1",
+      "argv": [
+        "sch",
+        "text-list",
+        "--page",
+        "P1",
+        "--project",
+        "edaloop-block-baseline"
+      ],
+      "startedAt": "2026-09-02T14:57:23.718168+00:00",
+      "endedAt": "2026-09-02T14:57:24.225441+00:00",
+      "durationMs": 509.676,
+      "returnCode": 0,
+      "stdout": "{\n  \"id\": \"req_193507\",\n  \"type\": \"response\",\n  \"version\": \"v1\",\n  \"createdAt\": \"2026-09-02T14:57:24.2235934Z\",\n  \"ok\": true,\n  \"result\": {\n    \"count\": 0,\n    \"scope\": \"activePage\",\n    \"texts\": []\n  },\n  \"context\": {\n    \"projectUuid\": \"5c5728757764408aaa9cbf1895e48e9d\",\n    \"projectName\": \"edaloop-block-baseline\",\n    \"documentUuid\": \"f83ed65a7d62827c\",\n    \"documentType\": \"schematic\",\n    \"tabId\": \"f83ed65a7d62827c@5c5728757764408aaa9cbf1895e48e9d\"\n  },\n  \"seq\": 101,\n  \"seqAbandoned\": 0\n}\n",
+      "stderr": "",
+      "stdoutSha256": "8cc1445c70164513684d979f17e5a5d278d66d6d2951e0b1ea3079b643fb315e",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawJsonSha256": "ad11bc1565224be1c9b4735a81245694d0e35540e028be6d215cf563cf4baaac",
+      "parsedJson": {
+        "id": "req_193507",
+        "type": "response",
+        "version": "v1",
+        "createdAt": "2026-09-02T14:57:24.2235934Z",
+        "ok": true,
+        "result": {
+          "count": 0,
+          "scope": "activePage",
+          "texts": []
+        },
+        "context": {
+          "projectUuid": "5c5728757764408aaa9cbf1895e48e9d",
+          "projectName": "edaloop-block-baseline",
+          "documentUuid": "f83ed65a7d62827c",
+          "documentType": "schematic",
+          "tabId": "f83ed65a7d62827c@5c5728757764408aaa9cbf1895e48e9d"
+        },
+        "seq": 101,
+        "seqAbandoned": 0
+      },
+      "rawJson": {
+        "id": "req_193507",
+        "type": "response",
+        "version": "v1",
+        "createdAt": "2026-09-02T14:57:24.2235934Z",
+        "ok": true,
+        "result": {
+          "count": 0,
+          "scope": "activePage",
+          "texts": []
+        },
+        "context": {
+          "projectUuid": "5c5728757764408aaa9cbf1895e48e9d",
+          "projectName": "edaloop-block-baseline",
+          "documentUuid": "f83ed65a7d62827c",
+          "documentType": "schematic",
+          "tabId": "f83ed65a7d62827c@5c5728757764408aaa9cbf1895e48e9d"
+        },
+        "seq": 101,
+        "seqAbandoned": 0
+      },
+      "rawJsonText": "{\n  \"id\": \"req_193507\",\n  \"type\": \"response\",\n  \"version\": \"v1\",\n  \"createdAt\": \"2026-09-02T14:57:24.2235934Z\",\n  \"ok\": true,\n  \"result\": {\n    \"count\": 0,\n    \"scope\": \"activePage\",\n    \"texts\": []\n  },\n  \"context\": {\n    \"projectUuid\": \"5c5728757764408aaa9cbf1895e48e9d\",\n    \"projectName\": \"edaloop-block-baseline\",\n    \"documentUuid\": \"f83ed65a7d62827c\",\n    \"documentType\": \"schematic\",\n    \"tabId\": \"f83ed65a7d62827c@5c5728757764408aaa9cbf1895e48e9d\"\n  },\n  \"seq\": 101,\n  \"seqAbandoned\": 0\n}",
+      "jsonParseError": null,
+      "exception": null,
+      "stdoutPath": "commands/012-stdout.txt",
+      "stderrPath": "commands/012-stderr.txt",
+      "rawJsonPath": "commands/012-raw.json"
+    },
+    {
+      "index": 13,
+      "name": "layout-score",
+      "page": "P1",
+      "argv": [
+        "sch",
+        "layout-score",
+        "--json",
+        "--doc",
+        "P1",
+        "--project",
+        "edaloop-block-baseline"
+      ],
+      "startedAt": "2026-09-02T14:57:24.235525+00:00",
+      "endedAt": "2026-09-02T14:57:24.423187+00:00",
+      "durationMs": 189.369,
+      "returnCode": 0,
+      "stdout": "{\n  \"overall\": 0,\n  \"verdict\": \"unscored\",\n  \"dimensions\": [\n    {\n      \"id\": \"folded-labels\",\n      \"title\": \"标签折叠\",\n      \"status\": \"skipped\",\n      \"score\": 0,\n      \"weight\": 1.2,\n      \"reason\": \"页面无带 bbox 的 part 几何,五维全部未测\"\n    },\n    {\n      \"id\": \"reversed-labels\",\n      \"title\": \"标签反向\",\n      \"status\": \"skipped\",\n      \"score\": 0,\n      \"weight\": 1.2,\n      \"reason\": \"页面无带 bbox 的 part 几何,五维全部未测\"\n    },\n    {\n      \"id\": \"proximity\",\n      \"title\": \"外围贴核心\",\n      \"status\": \"skipped\",\n      \"score\": 0,\n      \"weight\": 1,\n      \"reason\": \"页面无带 bbox 的 part 几何,五维全部未测\"\n    },\n    {\n      \"id\": \"stub-tidiness\",\n      \"title\": \"长链/挤压\",\n      \"status\": \"skipped\",\n      \"score\": 0,\n      \"weight\": 0.8,\n      \"reason\": \"页面无带 bbox 的 part 几何,五维全部未测\"\n    },\n    {\n      \"id\": \"frame-fit\",\n      \"title\": \"版面整洁\",\n      \"status\": \"skipped\",\n      \"score\": 0,\n      \"weight\": 0.5,\n      \"reason\": \"页面无带 bbox 的 part 几何,五维全部未测\"\n    }\n  ],\n  \"componentCount\": 1,\n  \"scoredDims\": 0,\n  \"skippedDims\": 5,\n  \"summary\": \"sch layout-score: 页面无 part,未打分\"\n}\n",
+      "stderr": "",
+      "stdoutSha256": "4d9b9edae44a892581978ce6ef28c8b9ad4fd7cb3483cde3d6e4cb268aca84fc",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawJsonSha256": "7f1c203ecb509b4ed9673b1f7027d5620d48d9061c44fdba7c766be5254951e3",
+      "parsedJson": {
+        "overall": 0,
+        "verdict": "unscored",
+        "dimensions": [
+          {
+            "id": "folded-labels",
+            "title": "标签折叠",
+            "status": "skipped",
+            "score": 0,
+            "weight": 1.2,
+            "reason": "页面无带 bbox 的 part 几何,五维全部未测"
+          },
+          {
+            "id": "reversed-labels",
+            "title": "标签反向",
+            "status": "skipped",
+            "score": 0,
+            "weight": 1.2,
+            "reason": "页面无带 bbox 的 part 几何,五维全部未测"
+          },
+          {
+            "id": "proximity",
+            "title": "外围贴核心",
+            "status": "skipped",
+            "score": 0,
+            "weight": 1,
+            "reason": "页面无带 bbox 的 part 几何,五维全部未测"
+          },
+          {
+            "id": "stub-tidiness",
+            "title": "长链/挤压",
+            "status": "skipped",
+            "score": 0,
+            "weight": 0.8,
+            "reason": "页面无带 bbox 的 part 几何,五维全部未测"
+          },
+          {
+            "id": "frame-fit",
+            "title": "版面整洁",
+            "status": "skipped",
+            "score": 0,
+            "weight": 0.5,
+            "reason": "页面无带 bbox 的 part 几何,五维全部未测"
+          }
+        ],
+        "componentCount": 1,
+        "scoredDims": 0,
+        "skippedDims": 5,
+        "summary": "sch layout-score: 页面无 part,未打分"
+      },
+      "rawJson": {
+        "overall": 0,
+        "verdict": "unscored",
+        "dimensions": [
+          {
+            "id": "folded-labels",
+            "title": "标签折叠",
+            "status": "skipped",
+            "score": 0,
+            "weight": 1.2,
+            "reason": "页面无带 bbox 的 part 几何,五维全部未测"
+          },
+          {
+            "id": "reversed-labels",
+            "title": "标签反向",
+            "status": "skipped",
+            "score": 0,
+            "weight": 1.2,
+            "reason": "页面无带 bbox 的 part 几何,五维全部未测"
+          },
+          {
+            "id": "proximity",
+            "title": "外围贴核心",
+            "status": "skipped",
+            "score": 0,
+            "weight": 1,
+            "reason": "页面无带 bbox 的 part 几何,五维全部未测"
+          },
+          {
+            "id": "stub-tidiness",
+            "title": "长链/挤压",
+            "status": "skipped",
+            "score": 0,
+            "weight": 0.8,
+            "reason": "页面无带 bbox 的 part 几何,五维全部未测"
+          },
+          {
+            "id": "frame-fit",
+            "title": "版面整洁",
+            "status": "skipped",
+            "score": 0,
+            "weight": 0.5,
+            "reason": "页面无带 bbox 的 part 几何,五维全部未测"
+          }
+        ],
+        "componentCount": 1,
+        "scoredDims": 0,
+        "skippedDims": 5,
+        "summary": "sch layout-score: 页面无 part,未打分"
+      },
+      "rawJsonText": "{\n  \"overall\": 0,\n  \"verdict\": \"unscored\",\n  \"dimensions\": [\n    {\n      \"id\": \"folded-labels\",\n      \"title\": \"标签折叠\",\n      \"status\": \"skipped\",\n      \"score\": 0,\n      \"weight\": 1.2,\n      \"reason\": \"页面无带 bbox 的 part 几何,五维全部未测\"\n    },\n    {\n      \"id\": \"reversed-labels\",\n      \"title\": \"标签反向\",\n      \"status\": \"skipped\",\n      \"score\": 0,\n      \"weight\": 1.2,\n      \"reason\": \"页面无带 bbox 的 part 几何,五维全部未测\"\n    },\n    {\n      \"id\": \"proximity\",\n      \"title\": \"外围贴核心\",\n      \"status\": \"skipped\",\n      \"score\": 0,\n      \"weight\": 1,\n      \"reason\": \"页面无带 bbox 的 part 几何,五维全部未测\"\n    },\n    {\n      \"id\": \"stub-tidiness\",\n      \"title\": \"长链/挤压\",\n      \"status\": \"skipped\",\n      \"score\": 0,\n      \"weight\": 0.8,\n      \"reason\": \"页面无带 bbox 的 part 几何,五维全部未测\"\n    },\n    {\n      \"id\": \"frame-fit\",\n      \"title\": \"版面整洁\",\n      \"status\": \"skipped\",\n      \"score\": 0,\n      \"weight\": 0.5,\n      \"reason\": \"页面无带 bbox 的 part 几何,五维全部未测\"\n    }\n  ],\n  \"componentCount\": 1,\n  \"scoredDims\": 0,\n  \"skippedDims\": 5,\n  \"summary\": \"sch layout-score: 页面无 part,未打分\"\n}",
+      "jsonParseError": null,
+      "exception": null,
+      "stdoutPath": "commands/013-stdout.txt",
+      "stderrPath": "commands/013-stderr.txt",
+      "rawJsonPath": "commands/013-raw.json"
+    },
+    {
+      "index": 14,
+      "name": "nets",
+      "page": null,
+      "argv": [
+        "sch",
+        "nets",
+        "--json",
+        "--strict",
+        "--project",
+        "edaloop-block-baseline"
+      ],
+      "startedAt": "2026-09-02T14:57:24.432365+00:00",
+      "endedAt": "2026-09-02T14:57:24.536930+00:00",
+      "durationMs": 107.184,
+      "returnCode": 0,
+      "stdout": "{\n  \"ok\": true,\n  \"totalNets\": 0\n}\n",
+      "stderr": "",
+      "stdoutSha256": "85e2454d29f547f343e21efcd1ece23e0970c1d4500e9fb79925b79a2bb974ac",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawJsonSha256": "5b2c02f6e399a9fe6a1769dccd35bc2a7aa9e242f9c7ab3f6d0ea6c2db436e2d",
+      "parsedJson": {
+        "ok": true,
+        "totalNets": 0
+      },
+      "rawJson": {
+        "ok": true,
+        "totalNets": 0
+      },
+      "rawJsonText": "{\n  \"ok\": true,\n  \"totalNets\": 0\n}",
+      "jsonParseError": null,
+      "exception": null,
+      "stdoutPath": "commands/014-stdout.txt",
+      "stderrPath": "commands/014-stderr.txt",
+      "rawJsonPath": "commands/014-raw.json"
+    },
+    {
+      "index": 15,
+      "name": "netlist",
+      "page": null,
+      "argv": [
+        "sch",
+        "netlist",
+        "--project",
+        "edaloop-block-baseline"
+      ],
+      "startedAt": "2026-09-02T14:57:24.546894+00:00",
+      "endedAt": "2026-09-02T14:57:24.644959+00:00",
+      "durationMs": 100.492,
+      "returnCode": 0,
+      "stdout": "{\n  \"id\": \"req_193563\",\n  \"type\": \"response\",\n  \"version\": \"v1\",\n  \"createdAt\": \"2026-09-02T14:57:24.6412628Z\",\n  \"ok\": true,\n  \"result\": {\n    \"artifactId\": \"art_5fede5a1-e3cc-4f28-b9f2-aa5d82df6404\",\n    \"artifactPath\": \"D:\\\\gyt-pro\\\\jlc-edaloop\\\\.easyeda\\\\artifacts\\\\20260902-225724-schematic_netlist-5fede5a1.enet\",\n    \"netlistType\": null\n  },\n  \"context\": {\n    \"projectUuid\": \"5c5728757764408aaa9cbf1895e48e9d\",\n    \"projectName\": \"edaloop-block-baseline\",\n    \"documentUuid\": \"f83ed65a7d62827c\",\n    \"documentType\": \"schematic\",\n    \"tabId\": \"f83ed65a7d62827c@5c5728757764408aaa9cbf1895e48e9d\"\n  },\n  \"artifacts\": [\n    {\n      \"id\": \"art_5fede5a1-e3cc-4f28-b9f2-aa5d82df6404\",\n      \"kind\": \"schematic_netlist\",\n      \"path\": \"D:\\\\gyt-pro\\\\jlc-edaloop\\\\.easyeda\\\\artifacts\\\\20260902-225724-schematic_netlist-5fede5a1.enet\",\n      \"fileName\": \"Netlist_Schematic1_2026-09-02.enet\",\n      \"mimeType\": \"text/plain\",\n      \"size\": 979,\n      \"sha256\": \"dfd56b0b591e35083a0d70d97b05e03dbf7c547e1e7977aef2bd2ee56801b0dd\"\n    }\n  ],\n  \"seq\": 113,\n  \"seqAbandoned\": 0\n}\n",
+      "stderr": "📎 artifact saved: D:\\gyt-pro\\jlc-edaloop\\.easyeda\\artifacts\\20260902-225724-schematic_netlist-5fede5a1.enet\n",
+      "stdoutSha256": "90abca61ea292a192513c811fe15d47ea1fd1c292de192419fb52f0b2abc9856",
+      "stderrSha256": "c328c53eb50af72b76ff83959160bee88e8cb529b7f448d46beca83bcda4cfdd",
+      "rawJsonSha256": "1527d7f652d9823845ad3fe1c17b890f95d1d97108bfe073943796766d19be3b",
+      "parsedJson": {
+        "id": "req_193563",
+        "type": "response",
+        "version": "v1",
+        "createdAt": "2026-09-02T14:57:24.6412628Z",
+        "ok": true,
+        "result": {
+          "artifactId": "art_5fede5a1-e3cc-4f28-b9f2-aa5d82df6404",
+          "artifactPath": "D:\\gyt-pro\\jlc-edaloop\\.easyeda\\artifacts\\20260902-225724-schematic_netlist-5fede5a1.enet",
+          "netlistType": null
+        },
+        "context": {
+          "projectUuid": "5c5728757764408aaa9cbf1895e48e9d",
+          "projectName": "edaloop-block-baseline",
+          "documentUuid": "f83ed65a7d62827c",
+          "documentType": "schematic",
+          "tabId": "f83ed65a7d62827c@5c5728757764408aaa9cbf1895e48e9d"
+        },
+        "artifacts": [
+          {
+            "id": "art_5fede5a1-e3cc-4f28-b9f2-aa5d82df6404",
+            "kind": "schematic_netlist",
+            "path": "D:\\gyt-pro\\jlc-edaloop\\.easyeda\\artifacts\\20260902-225724-schematic_netlist-5fede5a1.enet",
+            "fileName": "Netlist_Schematic1_2026-09-02.enet",
+            "mimeType": "text/plain",
+            "size": 979,
+            "sha256": "dfd56b0b591e35083a0d70d97b05e03dbf7c547e1e7977aef2bd2ee56801b0dd"
+          }
+        ],
+        "seq": 113,
+        "seqAbandoned": 0
+      },
+      "rawJson": {
+        "id": "req_193563",
+        "type": "response",
+        "version": "v1",
+        "createdAt": "2026-09-02T14:57:24.6412628Z",
+        "ok": true,
+        "result": {
+          "artifactId": "art_5fede5a1-e3cc-4f28-b9f2-aa5d82df6404",
+          "artifactPath": "D:\\gyt-pro\\jlc-edaloop\\.easyeda\\artifacts\\20260902-225724-schematic_netlist-5fede5a1.enet",
+          "netlistType": null
+        },
+        "context": {
+          "projectUuid": "5c5728757764408aaa9cbf1895e48e9d",
+          "projectName": "edaloop-block-baseline",
+          "documentUuid": "f83ed65a7d62827c",
+          "documentType": "schematic",
+          "tabId": "f83ed65a7d62827c@5c5728757764408aaa9cbf1895e48e9d"
+        },
+        "artifacts": [
+          {
+            "id": "art_5fede5a1-e3cc-4f28-b9f2-aa5d82df6404",
+            "kind": "schematic_netlist",
+            "path": "D:\\gyt-pro\\jlc-edaloop\\.easyeda\\artifacts\\20260902-225724-schematic_netlist-5fede5a1.enet",
+            "fileName": "Netlist_Schematic1_2026-09-02.enet",
+            "mimeType": "text/plain",
+            "size": 979,
+            "sha256": "dfd56b0b591e35083a0d70d97b05e03dbf7c547e1e7977aef2bd2ee56801b0dd"
+          }
+        ],
+        "seq": 113,
+        "seqAbandoned": 0
+      },
+      "rawJsonText": "{\n  \"id\": \"req_193563\",\n  \"type\": \"response\",\n  \"version\": \"v1\",\n  \"createdAt\": \"2026-09-02T14:57:24.6412628Z\",\n  \"ok\": true,\n  \"result\": {\n    \"artifactId\": \"art_5fede5a1-e3cc-4f28-b9f2-aa5d82df6404\",\n    \"artifactPath\": \"D:\\\\gyt-pro\\\\jlc-edaloop\\\\.easyeda\\\\artifacts\\\\20260902-225724-schematic_netlist-5fede5a1.enet\",\n    \"netlistType\": null\n  },\n  \"context\": {\n    \"projectUuid\": \"5c5728757764408aaa9cbf1895e48e9d\",\n    \"projectName\": \"edaloop-block-baseline\",\n    \"documentUuid\": \"f83ed65a7d62827c\",\n    \"documentType\": \"schematic\",\n    \"tabId\": \"f83ed65a7d62827c@5c5728757764408aaa9cbf1895e48e9d\"\n  },\n  \"artifacts\": [\n    {\n      \"id\": \"art_5fede5a1-e3cc-4f28-b9f2-aa5d82df6404\",\n      \"kind\": \"schematic_netlist\",\n      \"path\": \"D:\\\\gyt-pro\\\\jlc-edaloop\\\\.easyeda\\\\artifacts\\\\20260902-225724-schematic_netlist-5fede5a1.enet\",\n      \"fileName\": \"Netlist_Schematic1_2026-09-02.enet\",\n      \"mimeType\": \"text/plain\",\n      \"size\": 979,\n      \"sha256\": \"dfd56b0b591e35083a0d70d97b05e03dbf7c547e1e7977aef2bd2ee56801b0dd\"\n    }\n  ],\n  \"seq\": 113,\n  \"seqAbandoned\": 0\n}",
+      "jsonParseError": null,
+      "exception": null,
+      "stdoutPath": "commands/015-stdout.txt",
+      "stderrPath": "commands/015-stderr.txt",
+      "rawJsonPath": "commands/015-raw.json",
+      "artifacts": [
+        {
+          "sourcePath": "D:\\gyt-pro\\jlc-edaloop\\.easyeda\\artifacts\\20260902-225724-schematic_netlist-5fede5a1.enet",
+          "metadata": {
+            "artifactId": "art_5fede5a1-e3cc-4f28-b9f2-aa5d82df6404",
+            "artifactPath": "D:\\gyt-pro\\jlc-edaloop\\.easyeda\\artifacts\\20260902-225724-schematic_netlist-5fede5a1.enet",
+            "netlistType": null
+          },
+          "status": "captured",
+          "path": "artifacts/015-01-20260902-225724-schematic_netlist-5fede5a1.enet",
+          "size": 979,
+          "sha256": "dfd56b0b591e35083a0d70d97b05e03dbf7c547e1e7977aef2bd2ee56801b0dd"
+        }
+      ]
+    }
+  ],
+  "pageReports": [
+    {
+      "page": {
+        "name": "P1",
+        "uuid": "f83ed65a7d62827c",
+        "ref": "P1",
+        "parentSchematicUuid": "73b38aeb15a9f0ac"
+      },
+      "probeIndexes": {
+        "list": 3,
+        "clusters": 4,
+        "layout-lint": 5,
+        "check": 6,
+        "bridge-check": 7,
+        "drc": 8,
+        "gate": 9,
+        "read": 10,
+        "sheet-geometry": 11,
+        "text-list": 12,
+        "layout-score": 13
+      },
+      "returnCodes": {
+        "list": 0,
+        "clusters": 0,
+        "layout-lint": 0,
+        "check": 1,
+        "bridge-check": 0,
+        "drc": 0,
+        "gate": 1,
+        "read": 0,
+        "sheet-geometry": 0,
+        "text-list": 0,
+        "layout-score": 0
+      },
+      "layoutSummary": {
+        "partCount": 0,
+        "partBboxCount": 0,
+        "bodyOverlapCount": 0,
+        "bodyOverlaps": [],
+        "clusterOverlapCount": 0,
+        "clusterOverlaps": [],
+        "clusterEnvelopeOverlapCount": 0,
+        "clusterEnvelopeOverlaps": [],
+        "outOfSheetCount": 0,
+        "sheetUsable": {
+          "minX": 12.0,
+          "minY": 12.0,
+          "maxX": 1158.0,
+          "maxY": 813.0
+        },
+        "sheetSource": "sheetUsable",
+        "titleBlock": null,
+        "occupiedArea": 0.0,
+        "occupiedRatio": 0.0,
+        "availableArea": 917946.0,
+        "titleBlockArea": 0.0,
+        "blankArea": 917946.0,
+        "blankRatio": 1.0,
+        "blankSpaceStatus": "empty",
+        "inkOccupiedArea": null,
+        "inkOccupiedRatio": null,
+        "inkBlankRatio": null
+      },
+      "diagnostics": {
+        "textCount": 0,
+        "layoutScoreOverall": 0,
+        "layoutScoreVerdict": "unscored",
+        "layoutScoreSkippedDims": 5
+      }
+    }
+  ],
+  "artifacts": [
+    {
+      "sourcePath": "D:\\gyt-pro\\jlc-edaloop\\.easyeda\\artifacts\\20260902-225724-schematic_netlist-5fede5a1.enet",
+      "metadata": {
+        "artifactId": "art_5fede5a1-e3cc-4f28-b9f2-aa5d82df6404",
+        "artifactPath": "D:\\gyt-pro\\jlc-edaloop\\.easyeda\\artifacts\\20260902-225724-schematic_netlist-5fede5a1.enet",
+        "netlistType": null
+      },
+      "status": "captured",
+      "path": "artifacts/015-01-20260902-225724-schematic_netlist-5fede5a1.enet",
+      "size": 979,
+      "sha256": "dfd56b0b591e35083a0d70d97b05e03dbf7c547e1e7977aef2bd2ee56801b0dd"
+    }
+  ],
+  "errors": [],
+  "summaries": {
+    "pageCount": 1,
+    "probeCount": 15,
+    "overlapPages": [],
+    "blankSpacePages": [],
+    "averageBlankRatio": 1.0,
+    "netlistReturnCode": 0,
+    "netsReturnCode": 0,
+    "nonZeroProbeCount": 2,
+    "transportExceptionCount": 0
+  },
+  "manifestPath": "runs\\evidence\\l0-block-20260902\\manifest.json"
+}

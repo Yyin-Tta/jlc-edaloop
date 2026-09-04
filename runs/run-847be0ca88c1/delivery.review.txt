@@ -1,0 +1,11 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 13 blocks, status=PASS
+
+- [CRITIC_PULL_RESISTORS/LOGIC冲突@buttons] BOOT 按键块描述写 'BOOT 接 IO0/BOOT0(默认高,按下接地进下载模式)'，但 STM32F103 的 BOOT0 正常启动应默认拉低(按下拉高才进 bootloader)；且 mcu 块描述已含 'BOOT0 10k 下拉接地'，两块对 BOOT0 默认电平的定义互相矛盾。按按钮块的'默认高'实现会导致芯片反复进入 system bootloader。 | 建议: 以 mcu 块为准：BOOT0 经 10k 下拉接地，按键按下将 BOOT0 接 3V3(或经
+- [CRITIC_引脚复用冲突@mcu] pins_binding 中 37 脚(PA14/SWCLK)绑到 RS485_DE，而块描述明确 37=PA14(SWCLK) 且计划引出 SWD 4-pin 排针(SWDIO/SWCLK)。PA14 被 DE 占用后 SWCLK 丢失，SWD 无法调试/下载。 | 建议: 将 RS485_DE 改绑到未占用 GPIO(如 PA1/PA2/PA3 等)，保留 34(PA13)/37(PA14) 给 SWD。
+- [CRITIC_外设功能引脚绑定@rs485] RS485_TX/RX 绑在 MCU 30/31 脚(实际为 PA4/PA5)，而块描述写明 UART1 为 12=PA9(TX)/13=PA10(RX)。绑定到非 USART 引脚将导致串口功能无法实现(软件模拟 UART 在工业 RS485 场景不可靠)。 | 建议: 把 RS485_TX 绑 12 脚(PA9)、RS485_RX 绑 13 脚(PA10)。
+- [CRITIC_电源兼容性@hall] A3144 规格 VCC 最低约 4.5V(TO-92 版典型 4.5–24V)，本设计绑 3V3 供电，超出器件工作电压下限，输出低电平/开关点可能失效。 | 建议: 改用 3.3V 兼容的霍尔开关(如 DRV5013/DRV5023/A1104 替代 3.3V 版本)，或将 A3144 挂 5V 轨并把 HALL_INT 电平经分压/电平移位接 MCU(注意施密特输入容限)。
+- [CRITIC_THERMAL@ldo3v3] netlist 层面 5V→3.3V 用 AMS1117，sizing 给出 Tj≈136°C、裕量 -30°C，说明按当前 3V3 负载(MCU+RS485+EEPROM+霍尔)结温已超限，SOT-223 依赖铺铜也难以挽救，属于设计选型问题而非仅布线问题。 | 建议: 降低 3V3 负载电流，或改用降压方案(如小型同步 BUCK 5V→3.3V)替代 AMS1117；若坚持 LDO，核算实际峰值电流并给出足够散热铜面积估算。
+- [CRITIC_网络悬空/驱动缺失@led_com] led_com 的 CTRL 绑到 LED_COM 网络，但 MCU pins_binding 中没有任何引脚占用 LED_COM(uncovered 也已确认)，该 LED 无驱动源，落图后为悬空网络。 | 建议: 在 MCU pins_binding 中显式分配一个空闲 GPIO(如 PA1)绑到 LED_COM，并注明低/高电平驱动方式。
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

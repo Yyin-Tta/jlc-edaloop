@@ -1,0 +1,110 @@
+{
+  "id": "req_30502",
+  "type": "response",
+  "version": "v1",
+  "createdAt": "2026-08-22T13:48:11.4550554Z",
+  "ok": true,
+  "result": {
+    "deleted": {
+      "components": 8,
+      "netflags": 11,
+      "netports": 17,
+      "wires": 28
+    },
+    "deletedIds": {
+      "components": [
+        "b2d3251143c984cf",
+        "7e61cfe96308243a",
+        "57dde8849de2ee1e",
+        "e32bdbd68b5ca9f7",
+        "50d8295962b5f3f5",
+        "9c66849d16f9be98",
+        "ad866c82fe8fa5c2",
+        "35208f7611a86179"
+      ],
+      "netflags": [
+        "d258400e7e5f3079",
+        "ab6164d1bc546560",
+        "f6d25e42ce238e2e",
+        "78242c4aa9c24fed",
+        "552157ace8cfa396",
+        "31d233fd849a0316",
+        "ab32ef516f6e94b4",
+        "a3bd69e8438ac122",
+        "2666b4017a6931d4",
+        "e14ab37baf799cd6",
+        "3764addb23e8aa78"
+      ],
+      "netports": [
+        "fe43f3841895e847",
+        "59d86cbe60b35c3f",
+        "1057a643d035a03c",
+        "7128dd52838f61eb",
+        "127ac5bafb99d3f2",
+        "ac7d86c353f7456b",
+        "a66411000b920aec",
+        "45cd159745cfe642",
+        "c6c638d730dd4339",
+        "090a2e1cd751ab30",
+        "4776def11c8276a5",
+        "43c7e61043d69585",
+        "1cd5e659a957b7b6",
+        "200ca24ab69da55b",
+        "66f32d58e59202b9",
+        "7201a20246f37f44",
+        "93f4a30d578c5c6e"
+      ],
+      "wires": [
+        "497128bdff35158f",
+        "574ab4eda2e31bc5",
+        "af669e15e14f8c9a",
+        "5bb3f16d85fd158e",
+        "5c11e5238c756900",
+        "a012676c280d02fc",
+        "2390ddc14d40a7da",
+        "2dbb5eb3712fd8d3",
+        "bd8caf71495c8d38",
+        "55c1187b308f9693",
+        "9c9c50503a3ab8c7",
+        "be99c67fe7c19de3",
+        "e0d2029c4712d165",
+        "c6380647e05be758",
+        "503031476026c6ce",
+        "7f355eca71c09cc6",
+        "a38dd02f870b5c45",
+        "f1d952cf50833f73",
+        "df5cad33a949c6f8",
+        "293d3051b32831a2",
+        "27ea26cdfa8109ef",
+        "8832ef0d23c103b3",
+        "f56c5b9d18ea73ab",
+        "790f5f7da7c57ad2",
+        "da7b2d6ec46115a3",
+        "f607385c61cff563",
+        "aad2a9c64a86600b",
+        "732a9e0a4165498d"
+      ]
+    },
+    "dryRun": false,
+    "enumerated": 64,
+    "passes": 1,
+    "preserveSheet": true,
+    "remaining": 0,
+    "total": 64
+  },
+  "context": {
+    "projectUuid": "993e2ad9b7944f92b44333b630a754da",
+    "projectName": "edaloop-w2-req01",
+    "documentUuid": "7c4a751c5136cb01",
+    "documentType": "schematic",
+    "tabId": "7c4a751c5136cb01@993e2ad9b7944f92b44333b630a754da"
+  },
+  "seq": 160,
+  "seqAbandoned": 3,
+  "abandonedIds": [
+    "req_30288",
+    "req_30299",
+    "req_30308"
+  ]
+}
+同时作废了这一页的 2 个虚拟组(其成员已随清页删除)

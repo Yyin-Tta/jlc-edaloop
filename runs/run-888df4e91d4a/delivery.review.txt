@@ -1,0 +1,8 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 9 blocks, status=PASS
+
+- [CRITIC_THERMAL@ldo1] sizing_recommendations 显示 Tj≈136°C、裕量 -30°C,AMS1117 在当前压降/电流下结温已超 125°C 上限,SOT-223 自然散热无法满足,长时间运行会触发过热保护或损坏 | 建议: 降低 LDO 输出电流需求(如将大电流负载移出 3V3 轨)、改用 BUCK 同步降压替代 AMS1117,或加大散热铺铜/thermal via 并严格核算;不建议仅靠降额继续使用 1117
+- [CRITIC_POWER_INTEGRITY@term5v1] 设计为 5V 端子与 USB-C 双路 5V 输入汇合(两个块描述均要求肖特基/理想二极管防倒灌),但 TERM_5V 网络并未与 5V 汇合,且无任何防倒灌器件,端子输入实际不可用或存在倒灌风险 | 建议: 补充理想二极管/肖特基 ORing 块并将 TERM_5V 汇入 5V 轨;若目录无对应块,至少在 plan 中显式标注该缺口并阻断两路直连
+- [CRITIC_INTERFACE_PROTECTION@ch340_1] CH340N 的 UD+/UD- 未与 usb_c1 的 USB_DP/USB_DM 绑定(upstream 块未提供该端口,uncovered 已列),USB 串口数据链路在块级断开,烧录/日志功能不成立 | 建议: 在 ch340_1 增补 UD+/UD- 端口并绑定到 USB_DP/USB_DM,保持 90Ω 差分阻抗与长度匹配;若无法修改目录,需在 plan 中显式标注此必改项
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

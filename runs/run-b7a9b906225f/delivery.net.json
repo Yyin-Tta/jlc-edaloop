@@ -1,0 +1,35 @@
+{
+  "id": "req_144032",
+  "type": "response",
+  "version": "v1",
+  "createdAt": "2026-08-22T00:33:18.7498782Z",
+  "ok": true,
+  "result": {
+    "artifactId": "art_43c85f6d-791d-4140-817e-3e346937a9a5",
+    "artifactPath": "E:\\jlc-edaloop\\.easyeda\\artifacts\\20260822-083318-schematic_netlist-43c85f6d.enet",
+    "netlistType": null
+  },
+  "context": {
+    "projectUuid": "993e2ad9b7944f92b44333b630a754da",
+    "projectName": "edaloop-w2-req01",
+    "documentUuid": "df7e82a1a192d5a9",
+    "documentType": "schematic",
+    "tabId": "df7e82a1a192d5a9@993e2ad9b7944f92b44333b630a754da"
+  },
+  "artifacts": [
+    {
+      "id": "art_43c85f6d-791d-4140-817e-3e346937a9a5",
+      "kind": "schematic_netlist",
+      "path": "E:\\jlc-edaloop\\.easyeda\\artifacts\\20260822-083318-schematic_netlist-43c85f6d.enet",
+      "fileName": "Netlist_Schematic1_2026-08-22.enet",
+      "mimeType": "text/plain",
+      "size": 60465,
+      "sha256": "e73262ff07a2061253563044339d9eff04055762459163574f562d7313c4edb4"
+    }
+  ],
+  "seq": 103283,
+  "seqAbandoned": 1,
+  "abandonedIds": [
+    "req_23445"
+  ]
+}

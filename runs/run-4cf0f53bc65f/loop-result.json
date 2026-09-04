@@ -1,0 +1,33 @@
+{
+ "status": "PASS",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "f6d8febc6530",
+   "gate_verdict": "pass",
+   "findings": [
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='B+/B- 电芯输入焊盘与 P+/P- 保护后输出焊盘:目录无焊盘/端子块(P+ 直接与 B+ 同网,P- 已由 FS8205A 漏极引出,物理焊盘需后续补充)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='FUNC_UNCOVERED' where=Where(ref='充放电双向关断', net='', pin='', xy='') evidence='IR 功能「充放电双向关断」在计划 4 块的词表/词元匹配中无覆盖证据(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='FUNC_UNCOVERED' where=Where(ref='输出端子', net='', pin='', xy='') evidence='IR 功能「输出端子」在计划 4 块的词表/词元匹配中无覆盖证据(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True"
+   ],
+   "feedback": "",
+   "halted": ""
+  }
+ ],
+ "delivery": {
+  "svg": "E:\\jlc-edaloop\\runs\\run-4cf0f53bc65f\\delivery-P1.svg",
+  "svg_pages": [
+   "E:\\jlc-edaloop\\runs\\run-4cf0f53bc65f\\delivery-P1.svg",
+   "E:\\jlc-edaloop\\runs\\run-4cf0f53bc65f\\delivery-P2.svg",
+   "E:\\jlc-edaloop\\runs\\run-4cf0f53bc65f\\delivery-P3.svg",
+   "E:\\jlc-edaloop\\runs\\run-4cf0f53bc65f\\delivery-P4.svg"
+  ],
+  "netlist": "runs\\run-4cf0f53bc65f\\delivery.net.json",
+  "netlist_sha256_16": "e1af26d5be485229",
+  "bom": "runs\\run-4cf0f53bc65f\\delivery.bom.json",
+  "bom_total": 0.0737,
+  "swap": "runs\\run-4cf0f53bc65f\\delivery.swap.txt",
+  "review": "runs\\run-4cf0f53bc65f\\delivery.review.txt",
+  "review_findings": 2
+ }
+}

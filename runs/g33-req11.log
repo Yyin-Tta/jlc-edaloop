@@ -1,0 +1,15 @@
+run 9d59bc747403: status=PASS
+  round 1: gate=pass blocking=0
+converged in 1 round(s)
+  deliver svg: D:\gyt-pro\jlc-edaloop\runs\run-9d59bc747403\delivery-P1.svg
+  deliver svg_pages: ['D:\\gyt-pro\\jlc-edaloop\\runs\\run-9d59bc747403\\delivery-P1.svg', 'D:\\gyt-pro\\jlc-edaloop\\runs\\run-9d59bc747403\\delivery-P2.svg', 'D:\\gyt-pro\\jlc-edaloop\\runs\\run-9d59bc747403\\delivery-P3.svg', 'D:\\gyt-pro\\jlc-edaloop\\runs\\run-9d59bc747403\\delivery-P4.svg', 'D:\\gyt-pro\\jlc-edaloop\\runs\\run-9d59bc747403\\delivery-P5.svg', 'D:\\gyt-pro\\jlc-edaloop\\runs\\run-9d59bc747403\\delivery-P6.svg', 'D:\\gyt-pro\\jlc-edaloop\\runs\\run-9d59bc747403\\delivery-P7.svg']
+  deliver netlist: runs\run-9d59bc747403\delivery.net.json
+  deliver netlist_sha256_16: 455e9982653e4181
+  deliver bom: runs\run-9d59bc747403\delivery.bom.json
+  deliver bom_total: 4.7442
+  deliver swap: runs\run-9d59bc747403\delivery.swap.txt
+  deliver sizing: runs\run-9d59bc747403\delivery.sizing.txt
+  deliver sizing_count: 7
+  deliver review: runs\run-9d59bc747403\delivery.review.txt
+  deliver review_findings: 4
+audit -> runs\run-9d59bc747403

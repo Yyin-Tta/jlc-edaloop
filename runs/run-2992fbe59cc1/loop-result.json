@@ -1,0 +1,43 @@
+{
+ "status": "PASS",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "2ebb989aac13",
+   "gate_verdict": "pass",
+   "findings": [
+    "code='UNDECLARED_RAIL' where=Where(ref='', net='24V_IN', pin='', xy='') evidence='网 24V_IN 呈轨特征(家族 24|main≈24.0V)但 DesignIR 未声明该轨;planner 应在 IR 电源段显式声明,或把该网改绑到既有轨家族' severity='warn' suggested_fix_class='REPLAN' weak=True",
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:1 个块缺 v_supply 区间或单边(ldo3v3)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='5V', pin='', xy='') evidence='轨 5V 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/2(覆盖率 0%),缺 i_typ:ldo3v3, iso5v' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/1(覆盖率 0%),缺 i_typ:mcu' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='DO 通道无输出级隔离:DesignIR 仅要求 ULN2003 驱动且 COM 接隔离侧电源,目录无输出侧光耦/继电器整块,若需 DO 侧也完全电气隔离需补继电器或光耦方案(当前 ULN2003 输入直接接 MCU,逻辑地与 GND_ISO 在 ULN 上共参考,非完全隔离)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='Q1/Q2 未答复:隔离耐压等级按 PC817/B0505S 标准 2500Vrms、DI 限流按 5mA 取 4.7k 预置,待客户确认' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='FUNC_UNCOVERED' where=Where(ref='4 路数字输出', net='', pin='', xy='') evidence='IR 功能「4 路数字输出」在计划 36 块的词表/词元匹配中无覆盖证据(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True"
+   ],
+   "feedback": "",
+   "halted": ""
+  }
+ ],
+ "delivery": {
+  "svg": "D:\\gyt-pro\\jlc-edaloop\\runs\\run-2992fbe59cc1\\delivery-P1.svg",
+  "svg_pages": [
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-2992fbe59cc1\\delivery-P1.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-2992fbe59cc1\\delivery-P2.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-2992fbe59cc1\\delivery-P3.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-2992fbe59cc1\\delivery-P4.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-2992fbe59cc1\\delivery-P5.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-2992fbe59cc1\\delivery-P6.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-2992fbe59cc1\\delivery-P7.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-2992fbe59cc1\\delivery-P8.svg"
+  ],
+  "netlist": "runs\\run-2992fbe59cc1\\delivery.net.json",
+  "netlist_sha256_16": "9976d54d8f35c003",
+  "bom": "runs\\run-2992fbe59cc1\\delivery.bom.json",
+  "bom_total": 4.7328,
+  "swap": "runs\\run-2992fbe59cc1\\delivery.swap.txt",
+  "sizing": "runs\\run-2992fbe59cc1\\delivery.sizing.txt",
+  "sizing_count": 7,
+  "review": "runs\\run-2992fbe59cc1\\delivery.review.txt",
+  "review_findings": 5
+ }
+}

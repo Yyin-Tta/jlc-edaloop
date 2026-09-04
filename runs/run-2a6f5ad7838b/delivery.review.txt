@@ -1,0 +1,10 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 4 blocks, status=PASS
+
+- [CRITIC_DECOUPLING@mcu_main] STM32F103 最小系统块描述仅提及晶振与 NRST 电容,未见各 VDD 引脚(1/9/24/36/48 均绑 3V3)的 100nF 去耦电容及整体布局去耦方案 | 建议: 为每个 VDD 引脚就近放置 100nF,并在电源入口加 4.7~10µF 电容;若块内已含请在描述中明确写出
+- [CRITIC_DECOUPLING@rs485_xcvr] RS-485 收发器块描述中未提及 VCC 去耦电容 | 建议: 在收发器 VCC 引脚就近添加 100nF 去耦电容
+- [CRITIC_PULL_RESISTORS@mcu_main] NRST(引脚7)仅有描述中的 100n(去耦电容),未见复位上拉电阻;BOOT0(引脚44)未见下拉/上拉确定启动模式 | 建议: NRST 加 10k 上拉至 3V3,BOOT0 经 10k 下拉至 GND(或跳线选择)
+- [CRITIC_INTERFACE_PROTECTION@rs485_xcvr] RS-485 A/B 为外部端子接线长线接口,块描述仅含终端电阻和偏置电阻,未见 ESD/TVS 保护器件 | 建议: 在 A/B 端子处添加 TVS(如 SM712 或低电容 TVS 对),并保留 GND 隔离/放电考虑
+- [CRITIC_POWER_INTEGRITY@rs485_xcvr] 块描述为 'MAX485(5V 侧)' 但电源端口绑定到 3V3 网络;MAX485 数据手册规格为 5V 供电,直接接 3V3 不保证工作 | 建议: 明确选用 3.3V 侧方案 SP3485,并删除 MAX485 选项,避免落图时误用 5V 器件
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

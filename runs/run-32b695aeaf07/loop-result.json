@@ -1,0 +1,47 @@
+{
+ "status": "HALT",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "5a18abdfb495",
+   "gate_verdict": "fail",
+   "findings": [
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:3 个块缺 v_supply 区间或单边(ldo_3v3, i2c_iso, rs485_xcvr)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='5V', pin='', xy='') evidence='轨 5V 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/1(覆盖率 0%),缺 i_typ:ldo_3v3' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/3(覆盖率 0%),缺 i_typ:mcu_stm32, i2c_iso, rs485_xcvr' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='4 个 2x8 子节点插槽（目录仅有 1x4 卧贴排针，无 2x8/16P 排针；插槽的 INT1/INT2/AIN/GPIO 引脚与 INT1-4 汇总网络无法落图）' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='在位检测 LED ×4（依赖插槽在位检测引脚，随插槽缺失；且 led-indicator 需具体 CTRL 网络来源）' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='入口 TVS/ESD 保护器件（目录无 TVS，仅有保险丝）' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='MCU 最小系统附属件：8MHz 晶振+22pF、复位 RC(100nF/10k)、BOOT0 下拉 10k、每 VDD 100nF+4.7µF 去耦（4.7µF 不在电容标准值表内，且这些按块描述属 MCU 块内 BOM，place 通道未含）' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='FUNC_UNCOVERED' where=Where(ref='子节点插槽', net='', pin='', xy='') evidence='IR 功能「子节点插槽」在计划 14 块的词表/词元匹配中无覆盖证据(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=overlap a=D2 b=D3' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=overlap a=J1 b=R1' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet a=D2' severity='error' suggested_fix_class='REPLAN' weak=False"
+   ],
+   "feedback": "[GATE_FAIL@clusters] type=overlap a=D2 b=D3 → 修复:放置几何问题:给冲突块设置 params.spacing(如 300;过宽块编译器会自动截到 A4 内)或 at 空位(A4 页内坐标,x∈[100,1100] y∈[300,780];编译器优先读这两个字段)\nsizing 建议值(确定性公式,输入出处见 delivery.sizing.txt;采纳时用 resistor-std/capacitor-std 块 + params.value 表内标准值,值不要发明):\n- fuse-rating@usb_c_pwr: I_hold≥0.15A(自恢复 PPTC 按此档)\n- reg-caps@ldo_3v3: 见 notes(惯例值)\n- thermal@ldo_3v3: Tj≈136°C(裕量-30°C)\n- led-resistor@led_pwr: 推荐 270(就近换表内值)",
+   "halted": ""
+  },
+  {
+   "round_no": 2,
+   "plan_id": "46da07ae10ff",
+   "gate_verdict": "fail",
+   "findings": [
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:3 个块缺 v_supply 区间或单边(ldo_u2, iso_u3, rs485_u4)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/3(覆盖率 0%),缺 i_typ:mcu_u1, iso_u3, rs485_u4' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='5V', pin='', xy='') evidence='轨 5V 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/1(覆盖率 0%),缺 i_typ:ldo_u2' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='USB 入口 TVS/ESD 保护器件:目录无 TVS 器件,仅落实了 PTC 保险丝' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='8MHz 晶振及 22pF 负载电容:目录无晶振,且 22pF 不在标准电容表内' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='2x8(16P)排针插槽:目录仅有 1x4 排针,已用 1x4×2/插槽组合近似覆盖 8 信号,严格 2x8 形态未覆盖' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='在位检测电路本身(插槽插入检测的电平产生):DesignIR 未给出检测机理,LED 暂由各槽 GPIO 驱动' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='LED 限流 270Ω 不在电阻标准值表内,取最近值 120Ω,需人工确认' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='FUNC_UNCOVERED' where=Where(ref='子节点插槽', net='', pin='', xy='') evidence='IR 功能「子节点插槽」在计划 35 块的词表/词元匹配中无覆盖证据(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=overlap a=SWDJ2 b=CLDOIN2' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet a=SWDJ2' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=overlap a=SLOT1A b=SLOT2A' severity='error' suggested_fix_class='RELAYOUT' weak=False"
+   ],
+   "feedback": "",
+   "halted": "同错 2 轮:GATE_FAIL,升级人工"
+  }
+ ],
+ "delivery": {}
+}

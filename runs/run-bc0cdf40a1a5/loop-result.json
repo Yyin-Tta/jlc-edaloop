@@ -1,0 +1,64 @@
+{
+ "status": "PASS",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "619c95232fc4",
+   "gate_verdict": "pass",
+   "findings": [
+    "code='UNDECLARED_RAIL' where=Where(ref='', net='24V_FIELD', pin='', xy='') evidence='网 24V_FIELD 呈轨特征(家族 24|main≈24.0V)但 DesignIR 未声明该轨;planner 应在 IR 电源段显式声明,或把该网改绑到既有轨家族' severity='warn' suggested_fix_class='REPLAN' weak=True",
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:1 个块缺 v_supply 区间或单边(u_ldo3v3)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/1(覆盖率 0%),缺 i_typ:u_mcu' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='5V', pin='', xy='') evidence='轨 5V 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/2(覆盖率 0%),缺 i_typ:u_ldo3v3, u_iso5v' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='B0505S 输出 LC 滤波电感目录无标准电感通道,仅放置输出电容 10u 替代' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='Q2(逻辑侧 RS485/UART 通信接口)需求未答复,未包含在本次规划;如需要需补充 RS485 收发器' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='ULN2003 输出每路并联 LED 指示(目录 desc 提及但属可选增强,DO 活动由逻辑侧 led_do 统一指示),未逐路实现' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True"
+   ],
+   "feedback": "",
+   "halted": ""
+  }
+ ],
+ "delivery": {
+  "svg": "D:\\gyt-pro\\jlc-edaloop\\runs\\run-bc0cdf40a1a5\\delivery-P1.svg",
+  "svg_pages": [
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-bc0cdf40a1a5\\delivery-P1.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-bc0cdf40a1a5\\delivery-P10.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-bc0cdf40a1a5\\delivery-P11.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-bc0cdf40a1a5\\delivery-P12.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-bc0cdf40a1a5\\delivery-P13.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-bc0cdf40a1a5\\delivery-P14.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-bc0cdf40a1a5\\delivery-P15.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-bc0cdf40a1a5\\delivery-P16.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-bc0cdf40a1a5\\delivery-P17.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-bc0cdf40a1a5\\delivery-P18.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-bc0cdf40a1a5\\delivery-P19.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-bc0cdf40a1a5\\delivery-P2.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-bc0cdf40a1a5\\delivery-P20.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-bc0cdf40a1a5\\delivery-P21.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-bc0cdf40a1a5\\delivery-P22.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-bc0cdf40a1a5\\delivery-P23.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-bc0cdf40a1a5\\delivery-P24.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-bc0cdf40a1a5\\delivery-P25.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-bc0cdf40a1a5\\delivery-P26.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-bc0cdf40a1a5\\delivery-P27.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-bc0cdf40a1a5\\delivery-P28.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-bc0cdf40a1a5\\delivery-P29.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-bc0cdf40a1a5\\delivery-P3.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-bc0cdf40a1a5\\delivery-P4.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-bc0cdf40a1a5\\delivery-P5.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-bc0cdf40a1a5\\delivery-P6.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-bc0cdf40a1a5\\delivery-P7.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-bc0cdf40a1a5\\delivery-P8.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-bc0cdf40a1a5\\delivery-P9.svg"
+  ],
+  "netlist": "runs\\run-bc0cdf40a1a5\\delivery.net.json",
+  "netlist_sha256_16": "b5784164f9b6228e",
+  "bom": "runs\\run-bc0cdf40a1a5\\delivery.bom.json",
+  "bom_total": 4.7442,
+  "swap": "runs\\run-bc0cdf40a1a5\\delivery.swap.txt",
+  "sizing": "runs\\run-bc0cdf40a1a5\\delivery.sizing.txt",
+  "sizing_count": 7,
+  "review": "runs\\run-bc0cdf40a1a5\\delivery.review.txt",
+  "review_findings": 5
+ }
+}

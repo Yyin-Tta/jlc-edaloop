@@ -1,0 +1,11 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 8 blocks, status=PASS
+
+- [CRITIC_INTERFACE_PROTECTION@do_uln] ULN2003 的输入(DO_CTRL1-4)来自 MCU(3V3/GND 域),而其 GND(脚8)与 COM(脚9)接在隔离侧 GND_ISO/5V_ISO。ULN2003 是非隔离器件,单侧供电,这样接线使 MCU 逻辑地与隔离地通过芯片体结构耦合,破坏了 B0505S+PC817 建立的隔离;且 3V3 逻辑摆幅相对 GND_ISO 无定义,输出可能误动作 | 建议: DO 通道也需光耦(如 PC817/TLP281)跨隔离,光耦副边由 5V_ISO 供电再驱动 UL
+- [CRITIC_INTERFACE_PROTECTION@do_uln] COM 脚(9)接 5V_ISO,但 ULN2003 驱动的典型负载是继电器/感性负载,其电源通常是现场 24V;续流二极管钳位电平应等于感性负载电源,接 5V_ISO 会导致感性负载反电动势钳位失效(若负载电源为 24V) | 建议: 确认 DO 负载电源轨;COM 应接到与感性负载相同的电源(如 24V_ISO),且 ULN2003 耐压 50V 需留裕量
+- [CRITIC_POWER_INTEGRITY@do_uln] ULN2003 输入由 3.3V GPIO 驱动。达林顿输入需要约 2.7V 以上的有效高电平(VBE×2+电阻压降),3.3V 驱动仅勉强达标,高温/批次偏差下可能饱和不足、带载能力下降 | 建议: 选用输入兼容 3.3V 的驱动(如 ULN2003A 标称兼容,但建议实测;或用 TI ULQ/DRV 系列、加一级三极管),或 MCU 输出经上拉到 5V
+- [CRITIC_PULL_RESISTORS@mcu_stm32] NRST(脚7)与 BOOT0 均无上拉/下拉电阻(uncovered 明确列出复位 RC、BOOT0 下拉缺失),复位脚悬空易受干扰误复位,BOOT0 悬空可能导致误进入 bootloader | 建议: NRST 加 10k 上拉(或至少 100nF 到地),BOOT0 加 10k 下拉;补充到 uncovered 器件清单并落图
+- [CRITIC_DECOUPLING@mcu_stm32] MCU 最小系统的去耦电容未落图(uncovered 中列出‘去耦电容’缺失),LQFP-48 多个 VDD 引脚(1/9/24/36/48)悬空无 100nF 去耦 | 建议: 每个 VDD 引脚就近放 100nF,外加 VDDA 处 10nF+1µF;从目录补充去耦电容 bank
+- [CRITIC_THERMAL@ldo_3v3] AMS1117 从 5V 降至 3.3V,若按其描述‘输出 ≤1A’满载,压差损耗 P=(5-3.3)×1=1.7W,SOT-223 自然散热下结温将超限(RθJA≈100°C/W,温升约 170°C) | 建议: 核算实际 3V3 负载电流;若 >300-400mA 建议改用 BUCK(如 TPS54331/MP1584),或加大铺铜散热并降额使用
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

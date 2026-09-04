@@ -1,0 +1,141 @@
+{
+  "id": "req_263815",
+  "ok": true,
+  "result": {
+    "passed": false,
+    "summary": {
+      "floatingPins": 1,
+      "componentsWithFloating": 1,
+      "geomNetMismatches": 0,
+      "netMarkerMismatches": 0,
+      "multiNetWires": 0,
+      "wireCrossings": 0,
+      "wireOverPins": 0,
+      "zeroLengthWires": 0,
+      "danglingWires": 1,
+      "duplicateNetMarkers": 0,
+      "titleblockOverlaps": 0,
+      "markerOverlaps": 2,
+      "missingPartitions": 3,
+      "noteOutsideZones": 0,
+      "redundantNetMarkers": 0,
+      "foldedNetLabels": 0,
+      "reversedNetFlags": 0,
+      "polarityConventionOutliers": 0,
+      "total": 7
+    },
+    "findings": [
+      {
+        "type": "floating-pin",
+        "level": "warn",
+        "designator": "PROTDW01",
+        "primitiveId": "44258a2dbd8acab8",
+        "pins": [
+          "4"
+        ],
+        "pinDetails": [
+          {
+            "number": "4",
+            "name": "NC",
+            "x": 1005,
+            "y": 765
+          }
+        ],
+        "count": 1,
+        "message": "1 个引脚悬空(无导线连接,未打 NC 标识)"
+      },
+      {
+        "type": "dangling-wire",
+        "level": "warn",
+        "wirePrimitiveId": "e1510e5b5a823b72",
+        "message": "疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除)",
+        "at": {
+          "x": 550,
+          "y": 530
+        }
+      },
+      {
+        "type": "marker-overlap",
+        "level": "warn",
+        "primitiveId": "0634523d3c52fc1c",
+        "markerNet": "B_MINUS",
+        "message": "B_MINUS(netflag) 与 VDD(netflag) 视觉重叠 6.00×7.50 — 换方向/offset 或 stagger",
+        "componentType": "netflag",
+        "primitiveIds": [
+          "0634523d3c52fc1c",
+          "54f533e0ab706325"
+        ],
+        "bbox": {
+          "minX": 1039.5,
+          "minY": 779.5,
+          "maxX": 1045.5,
+          "maxY": 790.5
+        },
+        "other": {
+          "primitiveId": "54f533e0ab706325",
+          "componentType": "netflag",
+          "net": "VDD",
+          "bbox": {
+            "minX": 1017,
+            "minY": 769.5,
+            "maxX": 1045.5,
+            "maxY": 787
+          }
+        },
+        "overlapX": 6,
+        "overlapY": 7.5
+      },
+      {
+        "type": "marker-overlap",
+        "level": "warn",
+        "primitiveId": "54f533e0ab706325",
+        "markerNet": "VDD",
+        "message": "VDD(netflag) 与 CSI(netport) 视觉重叠 28.50×11.00 — 换方向/offset 或 stagger",
+        "componentType": "netflag",
+        "primitiveIds": [
+          "54f533e0ab706325",
+          "84841ca064f5960e"
+        ],
+        "bbox": {
+          "minX": 1017,
+          "minY": 769.5,
+          "maxX": 1045.5,
+          "maxY": 787
+        },
+        "other": {
+          "primitiveId": "84841ca064f5960e",
+          "componentType": "netport",
+          "net": "CSI",
+          "bbox": {
+            "minX": 1004.5,
+            "minY": 769.5,
+            "maxX": 1061.5,
+            "maxY": 780.5
+          }
+        },
+        "overlapX": 28.5,
+        "overlapY": 11
+      },
+      {
+        "type": "missing-partition",
+        "level": "warn",
+        "count": 7,
+        "message": "7 个器件的页已分成 4 个功能模块(虚拟组/认领)但一个分区框都没画 — 铁律#15:`sch zone-draw --mode partition`;被拒(partitionOverlap / titleBlockHits)就先跑 `sch zone-plan` 看逐条 ✗ —— 它点名是哪两个区顶住、还差多少,并给出一条 `sch zone move --zone \u003c区\u003e --dx/--dy \u003c量\u003e` 的最小挪动;挪完再画,整页重排 `sch zone-arrange --apply` 或拆页是最后一档"
+      },
+      {
+        "type": "missing-note",
+        "level": "warn",
+        "count": 7,
+        "message": "7 个器件的页没有电路说明(区名标签不算)— 每模块 1~3 行 `sch note`:作用 + 关键参数 + 设计要点;交付前必须有"
+      },
+      {
+        "type": "missing-titleblock",
+        "level": "warn",
+        "count": 3,
+        "message": "图签未填:Name(图纸标题)、Drawed(设计者)、Description(图纸说明) — 交付图必须能认领(`sch titleblock --data '{\"Name\":\"…\",\"Drawed\":\"…\"}'`)"
+      }
+    ]
+  },
+  "type": "response",
+  "version": "v1"
+}

@@ -1,0 +1,1 @@
+sch gate: FAIL — clusters: 1 处组间图元重叠; 5 处组间过近 (--strict); check: 8 个 warn finding (--strict;info 不阻塞): dangling-wire×3, marker-overlap×2, missing-note×1, missing-partition×1, missing-titleblock×1; bridge-check: 3 orphan-stub (--strict); drc: 1 fatal DRC violation; 1 error-level DRC violation; 37 warn-level DRC violation (--strict;平台只回聚合数,逐条明细请在 EasyEDA 的 DRC 面板查看)

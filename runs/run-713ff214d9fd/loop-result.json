@@ -1,0 +1,43 @@
+{
+ "status": "HALT",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "925a66f889b5",
+   "gate_verdict": "fail",
+   "findings": [
+    "code='GATE_FAIL' where=Where(ref='', net='', pin='', xy='') evidence='round 1: block-apply 存在失败(autoconnect 连线失败或环境错误,详见 apply-error 审计);本轮 spacing=250(A4 页流;RELAYOUT 反馈请给 at/params.spacing)' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='3 个 LED(电源红/心跳绿/总线活动黄)及限流电阻:目录无 LED 块,也无法用带 pinout 器件组合出指示灯电路' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='3V3/GND 测试点:目录无测试点/排针块' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='SWD 4-pin 调试排针(3V3/SWDIO/SWCLK/GND):目录无排针连接器块;SWDIO/SWCLK 网络已在 MCU 侧引出,待有排针后可直接汇合' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='USB-C CC1/CC2 各 5.1k 下拉电阻、I2C 4.7k 上拉电阻、晶振 8MHz+22pF、复位/BOOT0 RC 及各去耦电容:目录无阻容感无源器件块,需在原理图阶段由编译器按块内描述补全' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='DesignIR 指定 AMS1117 LDO,目录无该块,已用 SY8089 buck 替代(功能等价 5V→3.3V)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=overlap' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False"
+   ],
+   "feedback": "[GATE_FAIL@-] round 1: block-apply 存在失败(autoconnect 连线失败或环境错误,详见 apply-error 审计);本轮 spacing=250(A4 页流;RELAYOUT 反馈请给 at/params.spacing) → 修复:放置几何问题:给冲突块设置 params.spacing(如 300;过宽块编译器会自动截到 A4 内)或 at 空位(A4 页内坐标,x∈[100,1100] y∈[300,780];编译器优先读这两个字段)\n[GATE_FAIL@clusters] type=out-of-sheet → 修复:重新规划:按 evidence 调整块选择/端口绑定",
+   "halted": ""
+  },
+  {
+   "round_no": 2,
+   "plan_id": "f28f12a788ed",
+   "gate_verdict": "fail",
+   "findings": [
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='3 个 LED 指示(电源红/心跳绿/总线活动黄):目录无 LED 块也无带 lcsc+pinout 的 LED 器件' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='3V3/GND 测试点:目录无测试点/排针器件' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='AMS1117 LDO:DesignIR 指定 AMS1117,目录仅有 SY8089 buck,已用 buck 替代(功能等价,拓扑不同)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=overlap' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet' severity='error' suggested_fix_class='REPLAN' weak=False"
+   ],
+   "feedback": "",
+   "halted": "同错 2 轮:GATE_FAIL,升级人工"
+  }
+ ],
+ "delivery": {}
+}

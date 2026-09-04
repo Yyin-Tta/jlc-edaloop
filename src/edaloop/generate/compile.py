@@ -33,6 +33,11 @@ def _fill_bindings(plan: BlockPlan, catalog: dict[str, BlockRecord]) -> BlockPla
         if rec is None:
             raise CompileError(f"块 {b.block_id} 不在库中")
         if rec.upstream is not None:
+            if b.no_connect:
+                raise CompileError(
+                    f"块 {b.block_id} 的 upstream 通道不支持 no_connect;"
+                    "请使用带 pinout 的 place 器件或补充块级 NC 契约"
+                )
             if b.upstream_id != rec.upstream.id:
                 raise CompileError(
                     f"块 {b.block_id} 的 upstream_id {b.upstream_id} 与库中 {rec.upstream.id} 不一致"
@@ -47,15 +52,22 @@ def _fill_bindings(plan: BlockPlan, catalog: dict[str, BlockRecord]) -> BlockPla
             std_kind = kind_of(rec)
             if not rec.lcsc and std_kind is None:
                 raise CompileError(f"块 {b.block_id} 无 upstream 且无 lcsc(不可落图)")
-            if not b.pins_binding:
+            if not b.pins_binding and not b.no_connect:
                 raise CompileError(
                     f"块 {b.block_id} 是库外器件(place 通道),必须给出 pins_binding(pin号→网络)"
                 )
             if rec.pinout:
-                unknown = [p for p in b.pins_binding if p not in rec.pinout]
+                unknown = [p for p in set(b.pins_binding) | set(b.no_connect) if p not in rec.pinout]
                 if unknown:
                     raise CompileError(f"块 {b.block_id} 绑定了不存在的引脚号: {unknown}")
+            overlap = set(b.pins_binding) & set(b.no_connect)
+            if overlap:
+                raise CompileError(f"块 {b.block_id} 引脚同时绑定网络和 NC: {sorted(overlap)}")
             if std_kind is not None:
+                if b.no_connect and any(pin not in {"1", "2"} for pin in b.no_connect):
+                    raise CompileError(
+                        f"标准件 {b.block_id} 的 NC 引脚号只能是 1/2: {b.no_connect}"
+                    )
                 # P4-4② std-value 通道:params.value 查标准件表得 lcsc(确定性;表无此值=硬错,
                 # 让 planner 显式换值,不静默取最近值)
                 if not rec.lcsc:
@@ -554,6 +566,19 @@ def compile_actions(
                             net,
                         ],
                         desc=f"{designator}:{pin}({pin_name}) -> {net}",
+                        page=b.page,
+                    )
+                )
+            if b.no_connect:
+                actions.append(
+                    Action(
+                        kind="sch-no-connect",
+                        block_instance=b.instance,
+                        args=[
+                            "sch", "no-connect", "--designator", designator,
+                            "--pin", ",".join(b.no_connect),
+                        ],
+                        desc=f"{designator}: NC {','.join(b.no_connect)}",
                         page=b.page,
                     )
                 )

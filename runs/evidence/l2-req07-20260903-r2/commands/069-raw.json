@@ -1,0 +1,181 @@
+{
+  "ok": true,
+  "totalNets": 86,
+  "singlePinNets": [
+    {
+      "net": "$1N771",
+      "pins": 1,
+      "parts": [
+        "C2"
+      ]
+    },
+    {
+      "net": "$2N276",
+      "pins": 1,
+      "parts": [
+        "HDRSWD1"
+      ]
+    },
+    {
+      "net": "$2N305",
+      "pins": 1,
+      "parts": [
+        "U1MCU"
+      ]
+    },
+    {
+      "net": "$2N329",
+      "pins": 1,
+      "parts": [
+        "U1MCU"
+      ]
+    },
+    {
+      "net": "$2N340",
+      "pins": 1,
+      "parts": [
+        "U1MCU"
+      ]
+    },
+    {
+      "net": "$2N347",
+      "pins": 1,
+      "parts": [
+        "HDRSWD1"
+      ]
+    },
+    {
+      "net": "$2N348",
+      "pins": 1,
+      "parts": [
+        "HDRSWD1"
+      ]
+    },
+    {
+      "net": "$2N362",
+      "pins": 1,
+      "parts": [
+        "C6"
+      ]
+    },
+    {
+      "net": "$2N363",
+      "pins": 1,
+      "parts": [
+        "C6"
+      ]
+    },
+    {
+      "net": "$2N368",
+      "pins": 1,
+      "parts": [
+        "U1MCU"
+      ]
+    },
+    {
+      "net": "$3N216",
+      "pins": 1,
+      "parts": [
+        "J2"
+      ]
+    },
+    {
+      "net": "$3N218",
+      "pins": 1,
+      "parts": [
+        "C8"
+      ]
+    },
+    {
+      "net": "$3N270",
+      "pins": 1,
+      "parts": [
+        "J2"
+      ]
+    },
+    {
+      "net": "$4N408",
+      "pins": 1,
+      "parts": [
+        "ULNM1"
+      ]
+    },
+    {
+      "net": "$4N428",
+      "pins": 1,
+      "parts": [
+        "HDRSTEP1"
+      ]
+    },
+    {
+      "net": "$4N452",
+      "pins": 1,
+      "parts": [
+        "ULNM1"
+      ]
+    },
+    {
+      "net": "$5N498",
+      "pins": 1,
+      "parts": [
+        "ULNM2"
+      ]
+    },
+    {
+      "net": "$5N519",
+      "pins": 1,
+      "parts": [
+        "HDRSTEP2"
+      ]
+    },
+    {
+      "net": "$5N551",
+      "pins": 1,
+      "parts": [
+        "ULNM2"
+      ]
+    },
+    {
+      "net": "C7_N3",
+      "pins": 1,
+      "parts": [
+        "U3"
+      ]
+    },
+    {
+      "net": "C9_N8",
+      "pins": 1,
+      "parts": [
+        "R20"
+      ]
+    },
+    {
+      "net": "LED2_N2",
+      "pins": 1,
+      "parts": [
+        "R2"
+      ]
+    },
+    {
+      "net": "SWDIO",
+      "pins": 1,
+      "parts": [
+        "HDRSWD1"
+      ]
+    },
+    {
+      "net": "USB_DTR",
+      "pins": 1,
+      "parts": [
+        "U3"
+      ]
+    },
+    {
+      "net": "USB_RTS",
+      "pins": 1,
+      "parts": [
+        "U3"
+      ]
+    }
+  ]
+}

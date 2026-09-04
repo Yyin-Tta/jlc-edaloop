@@ -1,0 +1,47 @@
+{
+  "id": "req_30280",
+  "type": "response",
+  "version": "v1",
+  "createdAt": "2026-08-22T13:15:19.5766271Z",
+  "ok": true,
+  "result": {
+    "components": [
+      {
+        "footprintName": "SMA_L4.4-W2.6-LS5.0-RD",
+        "lcsc": "C143135",
+        "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+        "manufacturer": "FMS(美丽微)",
+        "manufacturerId": "SMAJ5.0A",
+        "uuid": "fbafe715cf2a4ad58ba384c7d477da09"
+      }
+    ],
+    "count": 1,
+    "requested": [
+      "C143135"
+    ]
+  },
+  "context": {
+    "projectUuid": "993e2ad9b7944f92b44333b630a754da",
+    "projectName": "edaloop-w2-req01",
+    "documentUuid": "7c4a751c5136cb01",
+    "documentType": "schematic",
+    "tabId": "7c4a751c5136cb01@993e2ad9b7944f92b44333b630a754da"
+  },
+  "seq": 135679,
+  "seqAbandoned": 13,
+  "abandonedIds": [
+    "req_23445",
+    "req_144195",
+    "req_760",
+    "req_3539",
+    "req_3643",
+    "req_8867",
+    "req_8874",
+    "req_8886",
+    "req_8910",
+    "req_8934",
+    "req_8963",
+    "req_30117",
+    "req_30216"
+  ]
+}

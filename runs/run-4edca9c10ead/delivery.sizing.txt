@@ -1,0 +1,49 @@
+[sizing:fuse-rating@usbc1] I_hold≥1.25×120mA = 0.15 → 推荐 I_hold≥0.15A(自恢复 PPTC 按此档)
+    输入 I_load=120mA ← ENGINEERING-DEFAULT 输入口负载电流典型(轨 imax 缺)
+    输入 系数 PPTC_DERATE=1.25 ← 工程系数白名单 _COEFFS
+    降额 25% 防浪涌误动作;PPTC 恢复后保持电流会随温度下降,高温环境再降额
+
+[sizing:tvs-rating@chg1] VRWM≥1.1×5V;VC<2×V_rail = 5.5 → 推荐 VRWM≥5.5V / VC≤10V(SMAJ/SMBJ 系列按此筛)
+    输入 V_rail=5V ← 网名家族兜底 5V_IN→5V(惯例表,与 check_voltage_compat 同源)
+    输入 系数 TVS_VRWM_MARGIN=1.1 ← 工程系数白名单 _COEFFS
+    VRWM 高于工作电压防误触发;VC 低于后级最大耐压才有效
+    功率档:600W(SMAJ)/400W(SMBJ 视浪涌等级;车载选 SMBJ 以上
+
+[sizing:fuse-rating@chg1] I_hold≥1.25×120mA = 0.15 → 推荐 I_hold≥0.15A(自恢复 PPTC 按此档)
+    输入 I_load=120mA ← ENGINEERING-DEFAULT 输入口负载电流典型(轨 imax 缺)
+    输入 系数 PPTC_DERATE=1.25 ← 工程系数白名单 _COEFFS
+    降额 25% 防浪涌误动作;PPTC 恢复后保持电流会随温度下降,高温环境再降额
+
+[sizing:reg-caps@boost1] buck @ 2000mA = 2000 → 推荐 见 notes(惯例值)
+    输入 I_out=2000mA ← 参数槽 electrical.i_max=2A(wmsc C84817 paramVOList)
+    C_IN: 22µF×2 低 ESR 陶瓷(开关纹波电流吸收)
+    C_OUT: 22µF×2 + 按 ΔI_L 与允许纹波调整:C=ΔI_L/(8×f_sw×ΔV_ripple)
+    负载 2000mA → LDO 压差功耗=(Vin-Vout)×I,注意散热铜
+
+[sizing:buck-ripple@boost1] invalid = 0 → 推荐 n/a
+    输入 V_in=4.2V ← IR rail VBAT=3-4.2V
+    输入 V_out=5V ← IR rail 5V=5V
+    输入 I_out=2000mA ← 参数槽 electrical.i_max=2A(wmsc C84817 paramVOList)
+    输入 f_sw=1.2kHz ← ENGINEERING-DEFAULT boost 开关频率典型(槽 f_sw 缺)
+    ⚠ 需 0<Vout<Vin 且 Iout>0
+    ⚠ boost 拓扑套 buck 纹波公式为近似(升压电感按输入侧电流取)
+
+[sizing:reg-caps@ldo3v3] ldo @ 1000mA = 1000 → 推荐 见 notes(惯例值)
+    输入 I_out=1000mA ← 参数槽 electrical.i_max=1A(wmsc C6186 paramVOList)
+    C_IN: 10µF 钽/陶瓷 + 100nF 就近(AMS1117 数据手册惯例)
+    C_OUT: 22µF + 100nF(LDO 依赖输出电容环路稳定,不可省)
+    负载 1000mA → LDO 压差功耗=(Vin-Vout)×I,注意散热铜
+
+[sizing:thermal@ldo3v3] Tj=25+1.7W×65°C/W = 135.5 → 推荐 Tj≈136°C(裕量-30°C)
+    输入 V_in=5V ← IR rail 5V=5V
+    输入 V_out=3.3V ← IR rail 3V3=3.3V
+    输入 I_out=1000mA ← 参数槽 electrical.i_max=1A(wmsc C6186 paramVOList)
+    输入 R_ja=65°C/W ← ENGINEERING-DEFAULT SOT-223 典型 Rja(槽 rja 缺)
+    输入 T_amb=25°C ← ENGINEERING-DEFAULT 室温缺省 25°C
+    ⚠ 热裕量不足,建议加大铜箔或改封装
+    估算结温 136°C(上限 105°C,裕量 -30°C)
+    裕量 <20°C:加铺铜/散热过孔或换封装;R_ja 取决于铺铜面积, datasheet 典型值为最小铺铜条件
+
+[sizing:divider@alarm_tl431] (监控轨未知) = 0 → 推荐 n/a
+    输入 V_in=? ← 
+    ⚠ TL431 分压降级:监控网无 IR 轨区间(v_min 缺,不猜)

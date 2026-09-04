@@ -390,6 +390,30 @@ def test_autoconnect_pins_by_number_not_name() -> None:
     assert kinds[:4] == ["netport", "netport", "gnd", "gnd"]
 
 
+def test_compile_emits_explicit_no_connect_action() -> None:
+    catalog = _catalog()
+    catalog["dw01-place"] = BlockRecord(
+        block_id="dw01-place", name="DW01A", desc="battery protection",
+        lcsc="C1", pinout={"1": "OD", "2": "CSI", "3": "OC", "4": "NC", "5": "VDD", "6": "GND"},
+    )
+    plan = BlockPlan.model_validate({
+        "blocks": [{"block_id": "dw01-place", "instance": "prot_dw01",
+                     "pins_binding": {"1": "OD_NET", "2": "CSI_NET", "3": "OC_NET", "5": "VBAT", "6": "GND"},
+                     "no_connect": ["4"]}],
+    })
+    actions = compile_actions(plan, catalog)
+    nc = next(a for a in actions if a.kind == "sch-no-connect")
+    assert nc.args == ["sch", "no-connect", "--designator", "PROTDW01", "--pin", "4"]
+
+
+def test_planned_block_rejects_pin_bound_and_no_connect_overlap() -> None:
+    with pytest.raises(ValueError, match="pins_binding"):
+        BlockPlan.model_validate({
+            "blocks": [{"block_id": "x", "instance": "u1",
+                         "pins_binding": {"4": "NC"}, "no_connect": ["4"]}],
+        })
+
+
 # ---- P5-0/G33 行-货架页流:place 小件行内并排,宽块恒独行(与旧单列逐坐标等价) ----
 
 

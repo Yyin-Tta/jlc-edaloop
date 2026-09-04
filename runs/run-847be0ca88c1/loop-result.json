@@ -1,0 +1,41 @@
+{
+ "status": "PASS",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "2b2a6a9426ee",
+   "gate_verdict": "pass",
+   "findings": [
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:3 个块缺 v_supply 区间或单边(ldo3v3, rs485, eeprom)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='5V', pin='', xy='') evidence='轨 5V 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/1(覆盖率 0%),缺 i_typ:ldo3v3' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/3(覆盖率 0%),缺 i_typ:mcu, rs485, eeprom' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='MCU 最小系统的外围件(8MHz 晶振+22pF、NRST 100nF+10k、BOOT0 10k 下拉、每 VDD 100nF+4.7µF 去耦、SWD 排针)需在 mcu-stm32f103c8-min 的 place 落图中由编译器按块描述处理;4.7µF/22pF 不在 capacitor-std 标准值表内,若逐件落图需扩充标准件表' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='通信黄 LED 的 MCU 驱动脚未在 pins_binding 中占用(MCU 未用脚不绑,固件可任配如 PA1→LED_COM)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True"
+   ],
+   "feedback": "",
+   "halted": ""
+  }
+ ],
+ "delivery": {
+  "svg": "D:\\gyt-pro\\jlc-edaloop\\runs\\run-847be0ca88c1\\delivery-P1.svg",
+  "svg_pages": [
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-847be0ca88c1\\delivery-P1.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-847be0ca88c1\\delivery-P2.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-847be0ca88c1\\delivery-P3.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-847be0ca88c1\\delivery-P4.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-847be0ca88c1\\delivery-P5.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-847be0ca88c1\\delivery-P6.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-847be0ca88c1\\delivery-P7.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-847be0ca88c1\\delivery-P8.svg"
+  ],
+  "netlist": "runs\\run-847be0ca88c1\\delivery.net.json",
+  "netlist_sha256_16": "d40a241e660fb34f",
+  "bom": "runs\\run-847be0ca88c1\\delivery.bom.json",
+  "bom_total": 2.8316,
+  "swap": "runs\\run-847be0ca88c1\\delivery.swap.txt",
+  "sizing": "runs\\run-847be0ca88c1\\delivery.sizing.txt",
+  "sizing_count": 8,
+  "review": "runs\\run-847be0ca88c1\\delivery.review.txt",
+  "review_findings": 6
+ }
+}

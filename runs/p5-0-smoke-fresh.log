@@ -1,0 +1,30 @@
+{'req': 'req-01-esp32s3-mini-2layer.md', 'status': 'HALT', 'rounds': None, 'n_rounds': 2}
+{'req': 'req-08-liion-protection-freeform.md', 'status': 'PASS', 'rounds': 1, 'n_rounds': 1}
+{'req': 'req-11-isolated-dido-module.md', 'status': 'PASS', 'rounds': 3, 'n_rounds': 3}
+{
+ "rows": [
+  {
+   "req": "req-01-esp32s3-mini-2layer.md",
+   "status": "HALT",
+   "rounds": null,
+   "n_rounds": 2
+  },
+  {
+   "req": "req-08-liion-protection-freeform.md",
+   "status": "PASS",
+   "rounds": 1,
+   "n_rounds": 1
+  },
+  {
+   "req": "req-11-isolated-dido-module.md",
+   "status": "PASS",
+   "rounds": 3,
+   "n_rounds": 3
+  }
+ ],
+ "pass@3": 0.6666666666666666,
+ "pass@5": 0.6666666666666666,
+ "go3": true,
+ "go5": false
+}
+smoke-fresh real-exit=1

@@ -1,0 +1,8 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 24 blocks, status=PASS
+
+- [CRITIC_POWER_INTEGRITY@uln1] ULN2003 为非隔离器件,却同时跨接两个电气域:pin8=GND(逻辑侧地)、pin9 COM=5V_ISO、输出 DOx_F 挂在隔离侧负载网络。B0505S 只隔离了 DI 光耦副边,ULN2003 的逻辑地 GND 与隔离电源 5V_ISO/GND_ISO 在该芯片内部被强行耦合,隔离被破坏,且续流二极管经 COM 回流到 5V_ISO 而芯片地是 GND,电流回路不一致。 | 建议: 二选一:若 DO 需隔离(对应 uncovered 中 Q1 选项 A),增加 
+- [CRITIC_PULL_RESISTORS@iso_di1..iso_di4] 现场输入网络 DI1_F..DI4_F 侧(DIx_F→r_di→PC817 阳极,阴极→GND_ISO)没有任何对 5V_ISO 的上拉/下拉。若现场是干接点信号(开关闭合到 GND_ISO 或悬空),DIx_F 无确定电平,光耦 LED 无驱动路径,DI 功能失效;r_di=2.2k 只适合'外部直接施加 24V 电压信号'一种模式。 | 建议: 在每路 DIx_F 到 5V_ISO 加上拉电阻(如 4.7k~10k)构成干接点输入回路;若明确是 24V 电压型输入,则在
+- [CRITIC_INTERFACE_PROTECTION@iso_di1..iso_di4] DI1_F..DI4_F 为引出端子的现场输入(uncovered 中已确认端子以网络名预留),现场侧经 r_di(2.2k)直接进 PC817 LED,无任何 TVS/ESD 或更高阻值分压缓冲。工业端子上的静电/浪涌将直接打到光耦 LED 与 r_di。 | 建议: 每路现场输入加 TVS(如 SMAJ 系列)钳位到 GND_ISO,或加大串联阻值/增加分压网络,使光耦 LED 抗住端子级 ESD(接触 ±4kV 以上)。
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

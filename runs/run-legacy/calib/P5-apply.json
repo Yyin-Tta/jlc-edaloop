@@ -1,0 +1,268 @@
+{
+  "ok": "applied",
+  "blockId": "block.sp3485_rs485_halfduplex",
+  "blockState": "ready",
+  "instance": "C8",
+  "origin": {
+    "requestedX": 336,
+    "requestedY": 300,
+    "x": 336,
+    "y": 300,
+    "relocated": false
+  },
+  "placed": [
+    {
+      "role": "C701",
+      "part": "cap.100nf_0402",
+      "designator": "C8",
+      "primitiveId": "906eedc6210962e2",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "87bb635d0b2f489a9f60e7cd225beb3c",
+      "lcsc": "C1525",
+      "x": 335,
+      "y": 300,
+      "layout": "grid"
+    },
+    {
+      "role": "D701",
+      "part": "tvs.sm712_sot23",
+      "designator": "D2",
+      "primitiveId": "868d99469d163dc9",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "46f638b2935c42718f09eb74f6058737",
+      "lcsc": "C32677",
+      "x": 565,
+      "y": 300,
+      "layout": "grid"
+    },
+    {
+      "role": "J4",
+      "part": "conn.terminal_3p_508",
+      "designator": "J2",
+      "primitiveId": "e18fbab338732cf1",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "d1d3e801c5c6433ea8cbdc9bd2e1b973",
+      "lcsc": "C9900019072",
+      "x": 795,
+      "y": 300,
+      "layout": "grid"
+    },
+    {
+      "role": "JP701",
+      "part": "conn.sip2_254",
+      "designator": "J5",
+      "primitiveId": "277145821793c8fc",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "232ae76e43074f68bf72aebb8ada545c",
+      "lcsc": "C9900009052",
+      "x": 1025,
+      "y": 300,
+      "layout": "grid"
+    },
+    {
+      "role": "R701",
+      "part": "res.680r_0402",
+      "designator": "R11",
+      "primitiveId": "2bb86f49ee13fbfe",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "db0fa956af67488fb236dcebfd766801",
+      "lcsc": "C25130",
+      "x": 335,
+      "y": 530,
+      "layout": "grid"
+    },
+    {
+      "role": "R702",
+      "part": "res.680r_0402",
+      "designator": "R12",
+      "primitiveId": "1468f0081b599b30",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "db0fa956af67488fb236dcebfd766801",
+      "lcsc": "C25130",
+      "x": 565,
+      "y": 530,
+      "layout": "grid"
+    },
+    {
+      "role": "R703",
+      "part": "res.120r_1206",
+      "designator": "R13",
+      "primitiveId": "bb839e03450dbc77",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "ed04490edc2d4d7b8e55ab3d0d65529f",
+      "lcsc": "C17909",
+      "x": 795,
+      "y": 530,
+      "layout": "grid"
+    },
+    {
+      "role": "R706",
+      "part": "res.10k_0402",
+      "designator": "R14",
+      "primitiveId": "aa8d726ef4be499f",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "c3b9baa5ef2e4070a4c0f9e9cd04fe6e",
+      "lcsc": "C25744",
+      "x": 1025,
+      "y": 530,
+      "layout": "grid"
+    },
+    {
+      "role": "U7",
+      "part": "ic.sp3485_sop8",
+      "designator": "U4",
+      "primitiveId": "d8fc9f0c8535c6c0",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "b117181a324c401c8efb877412bc34c2",
+      "lcsc": "C8963",
+      "x": 335,
+      "y": 760,
+      "layout": "grid"
+    }
+  ],
+  "nets": [
+    {
+      "net": "MCU_TX",
+      "kind": "netport",
+      "port": "DI",
+      "bound": true,
+      "members": [
+        "U4:DI"
+      ],
+      "roles": [
+        "U7.DI"
+      ]
+    },
+    {
+      "net": "MCU_RX",
+      "kind": "netport",
+      "port": "RO",
+      "bound": true,
+      "members": [
+        "U4:RO"
+      ],
+      "roles": [
+        "U7.RO"
+      ]
+    },
+    {
+      "net": "RS485_DE",
+      "kind": "netport",
+      "port": "DE_RE",
+      "bound": true,
+      "members": [
+        "U4:DE",
+        "U4:RE#",
+        "R14:1"
+      ],
+      "roles": [
+        "U7.DE",
+        "U7.RE#",
+        "R706.1"
+      ]
+    },
+    {
+      "net": "RS485_A",
+      "kind": "netport",
+      "port": "A",
+      "bound": true,
+      "members": [
+        "U4:A",
+        "R11:2",
+        "D2:1",
+        "J5:1",
+        "J2:1"
+      ],
+      "roles": [
+        "U7.A",
+        "R701.2",
+        "D701.1",
+        "JP701.1",
+        "J4.1"
+      ]
+    },
+    {
+      "net": "C8_N5",
+      "kind": "netport",
+      "members": [
+        "J5:2",
+        "R13:1"
+      ],
+      "roles": [
+        "JP701.2",
+        "R703.1"
+      ]
+    },
+    {
+      "net": "RS485_B",
+      "kind": "netport",
+      "port": "B",
+      "bound": true,
+      "members": [
+        "U4:B",
+        "R12:1",
+        "R13:2",
+        "D2:2",
+        "J2:2"
+      ],
+      "roles": [
+        "U7.B",
+        "R702.1",
+        "R703.2",
+        "D701.2",
+        "J4.2"
+      ]
+    },
+    {
+      "net": "3V3",
+      "kind": "power",
+      "port": "3V3",
+      "bound": true,
+      "members": [
+        "U4:VCC",
+        "C8:1",
+        "R11:1"
+      ],
+      "roles": [
+        "U7.VCC",
+        "C701.1",
+        "R701.1"
+      ]
+    },
+    {
+      "net": "GND",
+      "kind": "gnd",
+      "port": "GND",
+      "bound": true,
+      "members": [
+        "U4:GND",
+        "C8:2",
+        "R12:2",
+        "D2:3",
+        "R14:2",
+        "J2:3"
+      ],
+      "roles": [
+        "U7.GND",
+        "C701.2",
+        "R702.2",
+        "D701.3",
+        "R706.2",
+        "J4.3"
+      ]
+    }
+  ],
+  "warnings": [
+    "虚拟组 J2 ↔ J5 的图元重叠 39×1 —— 两组各自的 marker/桩线压在一起了"
+  ],
+  "unconsumedConstraints": [
+    "pcb_layout",
+    "placement",
+    "signals",
+    "silk"
+  ],
+  "note": "block-apply v1 executes parts/internal_nets/ports only; the listed constraint maps were NOT applied",
+  "groupId": "g1",
+  "groupName": "sp3485_rs485_halfduplex(C8)",
+  "reconciled": true
+}

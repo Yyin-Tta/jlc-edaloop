@@ -1,0 +1,51 @@
+{
+ "total": 4.7143,
+ "priced_lines": 5,
+ "no_price": [],
+ "no_stock": [
+  "C4075(stock=0)"
+ ],
+ "details": [
+  {
+   "ref": "C6186",
+   "qty": 1,
+   "unit": 0.2039,
+   "line": 0.2039,
+   "stock": 740050,
+   "smt_type": "basic"
+  },
+  {
+   "ref": "C382171",
+   "qty": 1,
+   "unit": 2.0236,
+   "line": 2.0236,
+   "stock": 3,
+   "smt_type": "extended"
+  },
+  {
+   "ref": "C8734",
+   "qty": 1,
+   "unit": 1.7292,
+   "line": 1.7292,
+   "stock": 56282,
+   "smt_type": "basic"
+  },
+  {
+   "ref": "C4075",
+   "qty": 4,
+   "unit": 0.1462,
+   "line": 0.5848,
+   "stock": 0,
+   "smt_type": "basic"
+  },
+  {
+   "ref": "C7512",
+   "qty": 1,
+   "unit": 0.1728,
+   "line": 0.1728,
+   "stock": 280245,
+   "smt_type": "basic"
+  }
+ ],
+ "smt_note": "库类型近似判定(JLC SMT API 无公开契约,R13 兜底):basic=基础库(免上料费倾向),extended=扩展库"
+}

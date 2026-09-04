@@ -1,0 +1,68 @@
+{
+ "total": 5.6996,
+ "priced_lines": 6,
+ "no_price": [
+  "C9900012665(api ok but no price (C99xx 延展号段常见,基础库未挂商务数据))"
+ ],
+ "no_stock": [
+  "C2887585(stock=0)"
+ ],
+ "details": [
+  {
+   "ref": "C9900012665",
+   "qty": 1,
+   "price": null,
+   "note": "api ok but no price (C99xx 延展号段常见,基础库未挂商务数据)",
+   "smt_type": "extended"
+  },
+  {
+   "ref": "C16581",
+   "qty": 1,
+   "unit": 0.1859,
+   "line": 0.1859,
+   "stock": 97515,
+   "smt_type": "basic"
+  },
+  {
+   "ref": "C84817",
+   "qty": 1,
+   "unit": 0.1143,
+   "line": 0.1143,
+   "stock": 157601,
+   "smt_type": "basic"
+  },
+  {
+   "ref": "C6186",
+   "qty": 1,
+   "unit": 0.2038,
+   "line": 0.2038,
+   "stock": 701880,
+   "smt_type": "basic"
+  },
+  {
+   "ref": "C2913204",
+   "qty": 1,
+   "unit": 5.0846,
+   "line": 5.0846,
+   "stock": 14434,
+   "smt_type": "extended"
+  },
+  {
+   "ref": "C720477",
+   "qty": 1,
+   "unit": 0.0558,
+   "line": 0.0558,
+   "stock": 746840,
+   "smt_type": "extended"
+  },
+  {
+   "ref": "C2887585",
+   "qty": 1,
+   "unit": 0.0552,
+   "line": 0.0552,
+   "stock": 0,
+   "smt_type": "extended"
+  }
+ ],
+ "smt_note": "库类型近似判定(JLC SMT API 无公开契约,R13 兜底):basic=基础库(免上料费倾向),extended=扩展库"
+}

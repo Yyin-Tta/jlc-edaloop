@@ -1,0 +1,8 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 4 blocks, status=PASS
+
+- [CRITIC_DECOUPLING@prot_dw01] DW01 的 VDD(5脚)经 100R 接到 VBAT,但缺少对 B- 的 0.1µF 去耦电容;DW01 数据手册标准电路要求 VCC-BAT 间有去耦电容,否则保护阈值可能受噪声干扰误触发 | 建议: 在 VDD_DW01 与 B_MINUS 之间增加 0.1µF 去耦电容(与 100R 构成 RC 滤波)
+- [CRITIC_PULL_RESISTORS@prot_dw01] DW01 引脚 4(TD/TEST)未绑定悬空;数据手册要求 TD 接地(接 B-),悬空可能导致过流/短路检测功能异常 | 建议: 将 prot_dw01 的 pin 4 绑定到 B_MINUS(GND)
+- [CRITIC_INTERFACE_PROTECTION@r_csi_1k] DW01 过流检测(CS 脚)标准电路中 1k 电阻应接至 P-(FET 之后/负载侧),利用 B- 到 P- 之间的 FET 导通电阻做过流采样;当前绑定到 B_MINUS_CELL(电芯侧),过流检测将采不到 FET 压降,过流/短路保护失效 | 建议: 将 r_csi_1k 的 pin 2 改接 P_MINUS,使 CS 检测 P- 电位
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

@@ -12,9 +12,12 @@ There are three intentionally separate geometry/electrical notions here:
 * ``PinSnapshot.net`` is electrical readback, compared with an optional
   expected pin-to-net map.
 
-All findings produced by the terminal checks are strong errors.  A caller may
-choose to downgrade a *known* oversize page by passing ``allow_oversize=True``;
-that exception is explicit and never applies to readback or pin/net checks.
+Electrical and body-geometry findings are strong errors.  Render-only findings
+(for example a marker drawn over a body or an under-filled non-final page) are
+reported as ``weak`` warnings: they must remain visible in the audit, but they
+must not be confused with proof that the circuit is electrically invalid.
+Oversize is an explicit exception and never applies to readback or pin/net
+checks.
 """
 
 from __future__ import annotations
@@ -36,8 +39,14 @@ LAYOUT_PIN_NET_MISMATCH = "LAYOUT_PIN_NET_MISMATCH"
 LAYOUT_INK_OUT_OF_BAND = "LAYOUT_INK_OUT_OF_BAND"
 LAYOUT_TITLEBLOCK_OCCLUDE = "LAYOUT_TITLEBLOCK_OCCLUDE"
 LAYOUT_NET_MISSING = "LAYOUT_NET_MISSING"
+LAYOUT_COMPONENT_MISSING = "LAYOUT_COMPONENT_MISSING"
+LAYOUT_MARKER_ON_BODY = "LAYOUT_MARKER_ON_BODY"
+LAYOUT_PAGE_INK_SPARSE = "LAYOUT_PAGE_INK_SPARSE"
 LAYOUT_READ_UNVERIFIED = "LAYOUT_READ_UNVERIFIED"
 LAYOUT_SNAPSHOT_INVALID = "LAYOUT_SNAPSHOT_INVALID"
+# Machine-readable delivery status for render/readability findings that remain
+# intentionally weak while marker geometry is only partially observable.
+LAYOUT_REVIEW_REQUIRED = "LAYOUT_REVIEW_REQUIRED"
 
 # A few aliases are useful to integrations that use shorter terminology.
 BODY_OVERLAP = LAYOUT_BODY_OVERLAP
@@ -47,10 +56,407 @@ PIN_NET_MISMATCH = LAYOUT_PIN_NET_MISMATCH
 INK_OUT_OF_BAND = LAYOUT_INK_OUT_OF_BAND
 READ_UNVERIFIED = LAYOUT_READ_UNVERIFIED
 SNAPSHOT_INVALID = LAYOUT_SNAPSHOT_INVALID
+REVIEW_REQUIRED = LAYOUT_REVIEW_REQUIRED
 NET_MISSING = LAYOUT_NET_MISSING
+COMPONENT_MISSING = LAYOUT_COMPONENT_MISSING
+MARKER_ON_BODY = LAYOUT_MARKER_ON_BODY
+PAGE_INK_SPARSE = LAYOUT_PAGE_INK_SPARSE
 
 SNAPSHOT_VERSION = "1"
-_GOOD_READBACK = {"ok", "verified", "complete", "success"}
+# The connector has emitted all of these spellings over time.  Keep the
+# accepted set deliberately small and normalize aliases at the boundary so a
+# truthy-but-unknown value can never accidentally become a verified snapshot.
+_GOOD_READBACK = {"ok", "verified", "complete", "success", "pass", "passed"}
+_TRUE_WORDS = {"1", "true", "yes", "y", "on", "ok", "verified", "complete", "success", "pass", "passed"}
+_FALSE_WORDS = {"0", "false", "no", "n", "off", "error", "failed", "fail", "degraded", "unknown", "pending", "invalid", "none", "null"}
+_SHEET_COMPONENT_TYPES = {
+    "sheet",
+    "sheet-symbol",
+    "sheet_symbol",
+    "sheetsymbol",
+    "sheet symbol",
+    "sheet-frame",
+    "sheet_frame",
+    "sheetframe",
+    "drawing-sheet",
+    "drawing_sheet",
+    "page",
+    "titleblock",
+    "border",
+}
+_BODY_COMPONENT_TYPES = {"part", "component", "symbol", "device", ""}
+_MARKER_COMPONENT_TYPES = {
+    "netport", "net-port", "net_port", "netflag", "net-flag", "net_flag",
+    "netlabel", "net-label", "net_label", "marker",
+}
+_KNOWN_COMPONENT_TYPES = _BODY_COMPONENT_TYPES | _MARKER_COMPONENT_TYPES | _SHEET_COMPONENT_TYPES
+
+
+def _normalize_component_type(value: Any) -> str:
+    """Canonicalize component/marker aliases emitted by connector versions."""
+
+    text = str(value or "").strip().casefold().replace("_", "-").replace(" ", "-")
+    if text in {"", "part", "component", "symbol", "device"}:
+        return "part"
+    if text in {"netport", "net-port", "netflag", "net-flag", "netlabel", "net-label", "marker"}:
+        return {"net-port": "netport", "net-flag": "netflag", "net-label": "netlabel"}.get(text, text)
+    if text in {"sheet", "sheet-symbol", "sheetsymbol", "sheet-frame", "drawing-sheet", "titleblock", "border"}:
+        return "sheet"
+    return text
+
+
+def _coerce_bool(value: Any, *, default: bool | None = None) -> bool | None:
+    """Parse connector booleans without Python's ``bool('false')`` trap."""
+
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        if value == 1:
+            return True
+        if value == 0:
+            return False
+        return default
+    if isinstance(value, str):
+        text = value.strip().casefold()
+        if text in _TRUE_WORDS:
+            return True
+        if text in _FALSE_WORDS:
+            return False
+    return default
+
+
+def _error_values(value: Any) -> list[str]:
+    """Normalize validationErrors from JSON-ish connector payloads."""
+
+    if value is None:
+        return []
+    if isinstance(value, str):
+        return [value] if value else []
+    if isinstance(value, (bytes, bytearray)):
+        text = value.decode(errors="replace")
+        return [text] if text else []
+    if isinstance(value, Mapping):
+        # Preserve useful detail while keeping the public field tuple[str,...].
+        return [f"{k}={v}" for k, v in value.items()]
+    if isinstance(value, Iterable):
+        return [str(item) for item in value if str(item)]
+    return [str(value)]
+
+
+def _append_errors(target: list[str], value: Any) -> None:
+    """Append errors in order, avoiding duplicate entries on round trips."""
+
+    for error in _error_values(value):
+        if error not in target:
+            target.append(error)
+
+
+def _sequence_values(value: Any, label: str, errors: list[str]) -> tuple[Any, ...]:
+    """Coerce connector collection fields without leaking ``TypeError``.
+
+    A malformed API response such as ``components: { ... }`` or
+    ``pins: 1`` must produce an invalid snapshot that the gate can explain,
+    rather than aborting conversion before an audit record is written.
+    """
+
+    if value is None:
+        errors.append(f"{label}:expected sequence")
+        return ()
+    if isinstance(value, (str, bytes, bytearray, Mapping)):
+        errors.append(f"{label}:expected sequence")
+        return ()
+    try:
+        return tuple(value)
+    except Exception:  # noqa: BLE001 - malformed connector iterables fail closed
+        errors.append(f"{label}:expected sequence")
+        return ()
+
+
+def _normalize_pin_identity(owner: Any, pin: Any) -> tuple[str, str]:
+    """Return a stable owner/pin pair for ``R1:1`` and split-field forms."""
+
+    owner_text = str(owner or "").strip()
+    pin_text = str(pin or "").strip()
+    if ":" in pin_text:
+        qualified_owner, qualified_pin = pin_text.split(":", 1)
+        # An explicit owner is authoritative when the two disagree, but the
+        # qualified prefix is still removed so keys never become ``R1:R1:1``.
+        if not owner_text:
+            owner_text = qualified_owner.strip()
+        pin_text = qualified_pin.strip()
+    return owner_text, pin_text
+
+
+def _canonical_pin_key(key: Any) -> str:
+    """Canonicalize flat/nested pin-map keys for deterministic JSON output."""
+
+    if isinstance(key, (tuple, list)) and len(key) == 2:
+        owner, pin = _normalize_pin_identity(key[0], key[1])
+        return f"{owner}:{pin}" if owner else pin
+    text = str(key).strip()
+    if ":" in text:
+        owner, pin = _normalize_pin_identity("", text)
+        return f"{owner}:{pin}" if owner else pin
+    # ``ref/pin`` is another spelling accepted by _map_lookup.
+    if "/" in text:
+        owner, pin = text.split("/", 1)
+        owner, pin = _normalize_pin_identity(owner, pin)
+        return f"{owner}:{pin}" if owner else pin
+    return text
+
+
+def _canonical_json(value: Any, *, sort_sequences: bool = False) -> Any:
+    """Convert mappings/sets to deterministic JSON-compatible structures."""
+
+    if isinstance(value, Mapping):
+        pairs = sorted(value.items(), key=lambda item: (str(item[0]).casefold(), str(item[0])))
+        return {str(key): _canonical_json(item, sort_sequences=sort_sequences) for key, item in pairs}
+    if isinstance(value, (set, frozenset)):
+        items = [_canonical_json(item, sort_sequences=sort_sequences) for item in value]
+        return sorted(items, key=lambda item: (str(item).casefold(), str(item)))
+    if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+        items = [_canonical_json(item, sort_sequences=sort_sequences) for item in value]
+        if sort_sequences:
+            return sorted(items, key=lambda item: (str(item).casefold(), str(item)))
+        return items
+    return value
+
+
+def _canonical_map(value: Any, *, pin_keys: bool = False, sort_sequences: bool = False) -> dict[str, Any]:
+    """Canonicalize a mapping while tolerating malformed connector fields."""
+
+    if not isinstance(value, Mapping):
+        return {}
+    pairs = []
+    for key, item in value.items():
+        canonical_key = _canonical_pin_key(key) if pin_keys else str(key).strip()
+        pairs.append((canonical_key, _canonical_json(item, sort_sequences=sort_sequences)))
+    pairs.sort(key=lambda item: (item[0].casefold(), item[0]))
+    return {key: item for key, item in pairs}
+
+
+def _canonical_pin_map(
+    value: Any,
+    *,
+    flatten_nested: bool = True,
+    errors: list[str] | None = None,
+    label: str = "pin map",
+) -> dict[str, Any]:
+    """Canonicalize a pin-to-net map to owner-qualified flat keys.
+
+    Older adapters used either ``{"U1:1": "VCC"}`` or
+    ``{"U1": {"1": "VCC"}}``.  Emitting one shape makes snapshots stable
+    across connector versions while ``_map_lookup`` remains backwards
+    compatible for callers that construct a snapshot directly.
+    """
+
+    if not isinstance(value, Mapping):
+        return {}
+    flattened: dict[str, Any] = {}
+    # Keep the source spelling alongside each canonical key.  Connector
+    # payloads may mix ``U1:1``, ``U1/1``, tuple keys, and nested ``U1 -> 1``
+    # maps; if two spellings disagree, retaining whichever one happened to
+    # arrive last would hide contradictory electrical evidence.
+    seen: dict[str, tuple[Any, Any]] = {}
+
+    def _insert(canonical_key: str, canonical_value: Any, source_key: Any) -> None:
+        previous = seen.get(canonical_key)
+        if previous is not None:
+            previous_source, previous_value = previous
+            try:
+                equal = bool(previous_value == canonical_value)
+            except Exception:  # noqa: BLE001 - malformed values fail closed
+                equal = False
+            if not equal and errors is not None:
+                errors.append(
+                    f"{label}:canonical pin key collision for {canonical_key!r}: "
+                    f"{previous_source!r} conflicts with {source_key!r}"
+                )
+        seen[canonical_key] = (source_key, canonical_value)
+        flattened[canonical_key] = canonical_value
+
+    for key, item in value.items():
+        if flatten_nested and isinstance(item, Mapping) and ":" not in str(key) and "/" not in str(key):
+            owner = str(key).strip()
+            for nested_key, nested_value in item.items():
+                pin_key = _canonical_pin_key((owner, nested_key))
+                _insert(pin_key, _canonical_json(nested_value), (key, nested_key))
+            continue
+        _insert(_canonical_pin_key(key), _canonical_json(item), key)
+    return {key: flattened[key] for key in sorted(flattened, key=lambda k: (k.casefold(), k))}
+
+
+def _canonical_expected_nets(value: Any, *, page: str = "") -> dict[str, Any]:
+    """Normalize expected-net declarations to ``page -> sorted list``."""
+
+    if value is None:
+        return {}
+    if isinstance(value, Mapping):
+        out: dict[str, Any] = {}
+        for key, item in value.items():
+            page_key = str(key).strip()
+            if isinstance(item, Mapping):
+                # A map of net -> bool is accepted by check_expected_nets.
+                out[page_key] = _canonical_json(item, sort_sequences=True)
+            elif isinstance(item, (str, bytes)):
+                net = str(item).strip()
+                out[page_key] = [net] if net else []
+            elif isinstance(item, Iterable):
+                values = [str(v).strip() for v in item if str(v).strip()]
+                out[page_key] = sorted(set(values), key=lambda n: (n.casefold(), n))
+            else:
+                out[page_key] = _canonical_json(item)
+        return {key: out[key] for key in sorted(out, key=lambda k: (k.casefold(), k))}
+    if isinstance(value, (str, bytes)):
+        net = str(value).strip()
+        return {str(page or ""): ([net] if net else [])}
+    if isinstance(value, Iterable):
+        values = [str(v).strip() for v in value if str(v).strip()]
+        return {str(page or ""): sorted(set(values), key=lambda n: (n.casefold(), n))}
+    return {}
+
+
+def _status_value(value: Any) -> tuple[str, bool]:
+    """Normalize one status/ok value; second result says it was explicit."""
+
+    if isinstance(value, bool):
+        return ("ok" if value else "error", True)
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        if value == 1:
+            return "ok", True
+        if value == 0:
+            return "error", True
+        return "unknown", True
+    if isinstance(value, str):
+        text = value.strip().casefold()
+        if text in _GOOD_READBACK:
+            return text, True
+        if text in _TRUE_WORDS:
+            return "ok", True
+        if text in _FALSE_WORDS:
+            return text, True
+        return text or "unknown", True
+    return "unknown", value is not None
+
+
+def _readback_fields(result: Mapping[str, Any]) -> tuple[str, bool, str, list[str]]:
+    """Extract status/degraded/error from connector variants, fail-closed."""
+
+    nested_raw = result.get("readback")
+    nested = nested_raw if isinstance(nested_raw, Mapping) else {}
+    status_candidates: list[tuple[int, Any]] = []
+    errors: list[str] = []
+    if nested_raw is not None and not isinstance(nested_raw, (Mapping, str, bool, int, float)):
+        errors.append("readback:expected object or status")
+
+    # Explicit status has precedence over generic result ``status``/``ok``;
+    # retain lower-priority indicators too so contradictory payloads fail
+    # closed instead of silently trusting whichever key happened to be read.
+    for key in ("readback_status", "readbackStatus"):
+        if key in result and result[key] is not None:
+            status_candidates.append((0, result[key]))
+    if isinstance(nested_raw, (str, bool, int, float)):
+        status_candidates.append((1, nested_raw))
+    for key in ("status", "state", "readbackStatus", "readback_status"):
+        if key in nested and nested[key] is not None:
+            status_candidates.append((1, nested[key]))
+    for key in ("status", "state"):
+        if key in result and result[key] is not None:
+            status_candidates.append((2, result[key]))
+    for source, priority in ((nested, 3), (result, 4)):
+        for key in ("ok", "verified", "success", "passed"):
+            if key in source and source[key] is not None:
+                status_candidates.append((priority, source[key]))
+
+    if not status_candidates:
+        status = "unknown"
+    else:
+        status_candidates.sort(key=lambda item: item[0])
+        parsed = [_status_value(item)[0] for _priority, item in status_candidates]
+        positives = [item in _GOOD_READBACK for item in parsed]
+        negatives = [item not in _GOOD_READBACK for item in parsed]
+        # Contradictory indicators are never considered verified.
+        if any(positives) and any(negatives):
+            status = "error"
+            errors.append("conflicting readback status indicators")
+        else:
+            status = parsed[0]
+
+    degraded_raw = result.get("degraded")
+    if degraded_raw is None and nested:
+        degraded_raw = nested.get("degraded")
+    if degraded_raw is None:
+        degraded = False
+    else:
+        degraded = _coerce_bool(degraded_raw, default=None)
+        if degraded is None:
+            degraded = True
+            errors.append("degraded flag is malformed")
+
+    readback_error = _first(result, "readback_error", "readbackError", default=None)
+    if readback_error is None and nested:
+        readback_error = _first(nested, "error", "message", default=None)
+    if readback_error is None and status not in _GOOD_READBACK:
+        # Keep a concrete reason for audit consumers even when the connector
+        # only supplied ``ok: false`` or omitted the status entirely.
+        readback_error = "readback status is not verified"
+    return status, bool(degraded), str(readback_error or ""), errors
+
+
+def _payload_has_content(value: Any) -> bool:
+    """Return whether a connector error/failure field is meaningful."""
+
+    if value is None or value is False:
+        return False
+    if isinstance(value, str):
+        return bool(value.strip())
+    if isinstance(value, (Mapping, Sequence, set, frozenset)):
+        return bool(value)
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        return bool(value)
+    return True
+
+
+def _explicit_failure_reason(
+    payload: Any, *, include_status: bool = True, include_verdict: bool = True
+) -> str:
+    """Find an explicit negative marker in a readback envelope.
+
+    ``errors`` (plural) is intentionally ignored: layout/checker payloads use
+    it for finding counts while still carrying valid geometry.  Singular
+    transport fields and nested ``ok:false`` markers are hard evidence that
+    the snapshot cannot be trusted.
+    """
+
+    if not isinstance(payload, Mapping):
+        return ""
+    for key in ("ok", "success", "passed"):
+        if key in payload:
+            status, _explicit = _status_value(payload.get(key))
+            if status in _FALSE_WORDS or status in {"error", "failed", "fail"}:
+                return f"{key}={payload.get(key)!r}"
+    for key in ("error", "exception", "failure"):
+        if key in payload and _payload_has_content(payload.get(key)):
+            return f"{key} payload"
+    if include_status and "status" in payload:
+        status, _explicit = _status_value(payload.get("status"))
+        if status in _FALSE_WORDS or status in {"error", "failed", "fail"}:
+            return f"status={payload.get('status')!r}"
+    if include_verdict and "verdict" in payload:
+        status, _explicit = _status_value(payload.get("verdict"))
+        if status in _FALSE_WORDS or status in {"error", "failed", "fail"}:
+            return f"verdict={payload.get('verdict')!r}"
+    for key in ("result", "data", "detail"):
+        nested = payload.get(key)
+        if isinstance(nested, Mapping):
+            reason = _explicit_failure_reason(
+                nested, include_status=include_status, include_verdict=include_verdict
+            )
+            if reason:
+                return f"{key}.{reason}"
+    return ""
 
 
 def _as_float(value: Any) -> float:
@@ -67,6 +473,12 @@ def _first(mapping: Mapping[str, Any], *keys: str, default: Any = None) -> Any:
         if key in mapping:
             return mapping[key]
     return default
+
+
+def _collection_field(mapping: Mapping[str, Any], *keys: str) -> Any:
+    """Return a collection field while distinguishing absent from explicit null."""
+
+    return _first(mapping, *keys, default=())
 
 
 def _rect_values(value: Any) -> tuple[float, float, float, float] | None:
@@ -197,16 +609,21 @@ class PinSnapshot:
     net: str = ""
     expected_net: str | None = None
     primitive_id: str = ""
+    validation_errors: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "ref", str(self.ref or ""))
-        object.__setattr__(self, "pin", str(self.pin or ""))
+        owner, pin = _normalize_pin_identity(self.ref, self.pin)
+        object.__setattr__(self, "ref", owner)
+        object.__setattr__(self, "pin", pin)
         object.__setattr__(self, "x", _as_float(self.x))
         object.__setattr__(self, "y", _as_float(self.y))
         object.__setattr__(self, "net", str(self.net or ""))
         if self.expected_net is not None:
             object.__setattr__(self, "expected_net", str(self.expected_net))
         object.__setattr__(self, "primitive_id", str(self.primitive_id or ""))
+        errors: list[str] = []
+        _append_errors(errors, self.validation_errors)
+        object.__setattr__(self, "validation_errors", tuple(errors))
 
     @property
     def key(self) -> str:
@@ -219,11 +636,10 @@ class PinSnapshot:
     @classmethod
     def from_mapping(cls, value: Mapping[str, Any], *, ref: str = "") -> "PinSnapshot":
         raw_pin = _first(value, "pin", "pinNumber", "pin_number", "number", "name", default="")
-        owner = str(_first(value, "ref", "designator", "ownerRef", default=ref) or ref)
-        # A few connector responses identify a pin as ``R1:1`` rather than
-        # carrying owner and number separately.
-        if not owner and isinstance(raw_pin, str) and ":" in raw_pin:
-            owner, raw_pin = raw_pin.split(":", 1)
+        owner = _first(value, "ref", "designator", "ownerRef", default=ref)
+        if (not raw_pin) and isinstance(_first(value, "pinRef", "pin_ref", default=""), str):
+            raw_pin = _first(value, "pinRef", "pin_ref", default="")
+        owner, raw_pin = _normalize_pin_identity(owner, raw_pin)
         return cls(
             ref=owner,
             pin=str(raw_pin or ""),
@@ -232,6 +648,7 @@ class PinSnapshot:
             net=_first(value, "net", "netName", "actualNet", default="") or "",
             expected_net=_first(value, "expected_net", "expectedNet", default=None),
             primitive_id=_first(value, "primitiveId", "primitive_id", "id", default="") or "",
+            validation_errors=_first(value, "validation_errors", "validationErrors", default=()) or (),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -246,6 +663,8 @@ class PinSnapshot:
             out["expectedNet"] = self.expected_net
         if self.primitive_id:
             out["primitiveId"] = self.primitive_id
+        if self.validation_errors:
+            out["validationErrors"] = list(self.validation_errors)
         return out
 
 
@@ -264,7 +683,8 @@ class ComponentSnapshot:
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "ref", str(self.ref or ""))
-        errors = list(self.validation_errors or ())
+        errors: list[str] = []
+        _append_errors(errors, self.validation_errors)
         for attr, label in (("bbox", "bbox"), ("ink_bbox", "ink_bbox")):
             value = getattr(self, attr)
             if value is None or isinstance(value, Rect):
@@ -275,9 +695,22 @@ class ComponentSnapshot:
                 errors.append(f"{label}:{exc}")
                 object.__setattr__(self, attr, None)
         converted: list[PinSnapshot] = []
-        for i, pin in enumerate(self.pins or ()):
+        for i, pin in enumerate(_sequence_values(self.pins, "pins", errors)):
             if isinstance(pin, PinSnapshot):
-                converted.append(pin if pin.ref else PinSnapshot(self.ref, pin.pin, pin.x, pin.y, pin.net, pin.expected_net, pin.primitive_id))
+                converted.append(
+                    pin
+                    if pin.ref
+                    else PinSnapshot(
+                        self.ref,
+                        pin.pin,
+                        pin.x,
+                        pin.y,
+                        pin.net,
+                        pin.expected_net,
+                        pin.primitive_id,
+                        pin.validation_errors,
+                    )
+                )
                 continue
             if isinstance(pin, Mapping):
                 converted.append(PinSnapshot.from_mapping(pin, ref=self.ref))
@@ -285,9 +718,19 @@ class ComponentSnapshot:
             errors.append(f"pin[{i}]:unsupported value")
         converted.sort(key=lambda p: (p.ref, p.pin, p.net.casefold(), p.x, p.y, p.primitive_id))
         object.__setattr__(self, "pins", tuple(converted))
-        object.__setattr__(self, "component_type", str(self.component_type or "part"))
+        object.__setattr__(self, "component_type", _normalize_component_type(self.component_type))
         object.__setattr__(self, "primitive_id", str(self.primitive_id or ""))
-        object.__setattr__(self, "expected_pin_nets", {str(k): str(v) for k, v in (self.expected_pin_nets or {}).items()})
+        expected = self.expected_pin_nets
+        if expected is None:
+            expected = {}
+        if not isinstance(expected, Mapping):
+            errors.append("expected_pin_nets:unsupported value")
+            expected = {}
+        object.__setattr__(
+            self,
+            "expected_pin_nets",
+            _canonical_map(expected, pin_keys=False),
+        )
         object.__setattr__(self, "validation_errors", tuple(errors))
 
     @property
@@ -301,15 +744,16 @@ class ComponentSnapshot:
     @classmethod
     def from_mapping(cls, value: Mapping[str, Any]) -> "ComponentSnapshot":
         ref = str(_first(value, "ref", "designator", "name", "id", default="") or "")
-        expected = _first(value, "expected_pin_nets", "expectedPinNets", "pinNets", default={}) or {}
+        expected = _first(value, "expected_pin_nets", "expectedPinNets", "pinNets", default={})
         return cls(
             ref=ref,
             bbox=_first(value, "bbox", "body", "box", "body_bbox", "bodyBBox", default=None),
-            pins=_first(value, "pins", "pinList", default=()) or (),
+            pins=_collection_field(value, "pins", "pinList"),
             ink_bbox=_first(value, "ink_bbox", "inkBBox", "ink", default=None),
             component_type=_first(value, "component_type", "componentType", "type", default="part") or "part",
             primitive_id=_first(value, "primitive_id", "primitiveId", default="") or "",
-            expected_pin_nets=expected if isinstance(expected, Mapping) else {},
+            expected_pin_nets={} if expected is None else expected,
+            validation_errors=_first(value, "validation_errors", "validationErrors", default=()),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -324,7 +768,7 @@ class ComponentSnapshot:
         if self.primitive_id:
             out["primitiveId"] = self.primitive_id
         if self.expected_pin_nets:
-            out["expectedPinNets"] = dict(self.expected_pin_nets)
+            out["expectedPinNets"] = _canonical_map(self.expected_pin_nets)
         if self.validation_errors:
             out["validationErrors"] = list(self.validation_errors)
         return out
@@ -345,14 +789,16 @@ class MarkerSnapshot:
     validation_errors: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "kind", str(self.kind or "netport"))
+        object.__setattr__(self, "kind", _normalize_component_type(self.kind))
         object.__setattr__(self, "net", str(self.net or ""))
-        object.__setattr__(self, "owner_ref", str(self.owner_ref or ""))
-        object.__setattr__(self, "pin", str(self.pin or ""))
+        owner, pin = _normalize_pin_identity(self.owner_ref, self.pin)
+        object.__setattr__(self, "owner_ref", owner)
+        object.__setattr__(self, "pin", pin)
         object.__setattr__(self, "x", None if self.x is None else _as_float(self.x))
         object.__setattr__(self, "y", None if self.y is None else _as_float(self.y))
         object.__setattr__(self, "primitive_id", str(self.primitive_id or ""))
-        errors = list(self.validation_errors or ())
+        errors: list[str] = []
+        _append_errors(errors, self.validation_errors)
         if self.ink_bbox is not None and not isinstance(self.ink_bbox, Rect):
             try:
                 object.__setattr__(self, "ink_bbox", Rect.from_value(self.ink_bbox))
@@ -377,22 +823,31 @@ class MarkerSnapshot:
 
     @classmethod
     def from_mapping(cls, value: Mapping[str, Any]) -> "MarkerSnapshot":
-        owner = str(_first(value, "owner_ref", "ownerRef", "ref", "designator", "owner", default="") or "")
-        pin = str(_first(value, "pin", "pinNumber", "pin_number", "ownerPin", default="") or "")
+        # Some connector versions expose marker geometry only through its
+        # single anchor pin.  Normalize that shape at the boundary so the
+        # pure checks can still detect an anchor placed on a body.
+        anchor = value.get("pins")
+        anchor = anchor[0] if isinstance(anchor, Sequence) and anchor and isinstance(anchor[0], Mapping) else {}
+        owner = _first(value, "owner_ref", "ownerRef", "ref", "designator", "owner", default="") or ""
+        pin = _first(value, "pin", "pinNumber", "pin_number", "ownerPin", default="") or ""
         pin_ref = _first(value, "pinRef", "pin_ref", default="")
-        if (not owner or not pin) and isinstance(pin, str) and ":" in pin:
-            owner, pin = pin.split(":", 1)
+        if not owner and isinstance(anchor, Mapping):
+            owner = _first(anchor, "ref", "designator", "ownerRef", "owner", default="") or ""
+        if not pin and isinstance(anchor, Mapping):
+            pin = _first(anchor, "pin", "pinNumber", "pin_number", "number", "name", default="") or ""
         if (not owner or not pin) and isinstance(pin_ref, str) and ":" in pin_ref:
             owner, pin = pin_ref.split(":", 1)
+        owner, pin = _normalize_pin_identity(owner, pin)
         return cls(
             kind=_first(value, "kind", "componentType", "type", default="netport") or "netport",
             net=_first(value, "net", "name", "netName", default="") or "",
             owner_ref=owner,
             pin=pin,
             ink_bbox=_first(value, "ink_bbox", "inkBBox", "bbox", "box", default=None),
-            x=_first(value, "x", "X", default=None),
-            y=_first(value, "y", "Y", default=None),
+            x=_first(value, "x", "X", default=anchor.get("x", anchor.get("X"))),
+            y=_first(value, "y", "Y", default=anchor.get("y", anchor.get("Y"))),
             primitive_id=_first(value, "primitive_id", "primitiveId", "id", default="") or "",
+            validation_errors=_first(value, "validation_errors", "validationErrors", default=()) or (),
         )
 
     def effective_bbox(self) -> Rect | None:
@@ -434,7 +889,8 @@ class InkSnapshot:
     validation_errors: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
-        errors = list(self.validation_errors or ())
+        errors: list[str] = []
+        _append_errors(errors, self.validation_errors)
         if not isinstance(self.bbox, Rect):
             try:
                 object.__setattr__(self, "bbox", Rect.from_value(self.bbox))
@@ -455,6 +911,7 @@ class InkSnapshot:
             ref=_first(value, "ref", "designator", default="") or "",
             net=_first(value, "net", "name", default="") or "",
             primitive_id=_first(value, "primitiveId", "primitive_id", "id", default="") or "",
+            validation_errors=_first(value, "validation_errors", "validationErrors", default=()) or (),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -525,14 +982,16 @@ class LayoutSnapshot:
     validation_errors: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
-        errors = list(self.validation_errors or ())
+        errors: list[str] = []
+        _append_errors(errors, self.validation_errors)
         object.__setattr__(self, "page", str(self.page or ""))
         converted_components: list[ComponentSnapshot] = []
         converted_component_markers: list[MarkerSnapshot] = []
-        for i, item in enumerate(self.components or ()):
+        for i, item in enumerate(_sequence_values(self.components, "components", errors)):
             try:
                 component = _coerce_component(item)
-                if component.component_type.casefold() in {"netport", "netflag", "netlabel", "marker"}:
+                component_type = _normalize_component_type(component.component_type)
+                if component_type in {"netport", "netflag", "netlabel", "marker"}:
                     # ``sch list`` commonly returns markers in the same
                     # components array as parts.  Normalize them here so
                     # callers do not have to know which connector variant was
@@ -542,17 +1001,32 @@ class LayoutSnapshot:
                     if isinstance(item, Mapping):
                         converted_component_markers.append(MarkerSnapshot.from_mapping(item))
                     continue
+                # Sheet/page pseudo-components describe the canvas rather than
+                # a circuit body.  Keeping them in ``components`` makes an
+                # empty/stale page look populated and can create false
+                # expected-component matches, so drop them at the boundary.
+                if component_type in _SHEET_COMPONENT_TYPES:
+                    continue
+                if component_type not in _KNOWN_COMPONENT_TYPES:
+                    # Unknown records must not make a page look populated and
+                    # verified merely because the connector returned a
+                    # non-empty array.  Keep the record for audit evidence,
+                    # but mark the snapshot invalid so all derived checks are
+                    # fail-closed until the schema is explicitly supported.
+                    errors.append(
+                        f"components[{i}]:unknown component type {component.component_type!r}"
+                    )
                 converted_components.append(component)
             except ValueError as exc:
                 errors.append(f"components[{i}]:{exc}")
         converted_markers: list[MarkerSnapshot] = []
-        for i, item in enumerate(self.markers or ()):
+        for i, item in enumerate(_sequence_values(self.markers, "markers", errors)):
             try:
                 converted_markers.append(_coerce_marker(item))
             except ValueError as exc:
                 errors.append(f"markers[{i}]:{exc}")
         converted_ink: list[InkSnapshot] = []
-        for i, item in enumerate(self.ink_boxes or ()):
+        for i, item in enumerate(_sequence_values(self.ink_boxes, "ink_boxes", errors)):
             try:
                 converted_ink.append(_coerce_ink(item))
             except ValueError as exc:
@@ -575,18 +1049,60 @@ class LayoutSnapshot:
             except ValueError as exc:
                 errors.append(f"{label}:{exc}")
                 object.__setattr__(self, attr, None)
-        object.__setattr__(self, "pin_to_net", dict(self.pin_to_net or {}))
-        object.__setattr__(self, "expected_pin_nets", dict(self.expected_pin_nets or {}))
-        object.__setattr__(self, "expected_pin_to_net", dict(self.expected_pin_to_net or {}))
-        object.__setattr__(self, "expected_nets", dict(self.expected_nets or {}))
+        # ``pin_to_net`` and the snapshot-level expected map are serialized as
+        # flat owner-qualified keys.  Keep component-local expected maps nested
+        # by designator/pin because their pin numbers are intentionally local.
+        for attr, label in (("pin_to_net", "pin_to_net"), ("expected_pin_to_net", "expected_pin_to_net")):
+            value = getattr(self, attr)
+            if value is None:
+                value = {}
+            if not isinstance(value, Mapping):
+                errors.append(f"{label}:unsupported value")
+                value = {}
+            object.__setattr__(
+                self,
+                attr,
+                _canonical_pin_map(value, errors=errors, label=label),
+            )
+
+        value = self.expected_pin_nets
+        if value is None:
+            value = {}
+        if not isinstance(value, Mapping):
+            errors.append("expected_pin_nets:unsupported value")
+            value = {}
+        object.__setattr__(self, "expected_pin_nets", _canonical_map(value))
+
+        object.__setattr__(
+            self,
+            "expected_nets",
+            _canonical_expected_nets(self.expected_nets, page=self.page),
+        )
         object.__setattr__(self, "tool", str(self.tool or ""))
         object.__setattr__(self, "connector", str(self.connector or ""))
         object.__setattr__(self, "tool_version", str(self.tool_version or ""))
         object.__setattr__(self, "connector_version", str(self.connector_version or ""))
         object.__setattr__(self, "snapshot_version", str(self.snapshot_version or ""))
-        object.__setattr__(self, "readback_status", str(self.readback_status or ""))
+        status, status_explicit = _status_value(self.readback_status)
+        object.__setattr__(self, "readback_status", status if status_explicit else "unknown")
+        degraded = _coerce_bool(self.degraded, default=None)
+        if degraded is None:
+            degraded = True
+            errors.append("degraded flag is malformed")
+        object.__setattr__(self, "degraded", bool(degraded))
         object.__setattr__(self, "readback_error", str(self.readback_error or ""))
-        object.__setattr__(self, "metadata", dict(self.metadata or {}))
+        metadata = self.metadata
+        if metadata is None:
+            metadata = {}
+        if not isinstance(metadata, Mapping):
+            errors.append("metadata:unsupported value")
+            metadata = {}
+        object.__setattr__(self, "metadata", dict(metadata))
+        oversize = _coerce_bool(self.oversize, default=None)
+        if oversize is None:
+            errors.append("oversize flag is malformed")
+            oversize = False
+        object.__setattr__(self, "oversize", bool(oversize))
         object.__setattr__(self, "validation_errors", tuple(errors))
 
     @property
@@ -595,28 +1111,55 @@ class LayoutSnapshot:
 
     @property
     def verified_readback(self) -> bool:
-        return not self.degraded and self.readback_status.strip().casefold() in _GOOD_READBACK
+        if self.degraded or self.readback_status.strip().casefold() not in _GOOD_READBACK:
+            return False
+        # Conversion errors mean that the connector payload was not fully
+        # understood.  A nominal ``ok`` status must not override that evidence.
+        if self.validation_errors:
+            return False
+        if any(component.validation_errors for component in self.components):
+            return False
+        if any(pin.validation_errors for component in self.components for pin in component.pins):
+            return False
+        if any(marker.validation_errors for marker in self.markers):
+            return False
+        if any(ink.validation_errors for ink in self.ink_boxes):
+            return False
+        return True
 
     @classmethod
     def from_mapping(cls, value: Mapping[str, Any]) -> "LayoutSnapshot":
         # Connector commands usually wrap the payload in ``result`` while
         # callers often add page/metadata beside that wrapper.  Use a shallow
         # overlay so both shapes are accepted, with result fields taking
-        # precedence.
+        # precedence.  Keep the outer envelope's failure indicators separate:
+        # a transport ``ok:false`` must not be overwritten by a stale nested
+        # ``result.ok:true`` while a normal outer ``ok:true`` remains a
+        # harmless transport acknowledgement.
         nested = value.get("result")
         result = dict(value)
         if isinstance(nested, Mapping):
             result.update(nested)
-        readback = result.get("readback") if isinstance(result.get("readback"), Mapping) else {}
-        status = _first(result, "readback_status", "readbackStatus", default=None)
-        if status is None:
-            status = _first(readback, "status", "state", default="ok")
-        degraded = bool(_first(result, "degraded", default=False) or _first(readback, "degraded", default=False))
+        status, degraded, readback_error, readback_errors = _readback_fields(result)
+        outer_failure = _explicit_failure_reason(
+            value, include_status=True, include_verdict=False
+        )
+        if outer_failure:
+            status = "error"
+            readback_error = f"outer envelope reports failure: {outer_failure}"
+            _append_errors(readback_errors, readback_error)
+        nested_readback = result.get("readback") if isinstance(result.get("readback"), Mapping) else {}
+        mapping_errors: list[str] = []
+        _append_errors(mapping_errors, _first(value, "validation_errors", "validationErrors", default=()))
+        if isinstance(nested, Mapping):
+            _append_errors(mapping_errors, _first(nested, "validation_errors", "validationErrors", default=()))
+        _append_errors(mapping_errors, _first(nested_readback, "validation_errors", "validationErrors", default=()))
+        _append_errors(mapping_errors, readback_errors)
         return cls(
             page=_first(result, "page", "doc", "document", default="") or "",
-            components=_first(result, "components", default=()) or (),
-            markers=_first(result, "markers", "markerList", default=()) or (),
-            ink_boxes=_first(result, "ink_boxes", "inkBoxes", "ink", default=()) or (),
+            components=_collection_field(result, "components"),
+            markers=_collection_field(result, "markers", "markerList"),
+            ink_boxes=_collection_field(result, "ink_boxes", "inkBoxes", "ink"),
             usable_band=_first(result, "usable_band", "usableBand", "sheetUsable", default=None),
             titleblock_keepout=_first(result, "titleblock_keepout", "titleblockKeepout", "titleblock", default=None),
             pin_to_net=_first(result, "pin_to_net", "pinToNet", default={}) or {},
@@ -630,9 +1173,10 @@ class LayoutSnapshot:
             snapshot_version=_first(result, "snapshot_version", "snapshotVersion", default=SNAPSHOT_VERSION) or SNAPSHOT_VERSION,
             readback_status=status,
             degraded=degraded,
-            readback_error=_first(result, "readback_error", "readbackError", default="") or "",
-            oversize=bool(_first(result, "oversize", "isOversize", default=False)),
+            readback_error=readback_error,
+            oversize=_first(result, "oversize", "isOversize", default=False),
             metadata=_first(result, "metadata", default={}) or {},
+            validation_errors=mapping_errors,
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -644,8 +1188,10 @@ class LayoutSnapshot:
             "inkBoxes": [i.to_dict() for i in self.ink_boxes],
             "usableBand": self.usable_band.to_dict() if isinstance(self.usable_band, Rect) else None,
             "titleblockKeepout": self.titleblock_keepout.to_dict() if isinstance(self.titleblock_keepout, Rect) else None,
-            "pinToNet": {str(k): v for k, v in self.pin_to_net.items()},
-            "expectedPinNets": {str(k): v for k, v in self.expected_pin_nets.items()},
+            "pinToNet": _canonical_pin_map(self.pin_to_net),
+            "expectedPinNets": _canonical_map(self.expected_pin_nets),
+            "expectedPinToNet": _canonical_pin_map(self.expected_pin_to_net),
+            "expectedNets": _canonical_expected_nets(self.expected_nets, page=self.page),
             "readback": {
                 "status": self.readback_status,
                 "degraded": self.degraded,
@@ -670,14 +1216,43 @@ class LayoutAudit:
 
     @property
     def ok(self) -> bool:
-        # ``findings`` are all strong errors today.  Keep the explicit
-        # readback condition so future warning-only checks cannot accidentally
-        # turn an unverified page into PASS.
-        return self.snapshot is not None and self.snapshot.verified_readback and not self.findings
+        # Weak findings are deliberately visible but do not block the
+        # electrical/geometry contract.  Readback verification remains an
+        # independent hard requirement, so a warning cannot hide a stale page.
+        return (
+            self.snapshot is not None
+            and self.snapshot.verified_readback
+            and not any(not finding.weak for finding in self.findings)
+        )
+
+    @property
+    def blocking_findings(self) -> tuple[Finding, ...]:
+        """Findings that make the terminal audit fail."""
+
+        return tuple(finding for finding in self.findings if not finding.weak)
 
     @property
     def passed(self) -> bool:
         return self.ok
+
+    @property
+    def review_required(self) -> bool:
+        """Whether a human visual review is required despite a non-blocking audit.
+
+        Marker/body findings are readability signals, not proof of an
+        electrical defect.  Keep them weak for backwards compatibility, but
+        expose an explicit delivery status so callers do not mistake
+        ``ok=True`` for a fully human-readable drawing.
+        """
+
+        return any(
+            finding.code == LAYOUT_MARKER_ON_BODY
+            for finding in self.findings
+        )
+
+    @property
+    def review_code(self) -> str:
+        return LAYOUT_REVIEW_REQUIRED if self.review_required else ""
 
     @property
     def verified(self) -> bool:
@@ -687,6 +1262,8 @@ class LayoutAudit:
         return {
             "ok": self.ok,
             "verified": self.verified,
+            "reviewRequired": self.review_required,
+            **({"reviewCode": self.review_code} if self.review_required else {}),
             "snapshot": self.snapshot.to_dict() if self.snapshot is not None else None,
             "findings": [f.model_dump() for f in self.findings],
         }
@@ -704,6 +1281,34 @@ def _finding(code: str, *, ref: str = "", net: str = "", pin: str = "", xy: str 
         severity="error",
         suggested_fix_class=fix,
         weak=False,
+    )
+
+
+def _weak_finding(
+    code: str,
+    *,
+    ref: str = "",
+    net: str = "",
+    pin: str = "",
+    xy: str = "",
+    evidence: str,
+    fix: str,
+) -> Finding:
+    """Create a render/readability warning without weakening hard checks.
+
+    ``Finding`` deliberately carries both ``severity`` and ``weak``.  Keep
+    those values coupled here so a future caller cannot accidentally emit a
+    warning that the loop treats as a blocking error (or an error that gets
+    hidden as a warning).
+    """
+
+    return Finding(
+        code=code,
+        where=_where(ref=ref, net=net, pin=pin, xy=xy),
+        evidence=evidence,
+        severity="warn",
+        suggested_fix_class=fix,
+        weak=True,
     )
 
 
@@ -797,6 +1402,14 @@ def check_snapshot_readback(snapshot: LayoutSnapshot | None, *, require_componen
         if component.component_type.lower() in {"part", "component", "symbol", ""} and _valid_rect(component.bbox) is None:
             findings.append(_finding(LAYOUT_SNAPSHOT_INVALID, ref=component.ref, evidence="real component body bbox is missing or invalid", fix="RETRY_READBACK"))
         for pin in component.pins:
+            if pin.validation_errors:
+                findings.append(_finding(
+                    LAYOUT_SNAPSHOT_INVALID,
+                    ref=pin.ref or component.ref,
+                    pin=pin.pin,
+                    evidence=f"pin snapshot invalid: {'; '.join(pin.validation_errors)}",
+                    fix="RETRY_READBACK",
+                ))
             if not pin.pin or not isfinite(pin.x) or not isfinite(pin.y):
                 findings.append(_finding(LAYOUT_SNAPSHOT_INVALID, ref=component.ref, pin=pin.pin, evidence=f"pin snapshot has invalid identity/coordinates ({pin.x!r},{pin.y!r})", fix="RETRY_READBACK"))
         for marker_error in ():  # keeps marker validation in the loop below
@@ -812,6 +1425,43 @@ def check_snapshot_readback(snapshot: LayoutSnapshot | None, *, require_componen
     if snapshot.validation_errors:
         findings.append(_finding(LAYOUT_SNAPSHOT_INVALID, ref=snapshot.page, evidence=f"snapshot conversion errors: {'; '.join(snapshot.validation_errors)}", fix="RETRY_READBACK"))
     return findings
+
+
+def _derived_checks_ready(snapshot: LayoutSnapshot | None, *, require_components: bool = True) -> bool:
+    """Return whether geometry/electrical findings can trust this snapshot.
+
+    A connector may return stale components together with a failed status, or
+    a nominally successful status with malformed collection/geometry fields.
+    In either case, running overlap/net/ink predicates would attribute faults
+    to data that was never proven to be a terminal readback.  Keep the
+    conversion/structural findings from :func:`check_snapshot_readback`, and
+    gate all derived checks behind this predicate.
+    """
+
+    if snapshot is None or not snapshot.verified_readback:
+        return False
+    if snapshot.validation_errors:
+        return False
+    if require_components and not snapshot.components:
+        return False
+    for component in snapshot.components:
+        if component.validation_errors:
+            return False
+        if component.component_type.casefold() in {"part", "component", "symbol", ""}:
+            if _valid_rect(component.bbox) is None:
+                return False
+            if any(
+                pin.validation_errors or not pin.pin or not isfinite(pin.x) or not isfinite(pin.y)
+                for pin in component.pins
+            ):
+                return False
+    for marker in snapshot.markers:
+        if marker.validation_errors or marker.effective_bbox() is None:
+            return False
+    for ink in snapshot.ink_boxes:
+        if ink.validation_errors or _valid_rect(ink.bbox) is None:
+            return False
+    return True
 
 
 def check_body_overlaps(snapshot: LayoutSnapshot | None, *, tolerance: float = 0.0) -> list[Finding]:
@@ -946,6 +1596,250 @@ def check_expected_nets(snapshot: LayoutSnapshot | None) -> list[Finding]:
     ]
 
 
+def check_expected_components(
+    snapshot: LayoutSnapshot | None,
+    expected_components: Iterable[str] | None,
+) -> list[Finding]:
+    """Require every designator claimed by apply to survive final readback."""
+
+    # A failed/degraded readback cannot establish which parts are absent;
+    # report the stronger readback finding instead of manufacturing one
+    # missing-component finding per planned designator.
+    if snapshot is None or not expected_components or not snapshot.verified_readback:
+        return []
+    expected = {str(ref).strip() for ref in expected_components if str(ref).strip()}
+    actual = {component.ref for component in snapshot.body_components if component.ref}
+    return [
+        _finding(
+            LAYOUT_COMPONENT_MISSING,
+            ref=ref,
+            evidence=f"expected component {ref} is missing from terminal page {snapshot.page} readback",
+            fix="RETRY_READBACK",
+        )
+        for ref in sorted(expected - actual, key=str.casefold)
+    ]
+
+
+def _clip_rect(rect: Rect, container: Rect) -> Rect | None:
+    """Return the positive-area intersection of two valid rectangles."""
+
+    if not rect.valid or not container.valid:
+        return None
+    clipped = Rect(
+        max(rect.min_x, container.min_x),
+        max(rect.min_y, container.min_y),
+        min(rect.max_x, container.max_x),
+        min(rect.max_y, container.max_y),
+    )
+    return clipped if clipped.width > 0 and clipped.height > 0 else None
+
+
+def _union_area(rects: Iterable[Rect]) -> float:
+    """Compute the exact area of an axis-aligned rectangle union.
+
+    Layout pages contain tens to a few hundred primitives, so a coordinate
+    sweep is both deterministic and inexpensive.  Summing rectangle areas is
+    not sufficient here because a cluster ``box`` already includes its marker
+    and wire ink; double counting would make a sparse page look denser than it
+    is.
+    """
+
+    valid = [r for r in rects if r.valid and r.width > 0 and r.height > 0]
+    if not valid:
+        return 0.0
+    x_edges = sorted({x for r in valid for x in (r.min_x, r.max_x)})
+    area = 0.0
+    for left, right in zip(x_edges, x_edges[1:]):
+        width = right - left
+        if width <= 0:
+            continue
+        mid = (left + right) / 2.0
+        intervals = sorted(
+            (r.min_y, r.max_y)
+            for r in valid
+            if r.min_x < mid < r.max_x
+        )
+        if not intervals:
+            continue
+        covered = 0.0
+        lo, hi = intervals[0]
+        for next_lo, next_hi in intervals[1:]:
+            if next_lo > hi:
+                covered += max(0.0, hi - lo)
+                lo, hi = next_lo, next_hi
+            else:
+                hi = max(hi, next_hi)
+        covered += max(0.0, hi - lo)
+        area += width * covered
+    return area
+
+
+def page_ink_metrics(snapshot: LayoutSnapshot | None) -> dict[str, Any]:
+    """Return deterministic page occupancy metrics for audit/UI consumers.
+
+    The metric is deliberately based on *rendered* ink (body, cluster volume,
+    marker and wire boxes), clipped to ``sheetUsable``.  It is a readability
+    signal, not an electrical proof; callers should still inspect the strong
+    geometry findings separately.
+    """
+
+    empty: dict[str, Any] = {
+        "usableArea": 0.0,
+        "inkArea": 0.0,
+        "occupancy": None,
+        "waste": None,
+        "rectCount": 0,
+        "inkBBox": None,
+    }
+    if snapshot is None:
+        return empty
+    band = _valid_rect(snapshot.usable_band)
+    if band is None or band.area <= 0:
+        return empty
+    clipped: list[Rect] = []
+    for _ref, _net, _pin, _kind, rect in _ink_items(snapshot):
+        piece = _clip_rect(rect, band)
+        if piece is not None:
+            clipped.append(piece)
+    ink_area = _union_area(clipped)
+    occupancy = min(1.0, max(0.0, ink_area / band.area))
+    ink_bbox: dict[str, float] | None = None
+    if clipped:
+        ink_bbox = Rect(
+            min(r.min_x for r in clipped),
+            min(r.min_y for r in clipped),
+            max(r.max_x for r in clipped),
+            max(r.max_y for r in clipped),
+        ).to_dict()
+    return {
+        "usableArea": band.area,
+        "inkArea": ink_area,
+        "occupancy": occupancy,
+        "waste": max(0.0, 1.0 - occupancy),
+        "rectCount": len(clipped),
+        "inkBBox": ink_bbox,
+    }
+
+
+def check_marker_body_overlaps(
+    snapshot: LayoutSnapshot | None,
+    *,
+    tolerance: float = 0.0,
+) -> list[Finding]:
+    """Warn when rendered marker ink sits on a component body.
+
+    EasyEDA's ordinary layout lint intentionally ignores non-part primitives,
+    so a netflag/netport can be electrically connected and still be painted
+    over a symbol.  This check stays weak until the connector exposes a
+    complete text/font geometry model; it nevertheless gives the planner and
+    human reviewer a precise marker/body pair to fix.
+    """
+
+    if snapshot is None:
+        return []
+    parts = [
+        (component.ref, _valid_rect(component.bbox))
+        for component in snapshot.body_components
+        if component.ref
+    ]
+    parts = [(ref, rect) for ref, rect in parts if rect is not None]
+    findings: list[Finding] = []
+    for marker in snapshot.markers:
+        marker_rect = _valid_rect(marker.effective_bbox())
+        if marker_rect is None:
+            continue
+        for body_ref, body_rect in parts:
+            assert body_rect is not None
+            # A marker's own anchor is expected to lie on its host pin/body
+            # boundary.  Flag/port ink that extends over that host symbol is
+            # the readability defect; excluding only the zero-area anchor
+            # would otherwise suppress useful bbox-based evidence.
+            if not marker_rect.intersects(body_rect, max(0.0, tolerance)):
+                continue
+            owner = marker.owner_ref or body_ref
+            findings.append(
+                _weak_finding(
+                    LAYOUT_MARKER_ON_BODY,
+                    ref=owner,
+                    net=marker.net,
+                    pin=marker.pin,
+                    xy=marker_rect.text(),
+                    evidence=(
+                        f"marker {marker.kind} {marker.net or '-'}"
+                        f" ({marker.pin_ref or 'unowned'}) ink {_fmt_rect(marker_rect)}"
+                        f" intersects component body {body_ref} {_fmt_rect(body_rect)}"
+                    ),
+                    fix="RESEAT_MARKER",
+                )
+            )
+    return findings
+
+
+# Compatibility spellings used by early layout-audit callers.
+check_marker_on_body = check_marker_body_overlaps
+check_marker_body_overlap = check_marker_body_overlaps
+
+
+def check_page_ink_sparse(
+    snapshot: LayoutSnapshot | None,
+    *,
+    min_occupancy: float = 0.20,
+    threshold: float | None = None,
+    is_last_page: bool = True,
+    page_is_last: bool | None = None,
+    allow_oversize: bool = False,
+) -> list[Finding]:
+    """Warn about a non-final page whose rendered ink occupies too little area.
+
+    The final page is intentionally exempt: a small design or a remainder
+    page is not automatically a packing bug.  The controller passes the page
+    position explicitly when it has a complete plan; pure callers can pass
+    ``is_last_page=False`` to opt into the same signal.
+    """
+
+    if page_is_last is not None:
+        is_last_page = bool(page_is_last)
+    if threshold is not None:
+        min_occupancy = threshold
+    try:
+        threshold_value = float(min_occupancy)
+    except (TypeError, ValueError):
+        threshold_value = 0.20
+    if not isfinite(threshold_value):
+        threshold_value = 0.20
+    threshold_value = min(1.0, max(0.0, threshold_value))
+    if (
+        snapshot is None
+        or is_last_page
+        or (snapshot.oversize and allow_oversize)
+        or not snapshot.verified_readback
+        or not snapshot.body_components
+    ):
+        return []
+    metrics = page_ink_metrics(snapshot)
+    occupancy = metrics.get("occupancy")
+    if occupancy is None or occupancy >= threshold_value:
+        return []
+    return [
+        _weak_finding(
+            LAYOUT_PAGE_INK_SPARSE,
+            ref=snapshot.page,
+            xy=f"occupancy={float(occupancy):.4f}",
+            evidence=(
+                f"page {snapshot.page} rendered ink occupancy {float(occupancy):.1%}"
+                f" is below {threshold_value:.1%}"
+                f" (inkArea={float(metrics['inkArea']):g},"
+                f" usableArea={float(metrics['usableArea']):g});"
+                " merge/repack related modules before tightening spacing"
+            ),
+            fix="REPACK",
+        )
+    ]
+
+
+check_page_sparse = check_page_ink_sparse
+
+
 def _ink_items(snapshot: LayoutSnapshot, *, include_body: bool = True) -> Iterable[tuple[str, str, str, str, Rect]]:
     if include_body:
         for component in snapshot.components:
@@ -1021,6 +1915,13 @@ def audit_layout_snapshot(
     ink_tolerance: float = 0.0,
     allow_oversize: bool = False,
     require_components: bool = True,
+    expected_components: Iterable[str] | None = None,
+    marker_tolerance: float = 0.0,
+    min_ink_occupancy: float = 0.20,
+    sparse_threshold: float | None = None,
+    is_last_page: bool = True,
+    page_is_last: bool | None = None,
+    check_sparse: bool = True,
 ) -> LayoutAudit:
     """Run all terminal checks in deterministic order and deduplicate findings."""
 
@@ -1030,13 +1931,33 @@ def audit_layout_snapshot(
         snapshot = None
     findings: list[Finding] = []
     findings.extend(check_snapshot_readback(snapshot, require_components=require_components))
-    findings.extend(check_body_overlaps(snapshot, tolerance=body_tolerance))
-    findings.extend(check_pin_coincidences(snapshot, tolerance=pin_tolerance))
-    findings.extend(check_duplicate_markers(snapshot))
-    findings.extend(check_pin_net_mismatches(snapshot))
-    findings.extend(check_expected_nets(snapshot))
-    findings.extend(check_ink_bounds(snapshot, tolerance=ink_tolerance, allow_oversize=allow_oversize))
-    findings.extend(check_titleblock_occlusion(snapshot, tolerance=ink_tolerance, allow_oversize=allow_oversize))
+    # Only derive overlap/net/ink findings from a complete, verified terminal
+    # snapshot.  This prevents stale or partial connector output from being
+    # misreported as a real design defect; structural conversion findings above
+    # remain available to explain why the page was rejected.
+    if _derived_checks_ready(snapshot, require_components=require_components):
+        findings.extend(check_expected_components(snapshot, expected_components))
+        findings.extend(check_body_overlaps(snapshot, tolerance=body_tolerance))
+        findings.extend(check_pin_coincidences(snapshot, tolerance=pin_tolerance))
+        findings.extend(check_duplicate_markers(snapshot))
+        findings.extend(check_pin_net_mismatches(snapshot))
+        findings.extend(check_expected_nets(snapshot))
+        findings.extend(check_marker_body_overlaps(snapshot, tolerance=marker_tolerance))
+        if page_is_last is not None:
+            is_last_page = bool(page_is_last)
+        findings.extend(
+            check_page_ink_sparse(
+                snapshot,
+                min_occupancy=min_ink_occupancy,
+                threshold=sparse_threshold,
+                is_last_page=is_last_page,
+                allow_oversize=allow_oversize,
+            )
+            if check_sparse
+            else []
+        )
+        findings.extend(check_ink_bounds(snapshot, tolerance=ink_tolerance, allow_oversize=allow_oversize))
+        findings.extend(check_titleblock_occlusion(snapshot, tolerance=ink_tolerance, allow_oversize=allow_oversize))
     unique: list[Finding] = []
     seen: set[str] = set()
     for finding in findings:
@@ -1075,14 +1996,28 @@ __all__ = [
     "LAYOUT_INK_OUT_OF_BAND",
     "LAYOUT_TITLEBLOCK_OCCLUDE",
     "LAYOUT_NET_MISSING",
+    "LAYOUT_COMPONENT_MISSING",
+    "LAYOUT_MARKER_ON_BODY",
+    "LAYOUT_PAGE_INK_SPARSE",
     "LAYOUT_READ_UNVERIFIED",
     "LAYOUT_SNAPSHOT_INVALID",
+    "LAYOUT_REVIEW_REQUIRED",
+    "MARKER_ON_BODY",
+    "PAGE_INK_SPARSE",
+    "REVIEW_REQUIRED",
     "check_snapshot_readback",
     "check_body_overlaps",
     "check_pin_coincidences",
     "check_duplicate_markers",
     "check_pin_net_mismatches",
     "check_expected_nets",
+    "check_expected_components",
+    "check_marker_body_overlaps",
+    "check_marker_on_body",
+    "check_marker_body_overlap",
+    "page_ink_metrics",
+    "check_page_ink_sparse",
+    "check_page_sparse",
     "check_ink_bounds",
     "check_titleblock_occlusion",
     "audit_layout_snapshot",

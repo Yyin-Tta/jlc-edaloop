@@ -1,0 +1,8 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 7 blocks, status=PASS
+
+- [CRITIC_PULL_RESISTORS@buttons_boot_reset] BOOT0 网络标注'默认高,按下接地进下载模式',这是 ESP32 IO0 的逻辑。STM32F103 的 BOOT0 应默认拉低(正常从 Flash 启动),按键拉高才进入串口/系统 bootloader。按当前描述,设备上电即进 bootloader,固件无法正常运行 | 建议: BOOT0 改为默认下拉(10k 下拉到 GND),按键经限流电阻拉高到 3V3;RESET 按键逻辑(NRST 低有效+10k 上拉+100nF)可保留
+- [CRITIC_INTERFACE_PROTECTION@usb_c_conn] USB-C 为外部热插拔接口,USB_DP/USB_DM 及 VBUS(+5V)无任何 ESD/TVS 保护,CH340N 与 buck 直接暴露 | 建议: 在 VBUS 加 TVS(如 PESD5V0),DP/DM 加 USB 专用 ESD 阵列(如 USBLC6-2SC6),靠近连接器放置
+- [CRITIC_INTERFACE_PROTECTION@rs485_sp3485] RS-485 A/B 为外接端子长线接口,无 ESD/浪涌保护器件,SP3485 总线侧直接暴露于端子 | 建议: A/B 线靠近端子处加 RS-485 专用 TVS(如 SM712 或 PESD3V3L5UY),必要时加共模电感/PTC 限流
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

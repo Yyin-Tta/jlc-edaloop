@@ -1,0 +1,47 @@
+
+== req-01-esp32s3-mini-2layer.md ==
+  [ir] 4/5
+  HIT  buttons-boot-reset
+  MISS ldo-ams1117-3v3
+  HIT  mcu-esp32s3-wroom1-min
+  HIT  usb-c-power-entry
+  HIT  usb-serial-ch340n
+  top8=['mcu-esp32s3-wroom1-min', 'usb-serial-ch340n', 'usb-c-16p', 'usb-c-power-entry', 'up-esp32_autodownload', 'buttons-boot-reset', 'usb-serial-ch340k', 'up-sy8089_buck_3v3']
+
+== req-10-esp32s3-industrial-4layer.md ==
+  [ir] 3/5
+  MISS dc-terminal-5v-input
+  MISS ldo-ams1117-3v3
+  HIT  mcu-esp32s3-wroom1-min
+  HIT  rs485-max485
+  HIT  usb-serial-ch340n
+  top8=['mcu-esp32s3-wroom1-min', 'usb-serial-ch340n', 'rs485-max485', 'usb-c-16p', 'usb-c-power-entry', 'up-usbc_dual_orientation_data', 'usb-serial-ch340k', 'up-esp32_autodownload']
+
+== req-03-power-board.md ==
+  [ir] 4/5
+  HIT  boost-mt3608
+  HIT  charger-tp4056
+  HIT  dc-terminal-wide-input
+  HIT  ldo-ams1117-3v3
+  MISS led-indicator
+  top8=['boost-mt3608', 'charger-tp4056', 'low-battery-alarm-tl431', 'ldo-ams1117-3v3', 'usb-c-16p', 'usb-c-power-entry', 'battery-18650-holder', 'dc-terminal-wide-input']
+
+== req-04-interface-board.md ==
+  [ir] 5/5
+  HIT  driver-uln2003
+  HIT  isolated-dc-b0505s
+  HIT  isolator-pc817
+  HIT  ldo-ams1117-3v3
+  HIT  rs485-max485
+  top8=['rs485-max485', 'isolator-pc817', 'header-1x4', 'driver-uln2003', 'up-opto_acc_ign_detect', 'isolated-dc-b0505s', 'up-sy8089_buck_3v3', 'ldo-ams1117-3v3']
+
+== req-12-hybrid-dual-mcu-gateway.md ==
+  [ir] 4/5
+  HIT  eeprom-24c02
+  MISS ldo-ams1117-3v3
+  HIT  mcu-esp32s3-wroom1-min
+  HIT  mcu-stm32f103c8-min
+  HIT  usb-serial-ch340n
+  top8=['mcu-stm32f103c8-min', 'mcu-esp32s3-wroom1-min', 'usb-serial-ch340n', 'usb-c-16p', 'eeprom-24c02', 'up-esp32s3_pico_native_usb', 'usb-c-power-entry', 'up-esp32_autodownload']
+
+recall@8 = 20/25 = 80%  (Go >= 80%)

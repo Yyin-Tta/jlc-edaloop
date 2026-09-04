@@ -1,0 +1,10 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 36 blocks, status=PASS
+
+- [CRITIC_PULL_RESISTORS@r_rst] r_rst 将 NRST 通过 10k 下拉到 GND。STM32 的 NRST 为低电平有效复位，需要上拉到 3V3(块描述也写明 "NRST(100nF+10k 复位)"应上拉)；当前下拉会让 MCU 持续处于复位状态无法启动。 | 建议: 将 r_rst 改为 NRST 上拉到 3V3(10k)，c_rst(100nF 接 NRST-GND)保留作复位滤波。
+- [CRITIC_POWER_INTEGRITY@uln_do] ULN2003 输入(1-4 脚)直接接 MCU 的 DOx_OUT(参考 GND 的 3V3 域)，但其 GND(8 脚)绑定到 GND_ISO、COM(9 脚)接 5V_ISO。GND 与 GND_ISO 之间由 B0505S 完全隔离，两侧无共参考，输入电平和续流回路参考均不确定；且这使 ULN 跨接隔离带，破坏 DI 侧辛苦建立的隔离(uncovered 中已自述"非完全隔离")。 | 建议: 若 DO 需隔离：在 MCU 与 ULN 之间增加光耦(每路一片 PC81
+- [CRITIC_INTERFACE_PROTECTION@j_di1/j_di2/j_di3/j_di4] DI 输入为外部螺钉端子长线信号，直接经 r_di* 限流进入 PC817，无任何 TVS/ESD 或 RC 滤波，浪涌/误接高压(如 24V 误接)会损坏光耦 LED 与限流电阻。 | 建议: 每路 DI 输入对 GND_ISO 加 TVS(或 5.1V 稳压管)，并考虑并联 RC 滤波抗扰；PC817 LED 反向并联保护二极管。
+- [CRITIC_INTERFACE_PROTECTION@j_24v] 24V_IN 外部电源端子无 TVS/防反接/保险丝等任何输入防护；且当前网表中 24V_IN 未被任何块使用(ULN COM 用的是 5V_ISO)，疑似悬空或设计未闭环。 | 建议: 24V 输入加 TVS + 反接保护二极管/理想二极管 + PPTC；若 24V 是 DO 负载电源，应将其接到 ULN 的 COM(9 脚)而非 5V_ISO，否则感性负载续流回路不成立。
+- [CRITIC_DECOUPLING@iso5v] B0505S 块描述明确要求输出侧(5V_ISO/GND_ISO)加 LC 滤波降纹波，且输入侧要求 TVS，但 plan 中仅有输入去耦电容(c_b0505_in1/2)，输出侧无任何滤波/去耦电容，隔离侧 5V_ISO 供电给 4 路 ULN 输出与 PC817，纹波与负载瞬态无缓冲。 | 建议: 在 5V_ISO 对 GND_ISO 增加 10µF + 100nF 去耦(必要时按 desc 加 LC 滤波)，输入侧按描述补 TVS。
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

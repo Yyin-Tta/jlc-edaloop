@@ -1,0 +1,15 @@
+Traceback (most recent call last):
+  File "D:\gyt-pro\jlc-edaloop\runs\trial-freeze.py", line 43, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\runs\trial-freeze.py", line 36, in main
+    _ir, result = stage_run(body, source=name, max_rounds=1)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\runs\..\src\edaloop\generate\pipeline.py", line 142, in stage_run
+    result = controller.run()
+             ^^^^^^^^^^^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\runs\..\src\edaloop\loop\controller.py", line 449, in run
+    _check()
+  File "D:\gyt-pro\jlc-edaloop\runs\..\src\edaloop\generate\adapter.py", line 125, in check_version
+    raise AdapterError(
+edaloop.generate.adapter.AdapterError: easyeda-agent 版本 1.2.8 与钉死版本 1.1.1 不一致(ADR-0002)

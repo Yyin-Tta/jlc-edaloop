@@ -1,0 +1,11 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 20 blocks, status=PASS
+
+- [CRITIC_PULL_RESISTORS@i2c_iso] I2C 隔离块主侧(A 侧,I2C_SCL_A/I2C_SDA_A)依赖"宿主总线提供上拉",但本设计中 A 侧只接 STM32 的 PB6/PB7,STM32 内部上拉通常不可靠(且未声明启用),主侧总线无任何上拉电阻,总线无法工作。 | 建议: 在 I2C_SCL_A/I2C_SDA_A 上增加主侧上拉电阻(如 4.7k 至 3V3),或明确说明由 MCU 内部上拉承担并在固件中启用。
+- [CRITIC_INTERFACE_PROTECTION@rs485_xcvr] 块描述声明总线侧 A/B 需加 TVS 保护,且 RS-485 为长线外部接口,但整个 plan 中没有任何 TVS/ESD 器件落在 RS485_A/RS485_B 网络上(uncovered 也确认 TVS 缺失),浪涌/静电防护实际未实现。 | 建议: 补充 RS-485 专用 TVS(如 SM712 或低电容 TVS 对管)到 A/B 对 GND,端子入口处就近放置;若目录暂缺,需在交接清单中显式标注为必须补齐项。
+- [CRITIC_INTERFACE_PROTECTION@usb_c_pwr] USB-C 入口块描述要求 VBUS 经 TVS/ESD 保护后进电源树,但 plan 中未落任何 TVS 器件,VBUS/5V_RAW 仅靠 PPTC 过流保护,缺少瞬态过压/ESD 防护。 | 建议: 在 5V_RAW 入口(PPTC 之后或之前按惯例)增加 VBUS TVS(如 5V 轨 TVS 二极管);目录暂缺时在 uncovered 中标注为必补器件而非可选。
+- [CRITIC_PULL_RESISTORS@rs485_xcvr] DE/RE 复用脚绑定到网络 RS485_DE,但 MCU 引脚绑定表中没有任何引脚连接 RS485_DE(uncovered 亦确认),收发器方向控制悬空,RS-485 无法收发。 | 建议: 为 RS485_DE 分配一个 MCU 空闲 GPIO 并加入 pins_binding;或改用硬件自收发( TX 边沿控制 DE)电路并在块参数中写明方案。
+- [CRITIC_PULL_RESISTORS@btn_boot_rst] BOOT 按键块描述"IO0/BOOT0 默认高,按下接地进下载模式",但 plan 中 r_boot0(10k)把 BOOT0 拉到地,BOOT0 实际常态为低,按键行为与描述矛盾(该描述更像 ESP32 IO0 习惯,不适用于 STM32 BOOT0 下拉正常运行的接法)。 | 建议: 明确 BOOT0 常态下拉(正常运行)、按键把 BOOT0 接 3V3 进 bootloader;修改按键块的连接方式与描述,避免生产/调试误判。
+- [CRITIC_THERMAL@ldo_3v3] AMS1117 在 5V→3.3V 下承载全板 3V3 负载(MCU+RS485+6 只 LED+隔离与插槽外设),thermal 建议已算出 Tj≈136°C(裕量为负),说明架构级散热不可行,不是简单加铺铜能解决的设计缺陷。 | 建议: 架构上改用 BUCK 降压(如小型同步降压)产生 3V3,或将大电流外设移出 LDO 轨,保证 LDO 负载电流在 SOT-223 自然散热可行范围内(建议 <300~400mA)。
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

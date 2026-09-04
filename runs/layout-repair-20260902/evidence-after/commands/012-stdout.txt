@@ -1,0 +1,97 @@
+{
+  "id": "req_192246",
+  "type": "response",
+  "version": "v1",
+  "createdAt": "2026-09-02T12:42:12.9096943Z",
+  "ok": true,
+  "result": {
+    "count": 6,
+    "scope": "activePage",
+    "texts": [
+      {
+        "bold": null,
+        "color": "#5A5A5A",
+        "content": "Battery input: VBAT and G\nND from cell connector",
+        "fontName": null,
+        "fontSize": 10,
+        "italic": null,
+        "primitiveId": "5567858114f3717f",
+        "rotation": 0,
+        "x": 50,
+        "y": 654.5
+      },
+      {
+        "bold": null,
+        "color": "#5A5A5A",
+        "content": "Li-ion protection: DW01A + FS8205A\nOvercharge, overdischarge and overcurrent cutoff",
+        "fontName": null,
+        "fontSize": 10,
+        "italic": null,
+        "primitiveId": "6eebf99e50f227ba",
+        "rotation": 0,
+        "x": 245,
+        "y": 409.5
+      },
+      {
+        "bold": null,
+        "color": "#5A5A5A",
+        "content": "Protected output: VBAT and\n switched P_NEG",
+        "fontName": null,
+        "fontSize": 10,
+        "italic": null,
+        "primitiveId": "84e3826ef3b983b3",
+        "rotation": 0,
+        "x": 640,
+        "y": 654.5000000000001
+      },
+      {
+        "bold": null,
+        "color": "#AA00AA",
+        "content": "protected-output",
+        "fontName": null,
+        "fontSize": 22,
+        "italic": null,
+        "primitiveId": "27790cf3926782de",
+        "rotation": 0,
+        "x": 629.4999999999999,
+        "y": 767.5000000000001
+      },
+      {
+        "bold": null,
+        "color": "#AA00AA",
+        "content": "battery-input",
+        "fontName": null,
+        "fontSize": 22,
+        "italic": null,
+        "primitiveId": "31d7c1039e759a80",
+        "rotation": 0,
+        "x": 37.5,
+        "y": 767.5
+      },
+      {
+        "bold": null,
+        "color": "#AA00AA",
+        "content": "liion-protection-core",
+        "fontName": null,
+        "fontSize": 22,
+        "italic": null,
+        "primitiveId": "f2b9620726f14bbf",
+        "rotation": 0,
+        "x": 234.5,
+        "y": 767.5
+      }
+    ]
+  },
+  "context": {
+    "projectUuid": "7c0361b40cbf4b60b68383bcfa69f362",
+    "projectName": "edaloop",
+    "documentUuid": "5da5dd85446fec65",
+    "documentType": "schematic",
+    "tabId": "5da5dd85446fec65@7c0361b40cbf4b60b68383bcfa69f362"
+  },
+  "seq": 9300,
+  "seqAbandoned": 1,
+  "abandonedIds": [
+    "req_181114"
+  ]
+}

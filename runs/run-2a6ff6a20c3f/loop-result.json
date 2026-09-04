@@ -1,0 +1,50 @@
+{
+ "status": "PASS",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "f919f82801fe",
+   "gate_verdict": "pass",
+   "findings": [
+    "code='UNDECLARED_RAIL' where=Where(ref='', net='5V', pin='', xy='') evidence='网 5V 呈轨特征(家族 5|main≈5.0V)但 DesignIR 未声明该轨;planner 应在 IR 电源段显式声明,或把该网改绑到既有轨家族' severity='warn' suggested_fix_class='REPLAN' weak=True",
+    "code='UNDECLARED_RAIL' where=Where(ref='', net='IGN_12V', pin='', xy='') evidence='网 IGN_12V 呈轨特征(家族 12|main≈12.0V)但 DesignIR 未声明该轨;planner 应在 IR 电源段显式声明,或把该网改绑到既有轨家族' severity='warn' suggested_fix_class='REPLAN' weak=True",
+    "code='UNDECLARED_RAIL' where=Where(ref='', net='24V_IN', pin='', xy='') evidence='网 24V_IN 呈轨特征(家族 24|main≈24.0V)但 DesignIR 未声明该轨;planner 应在 IR 电源段显式声明,或把该网改绑到既有轨家族' severity='warn' suggested_fix_class='REPLAN' weak=True",
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:1 个块缺 v_supply 区间或单边(ldo_u2)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/1(覆盖率 0%),缺 i_typ:mcu_u1' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='8MHz 晶振及其 22pF 负载电容:目录无晶振通道(22pF 亦不在电容标准值表),PD0/PD1 悬空,MCU 可用内部 RC 但精度受限' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='SWD 调试 4-pin 排针:目录无排针/连接器块' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='现场侧端子位数不足:目录仅 2P 端子,DI×4/DO×4 需更多位,当前用 2P×4 覆盖,DI2/DI4 与 DI1/DI3 共端子组' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='Q1(24V 干接点/有源)与 Q2(DO 负载类型)未决,限流电阻 2.2k 与 ULN2003 能力按 10mA/继电器线圈假设' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True"
+   ],
+   "feedback": "",
+   "halted": ""
+  }
+ ],
+ "delivery": {
+  "svg": "D:\\gyt-pro\\jlc-edaloop\\runs\\run-2a6ff6a20c3f\\delivery-P1.svg",
+  "svg_pages": [
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-2a6ff6a20c3f\\delivery-P1.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-2a6ff6a20c3f\\delivery-P10.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-2a6ff6a20c3f\\delivery-P11.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-2a6ff6a20c3f\\delivery-P12.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-2a6ff6a20c3f\\delivery-P13.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-2a6ff6a20c3f\\delivery-P2.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-2a6ff6a20c3f\\delivery-P3.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-2a6ff6a20c3f\\delivery-P4.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-2a6ff6a20c3f\\delivery-P5.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-2a6ff6a20c3f\\delivery-P6.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-2a6ff6a20c3f\\delivery-P7.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-2a6ff6a20c3f\\delivery-P8.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-2a6ff6a20c3f\\delivery-P9.svg"
+  ],
+  "netlist": "runs\\run-2a6ff6a20c3f\\delivery.net.json",
+  "netlist_sha256_16": "614f09ec8ff009c9",
+  "bom": "runs\\run-2a6ff6a20c3f\\delivery.bom.json",
+  "bom_total": 4.8387,
+  "swap": "runs\\run-2a6ff6a20c3f\\delivery.swap.txt",
+  "sizing": "runs\\run-2a6ff6a20c3f\\delivery.sizing.txt",
+  "sizing_count": 15,
+  "review": "runs\\run-2a6ff6a20c3f\\delivery.review.txt",
+  "review_findings": 5
+ }
+}

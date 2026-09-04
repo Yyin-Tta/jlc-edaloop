@@ -1,0 +1,12 @@
+﻿uv : warning: `VIRTUAL_ENV=D:\anaconda3` does not match the project environment path `.venv` and will be ignored; use `
+--active` to target the active environment instead
+At line:1 char:415
++ ... _ZONES="1"; uv run edaloop run evals/requirements/req-02-rs485-sensor ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: `VIRTU...ronment instead:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+run c37d8ed23a66: status=HALT
+  round 1: gate=fail blocking=12
+  round 2: gate=fail blocking=23 halted=同错 2 轮:GATE_FAIL,升级人工
+audit -> runs\run-c37d8ed23a66

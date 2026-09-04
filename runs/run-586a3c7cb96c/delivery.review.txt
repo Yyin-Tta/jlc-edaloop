@@ -1,0 +1,9 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 7 blocks, status=PASS
+
+- [CRITIC_POWER_INTEGRITY@ldo1] 3V3 轨单一来源为 boost1 输出(VBAT 升压)。chg1 已引出 VSYS(USB 在线时供电)但未接入任何负载,导致仅插 USB、未装电池或电池保护截止时整个 3V3 系统掉电;VSYS 网悬空浪费了充电路径块的电源切换功能。 | 建议: 将 ldo1 输入改接 VSYS(或经理想二极管与 5V_IN/boost 输出合路),使 USB 供电与电池升压双路有效;同时确认 boost1 输出与 5V_IN 合路处有防倒灌措施。
+- [CRITIC_POWER_INTEGRITY@boost1] EN 脚直接绑定到 VBAT,升压模块永久使能。电池供电设备待机时会持续消耗静态电流(MT3608 静态电流约百微安级),且低压时无截止,电池可能被过放到保护板下限。 | 建议: EN 改由 MCU GPIO 或负载开关控制,或增加按 EN 阈值的欠压锁定;至少在文档中说明待机功耗与过放风险。
+- [CRITIC_PULL_RESISTORS@mcu1] 计划中 I2C 排针(3V3/GND/SDA/SCL/INT)已列入 uncovered,但全程无任何块提供 SDA/SCL 上拉;ESP32-S3 内部上拉仅约 45kΩ,不满足多从机/带 INT 长线的 I2C 时序要求。 | 建议: 原理图阶段补排针时,为 SDA/SCL 增加 4.7k~10kΩ 上拉到 3V3;INT 若为开漏输出也需上拉。
+- [CRITIC_PULL_RESISTORS@alarm_tl431] TL431 分压网络持续挂在 VBAT 上,无使能/开关控制。电池设备长期存放时该分压+TL431 偏置会持续漏电(分压电流通常几十至几百微安),而 chg1 侧的 VBAT_ADC 已带 VBAT_ADC_EN 使能,两者策略不一致。 | 建议: 给 TL431 告警电路增加高侧开关(按需求或 MCU 控制),或明确核算分压漏电流并将阻值取大以满足存放自放电预算。
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

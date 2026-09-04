@@ -1,0 +1,133 @@
+[watchdog 05:20:11] attempt 1 开跑
+{'req': 'req-01-esp32s3-mini-2layer.md', 'status': 'PASS', 'rounds': 1, 'n_rounds': 1}
+{'req': 'req-02-rs485-sensor-hub.md', 'status': 'PASS', 'rounds': 2, 'n_rounds': 2}
+{'req': 'req-03-ir-remote-hub.md', 'status': 'PASS', 'rounds': 1, 'n_rounds': 1}
+{'req': 'req-04-smart-dial-oled.md', 'status': 'PASS', 'rounds': 1, 'n_rounds': 1}
+{'req': 'req-05-battery-ble-telemetry.md', 'status': 'PASS', 'rounds': 1, 'n_rounds': 1}
+{'req': 'req-08-liion-protection-freeform.md', 'status': 'PASS', 'rounds': 2, 'n_rounds': 2}
+{'req': 'req-09-ambiguous-sensor-node.md', 'status': 'HALT', 'rounds': None, 'n_rounds': 2}
+{'req': 'req-11-isolated-dido-module.md', 'status': 'PASS', 'rounds': 1, 'n_rounds': 1}
+{
+ "rows": [
+  {
+   "req": "req-01-esp32s3-mini-2layer.md",
+   "status": "PASS",
+   "rounds": 1,
+   "n_rounds": 1
+  },
+  {
+   "req": "req-02-rs485-sensor-hub.md",
+   "status": "PASS",
+   "rounds": 2,
+   "n_rounds": 2
+  },
+  {
+   "req": "req-03-ir-remote-hub.md",
+   "status": "PASS",
+   "rounds": 1,
+   "n_rounds": 1
+  },
+  {
+   "req": "req-04-smart-dial-oled.md",
+   "status": "PASS",
+   "rounds": 1,
+   "n_rounds": 1
+  },
+  {
+   "req": "req-05-battery-ble-telemetry.md",
+   "status": "PASS",
+   "rounds": 1,
+   "n_rounds": 1
+  },
+  {
+   "req": "req-08-liion-protection-freeform.md",
+   "status": "PASS",
+   "rounds": 2,
+   "n_rounds": 2
+  },
+  {
+   "req": "req-09-ambiguous-sensor-node.md",
+   "status": "HALT",
+   "rounds": null,
+   "n_rounds": 2
+  },
+  {
+   "req": "req-11-isolated-dido-module.md",
+   "status": "PASS",
+   "rounds": 1,
+   "n_rounds": 1
+  }
+ ],
+ "pass@3": 0.875,
+ "pass@5": 0.875,
+ "go3": true,
+ "go5": true
+}
+[watchdog 06:38:33] attempt 1 exit=0 进度 7/8
+[watchdog 06:39:03] attempt 2 开跑
+skip(done) req-01-esp32s3-mini-2layer.md: {'req': 'req-01-esp32s3-mini-2layer.md', 'status': 'PASS', 'rounds': 1, 'n_rounds': 1}
+skip(done) req-02-rs485-sensor-hub.md: {'req': 'req-02-rs485-sensor-hub.md', 'status': 'PASS', 'rounds': 2, 'n_rounds': 2}
+skip(done) req-03-ir-remote-hub.md: {'req': 'req-03-ir-remote-hub.md', 'status': 'PASS', 'rounds': 1, 'n_rounds': 1}
+skip(done) req-04-smart-dial-oled.md: {'req': 'req-04-smart-dial-oled.md', 'status': 'PASS', 'rounds': 1, 'n_rounds': 1}
+skip(done) req-05-battery-ble-telemetry.md: {'req': 'req-05-battery-ble-telemetry.md', 'status': 'PASS', 'rounds': 1, 'n_rounds': 1}
+skip(done) req-08-liion-protection-freeform.md: {'req': 'req-08-liion-protection-freeform.md', 'status': 'PASS', 'rounds': 2, 'n_rounds': 2}
+{'req': 'req-09-ambiguous-sensor-node.md', 'status': 'PASS', 'rounds': 3, 'n_rounds': 3}
+skip(done) req-11-isolated-dido-module.md: {'req': 'req-11-isolated-dido-module.md', 'status': 'PASS', 'rounds': 1, 'n_rounds': 1}
+{
+ "rows": [
+  {
+   "req": "req-01-esp32s3-mini-2layer.md",
+   "status": "PASS",
+   "rounds": 1,
+   "n_rounds": 1
+  },
+  {
+   "req": "req-02-rs485-sensor-hub.md",
+   "status": "PASS",
+   "rounds": 2,
+   "n_rounds": 2
+  },
+  {
+   "req": "req-03-ir-remote-hub.md",
+   "status": "PASS",
+   "rounds": 1,
+   "n_rounds": 1
+  },
+  {
+   "req": "req-04-smart-dial-oled.md",
+   "status": "PASS",
+   "rounds": 1,
+   "n_rounds": 1
+  },
+  {
+   "req": "req-05-battery-ble-telemetry.md",
+   "status": "PASS",
+   "rounds": 1,
+   "n_rounds": 1
+  },
+  {
+   "req": "req-08-liion-protection-freeform.md",
+   "status": "PASS",
+   "rounds": 2,
+   "n_rounds": 2
+  },
+  {
+   "req": "req-09-ambiguous-sensor-node.md",
+   "status": "PASS",
+   "rounds": 3,
+   "n_rounds": 3
+  },
+  {
+   "req": "req-11-isolated-dido-module.md",
+   "status": "PASS",
+   "rounds": 1,
+   "n_rounds": 1
+  }
+ ],
+ "pass@3": 1.0,
+ "pass@5": 1.0,
+ "go3": true,
+ "go5": true
+}
+[watchdog 06:59:06] attempt 2 exit=0 进度 8/8
+[watchdog] 全部 PASS,收工

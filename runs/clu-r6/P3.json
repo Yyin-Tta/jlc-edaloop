@@ -1,0 +1,153 @@
+{
+  "clusters": [
+    {
+      "designator": "CONNSWD1",
+      "primitiveId": "554de0d2f52b6170",
+      "body": {
+        "minX": 214.5,
+        "minY": 229.5,
+        "maxX": 235.5,
+        "maxY": 280.5
+      },
+      "box": {
+        "minX": 31.5,
+        "minY": 229.5,
+        "maxX": 235.5,
+        "maxY": 280.5
+      },
+      "markers": 4,
+      "wires": 0,
+      "members": [
+        "part     CONNSWD1 x=[214,236] y=[230,280]",
+        "netport  3V3      x=[118,176] y=[264,276]",
+        "netport  SWDIO    x=[72,140] y=[254,266]",
+        "netport  SWCLK    x=[32,100] y=[244,256]",
+        "netport  GND      x=[118,176] y=[234,246]"
+      ]
+    },
+    {
+      "designator": "MCUU2",
+      "primitiveId": "f36750b94124b836",
+      "body": {
+        "minX": 359.5,
+        "minY": 509.5,
+        "maxX": 510.5,
+        "maxY": 760.5
+      },
+      "box": {
+        "minX": 116.5,
+        "minY": 477.5,
+        "maxX": 671.5,
+        "maxY": 762
+      },
+      "markers": 25,
+      "wires": 0,
+      "members": [
+        "part     MCUU2    x=[360,510] y=[510,760]",
+        "netport  NRST     x=[258,320] y=[684,696]",
+        "netflag  GND      x=[250,288] y=[670,692]",
+        "netflag  3V3      x=[320,348] y=[664,682]",
+        "netport  STEP1_IN_A x=[216,316] y=[654,666]",
+        "netport  STEP1_IN_B x=[182,280] y=[644,656]",
+        "netport  STEP1_IN_C x=[116,216] y=[634,646]",
+        "netport  STEP1_IN_D x=[222,320] y=[624,636]",
+        "netport  STEP2_IN_A x=[186,286] y=[614,626]",
+        "netport  STEP2_IN_B x=[116,216] y=[604,616]",
+        "netport  STEP2_IN_C x=[222,320] y=[594,606]",
+        "netport  STEP2_IN_D x=[186,286] y=[584,596]",
+        "netport  LED_EN   x=[166,240] y=[574,586]",
+        "netflag  GND      x=[310,348] y=[520,542]",
+        "netflag  3V3      x=[341,359] y=[478,496]",
+        "netport  UART1_TX x=[550,636] y=[564,576]",
+        "netport  UART1_RX x=[584,672] y=[574,586]",
+        "netport  SWDIO    x=[550,618] y=[604,616]",
+        "netflag  GND      x=[582,620] y=[610,632]",
+        "netflag  3V3      x=[522,550] y=[624,642]",
+        "netport  SWCLK    x=[554,624] y=[634,646]",
+        "netport  BOOT0    x=[550,618] y=[704,716]",
+        "netflag  GND      x=[522,560] y=[730,752]",
+        "netflag  3V3      x=[362,390] y=[744,762]",
+        "netport  LED_FAULT x=[390,482] y=[564,576]",
+        "netflag  3V3      x=[532,560] y=[744,762]"
+      ]
+    },
+    {
+      "designator": "CNRST1",
+      "primitiveId": "22cc43f87a903e3e",
+      "body": {
+        "minX": 539.5,
+        "minY": 261.5,
+        "maxX": 560.5,
+        "maxY": 278.5
+      },
+      "box": {
+        "minX": 437.5,
+        "minY": 261.5,
+        "maxX": 656.5,
+        "maxY": 278.5
+      },
+      "markers": 2,
+      "wires": 0,
+      "members": [
+        "part     CNRST1   x=[540,560] y=[262,278]",
+        "netport  NRST     x=[438,500] y=[264,276]",
+        "netport  GND      x=[600,656] y=[264,276]"
+      ]
+    },
+    {
+      "designator": "CVDD4",
+      "primitiveId": "16512094040850ba",
+      "body": {
+        "minX": 949.5,
+        "minY": 261.5,
+        "maxX": 970.5,
+        "maxY": 278.5
+      },
+      "box": {
+        "minX": 853.5,
+        "minY": 261.5,
+        "maxX": 1066.5,
+        "maxY": 278.5
+      },
+      "markers": 2,
+      "wires": 0,
+      "members": [
+        "part     CVDD4    x=[950,970] y=[262,278]",
+        "netport  3V3      x=[854,910] y=[264,276]",
+        "netport  GND      x=[1010,1066] y=[264,276]"
+      ]
+    },
+    {
+      "designator": "CONNSTEP2",
+      "primitiveId": "39ea8baddab23f5e",
+      "body": {
+        "minX": 1079.5,
+        "minY": 744.5,
+        "maxX": 1100.5,
+        "maxY": 795.5
+      },
+      "box": {
+        "minX": 874.5,
+        "minY": 744.5,
+        "maxX": 1100.5,
+        "maxY": 795.5
+      },
+      "markers": 4,
+      "wires": 0,
+      "members": [
+        "part     CONNSTEP2 x=[1080,1100] y=[744,796]",
+        "netport  STEP2_A  x=[960,1040] y=[780,790]",
+        "netport  STEP2_B  x=[924,1006] y=[770,780]",
+        "netport  STEP2_C  x=[874,956] y=[760,770]",
+        "netport  STEP2_D  x=[960,1040] y=[750,760]"
+      ]
+    }
+  ],
+  "findings": null,
+  "sheetUsable": {
+    "minX": 12,
+    "minY": 12,
+    "maxX": 1158,
+    "maxY": 813
+  }
+}

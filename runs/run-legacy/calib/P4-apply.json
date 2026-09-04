@@ -1,0 +1,99 @@
+{
+  "ok": "applied",
+  "blockId": "block.tactile_boot_reset",
+  "blockState": "ready",
+  "instance": "SW1",
+  "origin": {
+    "requestedX": 150,
+    "requestedY": 600,
+    "x": 150,
+    "y": 600,
+    "relocated": false
+  },
+  "placed": [
+    {
+      "role": "SW_BOOT",
+      "part": "sw.tact_smd",
+      "designator": "SW1",
+      "primitiveId": "7ec622df0501f85f",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "cff07d923b95482c818b184e98b80db7",
+      "lcsc": "C720477",
+      "x": 150,
+      "y": 600,
+      "layout": "anchor"
+    },
+    {
+      "role": "SW_RST",
+      "part": "sw.tact_smd",
+      "designator": "SW2",
+      "primitiveId": "a48056fc7f4f12d5",
+      "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+      "deviceUuid": "cff07d923b95482c818b184e98b80db7",
+      "lcsc": "C720477",
+      "x": 420,
+      "y": 605,
+      "rotation": 270,
+      "layout": "pair"
+    }
+  ],
+  "nets": [
+    {
+      "net": "BOOT0",
+      "kind": "netport",
+      "port": "IO0",
+      "bound": true,
+      "members": [
+        "SW1:1"
+      ],
+      "roles": [
+        "SW_BOOT.1"
+      ]
+    },
+    {
+      "net": "GND",
+      "kind": "gnd",
+      "port": "GND",
+      "bound": true,
+      "members": [
+        "SW1:2"
+      ],
+      "roles": [
+        "SW_BOOT.2"
+      ]
+    },
+    {
+      "net": "NRST",
+      "kind": "netport",
+      "port": "EN",
+      "bound": true,
+      "members": [
+        "SW2:1"
+      ],
+      "roles": [
+        "SW_RST.1"
+      ]
+    },
+    {
+      "net": "GND",
+      "kind": "gnd",
+      "port": "GND",
+      "bound": true,
+      "members": [
+        "SW2:2"
+      ],
+      "roles": [
+        "SW_RST.2"
+      ]
+    }
+  ],
+  "unconsumedConstraints": [
+    "pcb_layout",
+    "placement",
+    "silk"
+  ],
+  "note": "block-apply v1 executes parts/internal_nets/ports only; the listed constraint maps were NOT applied",
+  "groupId": "g1",
+  "groupName": "tactile_boot_reset(SW1)",
+  "reconciled": true
+}

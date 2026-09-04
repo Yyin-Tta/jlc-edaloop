@@ -1,0 +1,64 @@
+{'req': 'req-01-esp32s3-mini-2layer.md', 'status': 'PASS', 'rounds': 1, 'n_rounds': 1}
+{'req': 'req-02-rs485-sensor-hub.md', 'status': 'PASS', 'rounds': 1, 'n_rounds': 1}
+{'req': 'req-03-ir-remote-hub.md', 'status': 'PASS', 'rounds': 1, 'n_rounds': 1}
+{'req': 'req-04-smart-dial-oled.md', 'status': 'PASS', 'rounds': 1, 'n_rounds': 1}
+{'req': 'req-05-battery-ble-telemetry.md', 'status': 'PASS', 'rounds': 1, 'n_rounds': 1}
+{'req': 'req-08-liion-protection-freeform.md', 'status': 'HALT', 'rounds': None, 'n_rounds': 2}
+{'req': 'req-09-ambiguous-sensor-node.md', 'status': 'PASS', 'rounds': 2, 'n_rounds': 2}
+{'req': 'req-11-isolated-dido-module.md', 'status': 'ERROR:PlanError', 'rounds': None, 'n_rounds': 0}
+{
+ "rows": [
+  {
+   "req": "req-01-esp32s3-mini-2layer.md",
+   "status": "PASS",
+   "rounds": 1,
+   "n_rounds": 1
+  },
+  {
+   "req": "req-02-rs485-sensor-hub.md",
+   "status": "PASS",
+   "rounds": 1,
+   "n_rounds": 1
+  },
+  {
+   "req": "req-03-ir-remote-hub.md",
+   "status": "PASS",
+   "rounds": 1,
+   "n_rounds": 1
+  },
+  {
+   "req": "req-04-smart-dial-oled.md",
+   "status": "PASS",
+   "rounds": 1,
+   "n_rounds": 1
+  },
+  {
+   "req": "req-05-battery-ble-telemetry.md",
+   "status": "PASS",
+   "rounds": 1,
+   "n_rounds": 1
+  },
+  {
+   "req": "req-08-liion-protection-freeform.md",
+   "status": "HALT",
+   "rounds": null,
+   "n_rounds": 2
+  },
+  {
+   "req": "req-09-ambiguous-sensor-node.md",
+   "status": "PASS",
+   "rounds": 2,
+   "n_rounds": 2
+  },
+  {
+   "req": "req-11-isolated-dido-module.md",
+   "status": "ERROR:PlanError",
+   "rounds": null,
+   "n_rounds": 0
+  }
+ ],
+ "pass@3": 0.75,
+ "pass@5": 0.75,
+ "go3": true,
+ "go5": false
+}

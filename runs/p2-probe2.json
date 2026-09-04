@@ -1,0 +1,19 @@
+{
+  "id": "req_588397",
+  "type": "response",
+  "version": "v1",
+  "createdAt": "2026-08-25T13:17:41.8605522Z",
+  "ok": true,
+  "result": {
+    "value": "{\"rect\":[\"getState_PrimitiveType\",\"getState_PrimitiveId\",\"getState_TopLeftX\",\"getState_TopLeftY\",\"getState_Width\",\"getState_Height\",\"getState_CornerRadius\",\"getState_Rotation\",\"getState_Color\",\"getState_FillColor\",\"getState_LineWidth\",\"getState_LineType\",\"getState_FillStyle\"],\"text\":[\"getState_PrimitiveType\",\"getState_PrimitiveId\",\"getState_X\",\"getState_Y\",\"getState_Content\",\"getState_Rotation\",\"getState_TextColor\",\"getState_FontName\",\"getState_FontSize\",\"getState_Bold\",\"getState_Italic\",\"getState_UnderLine\",\"getState_AlignMode\"]}"
+  },
+  "context": {
+    "projectUuid": "7c0361b40cbf4b60b68383bcfa69f362",
+    "projectName": "edaloop",
+    "documentUuid": "b44a9c749a2fc16c",
+    "documentType": "schematic",
+    "tabId": "b44a9c749a2fc16c@7c0361b40cbf4b60b68383bcfa69f362"
+  },
+  "seq": 30719,
+  "seqAbandoned": 0
+}

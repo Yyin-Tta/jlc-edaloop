@@ -1,0 +1,137 @@
+{
+  "ok": false,
+  "verdict": "fail",
+  "stages": [
+    {
+      "name": "layout-lint",
+      "status": "pass",
+      "errors": 0,
+      "warnings": 0,
+      "summary": "0 overlap, 0 pin-coincidence, 0 tight, 0 off-grid, 0 out-of-sheet, 0 no-bbox, 0 unchecked-pin, 0 unproven-pin, 0 invalid-geometry (zone-check=not-configured sheet-check=checked)",
+      "detail": {
+        "schemaVersion": 2,
+        "ok": true,
+        "strict": true,
+        "minGap": 2.54,
+        "componentCount": 0,
+        "withBBox": 0,
+        "skippedNonParts": 1,
+        "overlaps": null,
+        "tightSpacing": null,
+        "pinCoincidences": null,
+        "measurementUnit": "mm",
+        "coordinateUnit": "0.01inch",
+        "anchorGridRaw": 5,
+        "anchorGridUnit": "0.01inch",
+        "zoneCheckStatus": "not-configured",
+        "sheetCheckStatus": "checked",
+        "pinEps": 0,
+        "summary": "strict=true: 0 components (0 with bbox): 0 overlap, 0 tight (\u003c2.54mm), 0 pin-coincidence, 0 off-grid, 0 out-of-sheet, 0 unchecked-bbox, 0 unchecked-pins, 0 unproven-pins, 0 invalid-geometry; zoneCheck=not-configured sheetCheck=checked"
+      }
+    },
+    {
+      "name": "clusters",
+      "status": "pass",
+      "errors": 0,
+      "warnings": 0,
+      "summary": "0 个虚拟组:0 重叠 / 0 出图纸 / 0 过近",
+      "detail": {
+        "clusters": [],
+        "findings": null,
+        "sheetUsable": {
+          "minX": 12,
+          "minY": 12,
+          "maxX": 1158,
+          "maxY": 813
+        }
+      }
+    },
+    {
+      "name": "check",
+      "status": "fail",
+      "errors": 0,
+      "warnings": 1,
+      "blockingReasons": [
+        "1 个 warn finding (--strict;info 不阻塞): missing-titleblock×1"
+      ],
+      "summary": "1 finding(s): 0 error/fatal, 1 warn/info",
+      "detail": {
+        "passed": false,
+        "summary": {
+          "floatingPins": 0,
+          "componentsWithFloating": 0,
+          "geomNetMismatches": 0,
+          "netMarkerMismatches": 0,
+          "multiNetWires": 0,
+          "wireCrossings": 0,
+          "wireOverPins": 0,
+          "zeroLengthWires": 0,
+          "danglingWires": 0,
+          "duplicateNetMarkers": 0,
+          "titleblockOverlaps": 0,
+          "markerOverlaps": 0,
+          "missingPartitions": 1,
+          "noteOutsideZones": 0,
+          "redundantNetMarkers": 0,
+          "foldedNetLabels": 0,
+          "reversedNetFlags": 0,
+          "polarityConventionOutliers": 0,
+          "total": 1
+        },
+        "findings": [
+          {
+            "type": "missing-titleblock",
+            "level": "warn",
+            "count": 3,
+            "message": "图签未填:Name(图纸标题)、Drawed(设计者)、Description(图纸说明) — 交付图必须能认领(`sch titleblock --data '{\"Name\":\"…\",\"Drawed\":\"…\"}'`)"
+          }
+        ]
+      }
+    },
+    {
+      "name": "bridge-check",
+      "status": "pass",
+      "errors": 0,
+      "warnings": 0,
+      "summary": "0 bridge(short), 0 orphan-stub, 0 orphan-flag, 0 orphan-tree (0 wire tree(s))",
+      "detail": {
+        "passed": true,
+        "summary": {
+          "trees": 0,
+          "bridges": 0,
+          "orphans": 0,
+          "orphanFlags": 0,
+          "orphanTrees": 0,
+          "wireTreesTotal": 0
+        },
+        "trees": []
+      }
+    },
+    {
+      "name": "drc",
+      "status": "pass",
+      "errors": 0,
+      "warnings": 0,
+      "summary": "0 fatal, 0 error, 0 warn, 0 info (total 0)",
+      "detail": {
+        "passed": true,
+        "fatal": 0,
+        "summary": {
+          "fatal": 0,
+          "error": 0,
+          "warn": 0,
+          "info": 0,
+          "unknown": 0,
+          "total": 0
+        },
+        "violations": []
+      }
+    }
+  ],
+  "blockers": [
+    "check: 1 个 warn finding (--strict;info 不阻塞): missing-titleblock×1"
+  ],
+  "warnings": [
+    "check: 1 条告警"
+  ]
+}

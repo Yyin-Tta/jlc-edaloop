@@ -1,0 +1,11 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 8 blocks, status=PASS
+
+- [CRITIC_THERMAL@ldo_3v3] AMS1117 从 5V 降到 3.3V,即使中等负载(如 400-500mA)功耗也达 ~0.7-0.9W; sizing_recommendations 给出 Tj≈136°C、裕量 -30°C,即结温已超限,单靠 SOT-223 自然散热无法安全工作 | 建议: 降低 3.3V 负载预期(增加负载电流预算核算),或改用同步 BUCK(如 MP2315/TPS62130 类目录可选降压块),若必须保留 LDO 则强制加大散热铺铜/过孔阵列并明确限流(建议 ≤300mA)
+- [CRITIC_PULL_RESISTORS@oled] OLED 的 SDA/SCL 引脚(3/4)未绑定到 I2C_SDA/I2C_SCL 网络,而 EEPROM 侧已用 I2C_SDA/I2C_SCL 命名;且主控 MCU 的 ports 只暴露了 EN/IO0/UART,未暴露任何 I2C GPIO,整条 I2C 总线实际不存在完整回路,'模块自带上拉' 也因引脚未挂网而无效 | 建议: 在编译/原理图阶段补齐:OLED 引脚 3/4 显式绑定 I2C_SCL/I2C_SDA;为 MCU 增加可绑定的通用 GPIO 口(如 
+- [CRITIC_PULL_RESISTORS@eeprom] I2C 上拉 4.7k×2 因目录无标准电阻块而无法实例化(uncovered 已列);若总线上只剩 OLED 模组自带的上拉,一旦 OLED 改为不留装/换用纯 IC 版本,SDA/SCL 将悬空 | 建议: 在主板上预置 I2C 上拉电阻焊位(4.7k~10k),不依赖 OLED 子模块板载上拉;或在 eeprom/mcu 块内内建可选上拉以通过机械校验
+- [CRITIC_DECOUPLING@touch1] TTP223 电容触摸 IC 供电脚(3V3)未声明任何去耦电容,且其引脚绑定存疑(block_desc 自述 '4=GND? 以 pinout 为准',当前 2=GND、5=3V3 的分配与标准 TTP223 pinout 不符——标准为 1=Q、2=VSS、3=IHH、4=VLHB、5=CS、6=VDD) | 建议: 按 TTP223 规格书更正引脚映射(6=VDD、2=VSS、5=CS),并在 VDD 就近加 100nF 去耦;触摸盘走线远离天线区,避免 ESP32 模
+- [CRITIC_INTERFACE_PROTECTION@touch2] 同 touch1:引脚绑定疑似错位(2=GND、5=3V3 与 TTP223 标准 pinout 冲突),触摸 IC 供电无去耦 | 建议: 按规格书更正为 6=VDD、2=VSS,补 100nF 去耦;两个触摸盘布线间距拉开并与天线区保持距离,防串扰与 RF 误触发
+- [CRITIC_POWER_INTEGRITY@touch1] TOUCH1/TOUCH2 输出网络已建但未连接到 MCU 任何 GPIO(MCU ports 未暴露通用 IO),触摸功能实际不可达主控(uncovered 已列) | 建议: 为 MCU 块暴露至少两个通用 GPIO 并绑定 TOUCH1/TOUCH2;若触摸线走线较长,建议串 100Ω~1k 电阻加小电容做 RC 滤波抗 EMI
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

@@ -1,0 +1,42 @@
+{
+ "status": "PASS",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "4e26dd7ff4ab",
+   "gate_verdict": "pass",
+   "findings": [
+    "code='UNDECLARED_RAIL' where=Where(ref='', net='5V_USB', pin='', xy='') evidence='网 5V_USB 呈轨特征(家族 5|main≈5.0V)但 DesignIR 未声明该轨;planner 应在 IR 电源段显式声明,或把该网改绑到既有轨家族' severity='warn' suggested_fix_class='REPLAN' weak=True",
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:1 个块缺 v_supply 区间或单边(ldo1)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/1(覆盖率 0%),缺 i_typ:mcu1' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='防倒灌设计：USB 5V 与端子 5V 共轨需肖特基/理想二极管，目录无二极管类器件，5V_USB 与 5V_TERM 暂以独立网络预留汇合点' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='4 个测试点（3V3/5V/GND/EN）：目录无测试点器件' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='用户 LED 具体 GPIO 选择：模组块未暴露通用 GPIO 端口，MCU_TX_LED 网络需在原理图阶段绑定到选定 GPIO（建议 GPIO48 等启动态安全脚）' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='FUNC_UNCOVERED' where=Where(ref='测试点', net='', pin='', xy='') evidence='IR 功能「测试点」在计划 11 块的词表/词元匹配中无覆盖证据(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='PARAM_OFF_SPEC' where=Where(ref='r_led_user', net='', pin='', xy='') evidence='选值 [r_led_user=1k] vs sizing 建议 270(led-resistor@led_user);该网组内无任何 E24 邻档合格成员;建议依据: V_rail=3.3V←IR 单轨推断(IR rail 3V3=3.3V); V_f=2V←ENGINEERING-DEFAULT LED 通用红光典型 Vf(槽 vf 缺); I_f=5mA←ENGINEERING-DEFAULT 指示灯惯例 5mA(槽 if 缺)' severity='warn' suggested_fix_class='REPLAN' weak=True"
+   ],
+   "feedback": "",
+   "halted": ""
+  }
+ ],
+ "delivery": {
+  "svg": "D:\\gyt-pro\\jlc-edaloop\\runs\\run-6b8ac67faa63\\delivery-P1.svg",
+  "svg_pages": [
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-6b8ac67faa63\\delivery-P1.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-6b8ac67faa63\\delivery-P2.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-6b8ac67faa63\\delivery-P3.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-6b8ac67faa63\\delivery-P4.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-6b8ac67faa63\\delivery-P5.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-6b8ac67faa63\\delivery-P6.svg"
+  ],
+  "netlist": "runs\\run-6b8ac67faa63\\delivery.net.json",
+  "netlist_sha256_16": "e12cca3f463458fc",
+  "bom": "runs\\run-6b8ac67faa63\\delivery.bom.json",
+  "bom_total": 5.9521,
+  "swap": "runs\\run-6b8ac67faa63\\delivery.swap.txt",
+  "sizing": "runs\\run-6b8ac67faa63\\delivery.sizing.txt",
+  "sizing_count": 7,
+  "review": "runs\\run-6b8ac67faa63\\delivery.review.txt",
+  "review_findings": 3
+ }
+}

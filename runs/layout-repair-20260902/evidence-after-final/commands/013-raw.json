@@ -1,0 +1,65 @@
+{
+  "overall": 99.5,
+  "verdict": "excellent",
+  "dimensions": [
+    {
+      "id": "folded-labels",
+      "title": "标签折叠",
+      "status": "scored",
+      "score": 100,
+      "weight": 1.2
+    },
+    {
+      "id": "reversed-labels",
+      "title": "标签反向",
+      "status": "scored",
+      "score": 100,
+      "weight": 1.2
+    },
+    {
+      "id": "proximity",
+      "title": "外围贴核心",
+      "status": "scored",
+      "score": 97.7,
+      "weight": 1,
+      "attributions": [
+        {
+          "dimension": "proximity",
+          "target": "R4",
+          "penalty": 2.3,
+          "message": "R4 距核心 PROTFS83 边距 166(\u003e150 开始扣分)— 建议移到 PROTFS83 下方 (415,580) 附近后重连",
+          "fix": "easyeda sch modify --id 0c72690b814b324d --patch '{\"x\":415,\"y\":580}'",
+          "at": {
+            "x": 260,
+            "y": 485
+          }
+        }
+      ]
+    },
+    {
+      "id": "stub-tidiness",
+      "title": "长链/挤压",
+      "status": "scored",
+      "score": 100,
+      "weight": 0.8
+    },
+    {
+      "id": "frame-fit",
+      "title": "版面整洁",
+      "status": "skipped",
+      "score": 0,
+      "weight": 0.5,
+      "reason": "components.list 未暴露 text 图元 bbox,且分区框几何不在 workflow state — 未测(≠满分)"
+    }
+  ],
+  "dimensionScores": {
+    "folded-labels": 100,
+    "proximity": 97.7,
+    "reversed-labels": 100,
+    "stub-tidiness": 100
+  },
+  "componentCount": 26,
+  "scoredDims": 4,
+  "skippedDims": 1,
+  "summary": "sch layout-score: 综合 99.5 [excellent] — 4 维已测 / 1 维未测(skipped≠满分),26 图元"
+}

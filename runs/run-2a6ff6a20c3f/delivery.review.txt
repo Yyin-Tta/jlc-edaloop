@@ -1,0 +1,10 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 35 blocks, status=PASS
+
+- [CRITIC_POWER_INTEGRITY@drv_uln1] ULN2003 跨接隔离边界:输入(1-4 脚)来自 MCU 逻辑侧(DO1_DRV~DO4_DRV,GND 域),而输出(13-16 脚)接现场端子(GND_ISO 域),COM(9 脚)又接 5V_ISO,芯片本身无隔离能力,原副边地通过 ULN2003 参考被隐性连通,隔离设计失效;且 8 脚 GND 与 9 脚 COM 分属不同地/电源域,续流回路跨域,无法正常工作 | 建议: 明确隔离架构:要么 ULN2003 全部置于隔离侧、MCU 输出经光耦/数字隔离器过隔离带
+- [CRITIC_INTERFACE_PROTECTION@drv_uln1] DO 端子按假设接继电器/感性负载,ULN2003 内置续流二极管需 COM(9 脚)接负载电源正端才起作用;当前 COM 接 5V_ISO,但现场侧同时存在 24V_IN 端子,负载供电轨未明确,若负载为 24V,COM 域接错续流失效 | 建议: 按 Q2 决策明确负载电源域;若为 24V 感性负载,COM 应接 24V_IN,并核对 ULN2003 50V 耐压余量
+- [CRITIC_INTERFACE_PROTECTION@term_di12] DI 现场长线输入端子(DI1_F/DI3_F)无 TVS/ESD 保护,光耦 LED 侧仅 2.2k 限流电阻,长线浪涌易损 PC817;且 r_di2/r_di4 错误接到 DI1_F/DI3_F 网,DI2/DI4 实际无独立输入端子(DI2_F/DI4_F 网不存在) | 建议: 每路 DI 输入对 GND_ISO 加 TVS 或钳位二极管;修正 r_di2/r_di4 分别接 DI2_F/DI4_F,并补齐 DI2/DI4 的现场端子
+- [CRITIC_THERMAL@ldo_u2] AMS1117-3.3 承载全板逻辑侧负载(MCU+4 路光耦集电极上拉+3 只 LED+ULN2003 输入),压差 1.7V 下热裕量已为负(尺寸核算 Tj≈136°C),SOT-223 无散热增强措施,属器件选型层面的设计缺陷而非单纯参数问题 | 建议: 改用同步 BUCK(如 TPS54331/MP1584 类)从 5V 降压至 3.3V,或大幅削减 3V3 负载/降低输入电压
+- [CRITIC_EMC@iso_dcdc_u3] B0505S 属无稳压电容隔离模块,原副边共模噪声大,直接给光耦副边/ULN2003 侧供电,输出纹波会耦合进 DI 采样与 DO 驱动;block_desc 提到 LC 滤波但实际无对应元件落地 | 建议: 在 5V_ISO 输出补 LC/π 滤波与 10µF+100nF 去耦实体元件,必要时加共模电感,并确认隔离带无走线跨越
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

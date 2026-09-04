@@ -1,0 +1,39 @@
+{
+  "id": "req_263779",
+  "type": "response",
+  "version": "v1",
+  "createdAt": "2026-09-03T01:51:42.7823215Z",
+  "ok": true,
+  "result": {
+    "pages": [
+      {
+        "name": "P1",
+        "parentSchematicUuid": "7f152bf02badc67b",
+        "uuid": "bdc3e70fabdde6cb"
+      }
+    ],
+    "schematics": [
+      {
+        "name": "schematic1",
+        "page": [
+          {
+            "name": "p1",
+            "parentSchematicUuid": "7f152bf02badc67b",
+            "uuid": "bdc3e70fabdde6cb"
+          }
+        ],
+        "parentProjectUuid": "e7c2a07bcd504214a0607cad9475b2ba",
+        "uuid": "7f152bf02badc67b"
+      }
+    ]
+  },
+  "context": {
+    "projectUuid": "e7c2a07bcd504214a0607cad9475b2ba",
+    "projectName": "edaloop-req08-baseline",
+    "documentUuid": "bdc3e70fabdde6cb",
+    "documentType": "schematic",
+    "tabId": "bdc3e70fabdde6cb@e7c2a07bcd504214a0607cad9475b2ba"
+  },
+  "seq": 5811,
+  "seqAbandoned": 0
+}

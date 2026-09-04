@@ -1,0 +1,32 @@
+{
+ "status": "PASS",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "47483c5a26c0",
+   "gate_verdict": "pass",
+   "findings": [
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='保护板输入/输出焊盘端子(B+/B-/P+/P-):目录中无焊盘/端子类块,已用网络名定义连接关系,需补充焊盘图形' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='FUNC_UNCOVERED' where=Where(ref='输出端子', net='', pin='', xy='') evidence='IR 功能「输出端子」在计划 4 块的词表/词元匹配中无覆盖证据(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True"
+   ],
+   "feedback": "",
+   "halted": ""
+  }
+ ],
+ "delivery": {
+  "svg": "E:\\jlc-edaloop\\runs\\run-f45e5af15127\\delivery-P1.svg",
+  "svg_pages": [
+   "E:\\jlc-edaloop\\runs\\run-f45e5af15127\\delivery-P1.svg",
+   "E:\\jlc-edaloop\\runs\\run-f45e5af15127\\delivery-P2.svg",
+   "E:\\jlc-edaloop\\runs\\run-f45e5af15127\\delivery-P3.svg",
+   "E:\\jlc-edaloop\\runs\\run-f45e5af15127\\delivery-P4.svg"
+  ],
+  "netlist": "runs\\run-f45e5af15127\\delivery.net.json",
+  "netlist_sha256_16": "cb314bae714c9209",
+  "bom": "runs\\run-f45e5af15127\\delivery.bom.json",
+  "bom_total": 0.0737,
+  "swap": "runs\\run-f45e5af15127\\delivery.swap.txt",
+  "review": "runs\\run-f45e5af15127\\delivery.review.txt",
+  "review_findings": 1
+ }
+}

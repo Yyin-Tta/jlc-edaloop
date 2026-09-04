@@ -18,6 +18,7 @@
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -77,9 +78,11 @@ def _match_golden(items: list, golden: dict) -> tuple[int, list[str]]:
     return hit, misses
 
 
-def _acceptance_eval() -> dict:
+def _acceptance_eval(*, offline: bool = False) -> dict:
     import os
 
+    if offline:
+        return {"skipped": True, "reason": "--offline (A 段需真 LLM parse)"}
     if not (os.environ.get("EDALOOP_LLM_KEY") or os.environ.get("OPENAI_API_KEY")):
         return {"skipped": True, "reason": "EDALOOP_LLM_KEY 未配置(A 段需真 LLM parse)"}
     from edaloop.intent.parse import requirement_to_ir
@@ -179,9 +182,48 @@ def _reconstruct(run_dir: str, catalog: dict) -> dict:
         " ".join(e.get("uncovered") or [])
         for e in evs if e.get("kind") == "round-plan" and e.get("round_no") == last
     )
+    historical_func_refs = _historical_func_refs(evs)
     return {"ir": DesignIR.model_validate(ir_raw), "ids": ids, "pseudo": pseudo, "std_n": std_n,
             "uncovered": unc, "last_round": last, "source": (ir_raw or {}).get("source", ""),
-            "unmapped": [u for u in raw if u not in up_map and u.removeprefix("block.") not in up_map]}
+            "unmapped": [u for u in raw if u not in up_map and u.removeprefix("block.") not in up_map],
+            "historical_func_refs": sorted(historical_func_refs)}
+
+
+def _historical_func_refs(events: list[dict]) -> set[str]:
+    """Read function-coverage warnings emitted by the run being replayed.
+
+    The evaluator must not treat an old PASS run as a clean functional baseline:
+    ``FUNC_UNCOVERED`` is deliberately a weak warning, so a run can be PASS while
+    explicitly recording that a function was not covered.  Newer audit records keep
+    the warning text and code in parallel arrays; older records only have the string
+    representation in ``loop-result.json``-style findings.  This helper accepts both
+    forms and returns only the normalized function labels.
+    """
+    refs: set[str] = set()
+    for event in events:
+        if event.get("kind") != "round-validate":
+            continue
+        codes = event.get("weak_codes") or []
+        messages = event.get("weak") or []
+        for code, message in zip(codes, messages):
+            if code != "FUNC_UNCOVERED":
+                continue
+            match = re.search(r"IR 功能「([^」]+)」", str(message))
+            if match:
+                refs.add(match.group(1).strip())
+    # A small compatibility fallback for audits produced before round-validate
+    # exposed weak_codes.  Do not infer from generic IR_UNCOVERED messages.
+    for event in events:
+        if event.get("kind") != "round-validate":
+            continue
+        for message in event.get("weak") or []:
+            text = str(message)
+            if "FUNC_UNCOVERED" not in text:
+                continue
+            match = re.search(r"where=Where\(ref='([^']+)'", text)
+            if match:
+                refs.add(match.group(1).strip())
+    return refs
 
 
 def _plan_of(ids: list[str], catalog: dict, with_std: bool, pseudo: list[str] | None = None) -> BlockPlan:
@@ -290,28 +332,59 @@ def _falsepos_eval(catalog: dict) -> dict:
     rows = []
     weak_violation = 0
     false_flags = 0
+    baseline_acknowledged = 0
+    baseline_unknown = 0
+    unreconstructable_runs = 0
+    unverifiable_flags = 0
     e2e_round2 = 0
     for run in _pass_runs():
         rc = _reconstruct(run, catalog)
         if not rc["ids"] and not rc["pseudo"]:
+            unreconstructable_runs += 1
             continue  # 语料完全不可重建的 PASS(极旧 run)
         if rc["last_round"] >= 2:
             e2e_round2 += 1
         flags = check_func_covered(rc["ir"], _plan_of(rc["ids"], catalog, rc["std_n"] > 0, rc["pseudo"]), catalog)
         not_weak = [f for f in flags if not f.weak]
         weak_violation += len(not_weak)
-        fps = [f.where.ref for f in flags if not _mentioned(f.where.ref, rc["uncovered"])]
+        historical = set(rc.get("historical_func_refs") or [])
+        acknowledged: list[str] = []
+        fps: list[str] = []
+        unknown: list[str] = []
+        for f in flags:
+            ref = f.where.ref
+            # A PASS run is allowed to carry weak FUNC_UNCOVERED findings.  Treat
+            # the exact historical label as an explicit baseline acknowledgement;
+            # planner uncovered text remains the second, looser evidence channel.
+            if ref in historical or _mentioned(ref, rc["uncovered"]):
+                acknowledged.append(ref)
+            else:
+                # Old PASS artifacts may predate FUNC_UNCOVERED in the audit
+                # schema and may also have lost the original BlockPlan.  A
+                # reconstructed warning from such a run is not evidence of a
+                # current regression; isolate it until the run is re-baselined.
+                unknown.append(ref)
+        baseline_acknowledged += len(acknowledged)
+        baseline_unknown += 1 if unknown else 0
+        unverifiable_flags += len(unknown)
         false_flags += len(fps)
         rows.append({"run": run, "source": rc["source"], "flags": len(flags), "fp": fps,
-                     "not_weak": len(not_weak)})
-        tag = "OK " if not fps and not not_weak else "FP "
+                     "not_weak": len(not_weak), "baseline_acknowledged": acknowledged,
+                     "baseline_unknown": unknown, "historical_func_refs": sorted(historical)})
+        tag = "OK " if not fps and not unknown and not not_weak else ("BASE?" if unknown and not fps and not not_weak else "FP ")
         print(
             f"[{tag}] 零误伤 {Path(run).name} {rc['source']} FUNC_UNCOVERED={len(flags)}"
+            + (f" 基线承认:{acknowledged}" if acknowledged else "")
+            + (f" 基线不可判定:{unknown}" if unknown else "")
             + (f" 误伤:{fps}" if fps else "") + (f" 非弱:{len(not_weak)}" if not_weak else ""),
             flush=True,
         )
     return {"rows": rows, "weak_violation": weak_violation, "false_flags": false_flags,
-            "runs": len(rows), "e2e_round2_pass": e2e_round2}
+            "runs": len(rows), "e2e_round2_pass": e2e_round2,
+            "baseline_acknowledged": baseline_acknowledged,
+            "baseline_unknown": baseline_unknown,
+            "unreconstructable_runs": unreconstructable_runs,
+            "unverifiable_flags": unverifiable_flags}
 
 
 # ---- D. refine 转化(历史 HALT 目录,当版目录缺口已补) ----
@@ -368,9 +441,9 @@ def _refine_eval(catalog: dict, tmp_root: Path) -> dict:
         store.close()
 
 
-def run_refine_eval() -> dict:
+def run_refine_eval(*, offline: bool = False) -> dict:
     catalog = load_catalog(_repo_path("seeds/blocks.jsonl"))
-    acc = _acceptance_eval()
+    acc = _acceptance_eval(offline=offline)
     inj = _inject_eval(catalog)
     fp = _falsepos_eval(catalog)
     tmp_root = _repo_path("runs") / "refine-eval-tmp"
@@ -382,6 +455,7 @@ def run_refine_eval() -> dict:
         (acc.get("skipped") or acc["ok"])
         and inj["caught"] >= 3
         and fp["false_flags"] == 0
+        and fp["unverifiable_flags"] == 0
         and fp["weak_violation"] == 0
         and ref["hit"] >= 3
     )

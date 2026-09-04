@@ -1,0 +1,9 @@
+[sizing:fuse-rating@term_cell] I_hold≥1.25×120mA = 0.15 → 推荐 I_hold≥0.15A(自恢复 PPTC 按此档)
+    输入 I_load=120mA ← ENGINEERING-DEFAULT 输入口负载电流典型(轨 imax 缺)
+    输入 系数 PPTC_DERATE=1.25 ← 工程系数白名单 _COEFFS
+    降额 25% 防浪涌误动作;PPTC 恢复后保持电流会随温度下降,高温环境再降额
+
+[sizing:fuse-rating@term_out] I_hold≥1.25×120mA = 0.15 → 推荐 I_hold≥0.15A(自恢复 PPTC 按此档)
+    输入 I_load=120mA ← ENGINEERING-DEFAULT 输入口负载电流典型(轨 imax 缺)
+    输入 系数 PPTC_DERATE=1.25 ← 工程系数白名单 _COEFFS
+    降额 25% 防浪涌误动作;PPTC 恢复后保持电流会随温度下降,高温环境再降额

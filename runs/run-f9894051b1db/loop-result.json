@@ -1,0 +1,45 @@
+{
+ "status": "PASS",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "7f8146121997",
+   "gate_verdict": "pass",
+   "findings": [
+    "code='UNDECLARED_RAIL' where=Where(ref='', net='VIN_12V', pin='', xy='') evidence='网 VIN_12V 呈轨特征(家族 12|main≈12.0V)但 DesignIR 未声明该轨;planner 应在 IR 电源段显式声明,或把该网改绑到既有轨家族' severity='warn' suggested_fix_class='REPLAN' weak=True",
+    "code='UNDECLARED_RAIL' where=Where(ref='', net='5V', pin='', xy='') evidence='网 5V 呈轨特征(家族 5|main≈5.0V)但 DesignIR 未声明该轨;planner 应在 IR 电源段显式声明,或把该网改绑到既有轨家族' severity='warn' suggested_fix_class='REPLAN' weak=True",
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:2 个块缺 v_supply 区间或单边(ldo_3v3, rs485_u2)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/2(覆盖率 0%),缺 i_typ:mcu_u1, rs485_u2' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='SWD 调试排针连接器本体:目录无排针/连接器块,SWDIO/SWCLK/NRST/3V3/GND 网络已预留待接' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='电池供电分支(Q1 选项 A):锂电充电管理 + 电池保护 + 升压,目录无对应块(可组合的带 pinout 器件也不足),待客户确认后补充' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='模拟传感器调理(Q3 未决):NTC 分压或电压输出前级调理网络,传感器形式未定且分压阻值无 sizing 出处,暂仅预留 PA1/SENSE_ADC' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='433MHz 无线分支(Q2 选项 B):目录虽有 CC1101 前端块,但与 RS-485 二选一未定,本轮按 RS-485 落图;确认无线后可切换' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='MCU 8MHz 晶振及 22pF 负载电容:22p 不在 capacitor-std 标准值表内,无法落图' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='MCU NRST 上拉 10k:块描述提及 10k 复位上拉,但仅落了 100nF,如需上拉可后续补 r_nrst 10k' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='FUNC_UNCOVERED' where=Where(ref='模拟量采集', net='', pin='', xy='') evidence='IR 功能「模拟量采集」在计划 12 块的词表/词元匹配中无覆盖证据(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='FUNC_UNCOVERED' where=Where(ref='数据回传', net='', pin='', xy='') evidence='IR 功能「数据回传」在计划 12 块的词表/词元匹配中无覆盖证据(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True"
+   ],
+   "feedback": "",
+   "halted": ""
+  }
+ ],
+ "delivery": {
+  "svg": "D:\\gyt-pro\\jlc-edaloop\\runs\\run-f9894051b1db\\delivery-P1.svg",
+  "svg_pages": [
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-f9894051b1db\\delivery-P1.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-f9894051b1db\\delivery-P2.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-f9894051b1db\\delivery-P3.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-f9894051b1db\\delivery-P4.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-f9894051b1db\\delivery-P5.svg"
+  ],
+  "netlist": "runs\\run-f9894051b1db\\delivery.net.json",
+  "netlist_sha256_16": "eeda2543ace4fa51",
+  "bom": "runs\\run-f9894051b1db\\delivery.bom.json",
+  "bom_total": 2.3288,
+  "swap": "runs\\run-f9894051b1db\\delivery.swap.txt",
+  "sizing": "runs\\run-f9894051b1db\\delivery.sizing.txt",
+  "sizing_count": 6,
+  "review": "runs\\run-f9894051b1db\\delivery.review.txt",
+  "review_findings": 6
+ }
+}

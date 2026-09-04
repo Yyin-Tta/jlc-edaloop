@@ -1,0 +1,2059 @@
+{
+  "ok": false,
+  "verdict": "fail",
+  "stages": [
+    {
+      "name": "layout-lint",
+      "status": "fail",
+      "errors": 0,
+      "warnings": 1,
+      "blockingReasons": [
+        "1 tight-spacing (--strict)"
+      ],
+      "summary": "0 overlap, 0 pin-coincidence, 1 tight, 0 off-grid, 0 out-of-sheet, 0 no-bbox, 0 unchecked-pin, 0 unproven-pin, 0 invalid-geometry (zone-check=not-configured sheet-check=checked)",
+      "detail": {
+        "schemaVersion": 2,
+        "ok": false,
+        "strict": true,
+        "minGap": 2.54,
+        "componentCount": 24,
+        "withBBox": 24,
+        "skippedNonParts": 55,
+        "overlaps": null,
+        "tightSpacing": [
+          {
+            "a": "D4",
+            "b": "J3",
+            "gap": 1.016,
+            "type": "spacing"
+          }
+        ],
+        "pinCoincidences": null,
+        "measurementUnit": "mm",
+        "coordinateUnit": "0.01inch",
+        "anchorGridRaw": 5,
+        "anchorGridUnit": "0.01inch",
+        "zoneCheckStatus": "not-configured",
+        "sheetCheckStatus": "checked",
+        "pinEps": 0,
+        "summary": "strict=true: 24 components (24 with bbox): 0 overlap, 1 tight (\u003c2.54mm), 0 pin-coincidence, 0 off-grid, 0 out-of-sheet, 0 unchecked-bbox, 0 unchecked-pins, 0 unproven-pins, 0 invalid-geometry; zoneCheck=not-configured sheetCheck=checked"
+      }
+    },
+    {
+      "name": "clusters",
+      "status": "fail",
+      "errors": 14,
+      "warnings": 28,
+      "blockingReasons": [
+        "13 处组间图元重叠",
+        "1 个组探出图纸可用区",
+        "28 处组间过近 (--strict)"
+      ],
+      "summary": "24 个虚拟组:13 重叠 / 1 出图纸 / 28 过近",
+      "detail": {
+        "clusters": [
+          {
+            "designator": "R18",
+            "primitiveId": "552d34993fe9fad7",
+            "body": {
+              "minX": 139.5,
+              "minY": 705.5,
+              "maxX": 160.5,
+              "maxY": 714.5
+            },
+            "box": {
+              "minX": 55.5,
+              "minY": 704.5,
+              "maxX": 170,
+              "maxY": 722
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     R18      x=[140,160] y=[706,714]",
+              "wire              x=[110,130] y=[710,710]",
+              "wire              x=[140,170] y=[710,710]",
+              "netflag  5V       x=[100,122] y=[704,722]",
+              "netport  C9_N12   x=[56,130] y=[704,716]"
+            ]
+          },
+          {
+            "designator": "C9",
+            "primitiveId": "911e8f9df87c0f09",
+            "body": {
+              "minX": 239.5,
+              "minY": 526.5,
+              "maxX": 260.5,
+              "maxY": 543.5
+            },
+            "box": {
+              "minX": 99.5,
+              "minY": 526.5,
+              "maxX": 288,
+              "maxY": 567
+            },
+            "markers": 3,
+            "wires": 1,
+            "members": [
+              "part     C9       x=[240,260] y=[526,544]",
+              "wire              x=[110,230] y=[535,535]",
+              "netflag  VIN      x=[260,288] y=[550,567]",
+              "netflag  VIN      x=[250,278] y=[550,567]",
+              "netflag  VIN      x=[100,128] y=[530,547]"
+            ]
+          },
+          {
+            "designator": "J3",
+            "primitiveId": "06415a307b060416",
+            "body": {
+              "minX": 259.5,
+              "minY": 334.5,
+              "maxX": 300.5,
+              "maxY": 375.5
+            },
+            "box": {
+              "minX": 100,
+              "minY": 283.5,
+              "maxX": 320.5,
+              "maxY": 473.5
+            },
+            "markers": 4,
+            "wires": 2,
+            "members": [
+              "part     J3       x=[260,300] y=[334,376]",
+              "wire              x=[100,310] y=[350,395]",
+              "wire              x=[250,250] y=[315,345]",
+              "netflag  GND      x=[240,260] y=[390,412]",
+              "netflag  VIN_F    x=[280,320] y=[350,367]",
+              "netflag  GND      x=[240,260] y=[284,306]",
+              "netport  C9_N1    x=[244,256] y=[404,474]"
+            ]
+          },
+          {
+            "designator": "R14",
+            "primitiveId": "7d94d620bc9fc4dd",
+            "body": {
+              "minX": 139.5,
+              "minY": 230.5,
+              "maxX": 160.5,
+              "maxY": 239.5
+            },
+            "box": {
+              "minX": 110,
+              "minY": 120.5,
+              "maxX": 209.5,
+              "maxY": 349.5
+            },
+            "markers": 3,
+            "wires": 2,
+            "members": [
+              "part     R14      x=[140,160] y=[230,240]",
+              "wire              x=[110,130] y=[185,265]",
+              "wire              x=[170,190] y=[235,235]",
+              "netport  C9_N14   x=[124,136] y=[120,196]",
+              "netflag  GND      x=[172,210] y=[224,247]",
+              "netport  C9_N10   x=[124,136] y=[274,350]"
+            ]
+          },
+          {
+            "designator": "C17",
+            "primitiveId": "539be5a5618818d5",
+            "body": {
+              "minX": 139.5,
+              "minY": 341.5,
+              "maxX": 160.5,
+              "maxY": 358.5
+            },
+            "box": {
+              "minX": 124,
+              "minY": 341.5,
+              "maxX": 180.5,
+              "maxY": 411.5
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     C17      x=[140,160] y=[342,358]",
+              "wire              x=[130,130] y=[350,380]",
+              "wire              x=[170,170] y=[350,380]",
+              "netflag  5V       x=[124,136] y=[384,402]",
+              "netflag  GND      x=[160,180] y=[390,412]"
+            ]
+          },
+          {
+            "designator": "F1",
+            "primitiveId": "cbc10997dd1278da",
+            "body": {
+              "minX": 136.5,
+              "minY": 466.5,
+              "maxX": 163.5,
+              "maxY": 473.5
+            },
+            "box": {
+              "minX": 124.5,
+              "minY": 361.5,
+              "maxX": 175.5,
+              "maxY": 568.5
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     F1       x=[136,164] y=[466,474]",
+              "wire              x=[170,170] y=[470,490]",
+              "wire              x=[130,130] y=[440,470]",
+              "netport  C9_N1    x=[164,176] y=[500,568]",
+              "netport  C9_N4    x=[124,136] y=[362,430]"
+            ]
+          },
+          {
+            "designator": "C14",
+            "primitiveId": "8dbff71552830e26",
+            "body": {
+              "minX": 339.5,
+              "minY": 596.5,
+              "maxX": 360.5,
+              "maxY": 613.5
+            },
+            "box": {
+              "minX": 210,
+              "minY": 594.5,
+              "maxX": 419.5,
+              "maxY": 617
+            },
+            "markers": 1,
+            "wires": 2,
+            "members": [
+              "part     C14      x=[340,360] y=[596,614]",
+              "wire              x=[210,330] y=[605,605]",
+              "wire              x=[370,400] y=[605,605]",
+              "netflag  GND      x=[382,420] y=[594,617]"
+            ]
+          },
+          {
+            "designator": "R15",
+            "primitiveId": "2715e337adae77cf",
+            "body": {
+              "minX": 259.49999999999994,
+              "minY": 585.5,
+              "maxX": 280.49999999999994,
+              "maxY": 594.5
+            },
+            "box": {
+              "minX": 210.5,
+              "minY": 491.5,
+              "maxX": 295.5,
+              "maxY": 602
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     R15      x=[259,280] y=[586,594]",
+              "wire              x=[290,290] y=[570,590]",
+              "wire              x=[230,250] y=[590,590]",
+              "netport  C9_N7    x=[284,296] y=[492,560]",
+              "netflag  GND      x=[210,248] y=[580,602]"
+            ]
+          },
+          {
+            "designator": "C13",
+            "primitiveId": "cb38510b32ecb9d8",
+            "body": {
+              "minX": 249.5,
+              "minY": 636.5,
+              "maxX": 270.5,
+              "maxY": 653.5
+            },
+            "box": {
+              "minX": 231,
+              "minY": 583.5,
+              "maxX": 290.5,
+              "maxY": 653.5
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     C13      x=[250,270] y=[636,654]",
+              "wire              x=[240,240] y=[615,645]",
+              "wire              x=[280,280] y=[615,645]",
+              "netflag  VIN      x=[231,249] y=[592,610]",
+              "netflag  GND      x=[270,290] y=[584,606]"
+            ]
+          },
+          {
+            "designator": "R19",
+            "primitiveId": "7021682271db7662",
+            "body": {
+              "minX": 259.5,
+              "minY": 705.5,
+              "maxX": 280.5,
+              "maxY": 714.5
+            },
+            "box": {
+              "minX": 244.5,
+              "minY": 601.5,
+              "maxX": 300.5,
+              "maxY": 761.5
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     R19      x=[260,280] y=[706,714]",
+              "wire              x=[290,290] y=[710,730]",
+              "wire              x=[250,250] y=[680,710]",
+              "netflag  GND      x=[280,300] y=[740,762]",
+              "netport  C9_N5    x=[244,256] y=[602,670]"
+            ]
+          },
+          {
+            "designator": "U4",
+            "primitiveId": "3aa5b8868357eb99",
+            "body": {
+              "minX": 469.5,
+              "minY": 684.5,
+              "maxX": 550.5,
+              "maxY": 735.5
+            },
+            "box": {
+              "minX": 249.5,
+              "minY": 684.5,
+              "maxX": 784.5,
+              "maxY": 823.5
+            },
+            "markers": 8,
+            "wires": 7,
+            "members": [
+              "part     U4       x=[470,550] y=[684,736]",
+              "wire              x=[560,765] y=[715,715]",
+              "wire              x=[290,460] y=[695,695]",
+              "wire              x=[540,560] y=[705,705]",
+              "wire              x=[460,460] y=[725,745]",
+              "wire              x=[560,590] y=[725,725]",
+              "wire              x=[510,540] y=[745,745]",
+              "wire              x=[560,580] y=[695,695]",
+              "netflag  GND      x=[747,784] y=[704,727]",
+              "netport           x=[250,280] y=[690,700]",
+              "netport  C9_N1    x=[462,530] y=[700,710]",
+              "netport  C9_N9    x=[454,466] y=[754,824]",
+              "netport  C9_N7    x=[500,568] y=[700,710]",
+              "netport  C9_N10   x=[600,674] y=[720,730]",
+              "netflag  GND      x=[522,560] y=[734,757]",
+              "netport  C9_N12   x=[590,664] y=[690,700]"
+            ]
+          },
+          {
+            "designator": "L2",
+            "primitiveId": "d476720d091b639f",
+            "body": {
+              "minX": 371,
+              "minY": 459.9775000312493,
+              "maxX": 406.50004999968843,
+              "maxY": 480.0224999687509
+            },
+            "box": {
+              "minX": 255.5,
+              "minY": 407.5,
+              "maxX": 416,
+              "maxY": 532.5
+            },
+            "markers": 4,
+            "wires": 4,
+            "members": [
+              "part     L2       x=[371,407] y=[460,480]",
+              "wire              x=[410,410] y=[430,460]",
+              "wire              x=[340,370] y=[460,460]",
+              "wire              x=[340,370] y=[480,480]",
+              "wire              x=[410,410] y=[480,510]",
+              "netflag  5V       x=[404,416] y=[408,426]",
+              "netport  C9_N10   x=[256,330] y=[454,466]",
+              "netport  C9_N10   x=[256,330] y=[474,486]",
+              "netflag  5V       x=[404,416] y=[514,532]"
+            ]
+          },
+          {
+            "designator": "C10",
+            "primitiveId": "b81a497dce8c3c76",
+            "body": {
+              "minX": 299.5,
+              "minY": 546.5,
+              "maxX": 310.5,
+              "maxY": 563.5
+            },
+            "box": {
+              "minX": 264.5,
+              "minY": 544.5,
+              "maxX": 359.5,
+              "maxY": 643.5
+            },
+            "markers": 2,
+            "wires": 1,
+            "members": [
+              "part     C10      x=[300,310] y=[546,564]",
+              "wire              x=[320,340] y=[555,555]",
+              "netport  C9_N9    x=[264,276] y=[574,644]",
+              "netflag  GND      x=[322,360] y=[544,567]"
+            ]
+          },
+          {
+            "designator": "D4",
+            "primitiveId": "9336df1ebfea2f1b",
+            "body": {
+              "minX": 304.49999999999994,
+              "minY": 342.50000000000006,
+              "maxX": 318.49999999999994,
+              "maxY": 358.50000000000006
+            },
+            "box": {
+              "minX": 279.5,
+              "minY": 298.5,
+              "maxX": 360,
+              "maxY": 358.50000000000006
+            },
+            "markers": 1,
+            "wires": 2,
+            "members": [
+              "part     D4       x=[304,318] y=[343,359]",
+              "wire              x=[330,360] y=[350,350]",
+              "wire              x=[290,290] y=[330,350]",
+              "netflag  GND      x=[280,300] y=[298,320]"
+            ]
+          },
+          {
+            "designator": "R20",
+            "primitiveId": "7f87b3d1822d9bba",
+            "body": {
+              "minX": 379.49999999999994,
+              "minY": 705.5,
+              "maxX": 400.49999999999994,
+              "maxY": 714.5
+            },
+            "box": {
+              "minX": 301.5,
+              "minY": 704.5,
+              "maxX": 410,
+              "maxY": 715.5
+            },
+            "markers": 1,
+            "wires": 2,
+            "members": [
+              "part     R20      x=[379,400] y=[706,714]",
+              "wire              x=[320,370] y=[710,710]",
+              "wire              x=[380,410] y=[710,710]",
+              "netport  C9_N8    x=[302,370] y=[704,716]"
+            ]
+          },
+          {
+            "designator": "D5",
+            "primitiveId": "a86bf8d542f10360",
+            "body": {
+              "minX": 380.5,
+              "minY": 340.5,
+              "maxX": 395.5,
+              "maxY": 359.5
+            },
+            "box": {
+              "minX": 361,
+              "minY": 251.5,
+              "maxX": 415.5,
+              "maxY": 359.5
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     D5       x=[380,396] y=[340,360]",
+              "wire              x=[410,410] y=[330,350]",
+              "wire              x=[370,370] y=[320,350]",
+              "netport  C9_N5    x=[404,416] y=[252,320]",
+              "netflag  VIN      x=[361,379] y=[298,316]"
+            ]
+          },
+          {
+            "designator": "R16",
+            "primitiveId": "d1f36beaa5b2b9d9",
+            "body": {
+              "minX": 379.49999999999994,
+              "minY": 585.5,
+              "maxX": 400.49999999999994,
+              "maxY": 594.5
+            },
+            "box": {
+              "minX": 361,
+              "minY": 537.5,
+              "maxX": 410,
+              "maxY": 594.5
+            },
+            "markers": 1,
+            "wires": 2,
+            "members": [
+              "part     R16      x=[379,400] y=[586,594]",
+              "wire              x=[380,410] y=[590,590]",
+              "wire              x=[370,370] y=[560,590]",
+              "netflag  VIN      x=[361,379] y=[538,556]"
+            ]
+          },
+          {
+            "designator": "C11",
+            "primitiveId": "603721de3dcc4bdf",
+            "body": {
+              "minX": 439.5,
+              "minY": 496.5,
+              "maxX": 450.5,
+              "maxY": 513.5
+            },
+            "box": {
+              "minX": 380.5,
+              "minY": 494.5,
+              "maxX": 580,
+              "maxY": 517
+            },
+            "markers": 1,
+            "wires": 2,
+            "members": [
+              "part     C11      x=[440,450] y=[496,514]",
+              "wire              x=[460,580] y=[505,505]",
+              "wire              x=[400,430] y=[505,505]",
+              "netflag  GND      x=[380,418] y=[494,517]"
+            ]
+          },
+          {
+            "designator": "C15",
+            "primitiveId": "81de32e951b937e6",
+            "body": {
+              "minX": 429.5,
+              "minY": 596.5,
+              "maxX": 450.5,
+              "maxY": 613.5
+            },
+            "box": {
+              "minX": 414,
+              "minY": 552.5,
+              "maxX": 539.5,
+              "maxY": 617
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     C15      x=[430,450] y=[596,614]",
+              "wire              x=[460,520] y=[605,605]",
+              "wire              x=[420,420] y=[575,605]",
+              "netflag  GND      x=[502,540] y=[594,617]",
+              "netflag  5V       x=[414,426] y=[552,570]"
+            ]
+          },
+          {
+            "designator": "C12",
+            "primitiveId": "f9ad61066d5d5fd9",
+            "body": {
+              "minX": 469.5,
+              "minY": 546.5,
+              "maxX": 490.5,
+              "maxY": 563.5
+            },
+            "box": {
+              "minX": 419.5,
+              "minY": 544.5,
+              "maxX": 554.5,
+              "maxY": 567
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     C12      x=[470,490] y=[546,564]",
+              "wire              x=[500,535] y=[555,555]",
+              "wire              x=[430,460] y=[555,555]",
+              "netflag  GND      x=[517,554] y=[544,567]",
+              "netflag  VIN      x=[420,448] y=[550,567]"
+            ]
+          },
+          {
+            "designator": "D6",
+            "primitiveId": "613d03340c612a05",
+            "body": {
+              "minX": 500.5,
+              "minY": 340.5,
+              "maxX": 515.5,
+              "maxY": 359.5
+            },
+            "box": {
+              "minX": 481,
+              "minY": 339.5,
+              "maxX": 569.5,
+              "maxY": 402.5
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     D6       x=[500,516] y=[340,360]",
+              "wire              x=[530,550] y=[350,350]",
+              "wire              x=[490,490] y=[350,380]",
+              "netflag  GND      x=[532,570] y=[340,362]",
+              "netflag  VIN      x=[481,499] y=[384,402]"
+            ]
+          },
+          {
+            "designator": "Q1",
+            "primitiveId": "644608e2fa44059e",
+            "body": {
+              "minX": 497.5,
+              "minY": 459.5,
+              "maxX": 523.5,
+              "maxY": 480.5
+            },
+            "box": {
+              "minX": 484.5,
+              "minY": 361.5,
+              "maxX": 678.5,
+              "maxY": 495.5
+            },
+            "markers": 3,
+            "wires": 3,
+            "members": [
+              "part     Q1       x=[498,524] y=[460,480]",
+              "wire              x=[510,510] y=[430,450]",
+              "wire              x=[490,490] y=[440,470]",
+              "wire              x=[510,600] y=[490,490]",
+              "netflag  VIN      x=[501,519] y=[408,426]",
+              "netport  C9_N5    x=[484,496] y=[362,430]",
+              "netport  C9_N4    x=[610,678] y=[484,496]"
+            ]
+          },
+          {
+            "designator": "R17",
+            "primitiveId": "01f2a7ed322e240b",
+            "body": {
+              "minX": 499.5,
+              "minY": 585.5,
+              "maxX": 520.5,
+              "maxY": 594.5
+            },
+            "box": {
+              "minX": 499.5,
+              "minY": 585.5,
+              "maxX": 590,
+              "maxY": 594.5
+            },
+            "markers": 0,
+            "wires": 1,
+            "members": [
+              "part     R17      x=[500,520] y=[586,594]",
+              "wire              x=[530,590] y=[590,590]"
+            ]
+          },
+          {
+            "designator": "C16",
+            "primitiveId": "aa54e4efcafa94f1",
+            "body": {
+              "minX": 559.5,
+              "minY": 596.5,
+              "maxX": 580.5,
+              "maxY": 613.5
+            },
+            "box": {
+              "minX": 544,
+              "minY": 596.5,
+              "maxX": 600.5,
+              "maxY": 666.5
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     C16      x=[560,580] y=[596,614]",
+              "wire              x=[590,590] y=[605,635]",
+              "wire              x=[550,550] y=[605,635]",
+              "netflag  GND      x=[580,600] y=[644,666]",
+              "netflag  5V       x=[544,556] y=[640,658]"
+            ]
+          }
+        ],
+        "findings": [
+          {
+            "type": "overlap",
+            "a": "C9",
+            "b": "R15",
+            "ovX": 3.5,
+            "ovY": 11,
+            "level": "ERROR"
+          },
+          {
+            "type": "overlap",
+            "a": "J3",
+            "b": "C17",
+            "ovX": 21,
+            "ovY": 8.5,
+            "level": "ERROR"
+          },
+          {
+            "type": "overlap",
+            "a": "J3",
+            "b": "F1",
+            "ovX": 11,
+            "ovY": 33.5,
+            "level": "ERROR"
+          },
+          {
+            "type": "overlap",
+            "a": "J3",
+            "b": "D4",
+            "ovX": 14,
+            "ovY": 9.000000000000057,
+            "level": "ERROR"
+          },
+          {
+            "type": "overlap",
+            "a": "C17",
+            "b": "F1",
+            "ovX": 11,
+            "ovY": 18,
+            "level": "ERROR"
+          },
+          {
+            "type": "overlap",
+            "a": "R15",
+            "b": "C13",
+            "ovX": 17,
+            "ovY": 9.5,
+            "level": "ERROR"
+          },
+          {
+            "type": "overlap",
+            "a": "R15",
+            "b": "R19",
+            "ovX": 3.5,
+            "ovY": 0.5,
+            "level": "ERROR"
+          },
+          {
+            "type": "overlap",
+            "a": "R15",
+            "b": "C10",
+            "ovX": 11,
+            "ovY": 9,
+            "level": "ERROR"
+          },
+          {
+            "type": "overlap",
+            "a": "C13",
+            "b": "R19",
+            "ovX": 6,
+            "ovY": 17,
+            "level": "ERROR"
+          },
+          {
+            "type": "overlap",
+            "a": "C13",
+            "b": "C10",
+            "ovX": 6,
+            "ovY": 22,
+            "level": "ERROR"
+          },
+          {
+            "type": "overlap",
+            "a": "L2",
+            "b": "C11",
+            "ovX": 12,
+            "ovY": 2.5,
+            "level": "ERROR"
+          },
+          {
+            "type": "overlap",
+            "a": "C15",
+            "b": "C12",
+            "ovX": 6.5,
+            "ovY": 14.5,
+            "level": "ERROR"
+          },
+          {
+            "type": "overlap",
+            "a": "D6",
+            "b": "Q1",
+            "ovX": 11,
+            "ovY": 18,
+            "level": "ERROR"
+          },
+          {
+            "type": "out-of-sheet",
+            "a": "U4",
+            "note": "上沿 824 \u003e 813",
+            "level": "ERROR"
+          },
+          {
+            "type": "tight",
+            "a": "C9",
+            "b": "F1",
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "C9",
+            "b": "C13",
+            "gap": 16.5,
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "C9",
+            "b": "C10",
+            "gap": 7.5,
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "J3",
+            "b": "R14",
+            "gap": 0.5,
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "J3",
+            "b": "L2",
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "R14",
+            "b": "C17",
+            "gap": 0.5,
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "R14",
+            "b": "F1",
+            "gap": 12,
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "C14",
+            "b": "R15",
+            "gap": 3,
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "C14",
+            "b": "C13",
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "C14",
+            "b": "R19",
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "C14",
+            "b": "C10",
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "C14",
+            "b": "R16",
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "C14",
+            "b": "C15",
+            "gap": 0.5,
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "R15",
+            "b": "L2",
+            "gap": 6,
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "R19",
+            "b": "U4",
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "R19",
+            "b": "C10",
+            "gap": 9,
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "R19",
+            "b": "R20",
+            "gap": 11.5,
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "U4",
+            "b": "R20",
+            "gap": 9.5,
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "L2",
+            "b": "C12",
+            "gap": 17,
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "C10",
+            "b": "R16",
+            "gap": 1.5,
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "D4",
+            "b": "D5",
+            "gap": 10,
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "R16",
+            "b": "C15",
+            "gap": 10,
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "R16",
+            "b": "C12",
+            "gap": 19.000000000000057,
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "C11",
+            "b": "Q1",
+            "gap": 15,
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "C15",
+            "b": "R17",
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "C15",
+            "b": "C16",
+            "gap": 10.5,
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "C12",
+            "b": "R17",
+            "gap": 18.5,
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "R17",
+            "b": "C16",
+            "gap": 6.5,
+            "level": "WARN"
+          }
+        ],
+        "sheetUsable": {
+          "minX": 12,
+          "minY": 12,
+          "maxX": 1158,
+          "maxY": 813
+        }
+      }
+    },
+    {
+      "name": "check",
+      "status": "fail",
+      "errors": 0,
+      "warnings": 38,
+      "blockingReasons": [
+        "38 个 warn finding (--strict;info 不阻塞): marker-overlap×20, dangling-wire×6, wire-crossing×4, multi-net-wire×3, missing-note×1, missing-partition×1, missing-titleblock×1, redundant-net-marker×1, reversed-net-flag×1"
+      ],
+      "summary": "38 finding(s): 0 error/fatal, 38 warn/info",
+      "detail": {
+        "passed": false,
+        "summary": {
+          "floatingPins": 0,
+          "componentsWithFloating": 0,
+          "geomNetMismatches": 0,
+          "netMarkerMismatches": 0,
+          "multiNetWires": 3,
+          "wireCrossings": 4,
+          "wireOverPins": 0,
+          "zeroLengthWires": 0,
+          "danglingWires": 6,
+          "duplicateNetMarkers": 0,
+          "titleblockOverlaps": 0,
+          "markerOverlaps": 20,
+          "missingPartitions": 3,
+          "noteOutsideZones": 0,
+          "redundantNetMarkers": 1,
+          "foldedNetLabels": 0,
+          "reversedNetFlags": 1,
+          "polarityConventionOutliers": 0,
+          "total": 38
+        },
+        "findings": [
+          {
+            "type": "multi-net-wire",
+            "level": "warn",
+            "wirePrimitiveId": "9134d9aa66e03073",
+            "nets": [
+              "GND",
+              "VIN_F",
+              "C9_N1"
+            ],
+            "count": 3,
+            "message": "导线有多个网络名: GND、VIN_F、C9_N1"
+          },
+          {
+            "type": "multi-net-wire",
+            "level": "warn",
+            "wirePrimitiveId": "f0d0c4c8662549d8",
+            "nets": [
+              "C9_N14",
+              "C9_N10"
+            ],
+            "count": 2,
+            "message": "导线有多个网络名: C9_N14、C9_N10"
+          },
+          {
+            "type": "multi-net-wire",
+            "level": "warn",
+            "wirePrimitiveId": "14b3d77e5ec15659",
+            "nets": [
+              "C9_N9",
+              "VIN"
+            ],
+            "count": 2,
+            "message": "导线有多个网络名: C9_N9、VIN"
+          },
+          {
+            "type": "wire-crossing",
+            "level": "warn",
+            "count": 1,
+            "message": "两条导线交叉(走线打结;改走通道/换 L 形拐点避开)",
+            "at": {
+              "x": 130,
+              "y": 365
+            }
+          },
+          {
+            "type": "wire-crossing",
+            "level": "warn",
+            "count": 1,
+            "message": "两条导线交叉(走线打结;改走通道/换 L 形拐点避开)",
+            "at": {
+              "x": 170,
+              "y": 365
+            }
+          },
+          {
+            "type": "wire-crossing",
+            "level": "warn",
+            "count": 1,
+            "message": "两条导线交叉(走线打结;改走通道/换 L 形拐点避开)",
+            "at": {
+              "x": 490,
+              "y": 605
+            }
+          },
+          {
+            "type": "wire-crossing",
+            "level": "warn",
+            "count": 1,
+            "message": "两条导线交叉(走线打结;改走通道/换 L 形拐点避开)",
+            "at": {
+              "x": 410,
+              "y": 505
+            }
+          },
+          {
+            "type": "dangling-wire",
+            "level": "warn",
+            "wirePrimitiveId": "9477a2b0b69b387f",
+            "message": "疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除)",
+            "at": {
+              "x": 320,
+              "y": 710
+            }
+          },
+          {
+            "type": "dangling-wire",
+            "level": "warn",
+            "wirePrimitiveId": "c5b3750483b22e78",
+            "message": "疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除)",
+            "at": {
+              "x": 360,
+              "y": 350
+            }
+          },
+          {
+            "type": "dangling-wire",
+            "level": "warn",
+            "wirePrimitiveId": "dc82e06cf04285e4",
+            "message": "疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除)",
+            "at": {
+              "x": 380,
+              "y": 590
+            }
+          },
+          {
+            "type": "dangling-wire",
+            "level": "warn",
+            "wirePrimitiveId": "7ced8d629b459b9c",
+            "message": "疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除)",
+            "at": {
+              "x": 580,
+              "y": 505
+            }
+          },
+          {
+            "type": "dangling-wire",
+            "level": "warn",
+            "wirePrimitiveId": "aff9c8a7c6d27a6b",
+            "message": "疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除)",
+            "at": {
+              "x": 590,
+              "y": 590
+            }
+          },
+          {
+            "type": "dangling-wire",
+            "level": "warn",
+            "wirePrimitiveId": "0d3d158615bbebf8",
+            "message": "疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除)",
+            "at": {
+              "x": 210,
+              "y": 605
+            }
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "designator": "J3",
+            "primitiveId": "06415a307b060416",
+            "message": "J3(part) 与 VIN_F(netflag) 视觉重叠 20.50×17.50 — 换方向/offset 或 stagger",
+            "componentType": "part",
+            "primitiveIds": [
+              "06415a307b060416",
+              "6fa5445dda5874a1"
+            ],
+            "bbox": {
+              "minX": 259.5,
+              "minY": 334.5,
+              "maxX": 300.5,
+              "maxY": 375.5
+            },
+            "other": {
+              "primitiveId": "6fa5445dda5874a1",
+              "componentType": "netflag",
+              "net": "VIN_F",
+              "bbox": {
+                "minX": 280,
+                "minY": 349.5,
+                "maxX": 320.5,
+                "maxY": 367
+              }
+            },
+            "overlapX": 20.5,
+            "overlapY": 17.5
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "primitiveId": "11890b4a3f28fd72",
+            "markerNet": "C9_N7",
+            "message": "C9_N7(netport) 与 VIN(netflag) 视觉重叠 3.50×11.00 — 换方向/offset 或 stagger",
+            "componentType": "netport",
+            "primitiveIds": [
+              "11890b4a3f28fd72",
+              "8381f88f832312c5"
+            ],
+            "bbox": {
+              "minX": 284.5,
+              "minY": 491.5,
+              "maxX": 295.5,
+              "maxY": 560.5
+            },
+            "other": {
+              "primitiveId": "8381f88f832312c5",
+              "componentType": "netflag",
+              "net": "VIN",
+              "bbox": {
+                "minX": 259.5,
+                "minY": 549.5,
+                "maxX": 288,
+                "maxY": 567
+              }
+            },
+            "overlapX": 3.5,
+            "overlapY": 11
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "primitiveId": "11b9b817e8150f36",
+            "markerNet": "VIN",
+            "message": "VIN(netflag) 与 VIN(netflag) 视觉重叠 18.50×17.50 — 换方向/offset 或 stagger",
+            "componentType": "netflag",
+            "primitiveIds": [
+              "11b9b817e8150f36",
+              "8381f88f832312c5"
+            ],
+            "bbox": {
+              "minX": 249.5,
+              "minY": 549.5,
+              "maxX": 278,
+              "maxY": 567
+            },
+            "other": {
+              "primitiveId": "8381f88f832312c5",
+              "componentType": "netflag",
+              "net": "VIN",
+              "bbox": {
+                "minX": 259.5,
+                "minY": 549.5,
+                "maxX": 288,
+                "maxY": 567
+              }
+            },
+            "overlapX": 18.5,
+            "overlapY": 17.5
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "primitiveId": "20e711ad2496110d",
+            "markerNet": "5V",
+            "message": "5V(netflag) 与 VIN(netflag) 视觉重叠 6.50×14.50 — 换方向/offset 或 stagger",
+            "componentType": "netflag",
+            "primitiveIds": [
+              "20e711ad2496110d",
+              "8d2c09fdabada8e9"
+            ],
+            "bbox": {
+              "minX": 414,
+              "minY": 552.5,
+              "maxX": 426,
+              "maxY": 570.5
+            },
+            "other": {
+              "primitiveId": "8d2c09fdabada8e9",
+              "componentType": "netflag",
+              "net": "VIN",
+              "bbox": {
+                "minX": 419.5,
+                "minY": 549.5,
+                "maxX": 448,
+                "maxY": 567
+              }
+            },
+            "overlapX": 6.5,
+            "overlapY": 14.5
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "designator": "R15",
+            "primitiveId": "2715e337adae77cf",
+            "message": "R15(part) 与 C9_N9(netport) 视觉重叠 11.00×9.00 — 换方向/offset 或 stagger",
+            "componentType": "part",
+            "primitiveIds": [
+              "2715e337adae77cf",
+              "570ecceb184f9dcf"
+            ],
+            "bbox": {
+              "minX": 259.49999999999994,
+              "minY": 585.5,
+              "maxX": 280.49999999999994,
+              "maxY": 594.5
+            },
+            "other": {
+              "primitiveId": "570ecceb184f9dcf",
+              "componentType": "netport",
+              "net": "C9_N9",
+              "bbox": {
+                "minX": 264.5,
+                "minY": 574.5,
+                "maxX": 275.5,
+                "maxY": 643.5
+              }
+            },
+            "overlapX": 11,
+            "overlapY": 9
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "designator": "R15",
+            "primitiveId": "2715e337adae77cf",
+            "message": "R15(part) 与 GND(netflag) 视觉重叠 11.00×9.00 — 换方向/offset 或 stagger",
+            "componentType": "part",
+            "primitiveIds": [
+              "2715e337adae77cf",
+              "f861cf06f9e7a7ad"
+            ],
+            "bbox": {
+              "minX": 259.49999999999994,
+              "minY": 585.5,
+              "maxX": 280.49999999999994,
+              "maxY": 594.5
+            },
+            "other": {
+              "primitiveId": "f861cf06f9e7a7ad",
+              "componentType": "netflag",
+              "net": "GND",
+              "bbox": {
+                "minX": 269.5,
+                "minY": 583.5,
+                "maxX": 290.5,
+                "maxY": 605.5
+              }
+            },
+            "overlapX": 11,
+            "overlapY": 9
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "primitiveId": "27e2cfab93cc834d",
+            "markerNet": "5V",
+            "message": "5V(netflag) 与 C9_N12(netport) 视觉重叠 22.50×11.00 — 换方向/offset 或 stagger",
+            "componentType": "netflag",
+            "primitiveIds": [
+              "27e2cfab93cc834d",
+              "38049495cfaea72f"
+            ],
+            "bbox": {
+              "minX": 99.5,
+              "minY": 704.5,
+              "maxX": 122,
+              "maxY": 722
+            },
+            "other": {
+              "primitiveId": "38049495cfaea72f",
+              "componentType": "netport",
+              "net": "C9_N12",
+              "bbox": {
+                "minX": 55.5,
+                "minY": 704.5,
+                "maxX": 130.5,
+                "maxY": 715.5
+              }
+            },
+            "overlapX": 22.5,
+            "overlapY": 11
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "primitiveId": "2df2f4d8df66f653",
+            "markerNet": "GND",
+            "message": "GND(netflag) 与 5V(netflag) 视觉重叠 12.00×2.50 — 换方向/offset 或 stagger",
+            "componentType": "netflag",
+            "primitiveIds": [
+              "2df2f4d8df66f653",
+              "f1411cc16f44216e"
+            ],
+            "bbox": {
+              "minX": 380.5,
+              "minY": 494.5,
+              "maxX": 418,
+              "maxY": 517
+            },
+            "other": {
+              "primitiveId": "f1411cc16f44216e",
+              "componentType": "netflag",
+              "net": "5V",
+              "bbox": {
+                "minX": 404,
+                "minY": 514.5,
+                "maxX": 416,
+                "maxY": 532.5
+              }
+            },
+            "overlapX": 12,
+            "overlapY": 2.5
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "primitiveId": "2feb2df27346e9bc",
+            "markerNet": "C9_N1",
+            "message": "C9_N1(netport) 与 GND(netflag) 视觉重叠 11.00×7.00 — 换方向/offset 或 stagger",
+            "componentType": "netport",
+            "primitiveIds": [
+              "2feb2df27346e9bc",
+              "f5aa02f5acecca58"
+            ],
+            "bbox": {
+              "minX": 244.5,
+              "minY": 404.5,
+              "maxX": 255.5,
+              "maxY": 473.5
+            },
+            "other": {
+              "primitiveId": "f5aa02f5acecca58",
+              "componentType": "netflag",
+              "net": "GND",
+              "bbox": {
+                "minX": 239.5,
+                "minY": 389.5,
+                "maxX": 260.5,
+                "maxY": 411.5
+              }
+            },
+            "overlapX": 11,
+            "overlapY": 7
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "designator": "U4",
+            "primitiveId": "3aa5b8868357eb99",
+            "message": "U4(part) 与 C9_N1(netport) 视觉重叠 61.00×11.00 — 换方向/offset 或 stagger",
+            "componentType": "part",
+            "primitiveIds": [
+              "3aa5b8868357eb99",
+              "c24884303ba6970b"
+            ],
+            "bbox": {
+              "minX": 469.5,
+              "minY": 684.5,
+              "maxX": 550.5,
+              "maxY": 735.5
+            },
+            "other": {
+              "primitiveId": "c24884303ba6970b",
+              "componentType": "netport",
+              "net": "C9_N1",
+              "bbox": {
+                "minX": 461.5,
+                "minY": 699.5,
+                "maxX": 530.5,
+                "maxY": 710.5
+              }
+            },
+            "overlapX": 61,
+            "overlapY": 11
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "designator": "U4",
+            "primitiveId": "3aa5b8868357eb99",
+            "message": "U4(part) 与 C9_N7(netport) 视觉重叠 51.00×11.00 — 换方向/offset 或 stagger",
+            "componentType": "part",
+            "primitiveIds": [
+              "3aa5b8868357eb99",
+              "c8b6b6ecebc05136"
+            ],
+            "bbox": {
+              "minX": 469.5,
+              "minY": 684.5,
+              "maxX": 550.5,
+              "maxY": 735.5
+            },
+            "other": {
+              "primitiveId": "c8b6b6ecebc05136",
+              "componentType": "netport",
+              "net": "C9_N7",
+              "bbox": {
+                "minX": 499.5,
+                "minY": 699.5,
+                "maxX": 568.5,
+                "maxY": 710.5
+              }
+            },
+            "overlapX": 51,
+            "overlapY": 11
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "primitiveId": "3b0967181e0dbd50",
+            "markerNet": "GND",
+            "message": "GND(netflag) 与 VIN(netflag) 视觉重叠 17.00×9.50 — 换方向/offset 或 stagger",
+            "componentType": "netflag",
+            "primitiveIds": [
+              "3b0967181e0dbd50",
+              "eb896fadc90e0b20"
+            ],
+            "bbox": {
+              "minX": 210.5,
+              "minY": 579.5,
+              "maxX": 248,
+              "maxY": 602
+            },
+            "other": {
+              "primitiveId": "eb896fadc90e0b20",
+              "componentType": "netflag",
+              "net": "VIN",
+              "bbox": {
+                "minX": 231,
+                "minY": 592.5,
+                "maxX": 249,
+                "maxY": 610.5
+              }
+            },
+            "overlapX": 17,
+            "overlapY": 9.5
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "primitiveId": "570ecceb184f9dcf",
+            "markerNet": "C9_N9",
+            "message": "C9_N9(netport) 与 C13(part) 视觉重叠 6.00×7.00 — 换方向/offset 或 stagger",
+            "componentType": "netport",
+            "primitiveIds": [
+              "570ecceb184f9dcf",
+              "cb38510b32ecb9d8"
+            ],
+            "bbox": {
+              "minX": 264.5,
+              "minY": 574.5,
+              "maxX": 275.5,
+              "maxY": 643.5
+            },
+            "other": {
+              "primitiveId": "cb38510b32ecb9d8",
+              "componentType": "part",
+              "designator": "C13",
+              "bbox": {
+                "minX": 249.5,
+                "minY": 636.5,
+                "maxX": 270.5,
+                "maxY": 653.5
+              }
+            },
+            "overlapX": 6,
+            "overlapY": 7
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "primitiveId": "570ecceb184f9dcf",
+            "markerNet": "C9_N9",
+            "message": "C9_N9(netport) 与 GND(netflag) 视觉重叠 6.00×22.00 — 换方向/offset 或 stagger",
+            "componentType": "netport",
+            "primitiveIds": [
+              "570ecceb184f9dcf",
+              "f861cf06f9e7a7ad"
+            ],
+            "bbox": {
+              "minX": 264.5,
+              "minY": 574.5,
+              "maxX": 275.5,
+              "maxY": 643.5
+            },
+            "other": {
+              "primitiveId": "f861cf06f9e7a7ad",
+              "componentType": "netflag",
+              "net": "GND",
+              "bbox": {
+                "minX": 269.5,
+                "minY": 583.5,
+                "maxX": 290.5,
+                "maxY": 605.5
+              }
+            },
+            "overlapX": 6,
+            "overlapY": 22
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "primitiveId": "6ad19e06a0d16247",
+            "markerNet": "C9_N5",
+            "message": "C9_N5(netport) 与 C13(part) 视觉重叠 6.00×17.00 — 换方向/offset 或 stagger",
+            "componentType": "netport",
+            "primitiveIds": [
+              "6ad19e06a0d16247",
+              "cb38510b32ecb9d8"
+            ],
+            "bbox": {
+              "minX": 244.5,
+              "minY": 601.5,
+              "maxX": 255.5,
+              "maxY": 670.5
+            },
+            "other": {
+              "primitiveId": "cb38510b32ecb9d8",
+              "componentType": "part",
+              "designator": "C13",
+              "bbox": {
+                "minX": 249.5,
+                "minY": 636.5,
+                "maxX": 270.5,
+                "maxY": 653.5
+              }
+            },
+            "overlapX": 6,
+            "overlapY": 17
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "primitiveId": "6ad19e06a0d16247",
+            "markerNet": "C9_N5",
+            "message": "C9_N5(netport) 与 VIN(netflag) 视觉重叠 4.50×9.00 — 换方向/offset 或 stagger",
+            "componentType": "netport",
+            "primitiveIds": [
+              "6ad19e06a0d16247",
+              "eb896fadc90e0b20"
+            ],
+            "bbox": {
+              "minX": 244.5,
+              "minY": 601.5,
+              "maxX": 255.5,
+              "maxY": 670.5
+            },
+            "other": {
+              "primitiveId": "eb896fadc90e0b20",
+              "componentType": "netflag",
+              "net": "VIN",
+              "bbox": {
+                "minX": 231,
+                "minY": 592.5,
+                "maxX": 249,
+                "maxY": 610.5
+              }
+            },
+            "overlapX": 4.5,
+            "overlapY": 9
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "primitiveId": "6fa5445dda5874a1",
+            "markerNet": "VIN_F",
+            "message": "VIN_F(netflag) 与 D4(part) 视觉重叠 14.00×9.00 — 换方向/offset 或 stagger",
+            "componentType": "netflag",
+            "primitiveIds": [
+              "6fa5445dda5874a1",
+              "9336df1ebfea2f1b"
+            ],
+            "bbox": {
+              "minX": 280,
+              "minY": 349.5,
+              "maxX": 320.5,
+              "maxY": 367
+            },
+            "other": {
+              "primitiveId": "9336df1ebfea2f1b",
+              "componentType": "part",
+              "designator": "D4",
+              "bbox": {
+                "minX": 304.49999999999994,
+                "minY": 342.50000000000006,
+                "maxX": 318.49999999999994,
+                "maxY": 358.50000000000006
+              }
+            },
+            "overlapX": 14,
+            "overlapY": 9
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "primitiveId": "8c78aa8e8df9f50e",
+            "markerNet": "5V",
+            "message": "5V(netflag) 与 C9_N4(netport) 视觉重叠 11.00×18.00 — 换方向/offset 或 stagger",
+            "componentType": "netflag",
+            "primitiveIds": [
+              "8c78aa8e8df9f50e",
+              "bfd9cbcd6513d160"
+            ],
+            "bbox": {
+              "minX": 124,
+              "minY": 384.5,
+              "maxX": 136,
+              "maxY": 402.5
+            },
+            "other": {
+              "primitiveId": "bfd9cbcd6513d160",
+              "componentType": "netport",
+              "net": "C9_N4",
+              "bbox": {
+                "minX": 124.5,
+                "minY": 361.5,
+                "maxX": 135.5,
+                "maxY": 430.5
+              }
+            },
+            "overlapX": 11,
+            "overlapY": 18
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "primitiveId": "a7183a6826596bf7",
+            "markerNet": "C9_N5",
+            "message": "C9_N5(netport) 与 VIN(netflag) 视觉重叠 11.00×18.00 — 换方向/offset 或 stagger",
+            "componentType": "netport",
+            "primitiveIds": [
+              "a7183a6826596bf7",
+              "d8efb1e6625c9cdc"
+            ],
+            "bbox": {
+              "minX": 484.5,
+              "minY": 361.5,
+              "maxX": 495.5,
+              "maxY": 430.5
+            },
+            "other": {
+              "primitiveId": "d8efb1e6625c9cdc",
+              "componentType": "netflag",
+              "net": "VIN",
+              "bbox": {
+                "minX": 481,
+                "minY": 384.5,
+                "maxX": 499,
+                "maxY": 402.5
+              }
+            },
+            "overlapX": 11,
+            "overlapY": 18
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "primitiveId": "c24884303ba6970b",
+            "markerNet": "C9_N1",
+            "message": "C9_N1(netport) 与 C9_N7(netport) 视觉重叠 31.00×11.00 — 换方向/offset 或 stagger",
+            "componentType": "netport",
+            "primitiveIds": [
+              "c24884303ba6970b",
+              "c8b6b6ecebc05136"
+            ],
+            "bbox": {
+              "minX": 461.5,
+              "minY": 699.5,
+              "maxX": 530.5,
+              "maxY": 710.5
+            },
+            "other": {
+              "primitiveId": "c8b6b6ecebc05136",
+              "componentType": "netport",
+              "net": "C9_N7",
+              "bbox": {
+                "minX": 499.5,
+                "minY": 699.5,
+                "maxX": 568.5,
+                "maxY": 710.5
+              }
+            },
+            "overlapX": 31,
+            "overlapY": 11
+          },
+          {
+            "type": "redundant-net-marker",
+            "level": "warn",
+            "markerNet": "VIN",
+            "count": 2,
+            "message": "同一根线树上有 2 个 VIN(netflag)标志 — 一个命名即可,其余是修补残留(视觉堆叠);建议保留 11b9b817e8150f36,删除 8381f88f832312c5",
+            "at": {
+              "x": 260,
+              "y": 555
+            },
+            "componentType": "netflag",
+            "primitiveIds": [
+              "11b9b817e8150f36",
+              "8381f88f832312c5"
+            ],
+            "suggestKeepId": "11b9b817e8150f36",
+            "suggestDeleteIds": [
+              "8381f88f832312c5"
+            ]
+          },
+          {
+            "type": "reversed-net-flag",
+            "level": "warn",
+            "primitiveId": "8381f88f832312c5",
+            "markerNet": "VIN",
+            "message": "VIN 旗反挂:桩朝 down 而旗 rot=90(应为 180)— `sch disconnect` 后 `sch connect --direction down` 重连(或该 pin `sch autoconnect --replace`)",
+            "at": {
+              "x": 270,
+              "y": 555
+            },
+            "componentType": "netflag",
+            "bbox": {
+              "minX": 259.5,
+              "minY": 549.5,
+              "maxX": 265.5,
+              "maxY": 560.5
+            }
+          },
+          {
+            "type": "missing-partition",
+            "level": "warn",
+            "count": 24,
+            "message": "24 个器件的页已分成 21 个功能模块(虚拟组/认领)但一个分区框都没画 — 铁律#15:`sch zone-draw --mode partition`;被拒(partitionOverlap / titleBlockHits)就先跑 `sch zone-plan` 看逐条 ✗ —— 它点名是哪两个区顶住、还差多少,并给出一条 `sch zone move --zone \u003c区\u003e --dx/--dy \u003c量\u003e` 的最小挪动;挪完再画,整页重排 `sch zone-arrange --apply` 或拆页是最后一档"
+          },
+          {
+            "type": "missing-note",
+            "level": "warn",
+            "count": 24,
+            "message": "24 个器件的页没有电路说明(区名标签不算)— 每模块 1~3 行 `sch note`:作用 + 关键参数 + 设计要点;交付前必须有"
+          },
+          {
+            "type": "missing-titleblock",
+            "level": "warn",
+            "count": 3,
+            "message": "图签未填:Name(图纸标题)、Drawed(设计者)、Description(图纸说明) — 交付图必须能认领(`sch titleblock --data '{\"Name\":\"…\",\"Drawed\":\"…\"}'`)"
+          }
+        ]
+      }
+    },
+    {
+      "name": "bridge-check",
+      "status": "fail",
+      "errors": 3,
+      "warnings": 7,
+      "blockingReasons": [
+        "3 wire-bridge(真短路)",
+        "7 orphan-stub (--strict)"
+      ],
+      "summary": "3 bridge(short), 7 orphan-stub, 0 orphan-flag, 0 orphan-tree (55 wire tree(s))",
+      "detail": {
+        "passed": false,
+        "summary": {
+          "trees": 10,
+          "bridges": 3,
+          "orphans": 7,
+          "orphanFlags": 0,
+          "orphanTrees": 0,
+          "wireTreesTotal": 55
+        },
+        "trees": [
+          {
+            "kind": "BRIDGE",
+            "type": "wire-bridge",
+            "level": "error",
+            "wireIds": [
+              "f0d0c4c8662549d8"
+            ],
+            "flagIds": [
+              "a9e455fe86521d0c",
+              "616ad4d43bf34db4"
+            ],
+            "pins": [
+              "R14:2"
+            ],
+            "nets": [
+              "C9_N14",
+              "C9_N10"
+            ]
+          },
+          {
+            "kind": "BRIDGE",
+            "type": "wire-bridge",
+            "level": "error",
+            "wireIds": [
+              "9134d9aa66e03073"
+            ],
+            "flagIds": [
+              "f5aa02f5acecca58",
+              "6fa5445dda5874a1",
+              "2feb2df27346e9bc"
+            ],
+            "pins": [
+              "J3:2",
+              "J3:1"
+            ],
+            "nets": [
+              "GND",
+              "VIN_F",
+              "C9_N1"
+            ]
+          },
+          {
+            "kind": "ORPHAN",
+            "type": "orphan-stub",
+            "level": "warn",
+            "wireIds": [
+              "9477a2b0b69b387f"
+            ],
+            "flagIds": [],
+            "pins": [
+              "R20:2"
+            ],
+            "nets": []
+          },
+          {
+            "kind": "ORPHAN",
+            "type": "orphan-stub",
+            "level": "warn",
+            "wireIds": [
+              "d3041cb8e63db901"
+            ],
+            "flagIds": [
+              "b677a8864934e4ee"
+            ],
+            "pins": [
+              "U4:4"
+            ],
+            "nets": []
+          },
+          {
+            "kind": "BRIDGE",
+            "type": "wire-bridge",
+            "level": "error",
+            "wireIds": [
+              "14b3d77e5ec15659"
+            ],
+            "flagIds": [
+              "570ecceb184f9dcf",
+              "8381f88f832312c5",
+              "11b9b817e8150f36"
+            ],
+            "pins": [
+              "C9:1",
+              "C10:1"
+            ],
+            "nets": [
+              "C9_N9",
+              "VIN"
+            ]
+          },
+          {
+            "kind": "ORPHAN",
+            "type": "orphan-stub",
+            "level": "warn",
+            "wireIds": [
+              "c5b3750483b22e78"
+            ],
+            "flagIds": [],
+            "pins": [
+              "D4:1"
+            ],
+            "nets": []
+          },
+          {
+            "kind": "ORPHAN",
+            "type": "orphan-stub",
+            "level": "warn",
+            "wireIds": [
+              "dc82e06cf04285e4"
+            ],
+            "flagIds": [],
+            "pins": [
+              "R16:1"
+            ],
+            "nets": []
+          },
+          {
+            "kind": "ORPHAN",
+            "type": "orphan-stub",
+            "level": "warn",
+            "wireIds": [
+              "7ced8d629b459b9c"
+            ],
+            "flagIds": [],
+            "pins": [
+              "C11:2"
+            ],
+            "nets": []
+          },
+          {
+            "kind": "ORPHAN",
+            "type": "orphan-stub",
+            "level": "warn",
+            "wireIds": [
+              "aff9c8a7c6d27a6b"
+            ],
+            "flagIds": [],
+            "pins": [
+              "R17:2"
+            ],
+            "nets": []
+          },
+          {
+            "kind": "ORPHAN",
+            "type": "orphan-stub",
+            "level": "warn",
+            "wireIds": [
+              "0d3d158615bbebf8"
+            ],
+            "flagIds": [],
+            "pins": [
+              "C14:1"
+            ],
+            "nets": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "drc",
+      "status": "fail",
+      "errors": 2,
+      "warnings": 37,
+      "blockingReasons": [
+        "1 fatal DRC violation",
+        "1 error-level DRC violation",
+        "37 warn-level DRC violation (--strict;平台只回聚合数,逐条明细请在 EasyEDA 的 DRC 面板查看)"
+      ],
+      "summary": "0 fatal, 1 error, 37 warn, 0 info (total 38)",
+      "detail": {
+        "passed": false,
+        "fatal": 1,
+        "summary": {
+          "fatal": 0,
+          "error": 1,
+          "warn": 37,
+          "info": 0,
+          "unknown": 0,
+          "total": 38
+        },
+        "violations": [
+          {
+            "level": "error",
+            "type": "error",
+            "count": 1,
+            "raw": {
+              "count": 1,
+              "type": "error"
+            }
+          },
+          {
+            "level": "warn",
+            "type": "warn",
+            "count": 37,
+            "raw": {
+              "count": 37,
+              "type": "warn"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "blockers": [
+    "layout-lint: 1 tight-spacing (--strict)",
+    "clusters: 13 处组间图元重叠; 1 个组探出图纸可用区; 28 处组间过近 (--strict)",
+    "check: 38 个 warn finding (--strict;info 不阻塞): marker-overlap×20, dangling-wire×6, wire-crossing×4, multi-net-wire×3, missing-note×1, missing-partition×1, missing-titleblock×1, redundant-net-marker×1, reversed-net-flag×1",
+    "bridge-check: 3 wire-bridge(真短路); 7 orphan-stub (--strict)",
+    "drc: 1 fatal DRC violation; 1 error-level DRC violation; 37 warn-level DRC violation (--strict;平台只回聚合数,逐条明细请在 EasyEDA 的 DRC 面板查看)"
+  ],
+  "warnings": [
+    "layout-lint: 1 条告警",
+    "clusters: 28 条告警",
+    "check: 38 条告警",
+    "bridge-check: 7 条告警",
+    "drc: 37 条告警"
+  ]
+}

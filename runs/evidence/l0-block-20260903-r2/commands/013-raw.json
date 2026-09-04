@@ -1,0 +1,76 @@
+{
+  "overall": 94.7,
+  "verdict": "excellent",
+  "dimensions": [
+    {
+      "id": "folded-labels",
+      "title": "标签折叠",
+      "status": "scored",
+      "score": 100,
+      "weight": 1.2
+    },
+    {
+      "id": "reversed-labels",
+      "title": "标签反向",
+      "status": "scored",
+      "score": 100,
+      "weight": 1.2
+    },
+    {
+      "id": "proximity",
+      "title": "外围贴核心",
+      "status": "scored",
+      "score": 77.6,
+      "weight": 1,
+      "attributions": [
+        {
+          "dimension": "proximity",
+          "target": "C3",
+          "penalty": 14,
+          "message": "C3 距核心 U1 边距 297(\u003e150 开始扣分)— 建议移到 U1 上方 (1040,480) 附近后重连",
+          "fix": "easyeda sch modify --id 14b87fc78747d652 --patch '{\"x\":1040,\"y\":480}'",
+          "at": {
+            "x": 700,
+            "y": 470
+          }
+        },
+        {
+          "dimension": "proximity",
+          "target": "C1",
+          "penalty": 8.5,
+          "message": "C1 距核心 U1 边距 239(\u003e150 开始扣分)— 建议移到 U1 上方 (1040,480) 附近后重连",
+          "fix": "easyeda sch modify --id 4af60e037cf17e8e --patch '{\"x\":1040,\"y\":480}'",
+          "at": {
+            "x": 995,
+            "y": 690
+          }
+        }
+      ]
+    },
+    {
+      "id": "stub-tidiness",
+      "title": "长链/挤压",
+      "status": "scored",
+      "score": 100,
+      "weight": 0.8
+    },
+    {
+      "id": "frame-fit",
+      "title": "版面整洁",
+      "status": "skipped",
+      "score": 0,
+      "weight": 0.5,
+      "reason": "components.list 未暴露 text 图元 bbox,且分区框几何不在 workflow state — 未测(≠满分)"
+    }
+  ],
+  "dimensionScores": {
+    "folded-labels": 100,
+    "proximity": 77.6,
+    "reversed-labels": 100,
+    "stub-tidiness": 100
+  },
+  "componentCount": 16,
+  "scoredDims": 4,
+  "skippedDims": 1,
+  "summary": "sch layout-score: 综合 94.7 [excellent] — 4 维已测 / 1 维未测(skipped≠满分),16 图元"
+}

@@ -1,0 +1,714 @@
+{
+  "ok": false,
+  "verdict": "fail",
+  "stages": [
+    {
+      "name": "layout-lint",
+      "status": "pass",
+      "errors": 0,
+      "warnings": 0,
+      "summary": "0 overlap, 0 pin-coincidence, 0 tight, 0 off-grid, 0 out-of-sheet, 0 no-bbox, 0 unchecked-pin, 0 unproven-pin, 0 invalid-geometry (zone-check=not-configured sheet-check=checked)",
+      "detail": {
+        "schemaVersion": 2,
+        "ok": true,
+        "strict": true,
+        "minGap": 2.54,
+        "componentCount": 14,
+        "withBBox": 14,
+        "skippedNonParts": 34,
+        "overlaps": null,
+        "tightSpacing": null,
+        "pinCoincidences": null,
+        "measurementUnit": "mm",
+        "coordinateUnit": "0.01inch",
+        "anchorGridRaw": 5,
+        "anchorGridUnit": "0.01inch",
+        "zoneCheckStatus": "not-configured",
+        "sheetCheckStatus": "checked",
+        "pinEps": 0,
+        "summary": "strict=true: 14 components (14 with bbox): 0 overlap, 0 tight (\u003c2.54mm), 0 pin-coincidence, 0 off-grid, 0 out-of-sheet, 0 unchecked-bbox, 0 unchecked-pins, 0 unproven-pins, 0 invalid-geometry; zoneCheck=not-configured sheetCheck=checked"
+      }
+    },
+    {
+      "name": "clusters",
+      "status": "fail",
+      "errors": 1,
+      "warnings": 5,
+      "blockingReasons": [
+        "1 处组间图元重叠",
+        "5 处组间过近 (--strict)"
+      ],
+      "summary": "14 个虚拟组:1 重叠 / 0 出图纸 / 5 过近",
+      "detail": {
+        "clusters": [
+          {
+            "designator": "ULNM1",
+            "primitiveId": "1dd419b1d4f304e9",
+            "body": {
+              "minX": 259.5,
+              "minY": 702.5,
+              "maxX": 320.5,
+              "maxY": 797.5
+            },
+            "box": {
+              "minX": 33.5,
+              "minY": 653.5,
+              "maxX": 546.5,
+              "maxY": 797.5
+            },
+            "markers": 14,
+            "wires": 16,
+            "members": [
+              "part     ULNM1    x=[260,320] y=[702,798]",
+              "wire              x=[330,480] y=[745,745]",
+              "wire              x=[330,330] y=[685,715]",
+              "wire              x=[330,395] y=[725,725]",
+              "wire              x=[270,330] y=[735,735]",
+              "wire              x=[250,250] y=[685,715]",
+              "wire              x=[220,250] y=[785,785]",
+              "wire              x=[185,250] y=[775,775]",
+              "wire              x=[145,250] y=[765,765]",
+              "wire              x=[220,250] y=[755,755]",
+              "wire              x=[185,250] y=[745,745]",
+              "wire              x=[250,310] y=[725,725]",
+              "wire              x=[100,250] y=[735,735]",
+              "wire              x=[330,350] y=[755,755]",
+              "wire              x=[330,385] y=[765,765]",
+              "wire              x=[300,330] y=[775,775]",
+              "wire              x=[330,350] y=[785,785]",
+              "netport  GND      x=[490,546] y=[740,750]",
+              "netflag  VIN      x=[321,339] y=[662,680]",
+              "netport  GND      x=[404,462] y=[720,730]",
+              "netflag  GND      x=[240,260] y=[654,676]",
+              "netport  M1_IN_A  x=[130,210] y=[780,790]",
+              "netport  M1_IN_B  x=[94,176] y=[770,780]",
+              "netport  M1_IN_C  x=[54,136] y=[760,770]",
+              "netport  M1_IN_D  x=[130,210] y=[750,760]",
+              "netport  GND      x=[118,176] y=[740,750]",
+              "netport  GND      x=[34,90] y=[730,740]",
+              "netport  STEP1_D  x=[360,440] y=[750,760]",
+              "netport  STEP1_C  x=[394,476] y=[760,770]",
+              "netport  STEP1_B  x=[210,290] y=[770,780]",
+              "netport  STEP1_A  x=[360,440] y=[780,790]"
+            ]
+          },
+          {
+            "designator": "HDRSTEP1",
+            "primitiveId": "f79a2f450c698ffe",
+            "body": {
+              "minX": 239.5,
+              "minY": 354.5,
+              "maxX": 260.5,
+              "maxY": 405.5
+            },
+            "box": {
+              "minX": 74.5,
+              "minY": 345,
+              "maxX": 525,
+              "maxY": 515.5
+            },
+            "markers": 5,
+            "wires": 6,
+            "members": [
+              "part     HDRSTEP1 x=[240,260] y=[354,406]",
+              "wire              x=[255,525] y=[345,345]",
+              "wire              x=[230,230] y=[395,425]",
+              "wire              x=[210,230] y=[385,385]",
+              "wire              x=[200,230] y=[375,375]",
+              "wire              x=[165,230] y=[365,365]",
+              "wire              x=[255,255] y=[415,445]",
+              "netport  STEP1_A  x=[224,236] y=[434,516]",
+              "netport  STEP1_B  x=[120,200] y=[380,390]",
+              "netport  STEP1_C  x=[110,190] y=[370,380]",
+              "netport  STEP1_D  x=[74,156] y=[360,370]",
+              "netport  VIN      x=[250,260] y=[454,512]"
+            ]
+          },
+          {
+            "designator": "RLEDM1C",
+            "primitiveId": "4c43c44e8ca88af9",
+            "body": {
+              "minX": 124.5,
+              "minY": 70.5,
+              "maxX": 145.5,
+              "maxY": 79.5
+            },
+            "box": {
+              "minX": 109.5,
+              "minY": 70.5,
+              "maxX": 160.5,
+              "maxY": 201.5
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     RLEDM1C  x=[124,146] y=[70,80]",
+              "wire              x=[115,115] y=[75,105]",
+              "wire              x=[155,155] y=[75,105]",
+              "netport  VIN      x=[110,120] y=[114,172]",
+              "netport  LEDM1C_P x=[150,160] y=[114,202]"
+            ]
+          },
+          {
+            "designator": "R7",
+            "primitiveId": "822054b30420eaef",
+            "body": {
+              "minX": 154.50000000000003,
+              "minY": 530.5,
+              "maxX": 175.50000000000003,
+              "maxY": 539.5
+            },
+            "box": {
+              "minX": 154.50000000000003,
+              "minY": 530.5,
+              "maxX": 190.5,
+              "maxY": 661.5
+            },
+            "markers": 1,
+            "wires": 1,
+            "members": [
+              "part     R7       x=[155,176] y=[530,540]",
+              "wire              x=[185,185] y=[535,565]",
+              "netport  LEDM1B_P x=[180,190] y=[574,662]"
+            ]
+          },
+          {
+            "designator": "LED5",
+            "primitiveId": "90cdec81347c693d",
+            "body": {
+              "minX": 279.49999999999994,
+              "minY": 517.5,
+              "maxX": 300.49999999999994,
+              "maxY": 543.5
+            },
+            "box": {
+              "minX": 279.49999999999994,
+              "minY": 414.5,
+              "maxX": 310.5,
+              "maxY": 543.5
+            },
+            "markers": 1,
+            "wires": 1,
+            "members": [
+              "part     LED5     x=[279,300] y=[518,544]",
+              "wire              x=[305,305] y=[505,535]",
+              "netport  STEP1_B  x=[300,310] y=[414,496]"
+            ]
+          },
+          {
+            "designator": "RLEDM1D",
+            "primitiveId": "2c9fc2b4496203a7",
+            "body": {
+              "minX": 429.5,
+              "minY": 265.5,
+              "maxX": 450.5,
+              "maxY": 274.5
+            },
+            "box": {
+              "minX": 323.5,
+              "minY": 264.5,
+              "maxX": 465.5,
+              "maxY": 396.5
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     RLEDM1D  x=[430,450] y=[266,274]",
+              "wire              x=[390,420] y=[270,270]",
+              "wire              x=[460,460] y=[270,300]",
+              "netport  VIN      x=[324,380] y=[264,276]",
+              "netport  LEDM1D_P x=[454,466] y=[310,396]"
+            ]
+          },
+          {
+            "designator": "R8",
+            "primitiveId": "876e591443b8c8ba",
+            "body": {
+              "minX": 479.5,
+              "minY": 585.5,
+              "maxX": 500.5,
+              "maxY": 594.5
+            },
+            "box": {
+              "minX": 464.5,
+              "minY": 585.5,
+              "maxX": 500.5,
+              "maxY": 716.5
+            },
+            "markers": 1,
+            "wires": 1,
+            "members": [
+              "part     R8       x=[480,500] y=[586,594]",
+              "wire              x=[470,470] y=[590,620]",
+              "netport  LEDM1C_P x=[464,476] y=[630,716]"
+            ]
+          },
+          {
+            "designator": "RLEDM1A",
+            "primitiveId": "d14be6b9b5c9107a",
+            "body": {
+              "minX": 494.5,
+              "minY": 410.5,
+              "maxX": 515.5,
+              "maxY": 419.5
+            },
+            "box": {
+              "minX": 479.5,
+              "minY": 410.5,
+              "maxX": 515.5,
+              "maxY": 511.5
+            },
+            "markers": 1,
+            "wires": 1,
+            "members": [
+              "part     RLEDM1A  x=[494,516] y=[410,420]",
+              "wire              x=[485,485] y=[415,445]",
+              "netport  VIN      x=[480,490] y=[454,512]"
+            ]
+          },
+          {
+            "designator": "LED6",
+            "primitiveId": "ff57916aa9c947e5",
+            "body": {
+              "minX": 604.4999999999999,
+              "minY": 407.5000000000001,
+              "maxX": 625.4999999999999,
+              "maxY": 433.5000000000001
+            },
+            "box": {
+              "minX": 604.4999999999999,
+              "minY": 407.5000000000001,
+              "maxX": 635.5,
+              "maxY": 545.5
+            },
+            "markers": 1,
+            "wires": 1,
+            "members": [
+              "part     LED6     x=[604,625] y=[408,434]",
+              "wire              x=[630,630] y=[425,455]",
+              "netport  STEP1_C  x=[624,636] y=[464,546]"
+            ]
+          },
+          {
+            "designator": "R6",
+            "primitiveId": "6d6500d980ff8d0d",
+            "body": {
+              "minX": 729.5,
+              "minY": 350.5,
+              "maxX": 750.5,
+              "maxY": 359.5
+            },
+            "box": {
+              "minX": 729.5,
+              "minY": 350.5,
+              "maxX": 750.5,
+              "maxY": 359.5
+            },
+            "markers": 0,
+            "wires": 0,
+            "members": [
+              "part     R6       x=[730,750] y=[350,360]"
+            ]
+          },
+          {
+            "designator": "R9",
+            "primitiveId": "4a09f1396fed128a",
+            "body": {
+              "minX": 799.5,
+              "minY": 585.5,
+              "maxX": 820.5,
+              "maxY": 594.5
+            },
+            "box": {
+              "minX": 784.5,
+              "minY": 463.5,
+              "maxX": 820.5,
+              "maxY": 594.5
+            },
+            "markers": 1,
+            "wires": 1,
+            "members": [
+              "part     R9       x=[800,820] y=[586,594]",
+              "wire              x=[790,790] y=[560,590]",
+              "netport  LEDM1D_P x=[784,796] y=[464,550]"
+            ]
+          },
+          {
+            "designator": "RLEDM1B",
+            "primitiveId": "5ef8bbad4ddfd093",
+            "body": {
+              "minX": 799.5,
+              "minY": 405.5,
+              "maxX": 820.5,
+              "maxY": 414.5
+            },
+            "box": {
+              "minX": 784.5,
+              "minY": 357.5,
+              "maxX": 839,
+              "maxY": 536.5
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     RLEDM1B  x=[800,820] y=[406,414]",
+              "wire              x=[790,790] y=[410,440]",
+              "wire              x=[830,830] y=[380,410]",
+              "netport  LEDM1B_P x=[784,796] y=[450,536]",
+              "netflag  VIN      x=[821,839] y=[358,376]"
+            ]
+          },
+          {
+            "designator": "LED4",
+            "primitiveId": "e6b52b2a328c4249",
+            "body": {
+              "minX": 854.4999999999999,
+              "minY": 337.5000000000001,
+              "maxX": 875.4999999999999,
+              "maxY": 363.5000000000001
+            },
+            "box": {
+              "minX": 854.4999999999999,
+              "minY": 337.5000000000001,
+              "maxX": 1000.5,
+              "maxY": 363.5000000000001
+            },
+            "markers": 1,
+            "wires": 1,
+            "members": [
+              "part     LED4     x=[854,875] y=[338,364]",
+              "wire              x=[880,910] y=[355,355]",
+              "netport  STEP1_A  x=[920,1000] y=[350,360]"
+            ]
+          },
+          {
+            "designator": "LED7",
+            "primitiveId": "f769e5700cc87656",
+            "body": {
+              "minX": 924.4999999999999,
+              "minY": 572.5000000000001,
+              "maxX": 945.4999999999999,
+              "maxY": 598.5000000000001
+            },
+            "box": {
+              "minX": 924.4999999999999,
+              "minY": 469.5,
+              "maxX": 955.5,
+              "maxY": 598.5000000000001
+            },
+            "markers": 1,
+            "wires": 1,
+            "members": [
+              "part     LED7     x=[924,945] y=[573,599]",
+              "wire              x=[950,950] y=[560,590]",
+              "netport  STEP1_D  x=[944,956] y=[470,550]"
+            ]
+          }
+        ],
+        "findings": [
+          {
+            "type": "overlap",
+            "a": "R9",
+            "b": "RLEDM1B",
+            "ovX": 11,
+            "ovY": 73,
+            "level": "ERROR"
+          },
+          {
+            "type": "tight",
+            "a": "ULNM1",
+            "b": "R8",
+            "gap": 3,
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "HDRSTEP1",
+            "b": "LED5",
+            "gap": 18.999999999999943,
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "HDRSTEP1",
+            "b": "RLEDM1D",
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "RLEDM1D",
+            "b": "RLEDM1A",
+            "gap": 19.5,
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "RLEDM1B",
+            "b": "LED4",
+            "gap": 15.499999999999886,
+            "level": "WARN"
+          }
+        ],
+        "sheetUsable": {
+          "minX": 12,
+          "minY": 12,
+          "maxX": 1158,
+          "maxY": 813
+        }
+      }
+    },
+    {
+      "name": "check",
+      "status": "fail",
+      "errors": 0,
+      "warnings": 8,
+      "blockingReasons": [
+        "8 个 warn finding (--strict;info 不阻塞): dangling-wire×3, marker-overlap×2, missing-note×1, missing-partition×1, missing-titleblock×1"
+      ],
+      "summary": "8 finding(s): 0 error/fatal, 8 warn/info",
+      "detail": {
+        "passed": false,
+        "summary": {
+          "floatingPins": 0,
+          "componentsWithFloating": 0,
+          "geomNetMismatches": 0,
+          "netMarkerMismatches": 0,
+          "multiNetWires": 0,
+          "wireCrossings": 0,
+          "wireOverPins": 0,
+          "zeroLengthWires": 0,
+          "danglingWires": 3,
+          "duplicateNetMarkers": 0,
+          "titleblockOverlaps": 0,
+          "markerOverlaps": 2,
+          "missingPartitions": 3,
+          "noteOutsideZones": 0,
+          "redundantNetMarkers": 0,
+          "foldedNetLabels": 0,
+          "reversedNetFlags": 0,
+          "polarityConventionOutliers": 0,
+          "total": 8
+        },
+        "findings": [
+          {
+            "type": "dangling-wire",
+            "level": "warn",
+            "wirePrimitiveId": "25b4c68f2295f439",
+            "message": "疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除)",
+            "at": {
+              "x": 270,
+              "y": 735
+            }
+          },
+          {
+            "type": "dangling-wire",
+            "level": "warn",
+            "wirePrimitiveId": "37534445d81817ec",
+            "message": "疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除)",
+            "at": {
+              "x": 525,
+              "y": 345
+            }
+          },
+          {
+            "type": "dangling-wire",
+            "level": "warn",
+            "wirePrimitiveId": "07706845c7618c8f",
+            "message": "疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除)",
+            "at": {
+              "x": 310,
+              "y": 725
+            }
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "designator": "ULNM1",
+            "primitiveId": "1dd419b1d4f304e9",
+            "message": "ULNM1(part) 与 STEP1_B(netport) 视觉重叠 31.00×11.00 — 换方向/offset 或 stagger",
+            "componentType": "part",
+            "primitiveIds": [
+              "1dd419b1d4f304e9",
+              "744a65e5f0bd16b6"
+            ],
+            "bbox": {
+              "minX": 259.5,
+              "minY": 702.5,
+              "maxX": 320.5,
+              "maxY": 797.5
+            },
+            "other": {
+              "primitiveId": "744a65e5f0bd16b6",
+              "componentType": "netport",
+              "net": "STEP1_B",
+              "bbox": {
+                "minX": 209.5,
+                "minY": 769.5,
+                "maxX": 290.5,
+                "maxY": 780.5
+              }
+            },
+            "overlapX": 31,
+            "overlapY": 11
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "primitiveId": "ac2557049b634862",
+            "markerNet": "LEDM1D_P",
+            "message": "LEDM1D_P(netport) 与 LEDM1B_P(netport) 视觉重叠 11.00×73.00 — 换方向/offset 或 stagger",
+            "componentType": "netport",
+            "primitiveIds": [
+              "ac2557049b634862",
+              "d532e7266833f4fc"
+            ],
+            "bbox": {
+              "minX": 784.5,
+              "minY": 463.5,
+              "maxX": 795.5,
+              "maxY": 550.5
+            },
+            "other": {
+              "primitiveId": "d532e7266833f4fc",
+              "componentType": "netport",
+              "net": "LEDM1B_P",
+              "bbox": {
+                "minX": 784.5,
+                "minY": 449.5,
+                "maxX": 795.5,
+                "maxY": 536.5
+              }
+            },
+            "overlapX": 11,
+            "overlapY": 73
+          },
+          {
+            "type": "missing-partition",
+            "level": "warn",
+            "count": 14,
+            "message": "14 个器件的页已分成 14 个功能模块(虚拟组/认领)但一个分区框都没画 — 铁律#15:`sch zone-draw --mode partition`;被拒(partitionOverlap / titleBlockHits)就先跑 `sch zone-plan` 看逐条 ✗ —— 它点名是哪两个区顶住、还差多少,并给出一条 `sch zone move --zone \u003c区\u003e --dx/--dy \u003c量\u003e` 的最小挪动;挪完再画,整页重排 `sch zone-arrange --apply` 或拆页是最后一档"
+          },
+          {
+            "type": "missing-note",
+            "level": "warn",
+            "count": 14,
+            "message": "14 个器件的页没有电路说明(区名标签不算)— 每模块 1~3 行 `sch note`:作用 + 关键参数 + 设计要点;交付前必须有"
+          },
+          {
+            "type": "missing-titleblock",
+            "level": "warn",
+            "count": 3,
+            "message": "图签未填:Name(图纸标题)、Drawed(设计者)、Description(图纸说明) — 交付图必须能认领(`sch titleblock --data '{\"Name\":\"…\",\"Drawed\":\"…\"}'`)"
+          }
+        ]
+      }
+    },
+    {
+      "name": "bridge-check",
+      "status": "fail",
+      "errors": 0,
+      "warnings": 3,
+      "blockingReasons": [
+        "3 orphan-stub (--strict)"
+      ],
+      "summary": "0 bridge(short), 3 orphan-stub, 0 orphan-flag, 0 orphan-tree (41 wire tree(s))",
+      "detail": {
+        "passed": false,
+        "summary": {
+          "trees": 3,
+          "bridges": 0,
+          "orphans": 3,
+          "orphanFlags": 0,
+          "orphanTrees": 0,
+          "wireTreesTotal": 41
+        },
+        "trees": [
+          {
+            "kind": "ORPHAN",
+            "type": "orphan-stub",
+            "level": "warn",
+            "wireIds": [
+              "25b4c68f2295f439"
+            ],
+            "flagIds": [],
+            "pins": [
+              "ULNM1:11"
+            ],
+            "nets": []
+          },
+          {
+            "kind": "ORPHAN",
+            "type": "orphan-stub",
+            "level": "warn",
+            "wireIds": [
+              "37534445d81817ec"
+            ],
+            "flagIds": [],
+            "pins": [
+              "HDRSTEP1:6"
+            ],
+            "nets": []
+          },
+          {
+            "kind": "ORPHAN",
+            "type": "orphan-stub",
+            "level": "warn",
+            "wireIds": [
+              "07706845c7618c8f"
+            ],
+            "flagIds": [],
+            "pins": [
+              "ULNM1:7"
+            ],
+            "nets": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "drc",
+      "status": "fail",
+      "errors": 0,
+      "warnings": 33,
+      "blockingReasons": [
+        "33 warn-level DRC violation (--strict;平台只回聚合数,逐条明细请在 EasyEDA 的 DRC 面板查看)"
+      ],
+      "summary": "0 fatal, 0 error, 33 warn, 0 info (total 33)",
+      "detail": {
+        "passed": false,
+        "fatal": 0,
+        "summary": {
+          "fatal": 0,
+          "error": 0,
+          "warn": 33,
+          "info": 0,
+          "unknown": 0,
+          "total": 33
+        },
+        "violations": [
+          {
+            "level": "warn",
+            "type": "warn",
+            "count": 33,
+            "raw": {
+              "count": 33,
+              "type": "warn"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "blockers": [
+    "clusters: 1 处组间图元重叠; 5 处组间过近 (--strict)",
+    "check: 8 个 warn finding (--strict;info 不阻塞): dangling-wire×3, marker-overlap×2, missing-note×1, missing-partition×1, missing-titleblock×1",
+    "bridge-check: 3 orphan-stub (--strict)",
+    "drc: 33 warn-level DRC violation (--strict;平台只回聚合数,逐条明细请在 EasyEDA 的 DRC 面板查看)"
+  ],
+  "warnings": [
+    "clusters: 5 条告警",
+    "check: 8 条告警",
+    "bridge-check: 3 条告警",
+    "drc: 33 条告警"
+  ]
+}

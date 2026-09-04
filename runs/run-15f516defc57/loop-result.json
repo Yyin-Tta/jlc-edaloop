@@ -1,0 +1,53 @@
+{
+ "status": "HALT",
+ "review_required": true,
+ "failure_class": "PLATFORM",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "5c5d131ea930",
+   "gate_verdict": "fail",
+   "findings": [
+    "code='FUNC_UNCOVERED' where=Where(ref='充放电双向开关', net='', pin='', xy='') evidence='IR 功能「充放电双向开关」在计划 7 块的词表/词元匹配中无覆盖证据(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=tight a=PROTFS82 b=JPOUT' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=tight a=PROTDW01 b=RCS' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='check', net='', pin='', xy='') evidence='type=dangling-wire message=疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除)' severity='error' suggested_fix_class='REWIRE' weak=False",
+    "code='GATE_FAIL' where=Where(ref='check', net='', pin='', xy='') evidence='type=marker-overlap message=CS_SENSE(netport) 与 PROTDW01(part) 视觉重叠 21.00×11.00 — 换方向/offset 或 stagger' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='check', net='', pin='', xy='') evidence='type=missing-partition message=7 个器件的页已分成 3 个功能模块(虚拟组/认领)但一个分区框都没画 — 铁律#15:`sch zone-draw --mode partition`;被拒(partitionOverlap / titleBlockHits)就先跑 `sch zone-plan` 看逐条 ✗ —— 它点名是哪两个区顶住、还差多少,并给出一条 `sch' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='check', net='', pin='', xy='') evidence='type=missing-note message=7 个器件的页没有电路说明(区名标签不算)— 每模块 1~3 行 `sch note`:作用 + 关键参数 + 设计要点;交付前必须有' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='check', net='', pin='', xy='') evidence='type=missing-titleblock message=图签未填:Name(图纸标题)、Drawed(设计者)、Description(图纸说明) — 交付图必须能认领(`sch titleblock --data \\'{\"Name\":\"…\",\"Drawed\":\"…\"}\\'`)' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='LAYOUT_MARKER_ON_BODY' where=Where(ref='PROTDW01', net='CS_SENSE', pin='2', xy='(794.5,769.5)-(825.5,780.5)') evidence='marker netport CS_SENSE (PROTDW01:2) ink (794.5,769.5)-(825.5,780.5) intersects component body PROTDW01 (764.5,754.5)-(815.5,795.5)' severity='warn' suggested_fix_class='RESEAT_MARKER' weak=True",
+    "code='LAYOUT_PIN_NET_MISMATCH' where=Where(ref='PROTFS82', net='FET_MID', pin='2', xy='') evidence=\"pin PROTFS82:2 expected net 'FET_MID', read back '$1N107'\" severity='error' suggested_fix_class='REBIND_NET' weak=False",
+    "code='GATE_UNVERIFIED' where=Where(ref='', net='', pin='', xy='') evidence='gate 响应结构无效: P1: gate 响应报告失败: ok=False' severity='error' suggested_fix_class='RETRY_ENV' weak=False"
+   ],
+   "feedback": "[GATE_FAIL@clusters] type=tight a=PROTFS82 b=JPOUT → 修复:重新规划:按 evidence 调整块选择/端口绑定\n[GATE_FAIL@check] type=dangling-wire message=疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除) → 修复:连线问题:检查悬空/短路网络的重叠与绑定\n[LAYOUT_PIN_NET_MISMATCH@PROTFS82:2] pin PROTFS82:2 expected net 'FET_MID', read back '$1N107' → 修复:把缺失的网络补进对应块的绑定:upstream 块用 ports_binding,place 通道器件用 pins_binding(引脚号→网名);同名引脚族(VSS*/VDD*/EP)都要绑\n[GATE_UNVERIFIED@-] gate 响应结构无效: P1: gate 响应报告失败: ok=False → 修复:环境问题(连接器/窗口/页面):无需改 plan,重试即可",
+   "halted": "",
+   "failure_class": "PLATFORM"
+  },
+  {
+   "round_no": 2,
+   "plan_id": "f30f3f76a389",
+   "gate_verdict": "fail",
+   "findings": [
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='P+/P- 输出焊盘:目录无焊盘/PCB-pad 类块,已用 KF301 2P 端子 jpout 实现同等 P+/P- 输出连接' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='FUNC_UNCOVERED' where=Where(ref='充放电双向开关', net='', pin='', xy='') evidence='IR 功能「充放电双向开关」在计划 6 块的词表/词元匹配中无覆盖证据(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=overlap a=PROTDW01 b=JPOUT' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=tight a=PROTFS b=R100' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='check', net='', pin='', xy='') evidence='type=floating-pin message=1 个引脚悬空(无导线连接,未打 NC 标识) designator=PROTDW01' severity='error' suggested_fix_class='REWIRE' weak=False",
+    "code='GATE_FAIL' where=Where(ref='check', net='', pin='', xy='') evidence='type=dangling-wire message=疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除)' severity='error' suggested_fix_class='REWIRE' weak=False",
+    "code='GATE_FAIL' where=Where(ref='check', net='', pin='', xy='') evidence='type=dangling-wire message=疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除)' severity='error' suggested_fix_class='REWIRE' weak=False",
+    "code='GATE_FAIL' where=Where(ref='check', net='', pin='', xy='') evidence='type=marker-overlap message=P_MINUS(netport) 与 FET_OD(netport) 视觉重叠 6.00×11.00 — 换方向/offset 或 stagger' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='check', net='', pin='', xy='') evidence='type=missing-partition message=6 个器件的页已分成 4 个功能模块(虚拟组/认领)但一个分区框都没画 — 铁律#15:`sch zone-draw --mode partition`;被拒(partitionOverlap / titleBlockHits)就先跑 `sch zone-plan` 看逐条 ✗ —— 它点名是哪两个区顶住、还差多少,并给出一条 `sch' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='check', net='', pin='', xy='') evidence='type=missing-note message=6 个器件的页没有电路说明(区名标签不算)— 每模块 1~3 行 `sch note`:作用 + 关键参数 + 设计要点;交付前必须有' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='check', net='', pin='', xy='') evidence='type=missing-titleblock message=图签未填:Name(图纸标题)、Drawed(设计者)、Description(图纸说明) — 交付图必须能认领(`sch titleblock --data \\'{\"Name\":\"…\",\"Drawed\":\"…\"}\\'`)' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='LAYOUT_PIN_NET_MISMATCH' where=Where(ref='JBAT', net='VBAT', pin='1', xy='') evidence=\"pin JBAT:1 expected net 'VBAT', read back '$1N190'\" severity='error' suggested_fix_class='REBIND_NET' weak=False",
+    "code='LAYOUT_PIN_NET_MISMATCH' where=Where(ref='PROTFS', net='FET_MID', pin='2', xy='') evidence=\"pin PROTFS:2 expected net 'FET_MID', read back '$1N205'\" severity='error' suggested_fix_class='REBIND_NET' weak=False",
+    "code='GATE_UNVERIFIED' where=Where(ref='', net='', pin='', xy='') evidence='gate 响应结构无效: P1: gate 响应报告失败: ok=False' severity='error' suggested_fix_class='RETRY_ENV' weak=False"
+   ],
+   "feedback": "",
+   "halted": "同错 2 轮:GATE_FAIL|GATE_UNVERIFIED|LAYOUT_PIN_NET_MISMATCH,升级人工",
+   "failure_class": "PLATFORM"
+  }
+ ],
+ "delivery": {}
+}

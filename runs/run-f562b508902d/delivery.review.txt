@@ -1,0 +1,8 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 19 blocks, status=PASS
+
+- [CRITIC_THERMAL@ldo_3v3] sizing_recommendations 给出 Tj≈136°C、裕量-30°C,AMS1117-3.3 在 5V→3.3V 带 ESP32-S3 峰值电流下明显过热,块描述中'压差余量按峰值电流算够'与计算结果矛盾,结温已超允许上限,设计不可用 | 建议: 改用同步 BUCK(如 TPS5430/MP2315 类 3.3V 输出)或至少升级为低压差、带散热焊盘的 LDO 并核算 ESP32-S3 WiFi 发射峰值电流下的功耗;不要沿用 AMS1117
+- [CRITIC_POWER_INTEGRITY@usbc_in] 块描述声明'仅供电不传数据,CC 下拉 5.1k 作 UFP',但同 plan 中 CH340 的 UD+/UD- 需要使用该 USB-C 连接器的 USB_DP/USB_DM 差分对传数据,描述与实际用途自相矛盾;且 CH340 属于数据设备(无需 CC 5.1k 也可工作,但按 UFP 设计不应排斥数据) | 建议: 修正 usbc_in 块描述为'供电+USB 2.0 数据',确认 D+/D- 走线 90Ω 差分、ESD 靠近连接器,并补齐 uncovered 中提到的
+- [CRITIC_INTERFACE_PROTECTION@ch340] CH340 由 5V VBUS 供电,其 TXD(USB_DTR/CH_TX 通路)高电平接近 5V,而下游目标是 3.3V 供电的 ESP32-S3 / STM32(非 5V 容忍),存在电平不匹配风险;且 CH_TX/CH_RX 与目标 MCU 的切换网络在 uncovered 中未解决,直连风险更直接 | 建议: 在 CH340 TXD/RXD 与 3.3V 侧之间加电平转换(如 TXS0108E/分压+上拉),或确认选用支持 3.3V VCC 供电的 CH340 变体
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

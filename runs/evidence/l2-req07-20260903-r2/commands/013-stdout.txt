@@ -1,0 +1,351 @@
+{
+  "overall": 47.9,
+  "verdict": "poor",
+  "dimensions": [
+    {
+      "id": "folded-labels",
+      "title": "标签折叠",
+      "status": "scored",
+      "score": 100,
+      "weight": 1.2
+    },
+    {
+      "id": "reversed-labels",
+      "title": "标签反向",
+      "status": "scored",
+      "score": 0,
+      "weight": 1.2,
+      "attributions": [
+        {
+          "dimension": "reversed-labels",
+          "target": "C10:1",
+          "penalty": 20,
+          "message": "C10 的 C9_N14 netport 背向核心 U4(朝左,核心在右)",
+          "fix": "easyeda sch disconnect --pin C10:1 \u0026\u0026 easyeda sch connect --x 250 --y 555 --kind netport --net C9_N14 --direction right --offset 24",
+          "at": {
+            "x": 230,
+            "y": 555
+          }
+        },
+        {
+          "dimension": "reversed-labels",
+          "target": "C14:1",
+          "penalty": 20,
+          "message": "C14 的 VIN netport 背向核心 U4(朝左,核心在右)",
+          "fix": "easyeda sch disconnect --pin C14:1 \u0026\u0026 easyeda sch connect --x 270 --y 585 --kind netport --net VIN --direction right --offset 24",
+          "at": {
+            "x": 120,
+            "y": 585
+          }
+        },
+        {
+          "dimension": "reversed-labels",
+          "target": "C9:2",
+          "penalty": 20,
+          "message": "C9 的 C9_N10 netport 背向核心 U4(朝左,核心在右)",
+          "fix": "easyeda sch disconnect --pin C9:2 \u0026\u0026 easyeda sch connect --x 700 --y 295 --kind netport --net C9_N10 --direction right --offset 24",
+          "at": {
+            "x": 680,
+            "y": 295
+          }
+        },
+        {
+          "dimension": "reversed-labels",
+          "target": "J3:1",
+          "penalty": 20,
+          "message": "J3 的 C9_N1 netport 背向核心 U4(朝左,核心在右)",
+          "fix": "easyeda sch disconnect --pin J3:1 \u0026\u0026 easyeda sch connect --x 270 --y 365 --kind netport --net C9_N1 --direction right --offset 24",
+          "at": {
+            "x": 250,
+            "y": 365
+          }
+        },
+        {
+          "dimension": "reversed-labels",
+          "target": "J3:2",
+          "penalty": 20,
+          "message": "J3 的 VIN_F netport 背向核心 U4(朝左,核心在右)",
+          "fix": "easyeda sch disconnect --pin J3:2 \u0026\u0026 easyeda sch connect --x 270 --y 355 --kind netport --net VIN_F --direction right --offset 24",
+          "at": {
+            "x": 215,
+            "y": 355
+          }
+        },
+        {
+          "dimension": "reversed-labels",
+          "target": "R14:2",
+          "penalty": 20,
+          "message": "R14 的 C9_N14 netport 背向核心 U4(朝左,核心在右)",
+          "fix": "easyeda sch disconnect --pin R14:2 \u0026\u0026 easyeda sch connect --x 149.99999999999997 --y 345 --kind netport --net C9_N14 --direction right --offset 24",
+          "at": {
+            "x": 110,
+            "y": 345
+          }
+        },
+        {
+          "dimension": "reversed-labels",
+          "target": "R16:2",
+          "penalty": 20,
+          "message": "R16 的 C9_N7 netport 背向核心 U4(朝左,核心在右)",
+          "fix": "easyeda sch disconnect --pin R16:2 \u0026\u0026 easyeda sch connect --x 499.9999999999999 --y 680.0000000000001 --kind netport --net C9_N7 --direction right --offset 24",
+          "at": {
+            "x": 480,
+            "y": 680
+          }
+        },
+        {
+          "dimension": "reversed-labels",
+          "target": "R18:2",
+          "penalty": 20,
+          "message": "R18 的 C9_N12 netport 背向核心 U4(朝左,核心在右)",
+          "fix": "easyeda sch disconnect --pin R18:2 \u0026\u0026 easyeda sch connect --x 190 --y 750 --kind netport --net C9_N12 --direction right --offset 24",
+          "at": {
+            "x": 160,
+            "y": 750
+          }
+        },
+        {
+          "dimension": "reversed-labels",
+          "target": "R19:1",
+          "penalty": 20,
+          "message": "R19 的 C9_N5 netport 背向核心 U4(朝左,核心在右)",
+          "fix": "easyeda sch disconnect --pin R19:1 \u0026\u0026 easyeda sch connect --x 335 --y 760 --kind netport --net C9_N5 --direction right --offset 24",
+          "at": {
+            "x": 295,
+            "y": 760
+          }
+        },
+        {
+          "dimension": "reversed-labels",
+          "target": "R20:1",
+          "penalty": 20,
+          "message": "R20 的 C9_N8 netport 背向核心 U4(朝左,核心在右)",
+          "fix": "easyeda sch disconnect --pin R20:1 \u0026\u0026 easyeda sch connect --x 729.9999999999999 --y 530.0000000000001 --kind netport --net C9_N8 --direction right --offset 24",
+          "at": {
+            "x": 700,
+            "y": 530
+          }
+        }
+      ]
+    },
+    {
+      "id": "proximity",
+      "title": "外围贴核心",
+      "status": "scored",
+      "score": 44.4,
+      "weight": 1,
+      "attributions": [
+        {
+          "dimension": "proximity",
+          "target": "C13",
+          "penalty": 5.9,
+          "message": "C13 距核心 U4 边距 532(\u003e150 开始扣分)— 建议移到 U4 上方 (800,495) 附近后重连",
+          "fix": "easyeda sch modify --id cb38510b32ecb9d8 --patch '{\"x\":800,\"y\":495}'",
+          "at": {
+            "x": 270,
+            "y": 695
+          }
+        },
+        {
+          "dimension": "proximity",
+          "target": "C17",
+          "penalty": 5.9,
+          "message": "C17 距核心 U4 边距 691(\u003e150 开始扣分)— 建议移到 U4 下方 (800,365) 附近后重连",
+          "fix": "easyeda sch modify --id 539be5a5618818d5 --patch '{\"x\":800,\"y\":365}'",
+          "at": {
+            "x": 70,
+            "y": 270
+          }
+        },
+        {
+          "dimension": "proximity",
+          "target": "R14",
+          "penalty": 5.9,
+          "message": "R14 距核心 U4 边距 582(\u003e150 开始扣分)— 建议移到 U4 下方 (800,365) 附近后重连",
+          "fix": "easyeda sch modify --id 7d94d620bc9fc4dd --patch '{\"x\":800,\"y\":365}'",
+          "at": {
+            "x": 170,
+            "y": 345
+          }
+        },
+        {
+          "dimension": "proximity",
+          "target": "R15",
+          "penalty": 5.9,
+          "message": "R15 距核心 U4 边距 692(\u003e150 开始扣分)— 建议移到 U4 上方 (800,495) 附近后重连",
+          "fix": "easyeda sch modify --id 2715e337adae77cf --patch '{\"x\":800,\"y\":495}'",
+          "at": {
+            "x": 100,
+            "y": 700
+          }
+        },
+        {
+          "dimension": "proximity",
+          "target": "R18",
+          "penalty": 5.9,
+          "message": "R18 距核心 U4 边距 648(\u003e150 开始扣分)— 建议移到 U4 上方 (800,495) 附近后重连",
+          "fix": "easyeda sch modify --id 552d34993fe9fad7 --patch '{\"x\":800,\"y\":495}'",
+          "at": {
+            "x": 170,
+            "y": 750
+          }
+        },
+        {
+          "dimension": "proximity",
+          "target": "C10",
+          "penalty": 5.8,
+          "message": "C10 距核心 U4 边距 497(\u003e150 开始扣分)— 建议移到 U4 上方 (800,495) 附近后重连",
+          "fix": "easyeda sch modify --id b81a497dce8c3c76 --patch '{\"x\":800,\"y\":495}'",
+          "at": {
+            "x": 265,
+            "y": 555
+          }
+        },
+        {
+          "dimension": "proximity",
+          "target": "R19",
+          "penalty": 5.8,
+          "message": "R19 距核心 U4 边距 495(\u003e150 开始扣分)— 建议移到 U4 上方 (800,495) 附近后重连",
+          "fix": "easyeda sch modify --id 7021682271db7662 --patch '{\"x\":800,\"y\":495}'",
+          "at": {
+            "x": 355,
+            "y": 760
+          }
+        },
+        {
+          "dimension": "proximity",
+          "target": "C14",
+          "penalty": 5.5,
+          "message": "C14 距核心 U4 边距 475(\u003e150 开始扣分)— 建议移到 U4 上方 (800,495) 附近后重连",
+          "fix": "easyeda sch modify --id 8dbff71552830e26 --patch '{\"x\":800,\"y\":495}'",
+          "at": {
+            "x": 290,
+            "y": 585
+          }
+        },
+        {
+          "dimension": "proximity",
+          "target": "L2",
+          "penalty": 3.1,
+          "message": "L2 距核心 U4 边距 333(\u003e150 开始扣分)— 建议移到 U4 上方 (800,495) 附近后重连",
+          "fix": "easyeda sch modify --id d476720d091b639f --patch '{\"x\":800,\"y\":495}'",
+          "at": {
+            "x": 410,
+            "y": 470
+          }
+        },
+        {
+          "dimension": "proximity",
+          "target": "C15",
+          "penalty": 2.9,
+          "message": "C15 距核心 U4 边距 322(\u003e150 开始扣分)— 建议移到 U4 上方 (800,495) 附近后重连",
+          "fix": "easyeda sch modify --id 81de32e951b937e6 --patch '{\"x\":800,\"y\":495}'",
+          "at": {
+            "x": 460,
+            "y": 605
+          }
+        },
+        {
+          "dimension": "proximity",
+          "target": "R16",
+          "penalty": 2.8,
+          "message": "R16 距核心 U4 边距 318(\u003e150 开始扣分)— 建议移到 U4 上方 (800,495) 附近后重连",
+          "fix": "easyeda sch modify --id d1f36beaa5b2b9d9 --patch '{\"x\":800,\"y\":495}'",
+          "at": {
+            "x": 520,
+            "y": 680
+          }
+        },
+        {
+          "dimension": "proximity",
+          "target": "C16",
+          "penalty": 0.3,
+          "message": "C16 距核心 U4 边距 167(\u003e150 开始扣分)— 建议移到 U4 上方 (800,495) 附近后重连",
+          "fix": "easyeda sch modify --id aa54e4efcafa94f1 --patch '{\"x\":800,\"y\":495}'",
+          "at": {
+            "x": 660,
+            "y": 605
+          }
+        }
+      ]
+    },
+    {
+      "id": "stub-tidiness",
+      "title": "长链/挤压",
+      "status": "scored",
+      "score": 46,
+      "weight": 0.8,
+      "attributions": [
+        {
+          "dimension": "stub-tidiness",
+          "target": "C14",
+          "penalty": 10,
+          "message": "C14 与其 2 个标记连成跨度 280 的长链(\u003e250)— 收短最远标记的 offset",
+          "fix": "easyeda sch disconnect --pin C14:1 \u0026\u0026 easyeda sch connect --x 270 --y 585 --kind netport --net VIN --direction right --offset 24",
+          "at": {
+            "x": 290,
+            "y": 585
+          }
+        },
+        {
+          "dimension": "stub-tidiness",
+          "target": "R17",
+          "penalty": 10,
+          "message": "R17 与其 2 个标记连成跨度 260 的长链(\u003e250)— 收短最远标记的 offset",
+          "fix": "easyeda sch disconnect --pin R17:1 \u0026\u0026 easyeda sch connect --x 870 --y 600 --kind netport --net C9_N7 --direction left --offset 24",
+          "at": {
+            "x": 890,
+            "y": 600
+          }
+        },
+        {
+          "dimension": "stub-tidiness",
+          "target": "U4",
+          "penalty": 10,
+          "message": "U4 与其 8 个标记连成跨度 455 的长链(\u003e250)— 收短最远标记的 offset",
+          "fix": "easyeda sch disconnect --pin U4:2 \u0026\u0026 easyeda sch connect --x 750 --y 435 --kind netport --net VIN --direction left --offset 24",
+          "at": {
+            "x": 800,
+            "y": 430
+          }
+        },
+        {
+          "dimension": "stub-tidiness",
+          "target": "D4↔Q1",
+          "penalty": 8,
+          "message": "D4 与 Q1 同排净距 39 \u003c 117(相向水平 netport 标签最小距)— 拉开间距(sch distribute --axis x)或把一侧标签换 direction"
+        },
+        {
+          "dimension": "stub-tidiness",
+          "target": "D5↔J3",
+          "penalty": 8,
+          "message": "D5 与 J3 同排净距 40 \u003c 117(相向水平 netport 标签最小距)— 拉开间距(sch distribute --axis x)或把一侧标签换 direction"
+        },
+        {
+          "dimension": "stub-tidiness",
+          "target": "J3↔R14",
+          "penalty": 8,
+          "message": "J3 与 R14 同排净距 99 \u003c 117(相向水平 netport 标签最小距)— 拉开间距(sch distribute --axis x)或把一侧标签换 direction"
+        }
+      ]
+    },
+    {
+      "id": "frame-fit",
+      "title": "版面整洁",
+      "status": "skipped",
+      "score": 0,
+      "weight": 0.5,
+      "reason": "components.list 未暴露 text 图元 bbox,且分区框几何不在 workflow state — 未测(≠满分)"
+    }
+  ],
+  "dimensionScores": {
+    "folded-labels": 100,
+    "proximity": 44.4,
+    "reversed-labels": 0,
+    "stub-tidiness": 46
+  },
+  "componentCount": 83,
+  "scoredDims": 4,
+  "skippedDims": 1,
+  "summary": "sch layout-score: 综合 47.9 [poor] — 4 维已测 / 1 维未测(skipped≠满分),83 图元"
+}

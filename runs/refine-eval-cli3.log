@@ -1,0 +1,41 @@
+[GAP] req-01-esp32s3-mini-2layer.md: golden 10/11 缺 ['interface:端子']
+[OK ] req-02-rs485-sensor-hub.md: golden 4/4
+[OK ] req-03-ir-remote-hub.md: golden 4/4
+[GAP] req-04-smart-dial-oled.md: golden 3/4 缺 ['rail:5V']
+[OK ] req-05-battery-ble-telemetry.md: golden 5/5
+[GAP] req-06-pico-native-usb-gateway.md: golden 4/5 缺 ['rail:5V']
+[GAP] req-07-motor-driver-board.md: golden 4/5 缺 ['interface:uart']
+[GAP] req-08-liion-protection-freeform.md: golden 1/3 缺 ['interface:battery', 'protection:protection']
+[OK ] req-09-ambiguous-sensor-node.md: golden 2/2
+[GAP] req-10-esp32s3-industrial-4layer.md: golden 11/13 缺 ['rail:5V', 'budget:5V']
+[GAP] req-11-isolated-dido-module.md: golden 3/4 缺 ['interface:端子']
+[OK ] req-12-hybrid-dual-mcu-gateway.md: golden 14/14
+[GAP] req-13-env-sensor-motherboard.md: golden 5/6 缺 ['rail:5V']
+[OK ] req-14-door-sensor-e2e.md: golden 5/5
+[OK ] 注入 run-84826dc6df2c drop rs485-max485 -> 「RS-485」点名
+[OK ] 注入 run-9eeb15964da3 drop charger-tp4056 -> 「充电」点名
+[OK ] 注入 run-52ddb0fd492e drop mcu-esp32s3-wroom1-min -> 「主控」点名
+[OK ] 零误伤 run-01e6089301b0 req-11-isolated-dido-module.md FUNC_UNCOVERED=3
+[OK ] 零误伤 run-0492c04b1e1e req-04-smart-dial-oled.md FUNC_UNCOVERED=1
+[OK ] 零误伤 run-0f5a66a95375 req-02-rs485-sensor-hub.md FUNC_UNCOVERED=3
+[OK ] 零误伤 run-11b6cfa6c889 req-04-smart-dial-oled.md FUNC_UNCOVERED=2
+[OK ] 零误伤 run-2a6f5ad7838b req-09-ambiguous-sensor-node.md FUNC_UNCOVERED=3
+[OK ] 零误伤 run-4cb7ad1bbe44 req-03-ir-remote-hub.md FUNC_UNCOVERED=1
+[OK ] 零误伤 run-52ddb0fd492e req-01-esp32s3-mini-2layer.md FUNC_UNCOVERED=3
+[OK ] 零误伤 run-84826dc6df2c req-02-rs485-sensor-hub.md FUNC_UNCOVERED=2
+[OK ] 零误伤 run-887881cf9ac9 req-11-isolated-dido-module.md FUNC_UNCOVERED=1
+[OK ] 零误伤 run-8bbc50ea35f0 req-02-rs485-sensor-hub.md FUNC_UNCOVERED=2
+[OK ] 零误伤 run-8f3da8ac3cc7 req-01-esp32s3-mini-2layer.md FUNC_UNCOVERED=3
+[OK ] 零误伤 run-9eeb15964da3 req-05-battery-ble-telemetry.md FUNC_UNCOVERED=1
+[OK ] 零误伤 run-a5d307a30ab8 req-02-rs485-sensor-hub.md FUNC_UNCOVERED=3
+[OK ] 零误伤 run-b7a9b906225f req-09-ambiguous-sensor-node.md FUNC_UNCOVERED=2
+[OK ] 零误伤 run-bf13c84c88c9 req-01-esp32s3-mini-2layer.md FUNC_UNCOVERED=2
+[OK ] 零误伤 run-e41e9a1a3cad req-11-isolated-dido-module.md FUNC_UNCOVERED=2
+[OK ] 零误伤 run-e75708ebe56c req-03-ir-remote-hub.md FUNC_UNCOVERED=1
+[OK ] 零误伤 run-f3b686d848b0 req-05-battery-ble-telemetry.md FUNC_UNCOVERED=1
+[OK ] 零误伤 run-f4e0a23f694d req-02-rs485-sensor-hub.md FUNC_UNCOVERED=2
+[OK ] refine run-afa41c6fe953 U 题干含「100」 -> resistor-std decisions已注入 检索命中
+[OK ] refine run-69aa8fc3cd8d U 题干含「100R」 -> resistor-std decisions已注入 检索命中
+[OK ] refine run-496b5a21f4b3 U 题干含「LED」 -> led-indicator decisions已注入 检索命中
+[OK ] refine run-6ba4e2535cb1 U 题干含「LED」 -> led-indicator decisions已注入 检索命中
+== refine eval: 规格 生成率 88%(75/85), 可执行率 90%, 注入 3/3, 零误伤 0 处/非弱 0 条(19 个 PASS run, round≥2 转化实证 2), refine 转化 4/4 -> NO-GO ==

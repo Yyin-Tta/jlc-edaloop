@@ -1,0 +1,188 @@
+﻿{
+  "id": "req_35659",
+  "type": "response",
+  "version": "v1",
+  "createdAt": "2026-08-21T15:31:11.4878856Z",
+  "ok": true,
+  "result": {
+    "name": "P1",
+    "pageUuid": "7c4a751c5136cb01",
+    "parentSchematicUuid": "f328f96d6b0c3fd2",
+    "showTitleBlock": true,
+    "titleBlockData": {
+      "@Assembly Variant": {
+        "showTitle": null,
+        "showValue": null,
+        "value": "Basic"
+      },
+      "@Board Name": {
+        "showTitle": null,
+        "showValue": null,
+        "value": "Board1"
+      },
+      "@Create Date": {
+        "showTitle": false,
+        "showValue": false,
+        "value": "2026-08-21"
+      },
+      "@Create Time": {
+        "showTitle": null,
+        "showValue": null,
+        "value": "13:44:37"
+      },
+      "@Page Count": {
+        "showTitle": null,
+        "showValue": null,
+        "value": 6
+      },
+      "@Page Name": {
+        "showTitle": null,
+        "showValue": null,
+        "value": "P1"
+      },
+      "@Page No": {
+        "showTitle": null,
+        "showValue": null,
+        "value": 1
+      },
+      "@Project Name": {
+        "showTitle": false,
+        "showValue": false,
+        "value": "edaloop-w2-req01"
+      },
+      "@Schematic Name": {
+        "showTitle": null,
+        "showValue": null,
+        "value": "Schematic1"
+      },
+      "@Update Date": {
+        "showTitle": false,
+        "showValue": false,
+        "value": "2026-08-21"
+      },
+      "@Update Time": {
+        "showTitle": null,
+        "showValue": null,
+        "value": "23:22:12"
+      },
+      "Blade Width": {
+        "showTitle": null,
+        "showValue": null,
+        "value": "10"
+      },
+      "Border": {
+        "showTitle": null,
+        "showValue": null,
+        "value": "1"
+      },
+      "Color": {
+        "showTitle": null,
+        "showValue": null,
+        "value": ""
+      },
+      "Company": {
+        "showTitle": false,
+        "showValue": false,
+        "value": "嘉立创EDA"
+      },
+      "Description": {
+        "showTitle": null,
+        "showValue": null,
+        "value": ""
+      },
+      "Device": {
+        "showTitle": null,
+        "showValue": null,
+        "value": "Drawing-Symbol_A4"
+      },
+      "Drawed": {
+        "showTitle": false,
+        "showValue": true,
+        "value": ""
+      },
+      "Height": {
+        "showTitle": null,
+        "showValue": null,
+        "value": "825"
+      },
+      "ID": {},
+      "Name": {
+        "showTitle": null,
+        "showValue": null,
+        "value": ""
+      },
+      "Page Size": {
+        "showTitle": false,
+        "showValue": false,
+        "value": "A4"
+      },
+      "Part Number": {
+        "showTitle": false,
+        "showValue": true,
+        "value": ""
+      },
+      "Region Start": {
+        "showTitle": null,
+        "showValue": null,
+        "value": "1"
+      },
+      "Reviewed": {
+        "showTitle": false,
+        "showValue": true,
+        "value": ""
+      },
+      "Size": {
+        "showTitle": null,
+        "showValue": null,
+        "value": "A4"
+      },
+      "Symbol": {
+        "showTitle": false,
+        "showValue": false,
+        "value": "Drawing-Symbol_A4"
+      },
+      "Title Block": {
+        "showTitle": null,
+        "showValue": null,
+        "value": "1"
+      },
+      "Title Block Position": {
+        "showTitle": null,
+        "showValue": null,
+        "value": "3"
+      },
+      "Version": {
+        "showTitle": false,
+        "showValue": false,
+        "value": "V1.0"
+      },
+      "Width": {
+        "showTitle": null,
+        "showValue": null,
+        "value": "1170"
+      },
+      "X Region Count": {
+        "showTitle": null,
+        "showValue": null,
+        "value": "6"
+      },
+      "Y Region Count": {
+        "showTitle": null,
+        "showValue": null,
+        "value": "4"
+      }
+    }
+  },
+  "context": {
+    "projectUuid": "993e2ad9b7944f92b44333b630a754da",
+    "projectName": "edaloop-w2-req01",
+    "documentUuid": "7c4a751c5136cb01",
+    "documentType": "schematic",
+    "tabId": "7c4a751c5136cb01@993e2ad9b7944f92b44333b630a754da"
+  },
+  "seq": 25438,
+  "seqAbandoned": 1,
+  "abandonedIds": [
+    "req_23445"
+  ]
+}

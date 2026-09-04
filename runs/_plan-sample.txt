@@ -1,0 +1,23 @@
+plan 12dff936c93e: 20 blocks, confidence=0.72
+  - mcu_u1: mcu-stm32f103c8-min -> 
+  - uln_m1: driver-uln2003 -> 
+  - uln_m2: driver-uln2003 -> 
+  - usb_c_j1: usb-c-16p -> 
+  - ch340_u2: usb-serial-ch340n -> block.ch340c_usb_serial
+  - swd_j1: header-1x4 -> 
+  - btn_boot_rst: buttons-boot-reset -> block.tactile_boot_reset
+  - dc_in_j2: dc-terminal-wide-input -> block.vehicle_input_tps54360_5v
+  - ldo_u3: ldo-ams1117-3v3 -> block.ams1117_ldo_3v3
+  - led_pwr: led-indicator -> block.led_indicator_gpio
+  - led_en: led-indicator -> block.led_indicator_gpio
+  - led_fault: led-indicator -> block.led_indicator_gpio
+  - led_m1a: led-indicator -> block.led_indicator_gpio
+  - led_m1b: led-indicator -> block.led_indicator_gpio
+  - led_m1c: led-indicator -> block.led_indicator_gpio
+  - led_m1d: led-indicator -> block.led_indicator_gpio
+  - led_m2a: led-indicator -> block.led_indicator_gpio
+  - led_m2b: led-indicator -> block.led_indicator_gpio
+  - led_m2c: led-indicator -> block.led_indicator_gpio
+  - led_m2d: led-indicator -> block.led_indicator_gpio
+  note: 主控/驱动/串口/按键/LED 均由目录块覆盖;两片 ULN2003A 实现双通道 4 线步进驱动并共用 COM 续流,11 个 LED 指示全覆盖;未覆盖:XL1509 DC-DC、TVS/保险丝器件、USB-C CC 下拉电阻、CH340N 差分口、电机输出端子
+saved -> runs/plan-12dff936c93e.json

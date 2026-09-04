@@ -1,0 +1,37 @@
+[OK ] critic K1 MCU 模组无去耦 -> CRITIC_DECOUPLING 实际 ['CRITIC_DECOUPLING', 'CRITIC_PULL_RESISTORS']
+[OK ] critic K2 I2C SDA/SCL 无上拉 -> CRITIC_PULL_RESISTORS 实际 ['CRITIC_PULL_RESISTORS', 'CRITIC_DECOUPLING']
+[OK ] critic K3 RS-485 端子无 ESD/TVS -> CRITIC_INTERFACE_PROTECTION 实际 ['CRITIC_INTERFACE_PROTECTION', 'CRITIC_DECOUPLING']
+[MISS] critic K4 12V 继电器感性负载无续流二极管 -> CRITIC_INTERFACE_PROTECTION 实际 []
+[MISS] critic K5 LDO 5V→3V3 带 800mA 负载无散热 -> CRITIC_THERMAL 实际 []
+[OK ] power usb-c-power-entry -> ['tvs-rating', 'fuse-rating']
+[OK ] power dc-terminal-5v-input -> ['fuse-rating']
+[OK ] power dc-terminal-wide-input -> ['tvs-rating', 'fuse-rating']
+[MISS] power battery-18650-holder -> (无建议)
+[OK ] power charger-tp4056 -> ['tvs-rating', 'fuse-rating']
+[OK ] power boost-mt3608 -> ['reg-caps']
+[OK ] power ldo-ams1117-3v3 -> ['reg-caps', 'thermal']
+[OK ] power low-battery-alarm-tl431 -> ['divider']
+[OK ] power isolated-dc-b0505s -> ['tvs-rating', 'fuse-rating', 'reg-caps']
+[OK ] power up-bq24074_powerpath_charger -> ['tvs-rating', 'fuse-rating']
+[OK ] power up-pmos_highside_softstart -> ['tvs-rating', 'fuse-rating']
+[OK ] power up-sy8089_buck_3v3 -> ['reg-caps']
+[OK ] power up-tps63802_buckboost_3v8 -> ['reg-caps'] 降级 ['buck-ripple']
+[OK ] power up-xl1509_buck_12v_5v -> ['reg-caps', 'buck-ripple']
+[OK ] power ldo-1117-1v8 -> ['reg-caps']
+[MISS] power battery-dw01-protection -> (无建议)
+[MISS] power mos-fs8205a-dual -> (无建议)
+[OK ] power buck-mp1584 -> ['reg-caps'] 降级 ['buck-ripple']
+[OK ] power buck-tps5430 -> ['reg-caps'] 降级 ['buck-ripple']
+[OK ] power ldo-rt9193-18 -> ['reg-caps']
+[MISS] power battery-cr1220 -> (无建议)
+[OK ] power buck-mp2359 -> ['reg-caps'] 降级 ['buck-ripple']
+[OK ] defect D1 GPIO 驱动 LED 限流 10k vs 建议 270(单轨推断,通道 B 网相交)
+[OK ] defect D2 buck 输出电容 100n vs 建议 2.7µ(1A 纹波公式,通道 B 网对相等)
+[OK ] defect D3 混装判别:两只 GPIO LED 一对(330)一错(47k),只错者被标
+[OK ] clean  C1 GPIO LED 限流取建议 E24 邻档 330(容差内)
+[OK ] clean  C2 buck 输出 22µ 超规格(工程裕量)+ 100n 去耦共存同网对
+[OK ] clean  C3 缺件不判:LED 块内自带限流,图上无外部 std R
+[OK ] clean  C4 无轨降级:建议 n/a(rec_value 空)不进比对
+[OK ] clean  C5 轨直挂 LED 歧义不判:驱动网=3V3 轨,同节点上拉 R 与限流拓扑不可分
+[OK ] clean  C6 无关 std R 不判:未触任何建议网(MCU 复位上拉)
+== params eval: 错值拦截 3/3, 负样本误杀 0/6, 电源块覆盖 18/22 = 82%, 轨硬编码缺口 0, critic 捕获 3/5 -> NO-GO ==

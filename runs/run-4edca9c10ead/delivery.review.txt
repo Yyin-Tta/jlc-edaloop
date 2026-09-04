@@ -1,0 +1,9 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 9 blocks, status=PASS
+
+- [CRITIC_POWER_INTEGRITY@chg1/boost1] TP4056 的 VSYS 直接绑到 VBAT,而 boost1 的输入也是 VBAT 且 EN 常接 VBAT:形成'充电时负载仍从电池取电'的无负载共享(load sharing)结构。充电末期电池被 boost 抽流,TP4056 可能永远到不了终止电流,充不满且 CV 阶段反复重启充电周期,损害电池寿命。 | 建议: 增加负载共享:VIN 检测驱动的 P-MOS/理想二极管隔离 boost 输入与电池正端(充电时 boost 改由 5V_IN 供电),或将 boost
+- [CRITIC_INTERFACE_PROTECTION@usbc1] USB-C 座的 USB_DP/USB_DM 已引出为网络但方案中仅对 VBUS 做了 TVS/ESD,数据差分对无任何 ESD 保护;且这两条网络在本设计中无接收端(MCU 只用 UART),悬空的差分对更易将 ESD 耦入板内。 | 建议: 若不传数据,建议 USB_DP/DM 直接不布线或就近接 ESD 阵列(如 USBLC6-2SC6)到 GND;若保留网络,补一颗 USB2.0 ESD 器件。
+- [CRITIC_POWER_INTEGRITY@alarm_tl431] TL431 引脚1接 VBAT_DIV,但分压电阻(上/下臂)完全没有落块,VBAT_DIV 是悬空网,低压检测电路无法工作;uncovered 也确认分压阻值因低压阈值未定而缺失。 | 建议: 先与需求方确认低压阈值(3.3V/3.0V),随后落两个 resistor-std 并给出带出处的分压计算;若阈值迟迟未定,该块应整体延后而不是留悬空网。
+- [CRITIC_PULL_RESISTORS@mcu1/btn1] BOOT/IO0 声称'默认高',但整个 plan 中没有任何 IO0 上拉电阻落块(mcu 块描述只含 EN 的 10k 上拉+100nF,btn 块也未绑定上拉),IO0 悬空在噪声环境下可能误入下载模式。 | 建议: 为 IO0 增加一颗 10k 上拉到 3V3(resistor-std),与 BOOT 按键并联,保证正常运行时 IO0 确定性为高。
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

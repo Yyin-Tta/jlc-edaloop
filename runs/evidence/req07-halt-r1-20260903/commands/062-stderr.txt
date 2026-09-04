@@ -1,0 +1,1 @@
+sch bridge-check: 3 bridge(s) — real short(s) (net-vs-copper mismatch)

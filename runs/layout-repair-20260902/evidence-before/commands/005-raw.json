@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 2,
+  "ok": true,
+  "strict": true,
+  "minGap": 2.54,
+  "componentCount": 6,
+  "withBBox": 6,
+  "skippedNonParts": 18,
+  "overlaps": null,
+  "tightSpacing": null,
+  "pinCoincidences": null,
+  "measurementUnit": "mm",
+  "coordinateUnit": "0.01inch",
+  "anchorGridRaw": 5,
+  "anchorGridUnit": "0.01inch",
+  "zoneCheckStatus": "not-configured",
+  "sheetCheckStatus": "checked",
+  "pinEps": 0,
+  "summary": "strict=true: 6 components (6 with bbox): 0 overlap, 0 tight (\u003c2.54mm), 0 pin-coincidence, 0 off-grid, 0 out-of-sheet, 0 unchecked-bbox, 0 unchecked-pins, 0 unproven-pins, 0 invalid-geometry; zoneCheck=not-configured sheetCheck=checked"
+}

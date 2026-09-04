@@ -48,9 +48,12 @@ uv run edaloop ingest path/to/datasheet.pdf
 # 设计闭环(M1→M5:需求文件 → 迭代落图 → gate)
 uv run edaloop run evals/showcase/showcase-uln2003.md
 
+# L0 只读取证(不修改 EasyEDA;逐页检查、网表、重叠/空白率摘要)
+uv run edaloop evidence --out runs/evidence/l0-baseline
+
 # 分步
 uv run edaloop plan evals/requirements/req-01-....md   # 只出 BlockPlan
-uv run edaloop apply runs/plan-<id>.json               # 落图 + gate
+uv run edaloop apply runs/plan-<id>.json               # 实验性低层落图 + gate 诊断(不产生工程 PASS)
 
 # 弱门禁:需求歧义/未覆盖项确认队列
 uv run edaloop questions evals/requirements/req-04-....md --plan runs/plan-<id>.json

@@ -1,0 +1,40 @@
+{
+  "id": "req_193052",
+  "ok": true,
+  "result": {
+    "sheet": {
+      "template": "a-series-landscape",
+      "bbox": {
+        "minX": 0,
+        "minY": 0,
+        "maxX": 1170,
+        "maxY": 825
+      }
+    },
+    "titleBlock": {
+      "visible": true,
+      "bbox": {
+        "minX": 468,
+        "minY": 0,
+        "maxX": 1170,
+        "maxY": 198
+      },
+      "source": "known-template-ratio"
+    },
+    "keepouts": [
+      {
+        "name": "titleBlock",
+        "bbox": {
+          "minX": 468,
+          "minY": 0,
+          "maxX": 1170,
+          "maxY": 198
+        },
+        "hard": true
+      }
+    ],
+    "warnings": []
+  },
+  "type": "response",
+  "version": "v1"
+}

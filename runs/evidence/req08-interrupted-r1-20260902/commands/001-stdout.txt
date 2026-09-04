@@ -1,0 +1,128 @@
+{
+  "status": "found",
+  "host": "127.0.0.1",
+  "ports": "60832-60841",
+  "found": {
+    "port": 60832,
+    "service": "easyeda-agent",
+    "raw": {
+      "service": "easyeda-agent",
+      "version": "v1.2.10",
+      "status": "ok",
+      "port": 60832,
+      "windows": [
+        {
+          "windowId": "465b7b92-f68b-42ed-9b16-0e6fc5579dea",
+          "connectorVersion": "1.2.10",
+          "easyedaVersion": "3.2.175",
+          "capabilities": [
+            "schematic.v1",
+            "pcb.v1"
+          ],
+          "context": {
+            "projectUuid": "e7c2a07bcd504214a0607cad9475b2ba",
+            "projectName": "edaloop-req08-baseline",
+            "documentUuid": "bdc3e70fabdde6cb",
+            "documentType": "schematic",
+            "tabId": "bdc3e70fabdde6cb@e7c2a07bcd504214a0607cad9475b2ba"
+          },
+          "connectedAt": "2026-09-02T14:55:27.5211949Z",
+          "lastSeen": "2026-09-02T15:12:44.226394Z",
+          "connectorVersionOk": true
+        },
+        {
+          "windowId": "b80d7ee5-3e51-467f-a513-17de38379036",
+          "connectorVersion": "1.2.10",
+          "easyedaVersion": "3.2.175",
+          "capabilities": [
+            "schematic.v1",
+            "pcb.v1"
+          ],
+          "context": {
+            "projectUuid": "7d17ff6aa40b4252914acbf836d4991b",
+            "projectName": "edaloop-req07-baseline",
+            "documentUuid": "a02b4d70c4ef0f40",
+            "documentType": "schematic",
+            "tabId": "a02b4d70c4ef0f40@7d17ff6aa40b4252914acbf836d4991b"
+          },
+          "connectedAt": "2026-09-02T14:55:53.7566865Z",
+          "lastSeen": "2026-09-02T15:11:46.5178944Z",
+          "connectorVersionOk": true
+        },
+        {
+          "windowId": "ecfb10c2-2486-4ced-b36e-58cc8c8c6593",
+          "connectorVersion": "1.2.10",
+          "easyedaVersion": "3.2.175",
+          "capabilities": [
+            "schematic.v1",
+            "pcb.v1"
+          ],
+          "context": {
+            "projectUuid": "5c5728757764408aaa9cbf1895e48e9d",
+            "projectName": "edaloop-block-baseline",
+            "documentUuid": "f83ed65a7d62827c",
+            "documentType": "schematic",
+            "tabId": "f83ed65a7d62827c@5c5728757764408aaa9cbf1895e48e9d"
+          },
+          "connectedAt": "2026-09-02T14:56:20.4323009Z",
+          "lastSeen": "2026-09-02T15:12:44.2303972Z",
+          "connectorVersionOk": true
+        }
+      ],
+      "writeHealth": {
+        "465b7b92-f68b-42ed-9b16-0e6fc5579dea": {
+          "samples": 20,
+          "failures": 0,
+          "failureRate": 0,
+          "consecutiveFailures": 0,
+          "degraded": false,
+          "verified": 0
+        },
+        "b80d7ee5-3e51-467f-a513-17de38379036": {
+          "samples": 20,
+          "failures": 0,
+          "failureRate": 0,
+          "consecutiveFailures": 0,
+          "degraded": false,
+          "verified": 0
+        },
+        "ecfb10c2-2486-4ced-b36e-58cc8c8c6593": {
+          "samples": 20,
+          "failures": 0,
+          "failureRate": 0,
+          "consecutiveFailures": 0,
+          "degraded": false,
+          "verified": 0
+        }
+      }
+    }
+  },
+  "versionGate": {
+    "cli": "v1.2.10",
+    "daemon": "v1.2.10",
+    "connectors": [
+      "1.2.10"
+    ],
+    "verdict": "ok",
+    "findings": [
+      {
+        "component": "daemon",
+        "version": "v1.2.10",
+        "severity": "ok",
+        "reason": "与 CLI 同版 v1.2.10"
+      },
+      {
+        "component": "connector",
+        "version": "1.2.10",
+        "severity": "ok",
+        "reason": "与 CLI 同版 v1.2.10"
+      }
+    ]
+  },
+  "checked": [
+    {
+      "port": 60832,
+      "status": "ok"
+    }
+  ]
+}

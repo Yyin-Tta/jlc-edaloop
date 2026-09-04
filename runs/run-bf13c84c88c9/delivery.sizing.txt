@@ -1,0 +1,15 @@
+[sizing:tvs-rating@usb_c_conn] VRWM≥1.1×5V;VC<2×V_rail = 5.5 → 推荐 VRWM≥5.5V / VC≤10V(SMAJ/SMBJ 系列按此筛)
+    VRWM 高于工作电压防误触发;VC 低于后级最大耐压才有效
+    功率档:600W(SMAJ)/400W(SMBJ 视浪涌等级;车载选 SMBJ 以上
+
+[sizing:fuse-rating@usb_c_conn] I_hold≥1.25×2000mA = 2.5 → 推荐 I_hold≥2.50A(自恢复 PPTC 按此档)
+    降额 25% 防浪涌误动作;PPTC 恢复后保持电流会随温度下降,高温环境再降额
+
+[sizing:reg-caps@ldo_3v3] ldo @ 800mA = 800 → 推荐 见 notes(惯例值)
+    C_IN: 10µF 钽/陶瓷 + 100nF 就近(AMS1117 数据手册惯例)
+    C_OUT: 22µF + 100nF(LDO 依赖输出电容环路稳定,不可省)
+    负载 800mA → LDO 压差功耗=(Vin-Vout)×I,注意散热铜
+
+[sizing:thermal@ldo_3v3] Tj=25+0.85W×60°C/W = 76 → 推荐 Tj≈76°C(裕量29°C)
+    估算结温 76°C(上限 105°C,裕量 29°C)
+    裕量 <20°C:加铺铜/散热过孔或换封装;R_ja 取决于铺铜面积, datasheet 典型值为最小铺铜条件

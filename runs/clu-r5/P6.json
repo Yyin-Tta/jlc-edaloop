@@ -1,0 +1,67 @@
+{
+  "clusters": [
+    {
+      "designator": "R20",
+      "primitiveId": "43a341b344d2b1aa",
+      "body": {
+        "minX": 169.5,
+        "minY": 755.5,
+        "maxX": 190.5,
+        "maxY": 764.5
+      },
+      "box": {
+        "minX": 160,
+        "minY": 754.5,
+        "maxX": 304.5,
+        "maxY": 765.5
+      },
+      "markers": 1,
+      "wires": 1,
+      "members": [
+        "part     R20      x=[170,190] y=[756,764]",
+        "wire              x=[160,190] y=[760,760]",
+        "netport  STEP2_D_OUT x=[200,304] y=[754,766]"
+      ]
+    },
+    {
+      "designator": "LED11",
+      "primitiveId": "ed447f106fdd2386",
+      "body": {
+        "minX": 294.5,
+        "minY": 742.5,
+        "maxX": 315.5,
+        "maxY": 768.5
+      },
+      "box": {
+        "minX": 284,
+        "minY": 742.5,
+        "maxX": 360.5,
+        "maxY": 772
+      },
+      "markers": 1,
+      "wires": 1,
+      "members": [
+        "part     LED11    x=[294,316] y=[742,768]",
+        "wire              x=[320,350] y=[760,760]",
+        "netflag  VIN_LED_RTN x=[284,360] y=[754,772]"
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "type": "overlap",
+      "a": "R20",
+      "b": "LED11",
+      "ovX": 20.5,
+      "ovY": 11,
+      "level": "ERROR"
+    }
+  ],
+  "sheetUsable": {
+    "minX": 12,
+    "minY": 12,
+    "maxX": 1158,
+    "maxY": 813
+  }
+}
+cluster check failed: 1 error(s), 0 warning(s)

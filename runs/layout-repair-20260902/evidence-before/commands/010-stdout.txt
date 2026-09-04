@@ -1,0 +1,688 @@
+{
+  "id": "req_188546",
+  "type": "response",
+  "version": "v1",
+  "createdAt": "2026-09-02T11:44:38.2069665Z",
+  "ok": true,
+  "result": {
+    "check": {
+      "findings": [
+        {
+          "count": 2,
+          "designator": "PROTDW2",
+          "level": "warn",
+          "message": "2 个引脚悬空(无导线连接,未打 NC 标识)",
+          "pinDetails": [
+            {
+              "name": "OD",
+              "number": "1",
+              "x": 225,
+              "y": 680
+            },
+            {
+              "name": "NC",
+              "number": "4",
+              "x": 295,
+              "y": 660
+            }
+          ],
+          "pins": [
+            "1",
+            "4"
+          ],
+          "primitiveId": "feab1406658c3375",
+          "type": "floating-pin"
+        },
+        {
+          "at": {
+            "x": 310,
+            "y": 765
+          },
+          "level": "warn",
+          "message": "疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除)",
+          "type": "dangling-wire",
+          "wireNet": "",
+          "wirePrimitiveId": "dc8ae097f5f05132"
+        }
+      ],
+      "passed": false,
+      "summary": {
+        "componentsWithFloating": 1,
+        "danglingWires": 1,
+        "floatingPins": 2,
+        "geomNetMismatches": 0,
+        "multiNetWires": 0,
+        "netMarkerMismatches": 0,
+        "polarityConventionOutliers": 0,
+        "total": 2,
+        "wireCrossings": 0,
+        "wireOverPins": 0,
+        "zeroLengthWires": 0
+      }
+    },
+    "componentCount": 24,
+    "components": [
+      {
+        "componentType": "sheet",
+        "designator": "",
+        "footprint": "",
+        "name": "",
+        "pins": [],
+        "primitiveId": "e118d9ae30eeaf44",
+        "supplierId": "",
+        "uniqueId": "",
+        "x": 0,
+        "y": 0
+      },
+      {
+        "componentType": "part",
+        "designator": "JBAT1",
+        "footprint": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "CONN-TH_XY301V-A-5.0-2P",
+          "uuid": "d28140dc2c991f52"
+        },
+        "name": "={Manufacturer Part}",
+        "pins": [
+          {
+            "name": "1",
+            "net": "VBAT",
+            "number": "1"
+          },
+          {
+            "name": "2",
+            "net": "GND",
+            "number": "2"
+          }
+        ],
+        "primitiveId": "069cd7ac78714226",
+        "supplierId": "C9900016950",
+        "uniqueId": "gge1",
+        "x": 170,
+        "y": 780
+      },
+      {
+        "componentType": "part",
+        "designator": "PROTDW2",
+        "footprint": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "SOT-23-6_L2.9-W1.6-P0.95-LS2.8-BL",
+          "uuid": "2bae1566fce48f3a"
+        },
+        "name": "={Manufacturer Part}",
+        "pins": [
+          {
+            "name": "OD",
+            "net": null,
+            "number": "1"
+          },
+          {
+            "name": "CSI",
+            "net": "CSI",
+            "number": "2"
+          },
+          {
+            "name": "OC",
+            "net": "GATE_OC",
+            "number": "3"
+          },
+          {
+            "name": "NC",
+            "net": null,
+            "number": "4"
+          },
+          {
+            "name": "VDD",
+            "net": "VDD",
+            "number": "5"
+          },
+          {
+            "name": "VSS",
+            "net": "GND",
+            "number": "6"
+          }
+        ],
+        "primitiveId": "feab1406658c3375",
+        "supplierId": "C2927799",
+        "uniqueId": "gge2",
+        "x": 260,
+        "y": 670
+      },
+      {
+        "componentType": "part",
+        "designator": "PROTFS83",
+        "footprint": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "SOT-23-6_L2.9-W1.6-P0.95-LS2.8-BR",
+          "uuid": "da957a9cda33fff3"
+        },
+        "name": "={Manufacturer Part}",
+        "pins": [
+          {
+            "name": "S1",
+            "net": "P_NEG",
+            "number": "1"
+          },
+          {
+            "name": "D1/D2",
+            "net": "FET_MID",
+            "number": "2"
+          },
+          {
+            "name": "S2",
+            "net": "$43N122",
+            "number": "3"
+          },
+          {
+            "name": "G2",
+            "net": "GATE_OC",
+            "number": "4"
+          },
+          {
+            "name": "D1/D2",
+            "net": "FET_MID",
+            "number": "5"
+          },
+          {
+            "name": "G1",
+            "net": "GATE_OD",
+            "number": "6"
+          }
+        ],
+        "primitiveId": "4e34efe25889f4a0",
+        "supplierId": "C2830320",
+        "uniqueId": "gge3",
+        "x": 510,
+        "y": 775
+      },
+      {
+        "componentType": "part",
+        "designator": "R3",
+        "footprint": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "R0402",
+          "uuid": "468c4ea12119beb6"
+        },
+        "name": "={Value}",
+        "pins": [
+          {
+            "name": "2",
+            "net": "VDD",
+            "number": "2"
+          },
+          {
+            "name": "1",
+            "net": "VBAT",
+            "number": "1"
+          }
+        ],
+        "primitiveId": "4e5e6e71900a392e",
+        "supplierId": "C25076",
+        "uniqueId": "gge4",
+        "x": 825,
+        "y": 690
+      },
+      {
+        "componentType": "part",
+        "designator": "R4",
+        "footprint": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "R0402",
+          "uuid": "468c4ea12119beb6"
+        },
+        "name": "={Value}",
+        "pins": [
+          {
+            "name": "2",
+            "net": "P_NEG",
+            "number": "2"
+          },
+          {
+            "name": "1",
+            "net": "CSI",
+            "number": "1"
+          }
+        ],
+        "primitiveId": "0c72690b814b324d",
+        "supplierId": "0402WGF1001TCE.1",
+        "uniqueId": "gge5",
+        "x": 530,
+        "y": 690
+      },
+      {
+        "componentType": "part",
+        "designator": "JPOUT1",
+        "footprint": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "CONN-TH_XY301V-A-5.0-2P",
+          "uuid": "d28140dc2c991f52"
+        },
+        "name": "={Manufacturer Part}",
+        "pins": [
+          {
+            "name": "1",
+            "net": "VBAT",
+            "number": "1"
+          },
+          {
+            "name": "2",
+            "net": "P_NEG",
+            "number": "2"
+          }
+        ],
+        "primitiveId": "76edd6a6eee58dc0",
+        "supplierId": "KF301-2P接线端子.1",
+        "uniqueId": "gge6",
+        "x": 185,
+        "y": 575
+      },
+      {
+        "componentType": "netport",
+        "designator": "",
+        "footprint": "",
+        "name": "VBAT",
+        "pins": [
+          {
+            "name": "BI",
+            "net": null,
+            "number": "1"
+          }
+        ],
+        "primitiveId": "86ca772f7b095364",
+        "supplierId": "",
+        "uniqueId": "",
+        "x": 785,
+        "y": 690
+      },
+      {
+        "componentType": "netport",
+        "designator": "",
+        "footprint": "",
+        "name": "VDD",
+        "pins": [
+          {
+            "name": "BI",
+            "net": null,
+            "number": "1"
+          }
+        ],
+        "primitiveId": "78b09f2f28215047",
+        "supplierId": "",
+        "uniqueId": "",
+        "x": 865,
+        "y": 690
+      },
+      {
+        "componentType": "netport",
+        "designator": "",
+        "footprint": "",
+        "name": "FET_MID",
+        "pins": [
+          {
+            "name": "BI",
+            "net": null,
+            "number": "1"
+          }
+        ],
+        "primitiveId": "b0060c7e46e73acc",
+        "supplierId": "",
+        "uniqueId": "",
+        "x": 755,
+        "y": 775
+      },
+      {
+        "componentType": "netport",
+        "designator": "",
+        "footprint": "",
+        "name": "P_NEG",
+        "pins": [
+          {
+            "name": "BI",
+            "net": null,
+            "number": "1"
+          }
+        ],
+        "primitiveId": "2de8025688931818",
+        "supplierId": "",
+        "uniqueId": "",
+        "x": 480,
+        "y": 690
+      },
+      {
+        "componentType": "netport",
+        "designator": "",
+        "footprint": "",
+        "name": "VBAT",
+        "pins": [
+          {
+            "name": "BI",
+            "net": null,
+            "number": "1"
+          }
+        ],
+        "primitiveId": "2fbf0e1e8f6b330e",
+        "supplierId": "",
+        "uniqueId": "",
+        "x": 270,
+        "y": 570
+      },
+      {
+        "componentType": "netport",
+        "designator": "",
+        "footprint": "",
+        "name": "GATE_OC",
+        "pins": [
+          {
+            "name": "BI",
+            "net": null,
+            "number": "1"
+          }
+        ],
+        "primitiveId": "ccb0d793716d054f",
+        "supplierId": "",
+        "uniqueId": "",
+        "x": 170,
+        "y": 660
+      },
+      {
+        "componentType": "netflag",
+        "designator": "",
+        "footprint": "",
+        "name": "VDD",
+        "pins": [
+          {
+            "name": "Pin1",
+            "net": null,
+            "number": "1"
+          }
+        ],
+        "primitiveId": "ffff9be0e4442192",
+        "supplierId": "",
+        "uniqueId": "",
+        "x": 315,
+        "y": 670
+      },
+      {
+        "componentType": "netport",
+        "designator": "",
+        "footprint": "",
+        "name": "P_NEG",
+        "pins": [
+          {
+            "name": "BI",
+            "net": null,
+            "number": "1"
+          }
+        ],
+        "primitiveId": "98aff4dc347e6ae9",
+        "supplierId": "",
+        "uniqueId": "",
+        "x": 395,
+        "y": 785
+      },
+      {
+        "componentType": "netport",
+        "designator": "",
+        "footprint": "",
+        "name": "GND",
+        "pins": [
+          {
+            "name": "BI",
+            "net": null,
+            "number": "1"
+          }
+        ],
+        "primitiveId": "3df52346341a6e4c",
+        "supplierId": "",
+        "uniqueId": "",
+        "x": 295,
+        "y": 710
+      },
+      {
+        "componentType": "netport",
+        "designator": "",
+        "footprint": "",
+        "name": "GATE_OC",
+        "pins": [
+          {
+            "name": "BI",
+            "net": null,
+            "number": "1"
+          }
+        ],
+        "primitiveId": "215508987a9490ac",
+        "supplierId": "",
+        "uniqueId": "",
+        "x": 620,
+        "y": 765
+      },
+      {
+        "componentType": "netport",
+        "designator": "",
+        "footprint": "",
+        "name": "GATE_OD",
+        "pins": [
+          {
+            "name": "BI",
+            "net": null,
+            "number": "1"
+          }
+        ],
+        "primitiveId": "1e01de86a80144c4",
+        "supplierId": "",
+        "uniqueId": "",
+        "x": 580,
+        "y": 785
+      },
+      {
+        "componentType": "netport",
+        "designator": "",
+        "footprint": "",
+        "name": "CSI",
+        "pins": [
+          {
+            "name": "BI",
+            "net": null,
+            "number": "1"
+          }
+        ],
+        "primitiveId": "cbe4090dae5c2988",
+        "supplierId": "",
+        "uniqueId": "",
+        "x": 550,
+        "y": 660
+      },
+      {
+        "componentType": "netport",
+        "designator": "",
+        "footprint": "",
+        "name": "P_NEG",
+        "pins": [
+          {
+            "name": "BI",
+            "net": null,
+            "number": "1"
+          }
+        ],
+        "primitiveId": "b214ef47a28277fa",
+        "supplierId": "",
+        "uniqueId": "",
+        "x": 205,
+        "y": 610
+      },
+      {
+        "componentType": "netport",
+        "designator": "",
+        "footprint": "",
+        "name": "GND",
+        "pins": [
+          {
+            "name": "BI",
+            "net": null,
+            "number": "1"
+          }
+        ],
+        "primitiveId": "3341348036d89f2e",
+        "supplierId": "",
+        "uniqueId": "",
+        "x": 150,
+        "y": 745
+      },
+      {
+        "componentType": "netport",
+        "designator": "",
+        "footprint": "",
+        "name": "FET_MID",
+        "pins": [
+          {
+            "name": "BI",
+            "net": null,
+            "number": "1"
+          }
+        ],
+        "primitiveId": "b353c31375a0b978",
+        "supplierId": "",
+        "uniqueId": "",
+        "x": 490,
+        "y": 775
+      },
+      {
+        "componentType": "netport",
+        "designator": "",
+        "footprint": "",
+        "name": "CSI",
+        "pins": [
+          {
+            "name": "BI",
+            "net": null,
+            "number": "1"
+          }
+        ],
+        "primitiveId": "0295ff5ea41d23f7",
+        "supplierId": "",
+        "uniqueId": "",
+        "x": 285,
+        "y": 670
+      },
+      {
+        "componentType": "netport",
+        "designator": "",
+        "footprint": "",
+        "name": "VBAT",
+        "pins": [
+          {
+            "name": "BI",
+            "net": null,
+            "number": "1"
+          }
+        ],
+        "primitiveId": "3d4366c13a8e3eec",
+        "supplierId": "",
+        "uniqueId": "",
+        "x": 180,
+        "y": 785
+      }
+    ],
+    "floatingPinCount": 2,
+    "floatingPins": [
+      "PROTDW2.1",
+      "PROTDW2.4"
+    ],
+    "netCount": 9,
+    "nets": [
+      {
+        "degree": 1,
+        "isGlobal": false,
+        "net": "$43N122",
+        "pins": [
+          "PROTFS83.3"
+        ]
+      },
+      {
+        "degree": 2,
+        "isGlobal": false,
+        "net": "CSI",
+        "pins": [
+          "PROTDW2.2",
+          "R4.1"
+        ]
+      },
+      {
+        "degree": 2,
+        "isGlobal": false,
+        "net": "FET_MID",
+        "pins": [
+          "PROTFS83.2",
+          "PROTFS83.5"
+        ]
+      },
+      {
+        "degree": 2,
+        "isGlobal": false,
+        "net": "GATE_OC",
+        "pins": [
+          "PROTDW2.3",
+          "PROTFS83.4"
+        ]
+      },
+      {
+        "degree": 1,
+        "isGlobal": false,
+        "net": "GATE_OD",
+        "pins": [
+          "PROTFS83.6"
+        ]
+      },
+      {
+        "degree": 2,
+        "isGlobal": true,
+        "net": "GND",
+        "pins": [
+          "JBAT1.2",
+          "PROTDW2.6"
+        ]
+      },
+      {
+        "degree": 3,
+        "isGlobal": false,
+        "net": "P_NEG",
+        "pins": [
+          "PROTFS83.1",
+          "R4.2",
+          "JPOUT1.2"
+        ]
+      },
+      {
+        "degree": 3,
+        "isGlobal": true,
+        "net": "VBAT",
+        "pins": [
+          "JBAT1.1",
+          "R3.1",
+          "JPOUT1.1"
+        ]
+      },
+      {
+        "degree": 2,
+        "isGlobal": true,
+        "net": "VDD",
+        "pins": [
+          "PROTDW2.5",
+          "R3.2"
+        ]
+      }
+    ]
+  },
+  "context": {
+    "projectUuid": "7c0361b40cbf4b60b68383bcfa69f362",
+    "projectName": "edaloop",
+    "documentUuid": "5da5dd85446fec65",
+    "documentType": "schematic",
+    "tabId": "5da5dd85446fec65@7c0361b40cbf4b60b68383bcfa69f362"
+  },
+  "seq": 6686,
+  "seqAbandoned": 1,
+  "abandonedIds": [
+    "req_181114"
+  ]
+}

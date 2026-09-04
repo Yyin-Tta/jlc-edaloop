@@ -1,0 +1,43 @@
+{
+ "status": "PASS",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "7c54a60d1314",
+   "gate_verdict": "pass",
+   "findings": [
+    "code='UNDECLARED_RAIL' where=Where(ref='', net='5V', pin='', xy='') evidence='网 5V 呈轨特征(家族 5|main≈5.0V)但 DesignIR 未声明该轨;planner 应在 IR 电源段显式声明,或把该网改绑到既有轨家族' severity='warn' suggested_fix_class='REPLAN' weak=True",
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:1 个块缺 v_supply 区间或单边(ldo_3v3)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/1(覆盖率 0%),缺 i_typ:mcu_stm32' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='状态指示 LED×3(电源/DI 活动/DO 活动)及各自限流电阻:目录无 LED/电阻器件' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='DI 每路限流电阻(24V 侧约 2.2k):目录无电阻器件' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='PC817 副边集电极上拉电阻(3V3,约 4.7-10k):目录无电阻器件' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='现场侧端子(24V in / DI×4 / DO×4 / GND_ISO)与 5V 输入端子:目录无端子器件' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='MCU 最小系统外围(8MHz 晶振、复位 RC、BOOT0 下拉、去耦电容、SWD 排针):目录无对应器件' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True"
+   ],
+   "feedback": "",
+   "halted": ""
+  }
+ ],
+ "delivery": {
+  "svg": "E:\\jlc-edaloop\\runs\\run-887881cf9ac9\\delivery-P1.svg",
+  "svg_pages": [
+   "E:\\jlc-edaloop\\runs\\run-887881cf9ac9\\delivery-P1.svg",
+   "E:\\jlc-edaloop\\runs\\run-887881cf9ac9\\delivery-P2.svg",
+   "E:\\jlc-edaloop\\runs\\run-887881cf9ac9\\delivery-P3.svg",
+   "E:\\jlc-edaloop\\runs\\run-887881cf9ac9\\delivery-P4.svg",
+   "E:\\jlc-edaloop\\runs\\run-887881cf9ac9\\delivery-P5.svg",
+   "E:\\jlc-edaloop\\runs\\run-887881cf9ac9\\delivery-P6.svg",
+   "E:\\jlc-edaloop\\runs\\run-887881cf9ac9\\delivery-P7.svg"
+  ],
+  "netlist": "runs\\run-887881cf9ac9\\delivery.net.json",
+  "netlist_sha256_16": "7ad174fd855ecd13",
+  "bom": "runs\\run-887881cf9ac9\\delivery.bom.json",
+  "bom_total": 4.7143,
+  "swap": "runs\\run-887881cf9ac9\\delivery.swap.txt",
+  "sizing": "runs\\run-887881cf9ac9\\delivery.sizing.txt",
+  "sizing_count": 2,
+  "review": "runs\\run-887881cf9ac9\\delivery.review.txt",
+  "review_findings": 6
+ }
+}

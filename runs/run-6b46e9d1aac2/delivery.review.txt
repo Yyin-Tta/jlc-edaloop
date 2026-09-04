@@ -1,0 +1,12 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 20 blocks, status=PASS
+
+- [CRITIC_THERMAL@ldo1] sizing_recommendations 给出 Tj≈136°C、裕量-30°C,AMS1117 在当前压差/电流下明显超温(SOT-223 无法耗散该功耗) | 建议: 降低 LDO 负载电流、加大散热铺铜,或改用 BUCK(如 MP1584/TPS54331)替换线性稳压
+- [CRITIC_INTERFACE_PROTECTION@rs485_1] RS485 A/B 为长线外部接口,块描述承诺 TVS/120Ω 终端/偏置电阻,但 plan 中无任何 TVS、终端电阻、偏置电阻实例落图(uncovered 已确认) | 建议: 补充 A/B 间 TVS(如 SM712)、跳线使能的 120Ω 终端电阻及 10k 上/下拉偏置电阻实例
+- [CRITIC_POWER_INTEGRITY@rs485_1] 3V3 电源绑定给 MAX485,而 MAX485 是 5V 器件(VCC 4.75–5.25V),3.3V 供电不满足规格;3.3V 方案应选 SP3485 | 建议: 明确选型:改绑 5V 供电用 MAX485,或改用 SP3485 块并保持 3V3;同时注意收发器逻辑电平与 MCU 3.3V IO 的匹配
+- [CRITIC_PULL_RESISTORS@mcu_stm32f103c8] NRST 10k 上拉与 BOOT0 10k 下拉仅存在于块描述文字,plan 中无电阻实例落图(uncovered 已确认);BOOT0 悬空会导致启动模式不确定 | 建议: 补充 NRST 10k 上拉+100nF 到 GND、BOOT0 10k 下拉两颗电阻(及电容)实例
+- [CRITIC_PULL_RESISTORS@buttons1] BOOT 按键描述'默认高按下接地',与 MCU 块 BOOT0 10k 下拉(默认低)逻辑矛盾;且按键直接对地短路的按键脚位无上拉来源,BOOT 行为不确定 | 建议: 统一 BOOT0 默认电平(STM32 惯例 10k 下拉默认低,按下须拉高到 3V3 而非接地),修改按键块接法为'按下拉 3V3'
+- [CRITIC_DECOUPLING@ch340n1] CH340N 的 V3 引脚外接电容与 VCC 去耦(2.2nF/100nF 级)在块描述中要求,但 plan 中无对应电容实例 | 建议: 补充 CH340N V3 引脚电容( datasheet 指定值)及 VCC 100nF 去耦电容实例
+- [CRITIC_PULL_RESISTORS@led_pwr] LED 限流电阻值已由 sizing 给出(270Ω)但 plan 中三个 LED 块均无串联电阻实例落图,直接接 CTRL-GND 会烧毁 LED/驱动脚 | 建议: 为 led_pwr/led_hb/led_bus 各补充一颗 270Ω 串联电阻实例
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

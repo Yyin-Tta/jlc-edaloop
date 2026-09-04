@@ -1,0 +1,100 @@
+{
+  "overall": 81.2,
+  "verdict": "good",
+  "dimensions": [
+    {
+      "id": "folded-labels",
+      "title": "标签折叠",
+      "status": "scored",
+      "score": 100,
+      "weight": 1.2
+    },
+    {
+      "id": "reversed-labels",
+      "title": "标签反向",
+      "status": "scored",
+      "score": 80,
+      "weight": 1.2,
+      "attributions": [
+        {
+          "dimension": "reversed-labels",
+          "target": "C3:1",
+          "penalty": 20,
+          "message": "C3 的 C1_N2 netport 背向核心 U1(朝左,核心在右)",
+          "fix": "easyeda sch disconnect --pin C3:1 \u0026\u0026 easyeda sch connect --x 670 --y 475 --kind netport --net C1_N2 --direction right --offset 24",
+          "at": {
+            "x": 640,
+            "y": 475
+          }
+        }
+      ]
+    },
+    {
+      "id": "proximity",
+      "title": "外围贴核心",
+      "status": "scored",
+      "score": 45.2,
+      "weight": 1,
+      "attributions": [
+        {
+          "dimension": "proximity",
+          "target": "C1",
+          "penalty": 33.3,
+          "message": "C1 距核心 U1 边距 793(\u003e150 开始扣分)— 建议移到 U1 下方 (960,655) 附近后重连",
+          "fix": "easyeda sch modify --id 59c5ddce5c1d9831 --patch '{\"x\":960,\"y\":655}'",
+          "at": {
+            "x": 150,
+            "y": 475
+          }
+        },
+        {
+          "dimension": "proximity",
+          "target": "C3",
+          "penalty": 15,
+          "message": "C3 距核心 U1 边距 308(\u003e150 开始扣分)— 建议移到 U1 下方 (960,655) 附近后重连",
+          "fix": "easyeda sch modify --id 0f134e79c1645c2c --patch '{\"x\":960,\"y\":655}'",
+          "at": {
+            "x": 690,
+            "y": 475
+          }
+        },
+        {
+          "dimension": "proximity",
+          "target": "L1",
+          "penalty": 6.5,
+          "message": "L1 距核心 U1 边距 218(\u003e150 开始扣分)— 建议移到 U1 下方 (960,655) 附近后重连",
+          "fix": "easyeda sch modify --id e197ac77d9fffaac --patch '{\"x\":960,\"y\":655}'",
+          "at": {
+            "x": 690,
+            "y": 745
+          }
+        }
+      ]
+    },
+    {
+      "id": "stub-tidiness",
+      "title": "长链/挤压",
+      "status": "scored",
+      "score": 100,
+      "weight": 0.8
+    },
+    {
+      "id": "frame-fit",
+      "title": "版面整洁",
+      "status": "skipped",
+      "score": 0,
+      "weight": 0.5,
+      "reason": "components.list 未暴露 text 图元 bbox,且分区框几何不在 workflow state — 未测(≠满分)"
+    }
+  ],
+  "dimensionScores": {
+    "folded-labels": 100,
+    "proximity": 45.2,
+    "reversed-labels": 80,
+    "stub-tidiness": 100
+  },
+  "componentCount": 43,
+  "scoredDims": 4,
+  "skippedDims": 1,
+  "summary": "sch layout-score: 综合 81.2 [good] — 4 维已测 / 1 维未测(skipped≠满分),43 图元"
+}

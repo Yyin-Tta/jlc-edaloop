@@ -1,0 +1,135 @@
+
+== req-01-esp32s3-mini-2layer.md ==
+  [ir] 5/5
+  HIT  buttons-boot-reset
+  HIT  ldo-ams1117-3v3
+  HIT  mcu-esp32s3-wroom1-min
+  HIT  usb-c-power-entry
+  HIT  usb-serial-ch340n
+  top8=['usb-serial-ch340n', 'mcu-esp32s3-wroom1-min', 'usb-c-power-entry', 'ldo-ams1117-3v3', 'buttons-boot-reset', 'dc-terminal-5v-input', 'up-esp32_autodownload', 'led-indicator']
+
+== req-02-rs485-sensor-hub.md ==
+  [ir] 6/6
+  HIT  eeprom-24c02
+  HIT  ldo-ams1117-3v3
+  HIT  mcu-stm32f103c8-min
+  HIT  rs485-max485
+  HIT  usb-c-power-entry
+  HIT  usb-serial-ch340n
+  top8=['mcu-stm32f103c8-min', 'usb-serial-ch340n', 'ldo-ams1117-3v3', 'eeprom-24c02', 'usb-c-power-entry', 'rs485-max485', 'buttons-boot-reset', 'led-indicator']
+
+== req-03-power-board.md ==
+  [ir] 5/5
+  HIT  boost-mt3608
+  HIT  charger-tp4056
+  HIT  dc-terminal-wide-input
+  HIT  ldo-ams1117-3v3
+  HIT  led-indicator
+  top8=['ldo-ams1117-3v3', 'charger-tp4056', 'dc-terminal-wide-input', 'boost-mt3608', 'low-battery-alarm-tl431', 'usb-c-power-entry', 'dc-terminal-5v-input', 'led-indicator']
+
+== req-04-interface-board.md ==
+  [ir] 5/5
+  HIT  driver-uln2003
+  HIT  isolated-dc-b0505s
+  HIT  isolator-pc817
+  HIT  ldo-ams1117-3v3
+  HIT  rs485-max485
+  top8=['rs485-max485', 'header-1x4', 'ldo-ams1117-3v3', 'driver-uln2003', 'isolator-pc817', 'isolated-dc-b0505s', 'led-indicator', 'can-sn65hvd230']
+
+== req-05-battery-ble-telemetry.md ==
+  [ir] 6/6
+  HIT  boost-mt3608
+  HIT  charger-tp4056
+  HIT  ldo-ams1117-3v3
+  HIT  low-battery-alarm-tl431
+  HIT  mcu-esp32s3-wroom1-min
+  HIT  usb-c-power-entry
+  top8=['charger-tp4056', 'low-battery-alarm-tl431', 'boost-mt3608', 'mcu-esp32s3-wroom1-min', 'ldo-ams1117-3v3', 'usb-c-power-entry', 'buttons-boot-reset', 'rtc-ds3231']
+
+== req-06-pico-native-usb-gateway.md ==
+  [ir] 6/7
+  MISS dc-terminal-5v-input
+  HIT  diode-ss34
+  HIT  ldo-ams1117-3v3
+  HIT  up-esp32s3_pico_native_usb
+  HIT  up-ina226_power_monitor
+  HIT  up-microsd_spi_pushpush
+  HIT  usb-c-power-entry
+  top8=['up-esp32s3_pico_native_usb', 'diode-ss34', 'usb-c-power-entry', 'ldo-ams1117-3v3', 'up-ina226_power_monitor', 'up-microsd_spi_pushpush', 'buttons-boot-reset', 'up-esp32_autodownload']
+
+== req-07-motor-driver-board.md ==
+  [ir] 5/6
+  HIT  dc-terminal-wide-input
+  HIT  driver-uln2003
+  HIT  ldo-ams1117-3v3
+  HIT  mcu-stm32f103c8-min
+  MISS up-xl1509_buck_12v_5v
+  HIT  usb-serial-ch340n
+  top8=['mcu-stm32f103c8-min', 'usb-serial-ch340n', 'ldo-ams1117-3v3', 'driver-uln2003', 'dc-terminal-wide-input', 'buttons-boot-reset', 'header-1x4', 'led-indicator']
+
+== req-08-liion-protection-freeform.md ==
+  [ir] 2/2
+  HIT  battery-dw01-protection
+  HIT  mos-fs8205a-dual
+  top8=['mos-fs8205a-dual', 'battery-dw01-protection', 'up-tps63802_buckboost_3v8', 'dc-terminal-wide-input', 'up-i2c_isolation_2n7002dw', 'driver-uln2003', 'usb-micro-b', 'ldo-rt9193-18']
+
+== req-09-ambiguous-sensor-node.md ==
+  [ir] 3/3
+  HIT  led-indicator
+  HIT  mcu-stm32f103c8-min
+  HIT  rs485-max485
+  top8=['mcu-stm32f103c8-min', 'rs485-max485', 'ldo-ams1117-3v3', 'up-cc1101_433m_balun_ipex', 'header-1x4', 'led-indicator', 'can-sn65hvd230', 'up-sy8089_buck_3v3']
+
+== req-10-esp32s3-industrial-4layer.md ==
+  [ir] 6/6
+  HIT  dc-terminal-5v-input
+  HIT  ldo-ams1117-3v3
+  HIT  mcu-esp32s3-wroom1-min
+  HIT  rs485-max485
+  HIT  usb-c-power-entry
+  HIT  usb-serial-ch340n
+  top8=['rs485-max485', 'usb-serial-ch340n', 'mcu-esp32s3-wroom1-min', 'ldo-ams1117-3v3', 'usb-c-power-entry', 'buttons-boot-reset', 'dc-terminal-5v-input', 'up-esp32_autodownload']
+
+== req-11-isolated-dido-module.md ==
+  [ir] 5/5
+  HIT  driver-uln2003
+  HIT  isolated-dc-b0505s
+  HIT  isolator-pc817
+  HIT  ldo-ams1117-3v3
+  HIT  mcu-stm32f103c8-min
+  top8=['isolator-pc817', 'mcu-stm32f103c8-min', 'ldo-ams1117-3v3', 'driver-uln2003', 'up-opto_acc_ign_detect', 'dc-terminal-wide-input', 'terminal-kf301-2p', 'isolated-dc-b0505s']
+
+== req-12-hybrid-dual-mcu-gateway.md ==
+  [ir] 5/5
+  HIT  eeprom-24c02
+  HIT  ldo-ams1117-3v3
+  HIT  mcu-esp32s3-wroom1-min
+  HIT  mcu-stm32f103c8-min
+  HIT  usb-serial-ch340n
+  top8=['mcu-stm32f103c8-min', 'usb-serial-ch340n', 'mcu-esp32s3-wroom1-min', 'eeprom-24c02', 'usb-c-power-entry', 'ldo-ams1117-3v3', 'dc-terminal-5v-input', 'up-esp32_autodownload']
+
+== req-13-env-sensor-motherboard.md ==
+  [ir] 5/6
+  HIT  ldo-ams1117-3v3
+  HIT  mcu-stm32f103c8-min
+  HIT  rs485-max485
+  MISS tvs-smaj5
+  HIT  up-i2c_isolation_2n7002dw
+  HIT  usb-c-power-entry
+  top8=['mcu-stm32f103c8-min', 'up-i2c_isolation_2n7002dw', 'ldo-ams1117-3v3', 'usb-c-power-entry', 'rs485-max485', 'buttons-boot-reset', 'eeprom-24c02', 'nmos-2n7002']
+
+== req-14-door-sensor-e2e.md ==
+  [ir] 6/7
+  HIT  dc-terminal-wide-input
+  HIT  eeprom-24c02
+  HIT  ldo-ams1117-3v3
+  HIT  mcu-stm32f103c8-min
+  HIT  rs485-max485
+  HIT  sensor-hall-a3144
+  MISS up-xl1509_buck_12v_5v
+  top8=['dc-terminal-wide-input', 'sensor-hall-a3144', 'ldo-ams1117-3v3', 'mcu-stm32f103c8-min', 'eeprom-24c02', 'rs485-max485', 'buttons-boot-reset', 'relay-srd12']
+
+负样本断言: 24V直入 ldo 出局=是 / 5V设计 ldo 在位=是 / 无误伤=是
+
+recall@8 = 70/74 = 94.6%  (Go >= 92%)
+泛功能块 miss (1): req-06-pico-native-usb-gateway.md:dc-terminal-5v-input

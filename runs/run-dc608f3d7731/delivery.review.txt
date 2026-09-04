@@ -1,0 +1,9 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 11 blocks, status=PASS
+
+- [CRITIC_THERMAL@ldo1] sizing_recommendations 给出 Tj≈136°C(裕量-30°C),AMS1117(SOT-223)在 5V→3.3V 压差下按当前负载结温已超 105°C 安全裕量,长期工作可靠性风险高 | 建议: 更换为高效降压方案(如 ME6211/RT9013 类 LDO 仅当电流很小,或改用小型 BUCK 如 TPS54202/MP2315),或大幅降低负载电流并加强铺铜散热
+- [CRITIC_POWER_INTEGRITY@term5v1] 5V 为双入口(USB-C + 端子)但 plan 中无任何防倒灌器件(理想二极管/肖特基),uncovered 已确认目录无对应块,两路直接共轨会产生倒灌/反向供电 | 建议: 补充肖特基或理想二极管 ORing 器件;若不可得,在文档/丝印明确要求用户单路供电并去掉并联入口
+- [CRITIC_INTERFACE_PROTECTION@ch340n1] CH340N 的 UD+/UD- 直连 USB-C 差分对,usbc1 块描述的 VBUS TVS 不覆盖数据线,USB 数据线无 ESD 保护 | 建议: 在 USB_DP/USB_DM 上增加低结电容 ESD 器件(如 USBLC6-2SC6),靠近 USB-C 连接器放置
+- [CRITIC_PULL_RESISTORS@led_user] LED_CTRL 网络无驱动源:MCU 块端口绑定未暴露任何通用 GPIO,LED_CTRL 悬空(uncovered 已列为待人工指定) | 建议: 在 mcu1 上显式指定一个空闲 GPIO 绑定到 LED_CTRL(如 ESP32-S3 的 GPIO2/GPIO48 等非 strapping、非 UART0 引脚),否则用户 LED 无法工作
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

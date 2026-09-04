@@ -1,0 +1,34 @@
+{
+  "parts": {
+    "c1": {
+      "mpn": "CL05B104KO5NNNC",
+      "lcsc": "C1525",
+      "value": "100nF"
+    },
+    "r1": {
+      "mpn": "0402WGF1000TCE",
+      "lcsc": "C25076",
+      "value": "100Ω"
+    },
+    "r2": {
+      "mpn": "0402WGF1001TCE",
+      "lcsc": "C11702",
+      "value": "1kΩ"
+    },
+    "dw01a": {
+      "mpn": "DW01A",
+      "lcsc": "C2927799",
+      "value": "DW01A"
+    },
+    "fs8205a": {
+      "mpn": "FS8205A",
+      "lcsc": "C2830320",
+      "value": "FS8205A"
+    },
+    "kf301-2p": {
+      "mpn": "KF301-2P接线端子",
+      "lcsc": "C9900016950",
+      "value": "KF301-2P接线端子"
+    }
+  }
+}

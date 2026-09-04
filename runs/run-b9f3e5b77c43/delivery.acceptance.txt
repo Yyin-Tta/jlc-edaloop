@@ -1,0 +1,13 @@
+验收清单(✗=机械复评未满足 · =可执行已过 ? =manual 人审)
+? [M1](md/manual) 器件数 → manual
+    期望: ~15–25，BOM 全部有 LCSC C 号
+· [M2](md/blocks) 必含块 → check_func_covered
+    期望: esp32-s3 模组最小系统 / ch340 串口桥 / ams1117-ldo 3V3 / led_indicator_gpio / boot-reset 按键 / usb-c 电源入口
+· [M3](md/nets) 网络 → check_topology_sanity
+    期望: 3V3/5V/GND/EN/BOOT(IO0)/TX/RX 至少齐全；netlist 无悬空引脚（除 NC）
+· [M4](md/gate) 门禁 → check_gauge
+    期望: `sch gate` 0 fatal；PCB DRC Connection=0
+? [M5](md/manual) 丝印 → manual
+    期望: LED ± 极性、BOOT/RESET、V1.0 版本号、4 测试点标注
+? [M6](md/manual) 结构 → manual
+    期望: 4×M3 非金属化孔（或按板厂惯例金属化），天线禁区无铜

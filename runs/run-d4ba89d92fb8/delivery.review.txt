@@ -1,0 +1,8 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 2 blocks, status=PASS
+
+- [CRITIC_PULL_RESISTORS@prot_dw01] DW01 的引脚 4(TD)未在 pins_binding 中绑定,测试脚悬空可能导致保护逻辑异常,数据手册要求接地 | 建议: 将 pin 4(TD)绑定到 B_MINUS(地)
+- [CRITIC_POWER_INTEGRITY@prot_dw01] pin 5 VCC 绑定为 VBAT 但缺少数据手册要求的 VCC 串联 100R 及去耦电容(0.1µF 到 B-),未在块内包含也未列入 uncovered | 建议: 在块内添加 100R 串联与 0.1µF 去耦电容到 B-,或将其加入 uncovered 清单
+- [CRITIC_POWER_INTEGRITY@prot_dw01] pin 2 CS 直接绑到 B_MINUS,缺少规定的 1k 电流取样电阻,过流保护阈值会失效(短路/直连) | 建议: pin 2 经 1k 电阻接 B_MINUS(已列入 uncovered,建议在块内显式建模)
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

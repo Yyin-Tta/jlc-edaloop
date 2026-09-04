@@ -1,0 +1,225 @@
+{
+  "clusters": [
+    {
+      "designator": "JBATIN",
+      "primitiveId": "9b6a28b6e2ee0885",
+      "body": {
+        "minX": 169.5,
+        "minY": 664.5,
+        "maxX": 190.5,
+        "maxY": 695.5
+      },
+      "box": {
+        "minX": 26.5,
+        "minY": 664.5,
+        "maxX": 190.5,
+        "maxY": 695.5
+      },
+      "markers": 2,
+      "wires": 2,
+      "members": [
+        "part     JBATIN   x=[170,190] y=[664,696]",
+        "wire              x=[140,160] y=[685,685]",
+        "wire              x=[105,160] y=[675,675]",
+        "netport  VBAT     x=[68,130] y=[680,690]",
+        "netport  B_NEG    x=[26,96] y=[670,680]"
+      ]
+    },
+    {
+      "designator": "RVDD",
+      "primitiveId": "a3900aa538c4da09",
+      "body": {
+        "minX": 134.5,
+        "minY": 590.5,
+        "maxX": 155.5,
+        "maxY": 599.5
+      },
+      "box": {
+        "minX": 32.5,
+        "minY": 589.5,
+        "maxX": 251.5,
+        "maxY": 600.5
+      },
+      "markers": 2,
+      "wires": 2,
+      "members": [
+        "part     RVDD     x=[134,156] y=[590,600]",
+        "wire              x=[105,125] y=[595,595]",
+        "wire              x=[165,185] y=[595,595]",
+        "netport  VBAT     x=[32,96] y=[590,600]",
+        "netport  VDD      x=[194,252] y=[590,600]"
+      ]
+    },
+    {
+      "designator": "PROTFS82",
+      "primitiveId": "0e9d49b8b6ff8d5c",
+      "body": {
+        "minX": 214.5,
+        "minY": 754.5,
+        "maxX": 295.5,
+        "maxY": 795.5
+      },
+      "box": {
+        "minX": 84.5,
+        "minY": 644.5,
+        "maxX": 590.5,
+        "maxY": 795.5
+      },
+      "markers": 5,
+      "wires": 6,
+      "members": [
+        "part     PROTFS82 x=[214,296] y=[754,796]",
+        "wire              x=[205,295] y=[785,785]",
+        "wire              x=[175,205] y=[775,775]",
+        "wire              x=[205,205] y=[735,765]",
+        "wire              x=[305,305] y=[735,765]",
+        "wire              x=[305,500] y=[775,775]",
+        "wire              x=[305,330] y=[785,785]",
+        "netport  B_NEG    x=[304,374] y=[780,790]",
+        "netport  FET_MID  x=[84,166] y=[770,780]",
+        "netport  P_NEG    x=[200,210] y=[656,726]",
+        "netport  OC_GATE  x=[300,310] y=[644,726]",
+        "netport  FET_MID  x=[510,590] y=[770,780]"
+      ]
+    },
+    {
+      "designator": "JPOUT",
+      "primitiveId": "b1b1375c532970d2",
+      "body": {
+        "minX": 394.5,
+        "minY": 664.5,
+        "maxX": 415.5,
+        "maxY": 695.5
+      },
+      "box": {
+        "minX": 251.5,
+        "minY": 664.5,
+        "maxX": 415.5,
+        "maxY": 695.5
+      },
+      "markers": 2,
+      "wires": 2,
+      "members": [
+        "part     JPOUT    x=[394,416] y=[664,696]",
+        "wire              x=[365,385] y=[685,685]",
+        "wire              x=[330,385] y=[675,675]",
+        "netport  VBAT     x=[292,356] y=[680,690]",
+        "netport  P_NEG    x=[252,320] y=[670,680]"
+      ]
+    },
+    {
+      "designator": "CVDD",
+      "primitiveId": "dec577727ce5a6ab",
+      "body": {
+        "minX": 574.4999999999999,
+        "minY": 676.5000000000001,
+        "maxX": 595.4999999999999,
+        "maxY": 693.5000000000001
+      },
+      "box": {
+        "minX": 559.5,
+        "minY": 576.5,
+        "maxX": 614,
+        "maxY": 693.5000000000001
+      },
+      "markers": 2,
+      "wires": 2,
+      "members": [
+        "part     CVDD     x=[574,595] y=[677,694]",
+        "wire              x=[565,565] y=[655,685]",
+        "wire              x=[605,605] y=[655,685]",
+        "netport  B_NEG    x=[560,570] y=[576,646]",
+        "netflag  VDD      x=[596,614] y=[632,650]"
+      ]
+    },
+    {
+      "designator": "PROTDW01",
+      "primitiveId": "b8500a62fca9e0bb",
+      "body": {
+        "minX": 764.5,
+        "minY": 754.5,
+        "maxX": 815.5,
+        "maxY": 795.5
+      },
+      "box": {
+        "minX": 628.5,
+        "minY": 644.5,
+        "maxX": 915.5,
+        "maxY": 795.5
+      },
+      "markers": 6,
+      "wires": 6,
+      "members": [
+        "part     PROTDW01 x=[764,816] y=[754,796]",
+        "wire              x=[825,905] y=[775,775]",
+        "wire              x=[755,815] y=[785,785]",
+        "wire              x=[725,755] y=[775,775]",
+        "wire              x=[755,755] y=[735,765]",
+        "wire              x=[825,825] y=[735,765]",
+        "wire              x=[825,890] y=[785,785]",
+        "netflag  VDD      x=[887,916] y=[770,787]",
+        "netport  OD_GATE  x=[824,906] y=[780,790]",
+        "netport  CS_SENSE x=[628,716] y=[770,780]",
+        "netport  OC_GATE  x=[750,760] y=[644,726]",
+        "netport  B_NEG    x=[820,830] y=[656,726]",
+        "netflag  B_NEG    x=[894,900] y=[780,790]"
+      ]
+    },
+    {
+      "designator": "RCS",
+      "primitiveId": "b5911dce4cc44990",
+      "body": {
+        "minX": 889.4999999999999,
+        "minY": 685.5000000000001,
+        "maxX": 910.4999999999999,
+        "maxY": 694.5000000000001
+      },
+      "box": {
+        "minX": 771.5,
+        "minY": 684.5,
+        "maxX": 920,
+        "maxY": 695.5
+      },
+      "markers": 2,
+      "wires": 2,
+      "members": [
+        "part     RCS      x=[889,910] y=[686,695]",
+        "wire              x=[850,880] y=[690,690]",
+        "wire              x=[890,920] y=[690,690]",
+        "netport  P_NEG    x=[772,840] y=[684,696]",
+        "netport  CS_SENSE x=[794,880] y=[684,696]"
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "type": "overlap",
+      "a": "PROTFS82",
+      "b": "JPOUT",
+      "ovX": 11,
+      "ovY": 11,
+      "level": "ERROR"
+    },
+    {
+      "type": "overlap",
+      "a": "PROTDW01",
+      "b": "RCS",
+      "ovX": 11,
+      "ovY": 11,
+      "level": "ERROR"
+    },
+    {
+      "type": "tight",
+      "a": "JBATIN",
+      "b": "PROTFS82",
+      "gap": 9,
+      "level": "WARN"
+    }
+  ],
+  "sheetUsable": {
+    "minX": 12,
+    "minY": 12,
+    "maxX": 1158,
+    "maxY": 813
+  }
+}

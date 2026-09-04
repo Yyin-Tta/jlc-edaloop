@@ -1,0 +1,42 @@
+{
+ "status": "PASS",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "76689deb7c26",
+   "gate_verdict": "pass",
+   "findings": [
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:1 个块缺 v_supply 区间或单边(ldo_3v3)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='5V', pin='', xy='') evidence='轨 5V 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/2(覆盖率 0%),缺 i_typ:chg_tp4056, ldo_3v3' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='VBAT', pin='', xy='') evidence='轨 VBAT 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/1(覆盖率 0%),缺 i_typ:boost_5v' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/1(覆盖率 0%),缺 i_typ:mcu_esp32s3' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='蓝色用户 LED(LED_USER)及红色告警 LED:目录无 LED/指示灯块,TL431 仅提供检测部分' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='2x4 I2C 扩展排针(3V3/GND/SDA/SCL/INT/备用×2):目录无排针/连接器块' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='18650 锂电池座(电池输入端子):目录无电池座/端子块' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='TL431 阈值分压电阻网络与告警 LED 限流电阻:目录无分立阻容块' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True"
+   ],
+   "feedback": "",
+   "halted": ""
+  }
+ ],
+ "delivery": {
+  "svg": "E:\\jlc-edaloop\\runs\\run-9eeb15964da3\\delivery-P1.svg",
+  "svg_pages": [
+   "E:\\jlc-edaloop\\runs\\run-9eeb15964da3\\delivery-P1.svg",
+   "E:\\jlc-edaloop\\runs\\run-9eeb15964da3\\delivery-P2.svg",
+   "E:\\jlc-edaloop\\runs\\run-9eeb15964da3\\delivery-P3.svg",
+   "E:\\jlc-edaloop\\runs\\run-9eeb15964da3\\delivery-P4.svg",
+   "E:\\jlc-edaloop\\runs\\run-9eeb15964da3\\delivery-P5.svg",
+   "E:\\jlc-edaloop\\runs\\run-9eeb15964da3\\delivery-P6.svg"
+  ],
+  "netlist": "runs\\run-9eeb15964da3\\delivery.net.json",
+  "netlist_sha256_16": "06b6ece14a8b1a59",
+  "bom": "runs\\run-9eeb15964da3\\delivery.bom.json",
+  "bom_total": 5.6996,
+  "swap": "runs\\run-9eeb15964da3\\delivery.swap.txt",
+  "sizing": "runs\\run-9eeb15964da3\\delivery.sizing.txt",
+  "sizing_count": 6,
+  "review": "runs\\run-9eeb15964da3\\delivery.review.txt",
+  "review_findings": 4
+ }
+}

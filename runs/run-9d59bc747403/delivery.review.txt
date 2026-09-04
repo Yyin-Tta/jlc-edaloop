@@ -1,0 +1,9 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 33 blocks, status=PASS
+
+- [CRITIC_POWER_INTEGRITY / 隔离架构@do_drv] ULN2003 的输入 DO1~DO4 直接来自 MCU(非隔离 3V3/GND 域)的 GPIO,但芯片 GND 脚(pin 8)接在隔离侧 GND_ISO。逻辑输入与芯片参考地跨接在隔离带两侧,直接破坏了 B0505S 建立的电气隔离,且两域地电位不同会导致输入阈值漂移、误动作。 | 建议: 在 MCU GPIO 与 ULN2003 输入之间加光耦(或改用数字隔离器)隔离 4 路 DO 控制信号;或将 ULN2003 整体移到非隔离逻辑域、输出侧另做隔离方案,保证隔离带下
+- [CRITIC_INTERFACE_PROTECTION@do_drv] ULN2003 的 COM 脚(pin 9)接 5V_ISO,而 DO 输出端子(jx_do1~4)负载电源是 24V_FIELD。内置续流二极管钳位到 5V_ISO:感性负载断电时续流电流会灌入 5V_ISO 轨,既可能抬升/损坏 1W 的 B0505S 输出,也无法对 24V 感性负载正确续流。 | 建议: COM 脚应改接 24V_FIELD(与负载电源同轨),与输出端子共用同一现场电源;5V_ISO 不作续流钳位轨。
+- [CRITIC_INTERFACE_PROTECTION@jx_di1~jx_di4 / jx_24v] 24V 现场数字量输入经螺钉端子长线接入,仅有 2.2k 限流电阻,未加 TVS/ESD 保护;现场接线误接高压或浪涌时可能损坏光耦 LED 与相邻电路。 | 建议: 每个 DI 输入端子处对 GND_ISO 加 TVS(如 SMAJ 系列,钳位约 30V 档),必要时串 PPTC;24V_FIELD 电源端子同样加 TVS。
+- [CRITIC_POWER_INTEGRITY@iso5v] B0505S-1WR2 输出 5V_ISO 同时承担 ULN2003 逻辑侧供电与原计划中的续流 COM 负担,1W 功率预算紧(且 uncovered 中已提示未确认负载电流预算);若隔离侧还需增加 DO 隔离光耦,余量进一步收窄。 | 建议: 核算 5V_ISO 总负载电流(ULN2003 输入级 + 新增隔离通道),确认 ≤1W/80%;不足时改用 2W 级隔离 DC-DC。
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

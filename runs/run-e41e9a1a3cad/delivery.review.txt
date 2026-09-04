@@ -1,0 +1,8 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 35 blocks, status=PASS
+
+- [CRITIC_INTERFACE_PROTECTION@u_pc817_di1..di4] 隔离架构被破坏:PC817 副边(集电极 pin4 → DIx)上拉到 5V_ISO、发射极接 GND_ISO,但 DIx 网络直接连到 u_mcu 的 PA0/PA1/PA2(3V3/GND 域)。信号跨越了隔离边界,隔离形同虚设,且 MCU 侧以 GND_ISO 为参考、被 5V_ISO 上拉,3.3V 器件输入域错误。 | 建议: 把光耦副边放到 MCU 侧:发射极接 GND,集电极经 4.7k 上拉到 3V3 再进 MCU;原边(二极管侧)留在 24V/GND_ISO
+- [CRITIC_INTERFACE_PROTECTION@u_uln2003] ULN2003 完全挂在隔离侧(8=GND_ISO,9=5V_ISO),但输入 DO1~DO4 直接来自 u_mcu 的 3V3/GND 域 GPIO。逻辑侧与隔离侧通过 4 根输入线直连,隔离被击穿;且 ULN2003 输入参考 GND_ISO 而驱动源参考 GND,地电位不一致可能导致误动作。 | 建议: 若输出侧需要隔离,应为每路 DO 增加副边光耦(或改用带隔离的驱动);若 DO 侧不需要与 MCU 隔离,则 ULN2003 应移到逻辑侧(COM 接 5V 或负载电源
+- [CRITIC_POWER_INTEGRITY@u_ldo3v3] AMS1117-3.3 从 5V 降 3.3V,sizing 已算出 Tj≈136°C(裕量-30°C),说明当前负载下线性稳压功耗/温升方案不成立,属于拓扑选择问题而非参数微调问题。 | 建议: 降低 LDO 负载(梳理 3V3 实际电流)或改用小型 BUCK(如同步降压模块/IC)产生 3V3;若坚持 LDO,需加散热铜箔并核算结温裕量为正。
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

@@ -1,0 +1,18 @@
+{
+  "id": "req_30979",
+  "type": "response",
+  "version": "v1",
+  "createdAt": "2026-08-22T13:52:33.2432294Z",
+  "ok": false,
+  "error": {
+    "code": "EDA_CALL_FAILED",
+    "message": "Netlist export returned no file."
+  },
+  "seq": 511,
+  "seqAbandoned": 3,
+  "abandonedIds": [
+    "req_30288",
+    "req_30299",
+    "req_30308"
+  ]
+}

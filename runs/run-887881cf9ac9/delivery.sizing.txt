@@ -1,0 +1,8 @@
+[sizing:reg-caps@ldo_3v3] ldo @ 800mA = 800 → 推荐 见 notes(惯例值)
+    C_IN: 10µF 钽/陶瓷 + 100nF 就近(AMS1117 数据手册惯例)
+    C_OUT: 22µF + 100nF(LDO 依赖输出电容环路稳定,不可省)
+    负载 800mA → LDO 压差功耗=(Vin-Vout)×I,注意散热铜
+
+[sizing:thermal@ldo_3v3] Tj=25+0.85W×60°C/W = 76 → 推荐 Tj≈76°C(裕量29°C)
+    估算结温 76°C(上限 105°C,裕量 29°C)
+    裕量 <20°C:加铺铜/散热过孔或换封装;R_ja 取决于铺铜面积, datasheet 典型值为最小铺铜条件

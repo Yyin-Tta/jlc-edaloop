@@ -1,0 +1,78 @@
+{
+  "overall": 90,
+  "verdict": "excellent",
+  "dimensions": [
+    {
+      "id": "folded-labels",
+      "title": "标签折叠",
+      "status": "scored",
+      "score": 100,
+      "weight": 1.2
+    },
+    {
+      "id": "reversed-labels",
+      "title": "标签反向",
+      "status": "scored",
+      "score": 80,
+      "weight": 1.2,
+      "attributions": [
+        {
+          "dimension": "reversed-labels",
+          "target": "TERMBATT:1",
+          "penalty": 20,
+          "message": "TERMBATT 的 VBAT netport 背向核心 PROTFS(朝左,核心在右)",
+          "fix": "easyeda sch disconnect --pin TERMBATT:1 \u0026\u0026 easyeda sch connect --x 175 --y 785 --kind netport --net VBAT --direction right --offset 24",
+          "at": {
+            "x": 110,
+            "y": 785
+          }
+        }
+      ]
+    },
+    {
+      "id": "proximity",
+      "title": "外围贴核心",
+      "status": "skipped",
+      "score": 0,
+      "weight": 1,
+      "reason": "页面无可评的 R/C/L 无源件(或无核心大件可参照)"
+    },
+    {
+      "id": "stub-tidiness",
+      "title": "长链/挤压",
+      "status": "scored",
+      "score": 90,
+      "weight": 0.8,
+      "attributions": [
+        {
+          "dimension": "stub-tidiness",
+          "target": "C1",
+          "penalty": 10,
+          "message": "C1 与其 2 个标记连成跨度 336 的长链(\u003e250)— 收短最远标记的 offset",
+          "fix": "easyeda sch disconnect --pin C1:2 \u0026\u0026 easyeda sch connect --x 155 --y 555 --kind netport --net B_MINUS --direction right --offset 24",
+          "at": {
+            "x": 135,
+            "y": 555
+          }
+        }
+      ]
+    },
+    {
+      "id": "frame-fit",
+      "title": "版面整洁",
+      "status": "skipped",
+      "score": 0,
+      "weight": 0.5,
+      "reason": "components.list 未暴露 text 图元 bbox,且分区框几何不在 workflow state — 未测(≠满分)"
+    }
+  ],
+  "dimensionScores": {
+    "folded-labels": 100,
+    "reversed-labels": 80,
+    "stub-tidiness": 90
+  },
+  "componentCount": 29,
+  "scoredDims": 3,
+  "skippedDims": 2,
+  "summary": "sch layout-score: 综合 90.0 [excellent] — 3 维已测 / 2 维未测(skipped≠满分),29 图元"
+}

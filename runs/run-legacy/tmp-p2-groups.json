@@ -1,0 +1,51 @@
+﻿{
+  "documentUuid": "77858da24f77cd3d",
+  "groupsByPage": {
+    "77858da24f77cd3d": [
+      {
+        "id": "g1",
+        "members": [
+          {
+            "designator": "D3"
+          }
+        ],
+        "at": "2026-08-21T22:46:54+08:00"
+      },
+      {
+        "id": "g2",
+        "members": [
+          {
+            "designator": "J2"
+          }
+        ],
+        "at": "2026-08-21T22:46:55+08:00"
+      },
+      {
+        "id": "g3",
+        "members": [
+          {
+            "designator": "R3"
+          }
+        ],
+        "at": "2026-08-21T22:46:55+08:00"
+      },
+      {
+        "id": "g4",
+        "members": [
+          {
+            "designator": "D2"
+          },
+          {
+            "designator": "D4"
+          },
+          {
+            "designator": "R4"
+          }
+        ],
+        "at": "2026-08-21T22:46:55+08:00"
+      }
+    ]
+  },
+  "presenceChecked": true,
+  "project": "edaloop-w2-req01"
+}

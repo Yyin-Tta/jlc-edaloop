@@ -1,0 +1,46 @@
+{
+ "status": "PASS",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "941407306bd1",
+   "gate_verdict": "pass",
+   "findings": [
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:1 个块缺 v_supply 区间或单边(ldo3v3)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='5V', pin='', xy='') evidence='轨 5V 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/2(覆盖率 0%),缺 i_typ:chg1, ldo3v3' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='VBAT', pin='', xy='') evidence='轨 VBAT 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/1(覆盖率 0%),缺 i_typ:boost1' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/1(覆盖率 0%),缺 i_typ:mcu1' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='18650 电池座(VBAT 输入端子)目录无连接器块' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='I2C 2x4 排针扩展(3V3/GND/SDA/SCL/INT/备用×2)目录无排针/连接器块,SDA/SCL 网络未引出' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='蓝色用户 LED 器件(限流电阻可后补阻值,但 LED 本体目录无件)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='TP4056 充电状态双 LED(CHRG 红/STDBY 绿)器件本体目录无 LED 件,CHG_STAT 网络已预留' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='红色低压告警 LED 器件本体目录无件,ALARM_LED_C 网络已预留' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='TL431 分压电阻取值依赖低压阈值(Q1 未答:3.3V/3.0V),无法给出有出处的标准阻值' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='ESP32-S3 I2C 引脚未在 mcu 块端口中暴露,SDA/SCL 需后续扩展' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='FUNC_UNCOVERED' where=Where(ref='用户指示', net='', pin='', xy='') evidence='IR 功能「用户指示」在计划 9 块的词表/词元匹配中无覆盖证据(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True"
+   ],
+   "feedback": "",
+   "halted": ""
+  }
+ ],
+ "delivery": {
+  "svg": "D:\\gyt-pro\\jlc-edaloop\\runs\\run-4edca9c10ead\\delivery-P1.svg",
+  "svg_pages": [
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-4edca9c10ead\\delivery-P1.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-4edca9c10ead\\delivery-P2.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-4edca9c10ead\\delivery-P3.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-4edca9c10ead\\delivery-P4.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-4edca9c10ead\\delivery-P5.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-4edca9c10ead\\delivery-P6.svg"
+  ],
+  "netlist": "runs\\run-4edca9c10ead\\delivery.net.json",
+  "netlist_sha256_16": "d65a1c90e94c933e",
+  "bom": "runs\\run-4edca9c10ead\\delivery.bom.json",
+  "bom_total": 5.6996,
+  "swap": "runs\\run-4edca9c10ead\\delivery.swap.txt",
+  "sizing": "runs\\run-4edca9c10ead\\delivery.sizing.txt",
+  "sizing_count": 8,
+  "review": "runs\\run-4edca9c10ead\\delivery.review.txt",
+  "review_findings": 4
+ }
+}

@@ -1,0 +1,10 @@
+[sizing:tvs-rating@usb_c_pwr] VRWM≥1.1×3.3V;VC<2×V_rail = 3.63 → 推荐 VRWM≥3.6V / VC≤7V(SMAJ/SMBJ 系列按此筛)
+    输入 V_rail=3.3V ← IR 单轨推断(IR rail 3V3=3.3V)
+    输入 系数 TVS_VRWM_MARGIN=1.1 ← 工程系数白名单 _COEFFS
+    VRWM 高于工作电压防误触发;VC 低于后级最大耐压才有效
+    功率档:600W(SMAJ)/400W(SMBJ 视浪涌等级;车载选 SMBJ 以上
+
+[sizing:fuse-rating@usb_c_pwr] I_hold≥1.25×120mA = 0.15 → 推荐 I_hold≥0.15A(自恢复 PPTC 按此档)
+    输入 I_load=120mA ← ENGINEERING-DEFAULT 输入口负载电流典型(轨 imax 缺)
+    输入 系数 PPTC_DERATE=1.25 ← 工程系数白名单 _COEFFS
+    降额 25% 防浪涌误动作;PPTC 恢复后保持电流会随温度下降,高温环境再降额

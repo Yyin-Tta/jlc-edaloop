@@ -1,0 +1,68 @@
+{
+  "id": "req_30293",
+  "type": "response",
+  "version": "v1",
+  "createdAt": "2026-08-22T13:41:56.8129507Z",
+  "ok": true,
+  "result": {
+    "component": {
+      "addIntoBom": true,
+      "addIntoPcb": true,
+      "component": {
+        "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+        "name": "KF301-2P接线端子",
+        "uuid": "8063343f77f689d6"
+      },
+      "componentType": "part",
+      "designator": "TERM9",
+      "device": {
+        "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+        "name": "={Manufacturer Part}",
+        "uuid": "8063343f77f689d6"
+      },
+      "footprint": {
+        "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+        "name": "CONN-TH_XY301V-A-5.0-2P",
+        "uuid": "d0643b3a64389681"
+      },
+      "manufacturer": "",
+      "manufacturerId": "KF301-2P接线端子",
+      "mirror": false,
+      "name": "={Manufacturer Part}",
+      "net": "",
+      "otherProperty": {
+        "Datasheet": "",
+        "Description": "",
+        "JLCPCB Part Class": "",
+        "LCSC Part Name": "",
+        "Supplier Footprint": ""
+      },
+      "primitiveId": "b2d3251143c984cf",
+      "rotation": 0,
+      "subPartName": "KF301-2P接线端子.1",
+      "supplier": "LCSC",
+      "supplierId": "C9900016950",
+      "symbol": {
+        "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+        "name": "KF301-2P接线端子",
+        "uuid": "575f8cf6800d67ff"
+      },
+      "uniqueId": "",
+      "x": 700,
+      "y": 620
+    },
+    "primitiveId": "b2d3251143c984cf"
+  },
+  "context": {
+    "projectUuid": "993e2ad9b7944f92b44333b630a754da",
+    "projectName": "edaloop-w2-req01",
+    "documentUuid": "7c4a751c5136cb01",
+    "documentType": "schematic",
+    "tabId": "7c4a751c5136cb01@993e2ad9b7944f92b44333b630a754da"
+  },
+  "seq": 6,
+  "seqAbandoned": 1,
+  "abandonedIds": [
+    "req_30288"
+  ]
+}

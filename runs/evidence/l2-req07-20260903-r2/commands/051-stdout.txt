@@ -1,0 +1,136 @@
+{
+  "id": "req_284186",
+  "ok": true,
+  "result": {
+    "passed": false,
+    "summary": {
+      "trees": 9,
+      "bridges": 0,
+      "orphans": 9,
+      "orphanFlags": 0,
+      "orphanTrees": 0,
+      "wireTreesTotal": 57
+    },
+    "trees": [
+      {
+        "kind": "ORPHAN",
+        "type": "orphan-stub",
+        "level": "warn",
+        "wireIds": [
+          "844072d1199dd577"
+        ],
+        "flagIds": [],
+        "pins": [
+          "HDRSWD1:1"
+        ],
+        "nets": []
+      },
+      {
+        "kind": "ORPHAN",
+        "type": "orphan-stub",
+        "level": "warn",
+        "wireIds": [
+          "9b19839e6d1438a8"
+        ],
+        "flagIds": [],
+        "pins": [
+          "U1MCU:47"
+        ],
+        "nets": []
+      },
+      {
+        "kind": "ORPHAN",
+        "type": "orphan-stub",
+        "level": "warn",
+        "wireIds": [
+          "1ea70df8331e2520"
+        ],
+        "flagIds": [],
+        "pins": [
+          "U1MCU:24"
+        ],
+        "nets": []
+      },
+      {
+        "kind": "ORPHAN",
+        "type": "orphan-stub",
+        "level": "warn",
+        "wireIds": [
+          "c6f1e6c44ec6d7ca"
+        ],
+        "flagIds": [],
+        "pins": [
+          "U1MCU:48"
+        ],
+        "nets": []
+      },
+      {
+        "kind": "ORPHAN",
+        "type": "orphan-stub",
+        "level": "warn",
+        "wireIds": [
+          "f36a4dec884c1108"
+        ],
+        "flagIds": [],
+        "pins": [
+          "HDRSWD1:4"
+        ],
+        "nets": []
+      },
+      {
+        "kind": "ORPHAN",
+        "type": "orphan-stub",
+        "level": "warn",
+        "wireIds": [
+          "faa6796ebfaed041"
+        ],
+        "flagIds": [],
+        "pins": [
+          "HDRSWD1:5"
+        ],
+        "nets": []
+      },
+      {
+        "kind": "ORPHAN",
+        "type": "orphan-stub",
+        "level": "warn",
+        "wireIds": [
+          "fcb00676e5f7732a"
+        ],
+        "flagIds": [],
+        "pins": [
+          "C6:1"
+        ],
+        "nets": []
+      },
+      {
+        "kind": "ORPHAN",
+        "type": "orphan-stub",
+        "level": "warn",
+        "wireIds": [
+          "72a414540551791b"
+        ],
+        "flagIds": [],
+        "pins": [
+          "C6:2"
+        ],
+        "nets": []
+      },
+      {
+        "kind": "ORPHAN",
+        "type": "orphan-stub",
+        "level": "warn",
+        "wireIds": [
+          "c990e8acf842397e"
+        ],
+        "flagIds": [],
+        "pins": [
+          "U1MCU:34"
+        ],
+        "nets": []
+      }
+    ]
+  },
+  "type": "response",
+  "version": "v1"
+}

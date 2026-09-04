@@ -1,0 +1,20 @@
+sch gate: FAIL
+  FAIL   layout-lint    0 overlap, 0 pin-coincidence, 0 tight, 0 off-grid, 0 out-of-sheet, 0 no-bbox, 0 unchecked-pin, 0 unproven-pin, 0 invalid-geometry (zone-check=not-configured sheet-check=unavailable)
+  FAIL   clusters       6 个虚拟组:2 重叠 / 0 出图纸 / 0 过近
+  FAIL   check          13 finding(s): 0 error/fatal, 13 warn/info
+  PASS   bridge-check   0 bridge(short), 0 orphan-stub, 0 orphan-flag, 0 orphan-tree (28 wire tree(s))
+  FAIL   drc            1 fatal, 0 error, 7 warn, 0 info (total 8)
+
+阻塞项:
+  • layout-lint: sheet-check unavailable (--strict): 本页读不到图纸边框(sheet)bbox —— 无法判断器件是否越出图纸;`easyeda doc switch` 到该原理图页后重跑
+  • clusters: 2 处组间图元重叠
+  • check: 13 个 warn finding (--strict;info 不阻塞): marker-overlap×7, duplicate-net-marker×1, floating-pin×1, missing-note×1, missing-partition×1, missing-titleblock×1, redundant-net-marker×1
+  • drc: 1 fatal DRC violation; 7 warn-level DRC violation (--strict;平台只回聚合数,逐条明细请在 EasyEDA 的 DRC 面板查看)
+
+下一步:
+  → 几何重叠:`sch autolayout` 重排,或 `sch modify` 单件挪位。几何先修 —— 重叠会连锁出一堆电气误报
+  → 按 finding 类型分治:duplicate-net-marker 喂 `sch prim-delete`(带 suggestDeleteIds),floating-pin 用 `sch no-connect`,wire-* 用 `sch disconnect` 后重连
+  → 跑 `sch drc --verbose` 看逐条明细(gate 只汇总);DRC 需要 EasyEDA 窗口在前台
+
+告警(不阻塞): check: 13 条告警, drc: 7 条告警
+sch gate: FAIL — layout-lint: sheet-check unavailable (--strict): 本页读不到图纸边框(sheet)bbox —— 无法判断器件是否越出图纸;`easyeda doc switch` 到该原理图页后重跑; clusters: 2 处组间图元重叠; check: 13 个 warn finding (--strict;info 不阻塞): marker-overlap×7, duplicate-net-marker×1, floating-pin×1, missing-note×1, missing-partition×1, missing-titleblock×1, redundant-net-marker×1; drc: 1 fatal DRC violation; 7 warn-level DRC violation (--strict;平台只回聚合数,逐条明细请在 EasyEDA 的 DRC 面板查看)

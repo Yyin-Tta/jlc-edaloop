@@ -1,0 +1,112 @@
+{
+  "_doc": "P5-3 归档 11 件标注草稿(2026-08-22 起草)。合并时机=P5-1 生产数据闭环 w1 回归通过之后(w1 门需在同一标注集上比较)。口径与现行 74 条一致:需求点名件优先,泛功能块按设计必需;等价类沿用 metric 定义(usb-c-power-entry / dc-terminal-5v-input 两族);电压/功能不同不并类。使能排针 1x2(req-25)/12MHz 晶振(req-09,随 hub 块)/SWD 排针(随 mcu 块)不单列。",
+  "req-09-usb-hub-dock.md": [
+    "up-ch334f_usb4_hub",
+    "up-usbc_dual_orientation_data",
+    "dc-terminal-5v-input",
+    "diode-ss34",
+    "esd-usblc6",
+    "led-indicator"
+  ],
+  "req-10-vehicle-gps-tracker.md": [
+    "mcu-stm32f103c8-min",
+    "up-lc29h_dr_gnss_frontend",
+    "dc-terminal-wide-input",
+    "diode-ss34",
+    "tvs-smaj5",
+    "fuse-polyfuse",
+    "buck-tps5430",
+    "ldo-ams1117-3v3",
+    "up-opto_acc_ign_detect",
+    "up-ina226_power_monitor",
+    "charger-tp4056",
+    "led-indicator",
+    "buttons-boot-reset"
+  ],
+  "req-11-audio-recorder-node.md": [
+    "mcu-esp32s3-wroom1-min",
+    "up-es8311_codec_i2s",
+    "up-mems_mic_analog",
+    "up-aw8737_classd_spk",
+    "usb-c-power-entry",
+    "ldo-ams1117-3v3",
+    "up-microsd_spi_pushpush",
+    "led-indicator",
+    "buttons-boot-reset"
+  ],
+  "req-12-imu-display-tag.md": [
+    "mcu-esp32s3-wroom1-min",
+    "up-bmi270_imu_i2c",
+    "up-st7789_spi_lcd_btb",
+    "usb-c-power-entry",
+    "ldo-ams1117-3v3",
+    "eeprom-24c02",
+    "led-indicator",
+    "buttons-boot-reset"
+  ],
+  "req-14-433m-meter-collector.md": [
+    "mcu-stm32f103c8-min",
+    "up-cc1101_433m_balun_ipex",
+    "rs485-max485",
+    "usb-c-power-entry",
+    "usb-serial-ch340n",
+    "ldo-ams1117-3v3",
+    "up-sdnand_sdmmc_4bit",
+    "led-indicator",
+    "buttons-boot-reset"
+  ],
+  "req-17-power-monitor-switch.md": [
+    "mcu-stm32f103c8-min",
+    "up-ina226_power_monitor",
+    "relay-srd5",
+    "driver-uln2003",
+    "rs485-max485",
+    "dc-terminal-wide-input",
+    "diode-ss34",
+    "up-xl1509_buck_12v_5v",
+    "ldo-ams1117-3v3",
+    "led-indicator",
+    "buttons-boot-reset"
+  ],
+  "req-18-data-logger.md": [
+    "mcu-esp32s3-wroom1-min",
+    "up-sdnand_sdmmc_4bit",
+    "usb-serial-ch340n",
+    "usb-c-power-entry",
+    "dc-terminal-5v-input",
+    "diode-ss34",
+    "ldo-ams1117-3v3",
+    "led-indicator",
+    "buttons-boot-reset",
+    "test-points"
+  ],
+  "req-20-desk-station-can.md": [
+    "mcu-esp32s3-wroom1-min",
+    "usb-serial-ch340n",
+    "usb-c-power-entry",
+    "ldo-ams1117-3v3",
+    "can-sn65hvd230",
+    "led-indicator",
+    "buttons-boot-reset",
+    "test-points"
+  ],
+  "req-21-industrial-temp-controller.md": [
+    "mcu-stm32f103c8-min",
+    "tc-max6675",
+    "relay-srd5",
+    "driver-uln2003",
+    "rs485-max485",
+    "eeprom-24c02",
+    "dc-terminal-wide-input",
+    "up-xl1509_buck_12v_5v",
+    "ldo-ams1117-3v3",
+    "led-indicator",
+    "buttons-boot-reset"
+  ],
+  "req-25-highside-switch-freeform.md": [
+    "up-pmos_highside_softstart",
+    "nmos-2n7002",
+    "dc-terminal-5v-input",
+    "led-indicator"
+  ]
+}

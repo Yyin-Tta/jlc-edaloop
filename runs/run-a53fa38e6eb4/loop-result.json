@@ -1,0 +1,42 @@
+{
+ "status": "PASS",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "1e83aaa923ba",
+   "gate_verdict": "pass",
+   "findings": [
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:3 个块缺 v_supply 区间或单边(mcu_esp32s3, ldo_3v3_u1, microsd_u3)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/2(覆盖率 0%),缺 i_typ:mcu_esp32s3, microsd_u3' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='5V', pin='', xy='') evidence='轨 5V 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/1(覆盖率 0%),缺 i_typ:ldo_3v3_u1' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='LED 指示 ×3(电源/USB 活动/存储):目录无 LED 发光器件块,无法用现有通道落图,需补充 LED 器件;仅有限流电阻通道(resistor-std)可用,阻值也缺 sizing 出处' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='MCU 块端口未引出 SPI 引脚(SD_SCK/SD_MOSI/SD_MISO/SD_CS)与 LED GPIO,SD_*/LED 网络已预留但需 MCU 块补充引脚映射后才能闭合' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='5V 端子输入的 TVS/自恢复保险丝保护(dc-terminal-5v-input 描述提及但 place 通道仅含 KF301 端子本体):待 Q1(是否需要宽压+TVS+保险丝)确认后补充' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='FUNC_UNCOVERED' where=Where(ref='LED 指示', net='', pin='', xy='') evidence='IR 功能「LED 指示」在计划 8 块的词表/词元匹配中无覆盖证据(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True"
+   ],
+   "feedback": "",
+   "halted": ""
+  }
+ ],
+ "delivery": {
+  "svg": "D:\\gyt-pro\\jlc-edaloop\\runs\\run-a53fa38e6eb4\\delivery-P1.svg",
+  "svg_pages": [
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-a53fa38e6eb4\\delivery-P1.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-a53fa38e6eb4\\delivery-P2.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-a53fa38e6eb4\\delivery-P3.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-a53fa38e6eb4\\delivery-P4.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-a53fa38e6eb4\\delivery-P5.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-a53fa38e6eb4\\delivery-P6.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-a53fa38e6eb4\\delivery-P7.svg"
+  ],
+  "netlist": "runs\\run-a53fa38e6eb4\\delivery.net.json",
+  "netlist_sha256_16": "b16ef910da3438c2",
+  "bom": "runs\\run-a53fa38e6eb4\\delivery.bom.json",
+  "bom_total": 5.6817,
+  "swap": "runs\\run-a53fa38e6eb4\\delivery.swap.txt",
+  "sizing": "runs\\run-a53fa38e6eb4\\delivery.sizing.txt",
+  "sizing_count": 4,
+  "review": "runs\\run-a53fa38e6eb4\\delivery.review.txt",
+  "review_findings": 4
+ }
+}

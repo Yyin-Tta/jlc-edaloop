@@ -1,0 +1,9 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 7 blocks, status=PASS
+
+- [CRITIC_PULL_RESISTORS@usb_c_conn] USB-C CC1/CC2 缺 5.1kΩ 下拉电阻(uncovered 已确认无器件),无下拉则标准 C-to-C 线缆/充电器不会输出 VBUS,5V 无法上电 | 建议: 为 CC1、CC2 各增加一个 5.1kΩ 下拉电阻(Rd),接到 GND
+- [CRITIC_INTERFACE_PROTECTION@usb_c_conn] USB-C 接口直连外部线缆与 CH340N 的 UD+/UD-,无 ESD/TVS 保护(如 USBLC6-2SC6),插拔浪涌易损坏 CH340 与 MCU | 建议: 在 VBUS 与 DP/DM 上增加 USB ESD 保护器件,靠近连接器放置
+- [CRITIC_POWER_INTEGRITY@terminal_5v] 端子 5V 输出为 TERM_5V 网络,与 USB-C 的 5V 轨未通过防倒灌二极管合路(肖特基/理想二极管器件缺失,uncovered 已确认),双源直接并联会倒灌 | 建议: 增加肖特基或理想二极管合路电路,或在评审确认仅单源供电时移除双输入设计
+- [CRITIC_INTERFACE_PROTECTION@terminal_5v] 5V 端子块描述称含自恢复保险丝+TVS,但输出仅 TERM_5V/GND,若 TVS/保险丝在块内需确认;同时端子输入与 USB 5V 汇流后无共模/浪涌次级防护说明 | 建议: 确认保险丝与 TVS 在块内已绑定;若仅端子侧防护,合流后母线建议保留 TVS 钳位
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

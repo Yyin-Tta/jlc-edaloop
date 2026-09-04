@@ -1,0 +1,1 @@
+✓ 版本一致性:CLI / daemon / connector 对齐 v1.2.10

@@ -1,0 +1,58 @@
+{
+ "status": "HALT",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "4a83e9bca88c",
+   "gate_verdict": "blocked",
+   "findings": [
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:3 个块缺 v_supply 区间或单边(ldo3v3, i2c_iso, rs485)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='5V', pin='', xy='') evidence='轨 5V 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/1(覆盖率 0%),缺 i_typ:ldo3v3' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/3(覆盖率 0%),缺 i_typ:mcu, i2c_iso, rs485' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='4 个 2x8 排针子节点插槽（含 3V3/GND/SDA/SCL/INT1/INT2/AIN/GPIO 逐脚分配）：目录无排针连接器块，无法落图；隔离后 SDA/SCL(I2C_SDA_B/I2C_SCL_B) 与各槽 INT/GPIO/AIN 的 MCU 引脚映射待补' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='SWD 调试 4-pin 排针：目录无排针器件，SWDIO/SWCLK 网络已在 MCU 引出但物理排针缺' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='USB-C 入口保险丝：块内含 TVS，但独立保险丝器件（PPTC/一次性，Q2 未决）目录无对应块' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='FUNC_UNCOVERED' where=Where(ref='子节点插槽', net='', pin='', xy='') evidence='IR 功能「子节点插槽」在计划 14 块的词表/词元匹配中无覆盖证据(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='FUNC_UNCOVERED' where=Where(ref='调试与启动', net='', pin='', xy='') evidence='IR 功能「调试与启动」在计划 14 块的词表/词元匹配中无覆盖证据(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='GATE_BLOCKED' where=Where(ref='', net='', pin='', xy='') evidence='部分检查器无法运行(连接器/页面问题),板子未被完整判定' severity='error' suggested_fix_class='RETRY_ENV' weak=False",
+    "code='GATE_FAIL' where=Where(ref='layout-lint', net='', pin='', xy='') evidence='stage layout-lint: schematic page: activate target page: --doc guard: schematic.pages.list failed: Failed to list schematics/pages.' severity='error' suggested_fix_class='RETRY_ENV' weak=False",
+    "code='GATE_FAIL' where=Where(ref='layout-lint', net='', pin='', xy='') evidence='stage layout-lint: schematic page: activate target page: --doc guard: schematic.pages.list failed: Failed to list schematics/pages.' severity='error' suggested_fix_class='RETRY_ENV' weak=False",
+    "code='GATE_FAIL' where=Where(ref='layout-lint', net='', pin='', xy='') evidence='stage layout-lint: schematic page: activate target page: --doc guard: schematic.pages.list failed: Failed to list schematics/pages.' severity='error' suggested_fix_class='RETRY_ENV' weak=False",
+    "code='GATE_FAIL' where=Where(ref='layout-lint', net='', pin='', xy='') evidence='stage layout-lint: schematic page: activate target page: --doc guard: schematic.pages.list failed: Failed to list schematics/pages.' severity='error' suggested_fix_class='RETRY_ENV' weak=False",
+    "code='GATE_FAIL' where=Where(ref='layout-lint', net='', pin='', xy='') evidence='stage layout-lint: schematic page: activate target page: --doc guard: schematic.pages.list failed: Failed to list schematics/pages.' severity='error' suggested_fix_class='RETRY_ENV' weak=False"
+   ],
+   "feedback": "[GATE_BLOCKED@-] 部分检查器无法运行(连接器/页面问题),板子未被完整判定 → 修复:环境问题(连接器/窗口/页面):无需改 plan,重试即可\n[GATE_FAIL@layout-lint] stage layout-lint: schematic page: activate target page: --doc guard: schematic.pages.list failed: Failed to list schematics/pages. → 修复:环境问题(连接器/窗口/页面):无需改 plan,重试即可\nsizing 建议值(确定性公式,输入出处见 delivery.sizing.txt;采纳时用 resistor-std/capacitor-std 块 + params.value 表内标准值,值不要发明):\n- fuse-rating@usb_pwr: I_hold≥0.15A(自恢复 PPTC 按此档)\n- reg-caps@ldo3v3: 见 notes(惯例值)\n- thermal@ldo3v3: Tj≈136°C(裕量-30°C)\n- led-resistor@led_pwr: 推荐 270(就近换表内值)",
+   "halted": ""
+  },
+  {
+   "round_no": 2,
+   "plan_id": "ea638fdbcd50",
+   "gate_verdict": "blocked",
+   "findings": [
+    "code='GATE_FAIL' where=Where(ref='', net='', pin='', xy='') evidence='round 2: block-apply 存在失败(autoconnect 连线失败或环境错误,详见 apply-error 审计);本轮 spacing=250(A4 页流;RELAYOUT 反馈请给 at/params.spacing)' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:3 个块缺 v_supply 区间或单边(ldo1, iso_i2c1, rs4851)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='5V', pin='', xy='') evidence='轨 5V 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/1(覆盖率 0%),缺 i_typ:ldo1' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/3(覆盖率 0%),缺 i_typ:mcu1, iso_i2c1, rs4851' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='4×2x8 子节点排针插槽物理连接器(目录无排针/连接器 place 件,SCL_B/SDA_B/INT/AIN/GPIO 网络已就绪但无落图器件)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='USB-C 入口 TVS + 保险丝(Q2 PPTC 类型未决;目录无 TVS/保险丝器件)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='8MHz 晶振及其 22pF 负载电容(目录无晶体器件;MCU OSC 引脚 5/6 未绑)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='SWD 4-pin 调试排针连接器(目录无排针;SWDIO/SWCLK 网络已就绪)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='在位检测 PRS_DET→LED 的驱动链(可由插槽短接到 GND 实现,依赖插槽连接器落图)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='LED 限流电阻 sizing 推荐 270Ω 不在标准值表内,已用最近保守值 1k 替代,待确认' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='FUNC_UNCOVERED' where=Where(ref='子节点插槽', net='', pin='', xy='') evidence='IR 功能「子节点插槽」在计划 21 块的词表/词元匹配中无覆盖证据(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='FUNC_UNCOVERED' where=Where(ref='调试与启动', net='', pin='', xy='') evidence='IR 功能「调试与启动」在计划 21 块的词表/词元匹配中无覆盖证据(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='GATE_BLOCKED' where=Where(ref='', net='', pin='', xy='') evidence='部分检查器无法运行(连接器/页面问题),板子未被完整判定' severity='error' suggested_fix_class='RETRY_ENV' weak=False",
+    "code='GATE_FAIL' where=Where(ref='layout-lint', net='', pin='', xy='') evidence='stage layout-lint: schematic page: resolve target window: no connected window for project \"edaloop\" (run `easyeda daemon health`)' severity='error' suggested_fix_class='RETRY_ENV' weak=False",
+    "code='GATE_FAIL' where=Where(ref='layout-lint', net='', pin='', xy='') evidence='stage layout-lint: schematic page: resolve target window: no connected window for project \"edaloop\" (run `easyeda daemon health`)' severity='error' suggested_fix_class='RETRY_ENV' weak=False",
+    "code='GATE_FAIL' where=Where(ref='layout-lint', net='', pin='', xy='') evidence='stage layout-lint: schematic page: resolve target window: no connected window for project \"edaloop\" (run `easyeda daemon health`)' severity='error' suggested_fix_class='RETRY_ENV' weak=False",
+    "code='GATE_FAIL' where=Where(ref='layout-lint', net='', pin='', xy='') evidence='stage layout-lint: schematic page: resolve target window: no connected window for project \"edaloop\" (run `easyeda daemon health`)' severity='error' suggested_fix_class='RETRY_ENV' weak=False",
+    "code='GATE_FAIL' where=Where(ref='layout-lint', net='', pin='', xy='') evidence='stage layout-lint: schematic page: resolve target window: no connected window for project \"edaloop\" (run `easyeda daemon health`)' severity='error' suggested_fix_class='RETRY_ENV' weak=False",
+    "code='GATE_FAIL' where=Where(ref='layout-lint', net='', pin='', xy='') evidence='stage layout-lint: schematic page: resolve target window: no connected window for project \"edaloop\" (run `easyeda daemon health`)' severity='error' suggested_fix_class='RETRY_ENV' weak=False",
+    "code='GATE_FAIL' where=Where(ref='layout-lint', net='', pin='', xy='') evidence='stage layout-lint: schematic page: resolve target window: no connected window for project \"edaloop\" (run `easyeda daemon health`)' severity='error' suggested_fix_class='RETRY_ENV' weak=False"
+   ],
+   "feedback": "",
+   "halted": "同错 2 轮:GATE_BLOCKED|GATE_FAIL,升级人工"
+  }
+ ],
+ "delivery": {}
+}

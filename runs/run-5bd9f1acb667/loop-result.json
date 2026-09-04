@@ -1,0 +1,51 @@
+{
+ "status": "HALT",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "570358a19d04",
+   "gate_verdict": "fail",
+   "findings": [
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:1 个块缺 v_supply 区间或单边(ldo1)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='5V', pin='', xy='') evidence='轨 5V 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/2(覆盖率 0%),缺 i_typ:ldo1, ch340n1' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/1(覆盖率 0%),缺 i_typ:mcu1' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='5V 双路输入防倒灌：目录无肖特基/理想二极管器件，无法落图，需补充器件' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='4 个测试点（3V3/5V/GND/EN）：目录无测试点块/器件' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='M3 安装孔×4：目录无机械安装孔块' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='LED_USER 所接的具体 GPIO 编号未定（属引脚分配，待编译/后续决策）' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='pcb_layout（2 层板、底层铺铜、版本丝印 V1.0、天线禁铺铜、USB 90Ω）为版图约束，非电路块，由布线规则承载' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='FUNC_UNCOVERED' where=Where(ref='mounting_holes', net='', pin='', xy='') evidence='IR 功能「mounting_holes」在计划 9 块的词表/词元匹配中无覆盖证据(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='FUNC_UNCOVERED' where=Where(ref='test_points', net='', pin='', xy='') evidence='IR 功能「test_points」在计划 9 块的词表/词元匹配中无覆盖证据(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='FUNC_UNCOVERED' where=Where(ref='pcb_layout', net='', pin='', xy='') evidence='IR 功能「pcb_layout」在计划 9 块的词表/词元匹配中无覆盖证据(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet a=J2' severity='error' suggested_fix_class='REPLAN' weak=False"
+   ],
+   "feedback": "[GATE_FAIL@clusters] type=out-of-sheet a=J2 → 修复:重新规划:按 evidence 调整块选择/端口绑定\nsizing 建议值(确定性公式,输入出处见 delivery.sizing.txt;采纳时用 resistor-std/capacitor-std 块 + params.value 表内标准值,值不要发明):\n- fuse-rating@usb_c1: I_hold≥0.15A(自恢复 PPTC 按此档)\n- fuse-rating@term_5v1: I_hold≥0.15A(自恢复 PPTC 按此档)\n- reg-caps@ldo1: 见 notes(惯例值)\n- thermal@ldo1: Tj≈136°C(裕量-30°C)\n- led-resistor@led_pwr1: 推荐 620(就近换表内值)",
+   "halted": ""
+  },
+  {
+   "round_no": 2,
+   "plan_id": "c5d3700775ca",
+   "gate_verdict": "fail",
+   "findings": [
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:1 个块缺 v_supply 区间或单边(ldo1)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='5V', pin='', xy='') evidence='轨 5V 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/2(覆盖率 0%),缺 i_typ:ldo1, ch340n1' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/1(覆盖率 0%),缺 i_typ:mcu1' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='防倒灌(理想二极管/肖特基)器件:USB 5V 与端子 5V 汇合需要,目录无对应块/器件' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='PPTC 自恢复保险丝(usb_c1/term_5v1 各需 I_hold≥0.15A 档):目录无此标准件' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='TVS/ESD 保护(VBUS 及 USB 差分):目录无对应器件' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='M3 安装孔 ×4:目录无安装孔块' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='测试点 ×4(3V3/5V/GND/EN):目录无测试点块' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='CH340N 的 UD+/UD-/V3 引脚级连接:usb-serial-ch340n 块 upstream 端口仅含 VBUS/TXD/RXD/DTR/RTS,无 UD+/UD-/V3 口,USB_DP/DM 差分与 V3 电容需原理图阶段手工补接' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='USB-C CC1/CC2 的 5.1k 下拉:usb-c-power-entry 块描述含此但未作为端口/子件提供,需电阻实例但 sizing 无出处(5.1k 在表内,出处为 USB-C 规范惯例,请确认后补 r_cc1/r_cc2)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='FUNC_UNCOVERED' where=Where(ref='mounting_holes', net='', pin='', xy='') evidence='IR 功能「mounting_holes」在计划 15 块的词表/词元匹配中无覆盖证据(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='FUNC_UNCOVERED' where=Where(ref='test_points', net='', pin='', xy='') evidence='IR 功能「test_points」在计划 15 块的词表/词元匹配中无覆盖证据(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='FUNC_UNCOVERED' where=Where(ref='pcb_layout', net='', pin='', xy='') evidence='IR 功能「pcb_layout」在计划 15 块的词表/词元匹配中无覆盖证据(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=overlap a=Q1 b=R6' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=overlap a=Q1 b=Q2' severity='error' suggested_fix_class='RELAYOUT' weak=False"
+   ],
+   "feedback": "",
+   "halted": "同错 2 轮:GATE_FAIL,升级人工"
+  }
+ ],
+ "delivery": {}
+}

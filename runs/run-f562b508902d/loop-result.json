@@ -1,0 +1,76 @@
+{
+ "status": "PASS",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "c67c04cdb009",
+   "gate_verdict": "fail",
+   "findings": [
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:2 个块缺 v_supply 区间或单边(ldo_3v3, eeprom)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/3(覆盖率 0%),缺 i_typ:stm32, esp32, eeprom' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='5V', pin='', xy='') evidence='轨 5V 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/2(覆盖率 0%),缺 i_typ:ch340, ldo_3v3' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='CH340N 至 STM32/ESP32 烧录口二选一切换(跳线帽或模拟开关)——目录无跳线排针/模拟开关块,建议采用 Q1 中跳线方案,布线时 CH_TX/CH_RX 经 1×3 跳线选接 STM_TX/STM_RX 或 ESP UART' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='USB-C 5V 与 5V 端子防倒灌(肖特基/理想二极管)——目录无二极管器件' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='STM32 8MHz 晶振及 22pF 负载电容(22pF 亦不在标准电容表内)——OSC_IN/OSC_OUT 网络已预留' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='按键:STM32 复位、ESP32 复位(EN)、ESP32 BOOT(IO0)共 3 只轻触开关——目录无按键块' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='SWD 4-pin 排针(3V3/SWDIO/SWCLK/GND 逐脚丝印)——目录无排针块,SWDIO/SWCLK 网络已预留' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence=\"SD 卡焊盘预留(DNP)——目录仅含贴片 SD-NAND 块,与'可 DNP 的 SD 卡焊盘'不符\" severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='四角 M3 螺丝安装孔 ×4——机械特征,目录无对应块' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='STM32 整体 4.7µF 体去耦——标准电容表无 4.7u 档,以每 VDD 100nF 兜底' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='ESP32 状态 LED 驱动 GPIO 未由模组块端口导出,LED_ESP 网需在布线时落到 ESP32-S3 空闲 IO(建议选非 strapping 引脚)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='FUNC_UNCOVERED' where=Where(ref='SD 卡预留', net='', pin='', xy='') evidence='IR 功能「SD 卡预留」在计划 24 块的词表/词元匹配中无覆盖证据(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='FUNC_UNCOVERED' where=Where(ref='结构固定', net='', pin='', xy='') evidence='IR 功能「结构固定」在计划 24 块的词表/词元匹配中无覆盖证据(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=overlap a=STM32 b=Q1' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=overlap a=STM32 b=R10' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet a=STM32' severity='error' suggested_fix_class='REPLAN' weak=False"
+   ],
+   "feedback": "[GATE_FAIL@clusters] type=overlap a=STM32 b=Q1 → 修复:放置几何问题:给冲突块设置 params.spacing(如 300;过宽块编译器会自动截到 A4 内)或 at 空位(A4 页内坐标,x∈[100,1100] y∈[300,780];编译器优先读这两个字段)\nsizing 建议值(确定性公式,输入出处见 delivery.sizing.txt;采纳时用 resistor-std/capacitor-std 块 + params.value 表内标准值,值不要发明):\n- fuse-rating@usb_c: I_hold≥0.15A(自恢复 PPTC 按此档)\n- fuse-rating@term_5v: I_hold≥0.15A(自恢复 PPTC 按此档)\n- reg-caps@ldo_3v3: 见 notes(惯例值)\n- thermal@ldo_3v3: Tj≈136°C(裕量-30°C)\n- led-resistor@led_pwr: 推荐 620(就近换表内值)",
+   "halted": ""
+  },
+  {
+   "round_no": 2,
+   "plan_id": "aa692e1af9c7",
+   "gate_verdict": "pass",
+   "findings": [
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:2 个块缺 v_supply 区间或单边(ldo_3v3, eeprom)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/3(覆盖率 0%),缺 i_typ:stm32f103, esp32s3, eeprom' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='5V', pin='', xy='') evidence='轨 5V 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/2(覆盖率 0%),缺 i_typ:ch340, ldo_3v3' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='STM32 8MHz 晶振 + 负载电容(22pF 不在电容标准表内,目录无晶体通道)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='按键×3(STM32 复位 / ESP32 复位 / ESP32 BOOT),目录无 button 块' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='SWD 4-pin 排针连接器(丝印逐脚标注),目录无排针块;SWDIO/SWCLK/3V3/GND 网络已预留' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='CH340 烧录口二选一切换(跳线帽或模拟开关),目录无对应块;CH_TX/CH_RX 与 FLASH_TX/FLASH_RX/ESP_TX/ESP_RX 之间的切换网络待补' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='USB-C 5V 与 5V 端子防倒灌二极管/理想二极管,目录无对应块' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='CH340N 的 UD+/UD- 差分对(90Ω)端口:upstream 块未暴露该端口,需扩展块定义后绑定 USB_DP/USB_DM' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence=\"SD 卡焊盘预留(DNP):目录仅有贴片 SD-NAND 整块,与'可 不贴卡座/焊盘'需求不符,未采用\" severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='四角 M3 螺丝孔×4(纯机械特征,无电路块)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='ESP32 侧握手线回接与 LED_ESP_S 的具体 GPIO:模组 upstream 仅暴露固定端口,需扩展端口映射' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='FUNC_UNCOVERED' where=Where(ref='SD 卡预留', net='', pin='', xy='') evidence='IR 功能「SD 卡预留」在计划 19 块的词表/词元匹配中无覆盖证据(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='FUNC_UNCOVERED' where=Where(ref='结构固定', net='', pin='', xy='') evidence='IR 功能「结构固定」在计划 19 块的词表/词元匹配中无覆盖证据(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True"
+   ],
+   "feedback": "",
+   "halted": ""
+  }
+ ],
+ "delivery": {
+  "svg": "D:\\gyt-pro\\jlc-edaloop\\runs\\run-f562b508902d\\delivery-P1.svg",
+  "svg_pages": [
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-f562b508902d\\delivery-P1.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-f562b508902d\\delivery-P2.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-f562b508902d\\delivery-P3.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-f562b508902d\\delivery-P4.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-f562b508902d\\delivery-P5.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-f562b508902d\\delivery-P6.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-f562b508902d\\delivery-P7.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-f562b508902d\\delivery-P8.svg"
+  ],
+  "netlist": "runs\\run-f562b508902d\\delivery.net.json",
+  "netlist_sha256_16": "82a923928a474a48",
+  "bom": "runs\\run-f562b508902d\\delivery.bom.json",
+  "bom_total": 7.6355,
+  "swap": "runs\\run-f562b508902d\\delivery.swap.txt",
+  "sizing": "runs\\run-f562b508902d\\delivery.sizing.txt",
+  "sizing_count": 7,
+  "review": "runs\\run-f562b508902d\\delivery.review.txt",
+  "review_findings": 3
+ }
+}

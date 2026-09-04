@@ -1,0 +1,1 @@
+sch gate: FAIL — check: 1 个 warn finding (--strict;info 不阻塞): missing-titleblock×1

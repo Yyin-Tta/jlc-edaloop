@@ -1,0 +1,62 @@
+{
+ "status": "PASS",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "4e65a125526a",
+   "gate_verdict": "pass",
+   "findings": [
+    "code='UNDECLARED_RAIL' where=Where(ref='', net='5V', pin='', xy='') evidence='网 5V 呈轨特征(家族 5|main≈5.0V)但 DesignIR 未声明该轨;planner 应在 IR 电源段显式声明,或把该网改绑到既有轨家族' severity='warn' suggested_fix_class='REPLAN' weak=True",
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:3 个块缺 v_supply 区间或单边(ldo1, rs485_1, eeprom1)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/3(覆盖率 0%),缺 i_typ:rs485_1, mcu1, eeprom1' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='SWD 4-pin 排针连接器(目录无排针/连接器块,MCU 已引出 SWDIO/SWCLK/3V3/GND 网络待接)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='测试点 3V3/GND(目录无测试点/测试针器件)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='RS485 A/B 端子与 120Ω 终端电阻(需端子连接器,目录无;RS485 块描述含终端/偏置但目录无标准 120Ω 终端落图通道值)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='LED 限流电阻取值(目录 LED 块参数化 CTRL 驱动,未明示阻容值,未发明)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='PIN_MISMATCH' where=Where(ref='mcu1', net='', pin='8', xy='') evidence='自由拓扑器件 mcu1 的地脚 8(VSSA) 未绑定网络' severity='error' suggested_fix_class='REBIND_NET' weak=False"
+   ],
+   "feedback": "[PIN_MISMATCH@mcu1:8] 自由拓扑器件 mcu1 的地脚 8(VSSA) 未绑定网络 → 修复:把缺失的网络补进对应块的绑定:upstream 块用 ports_binding,place 通道器件用 pins_binding(引脚号→网名);同名引脚族(VSS*/VDD*/EP)都要绑\nsizing 建议值(确定性公式,输入出处见 delivery.sizing.txt;采纳时用 resistor-std/capacitor-std 块 + params.value 表内标准值,值不要发明):\n- tvs-rating@usb_c1: VRWM≥3.6V / VC≤7V(SMAJ/SMBJ 系列按此筛)\n- fuse-rating@usb_c1: I_hold≥0.15A(自恢复 PPTC 按此档)\n- reg-caps@ldo1: 见 notes(惯例值)\n- thermal@ldo1: Tj≈136°C(裕量-30°C)\n- led-resistor@led_pwr: 推荐 270(就近换表内值)\n- led-resistor@led_hb: 推荐 270(就近换表内值)\n- led-resistor@led_bus: 推荐 270(就近换表内值)",
+   "halted": ""
+  },
+  {
+   "round_no": 2,
+   "plan_id": "1f2e02c76223",
+   "gate_verdict": "pass",
+   "findings": [
+    "code='UNDECLARED_RAIL' where=Where(ref='', net='5V', pin='', xy='') evidence='网 5V 呈轨特征(家族 5|main≈5.0V)但 DesignIR 未声明该轨;planner 应在 IR 电源段显式声明,或把该网改绑到既有轨家族' severity='warn' suggested_fix_class='REPLAN' weak=True",
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:3 个块缺 v_supply 区间或单边(ldo1, rs485_1, eeprom1)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/3(覆盖率 0%),缺 i_typ:mcu1, rs485_1, eeprom1' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='SWD 4-pin 排针(DIO/CLK/3V3/GND):目录无排针/连接器块,SWDIO/SWCLK/3V3/GND 网络已就绪但排针本体无件可落' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='测试点 3V3/GND:目录无测试点块' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='USB-C 母座本体 CC 下拉 5.1k×2:sizing 表有 5.1k 但需求为块描述内含于 upstream 块,未单列(如 upstream 块已含 CC 下拉可忽略)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='PARAM_OFF_SPEC' where=Where(ref='r_led_hb', net='', pin='', xy='') evidence='选值 [r_led_hb=120] vs sizing 建议 270(led-resistor@led_hb);该网组内无任何 E24 邻档合格成员;建议依据: V_rail=3.3V←IR 单轨推断(IR rail 3V3=3.3V); V_f=2V←ENGINEERING-DEFAULT LED 通用红光典型 Vf(槽 vf 缺); I_f=5mA←ENGINEERING-DEFAULT 指示灯惯例 5mA(槽 if 缺)' severity='warn' suggested_fix_class='REPLAN' weak=True",
+    "code='PARAM_OFF_SPEC' where=Where(ref='r_led_bus', net='', pin='', xy='') evidence='选值 [r_led_bus=120] vs sizing 建议 270(led-resistor@led_bus);该网组内无任何 E24 邻档合格成员;建议依据: V_rail=3.3V←IR 单轨推断(IR rail 3V3=3.3V); V_f=2V←ENGINEERING-DEFAULT LED 通用红光典型 Vf(槽 vf 缺); I_f=5mA←ENGINEERING-DEFAULT 指示灯惯例 5mA(槽 if 缺)' severity='warn' suggested_fix_class='REPLAN' weak=True"
+   ],
+   "feedback": "",
+   "halted": ""
+  }
+ ],
+ "delivery": {
+  "svg": "D:\\gyt-pro\\jlc-edaloop\\runs\\run-98a9352ed5d0\\delivery-P1.svg",
+  "svg_pages": [
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-98a9352ed5d0\\delivery-P1.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-98a9352ed5d0\\delivery-P2.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-98a9352ed5d0\\delivery-P3.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-98a9352ed5d0\\delivery-P4.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-98a9352ed5d0\\delivery-P5.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-98a9352ed5d0\\delivery-P6.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-98a9352ed5d0\\delivery-P7.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-98a9352ed5d0\\delivery-P8.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-98a9352ed5d0\\delivery-P9.svg"
+  ],
+  "netlist": "runs\\run-98a9352ed5d0\\delivery.net.json",
+  "netlist_sha256_16": "01dd595081ace577",
+  "bom": "runs\\run-98a9352ed5d0\\delivery.bom.json",
+  "bom_total": 2.888,
+  "swap": "runs\\run-98a9352ed5d0\\delivery.swap.txt",
+  "sizing": "runs\\run-98a9352ed5d0\\delivery.sizing.txt",
+  "sizing_count": 7,
+  "review": "runs\\run-98a9352ed5d0\\delivery.review.txt",
+  "review_findings": 5
+ }
+}

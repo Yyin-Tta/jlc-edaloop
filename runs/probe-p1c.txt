@@ -1,0 +1,1 @@
+read components with real bbox/pin geometry: --doc guard: no EasyEDA connector is available

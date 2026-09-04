@@ -1,0 +1,31 @@
+{
+ "status": "FAIL",
+ "review_required": false,
+ "failure_class": "DATA",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "f9a63ae850c6",
+   "gate_verdict": "fail",
+   "findings": [
+    "code='GATE_FAIL' where=Where(ref='', net='', pin='', xy='') evidence='round 1: block-apply 存在失败(autoconnect 连线失败或环境错误或清页失败跳过落图,详见 apply-error/page-clear 审计);本轮 spacing=250(A4 页流;RELAYOUT 反馈请给 at/params.spacing)' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='UNDECLARED_RAIL' where=Where(ref='', net='VBAT', pin='', xy='') evidence='网 VBAT 呈轨特征(家族 3.7|main≈3.7V)但 DesignIR 未声明该轨;planner 应在 IR 电源段显式声明,或把该网改绑到既有轨家族' severity='warn' suggested_fix_class='REPLAN' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='P+/P- 输出焊盘形态:目录无焊盘/PCB 焊盘类块,已以 KF301 2P 螺钉端子(term_out)替代引出' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='FUNC_UNCOVERED' where=Where(ref='充放电双向关断(功率级)', net='', pin='', xy='') evidence='IR 功能「充放电双向关断(功率级)」在计划 7 块的词表/词元匹配中无覆盖证据(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=tight a=C1 b=TERMBATT' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='check', net='', pin='', xy='') evidence='type=dangling-wire message=疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除)' severity='error' suggested_fix_class='REWIRE' weak=False",
+    "code='GATE_FAIL' where=Where(ref='check', net='', pin='', xy='') evidence='type=marker-overlap message=B_MINUS(netflag) 与 VDD(netflag) 视觉重叠 6.00×7.50 — 换方向/offset 或 stagger' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='check', net='', pin='', xy='') evidence='type=marker-overlap message=CSI(netport) 与 VDD(netflag) 视觉重叠 28.50×11.00 — 换方向/offset 或 stagger' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='check', net='', pin='', xy='') evidence='type=missing-partition message=7 个器件的页已分成 4 个功能模块(虚拟组/认领)但一个分区框都没画 — 铁律#15:`sch zone-draw --mode partition`;被拒(partitionOverlap / titleBlockHits)就先跑 `sch zone-plan` 看逐条 ✗ —— 它点名是哪两个区顶住、还差多少,并给出一条 `sch' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='check', net='', pin='', xy='') evidence='type=missing-note message=7 个器件的页没有电路说明(区名标签不算)— 每模块 1~3 行 `sch note`:作用 + 关键参数 + 设计要点;交付前必须有' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='GATE_FAIL' where=Where(ref='check', net='', pin='', xy='') evidence='type=missing-titleblock message=图签未填:Name(图纸标题)、Drawed(设计者)、Description(图纸说明) — 交付图必须能认领(`sch titleblock --data \\'{\"Name\":\"…\",\"Drawed\":\"…\"}\\'`)' severity='error' suggested_fix_class='REPLAN' weak=False",
+    "code='LAYOUT_PIN_NET_MISMATCH' where=Where(ref='PROTFS', net='FET_MID', pin='2', xy='') evidence=\"pin PROTFS:2 expected net 'FET_MID', read back '$1N404'\" severity='error' suggested_fix_class='REBIND_NET' weak=False",
+    "code='GATE_UNVERIFIED' where=Where(ref='', net='', pin='', xy='') evidence='gate 响应结构无效: P1: gate 响应报告失败: ok=False' severity='error' suggested_fix_class='RETRY_ENV' weak=False"
+   ],
+   "feedback": "[GATE_FAIL@-] round 1: block-apply 存在失败(autoconnect 连线失败或环境错误或清页失败跳过落图,详见 apply-error/page-clear 审计);本轮 spacing=250(A4 页流;RELAYOUT 反馈请给 at/params.spacing) → 修复:放置几何问题:给冲突块设置 params.spacing(如 300;过宽块编译器会自动截到 A4 内)或 at 空位(A4 页内坐标,x∈[100,1100] y∈[300,780];编译器优先读这两个字段)\n[GATE_FAIL@clusters] type=tight a=C1 b=TERMBATT → 修复:重新规划:按 evidence 调整块选择/端口绑定\n[GATE_FAIL@check] type=dangling-wire message=疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除) → 修复:连线问题:检查悬空/短路网络的重叠与绑定\n[LAYOUT_PIN_NET_MISMATCH@PROTFS:2] pin PROTFS:2 expected net 'FET_MID', read back '$1N404' → 修复:把缺失的网络补进对应块的绑定:upstream 块用 ports_binding,place 通道器件用 pins_binding(引脚号→网名);同名引脚族(VSS*/VDD*/EP)都要绑\n[GATE_UNVERIFIED@-] gate 响应结构无效: P1: gate 响应报告失败: ok=False → 修复:环境问题(连接器/窗口/页面):无需改 plan,重试即可",
+   "halted": "",
+   "failure_class": "DATA"
+  }
+ ],
+ "delivery": {}
+}

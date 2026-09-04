@@ -1,0 +1,6 @@
+layout-lint: 16 components (16 with bbox), min-gap 2.54 mm
+  WARN  未判定 19 个非 part 图元(图框 / netflag / netport / 文字)——
+        本命令只判器件本体,**标签之间、标签压器件的重叠不在其中**;
+        跑 `easyeda sch clusters --strict` 才看得到(--include-non-parts 是粗筛,
+        它会把旗和它自己的桩线也算成一处重叠)
+✓ placement gate passed; 0 tight pair(s), 0 off-grid anchor(s), 0 out-of-sheet, zone-check=not-configured sheet-check=checked

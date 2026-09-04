@@ -1,0 +1,9 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 9 blocks, status=PASS
+
+- [CRITIC_POWER_INTEGRITY@usbconn_c_5v] USB-C 5V 与端子 5V_EXT 双路汇流到同一 5V 轨,但全板无肖特基/理想二极管/P-MOS 防倒灌器件,USB 侧会被端子输入倒灌(可能损坏 CH340N/主机口) | 建议: 在 5V_EXT 与 USB-C VBUS 各自汇流前串入肖特基(如 SS34)或用理想二极管/P-MOS 背靠背方案,并确认 uncovered 中的 Q3 实现方式落地为具体器件块
+- [CRITIC_INTERFACE_PROTECTION@usbconn_c_5v] USB-C 接口仅在 VBUS 上有 TVS,USB_DP/USB_DM 差分数据线无 ESD 保护,外部插拔直连 CH340N UD+/UD- | 建议: 在连接器附近增加 USB2.0 专用低结电容 ESD 管(如 ESDA5V3L 或 USBLC6-2),保证差分阻抗连续
+- [CRITIC_INTERFACE_PROTECTION@usbser_ch340n] CH340N 上游块端口表未含 UD+/UD-,USB_DP/USB_DM 目前实际未连到 CH340N,USB 数据链路断开且 90Ω 差分约束无处落地 | 建议: 在块内补齐 UD+/UD- 端口并与 USB_DP/USB_DM 绑定,布线按 90Ω 差分、等长、远离晶振/天线区处理
+- [CRITIC_THERMAL@ldo_3v3] AMS1117 在 5V→3.3V 下结温估算约 136°C(裕量为负,SOT-223 无额外散热条件),当前拓扑热设计不成立,块描述中『压差余量按峰值电流算够』掩盖了功耗问题 | 建议: 改用降压 DC-DC(如 TPS5430/MP1584 类)或低压差/高效率 LDO,或显著降低 3V3 负载电流并加铺铜散热;若保留 AMS1117 需明确 3V3 峰值电流上限并重新核算热裕量
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

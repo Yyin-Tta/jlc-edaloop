@@ -1,0 +1,39 @@
+{
+ "status": "PASS",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "db1c15470091",
+   "gate_verdict": "pass",
+   "findings": [
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='3 个状态 LED(电源红/心跳绿/总线黄)+ 限流电阻:目录无 LED 块,已预留 LED_HB/LED_BUS 控制网到 MCU' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='SWD 4-pin 排针(3V3/SWDIO/SWCLK/GND):目录无排针块,SWDIO/SWCLK 已从 MCU PA13/PA14 引出网名待接' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='3V3/GND 测试点:目录无测试点块' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='USB-C CC1/CC2 各 5.1kΩ 下拉电阻(无源器件,目录无)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='DesignIR 指定 AMS1117 LDO,目录无,已用 SY8089 buck 替代(功能等价,拓扑不同)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True"
+   ],
+   "feedback": "",
+   "halted": ""
+  }
+ ],
+ "delivery": {
+  "svg": "E:\\jlc-edaloop\\runs\\run-f4e0a23f694d\\delivery-P1.svg",
+  "svg_pages": [
+   "E:\\jlc-edaloop\\runs\\run-f4e0a23f694d\\delivery-P1.svg",
+   "E:\\jlc-edaloop\\runs\\run-f4e0a23f694d\\delivery-P2.svg",
+   "E:\\jlc-edaloop\\runs\\run-f4e0a23f694d\\delivery-P3.svg",
+   "E:\\jlc-edaloop\\runs\\run-f4e0a23f694d\\delivery-P4.svg",
+   "E:\\jlc-edaloop\\runs\\run-f4e0a23f694d\\delivery-P5.svg",
+   "E:\\jlc-edaloop\\runs\\run-f4e0a23f694d\\delivery-P6.svg"
+  ],
+  "netlist": "runs\\run-f4e0a23f694d\\delivery.net.json",
+  "netlist_sha256_16": "c15580cb25a66593",
+  "bom": "runs\\run-f4e0a23f694d\\delivery.bom.json",
+  "bom_total": 2.9592,
+  "swap": "runs\\run-f4e0a23f694d\\delivery.swap.txt",
+  "sizing": "runs\\run-f4e0a23f694d\\delivery.sizing.txt",
+  "sizing_count": 4,
+  "review": "runs\\run-f4e0a23f694d\\delivery.review.txt",
+  "review_findings": 3
+ }
+}

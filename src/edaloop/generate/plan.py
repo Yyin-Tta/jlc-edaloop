@@ -24,7 +24,7 @@ _SYSTEM = """你是电路块规划器。给定 DesignIR(设计意图)和候选�
 {
   "blocks": [
     {"block_id": "...", "upstream_id": "block.xxx", "instance": "唯一实例名",
-     "ports_binding": {"PORT名": "网络名"}, "pins_binding": {}, "params": {}, "provenance": "检索分数或选择理由",
+     "ports_binding": {"PORT名": "网络名"}, "pins_binding": {}, "no_connect": ["引脚号"], "params": {}, "provenance": "检索分数或选择理由",
      "zone": "left|center|right|left-top|center-bottom|...(可选)",
      "at": "x,y(可选,页内锚点,仅 RELAYOUT 反馈指定空位时给)",
      "module": "功能模块名(小写短词:mcu/power/motor1/motor2/indicator/usb-serial/...;同模块的块装箱聚拢同页物理相邻)",
@@ -40,6 +40,7 @@ _SYSTEM = """你是电路块规划器。给定 DesignIR(设计意图)和候选�
 - 只能使用目录中带 upstream 字段的块(block-apply 通道:照抄 upstream.id,端口绑定用 ports_binding)或带 lcsc+pinout 的库外器件(place 通道:upstream_id 留空,逐引脚绑定用 pins_binding,key 是 pinout 里的引脚号),或带 std_value 的标准 R/C 通道(params.value 必须取目录里列出的可用值之一,pins_binding 用引脚号 1/2)
 - 标准 R/C(resistor-std/capacitor-std):采纳 sizing 建议值或 datasheet 惯例值时用,params.value 给表内标准值(如 "330"/"10k"/"100n"/"22u"),instance 用 r*/c* 前缀短名;值必须有出处(反馈里的 sizing 推荐值/需求原文),不要发明阻容值
 - place 通道的未用引脚一律不绑(pins_binding 省略该键),不要发明 NC 网络去接闲置脚
+- 故意未连接的引脚必须放入 no_connect(引脚号列表),不能把 "NC" 当作普通网络；同一引脚不得同时出现在 pins_binding 与 no_connect
 - **自由拓扑分解**:某功能目录无整块时,若能由目录中 ≤5 个带 lcsc+pinout 的器件组合实现(如"锂电保护"=DW01A+FS8205A),则为每个器件生成一个 place 通道实例(instance 加功能后缀如 prot_dw01/prot_fs),用 pins_binding 接线实现互联;器件间互联靠相同网名(与块通道同规则);不可行或需要运放反馈/补偿类模拟拓扑时仍列入 uncovered
 - 目录覆盖不了的功能逐条列入 uncovered(不要静默省略,也不要发明器件);provenance 只写整体理由
 - 覆盖 DesignIR 的 functions/power/interfaces;目录中无对应块的功能,跳过并在 provenance 里注明"未覆盖:<功能>"
@@ -191,7 +192,7 @@ def make_plan(
                     bad_place.append(
                         f"{b.block_id}: 值 {val!r} 不在标准件表,可用如 {available_values(std_kind, 12)}"
                     )
-                unknown_pins = [p for p in b.pins_binding if p not in ("1", "2")]
+                unknown_pins = [p for p in set(b.pins_binding) | set(b.no_connect) if p not in ("1", "2")]
                 if unknown_pins:
                     bad_place.append(f"{b.block_id}: 标准件引脚号只有 1/2,给了 {unknown_pins[:4]}")
                 continue
@@ -199,7 +200,7 @@ def make_plan(
             if not lcsc:
                 bad_place.append(f"{b.block_id}: 无 lcsc+pinout,不可 place")
                 continue
-            unknown_pins = [p for p in b.pins_binding if p not in pinout]
+            unknown_pins = [p for p in set(b.pins_binding) | set(b.no_connect) if p not in pinout]
             if unknown_pins:
                 bad_place.append(f"{b.block_id}: 引脚号 {unknown_pins[:4]} 不在 pinout {list(pinout)[:6]}")
         if bad_place:

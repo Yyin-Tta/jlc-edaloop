@@ -1,0 +1,8 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 11 blocks, status=PASS
+
+- [CRITIC_POWER_INTEGRITY@usb_c1 / term5v1 / ldo1] USB-C 5V(5V_USB)与端子 5V(5V_TERM)是两个独立网络,防倒灌二极管未落实,而 LDO 输入绑定的是第三个网络 '5V',该网络无任何来源连接,5V 主轨实际悬空,电源树断裂。 | 建议: 必须增加理想二极管/肖特基 ORing 块(或至少把 5V_USB、5V_TERM 经二极管汇入 5V),否则 LDO 与 CH340N、led_pwr 均无供电。
+- [CRITIC_THERMAL@ldo1] AMS1117 5V→3.3V 热估算 Tj≈136°C,裕量为 -30°C(超出 125°C 结温上限),SOT-223 无散热增强无法安全工作。 | 建议: 降低 ESP32-S3 峰值电流预算、加大散热铺铜/过孔阵列,或改用同步 BUCK(如小型 DC-DC 模块)替代 AMS1117。
+- [CRITIC_POWER_INTEGRITY@r_led_user / r_led_pwr] LED 限流电阻实配 1k,与 sizing 建议(led_user 270Ω、led_pwr 620Ω)不符,偏离设计值且各灯亮度不一致。 | 建议: 按 sizing 建议改 r_led_user=270Ω、r_led_pwr=620Ω。
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

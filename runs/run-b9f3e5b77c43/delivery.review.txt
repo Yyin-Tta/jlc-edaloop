@@ -1,0 +1,11 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 20 blocks, status=PASS
+
+- [CRITIC_PULL_RESISTORS@btn1/mcu1] EN 有 r_en 10k 上拉，但 IO0/BOOT 无任何上拉电阻。btn1 描述称“BOOT 默认高”，靠 MCU 内部弱上拉在干扰/上电瞬态下不可靠，可能导致误入下载模式或启动异常。 | 建议: 为 IO0 增加 10k 上拉到 3V3（可复用 resistor-std 块），与 EN 处理保持一致。
+- [CRITIC_DECOUPLING@ch340n1] CH340N 的 V3 引脚按数据手册需外接电容（block_desc 明确写“V3 外接电容”），但 c_ch340_v3 却绑定在 5V-GND 上，V3 引脚悬空且无电容。 | 建议: 将 c_ch340_v3 改接 V3 引脚到 GND（CH340N 内部 3.3V 输出去耦），否则 CH340 工作不稳定。
+- [CRITIC_POWER_INTEGRITY@usbc1/term5v1] 5V 轨有两个来源（USB-C VBUS 与 5V 端子）直接共轨，但无任何防倒灌器件（uncovered 已确认目录无理想二极管/肖特基块），USB 口会被端子 5V 反灌，可能损坏主机或 CH340。 | 建议: 在两路 5V 汇合前各串肖特基（或至少 USB-C 侧加理想二极管/P-MOS 防倒灌），并补入库或人工放置；未解决前不应并轨。
+- [CRITIC_INTERFACE_PROTECTION@ch340n1/usbc1] USB-C 的 D+/D−（USB_DP/USB_DM）直连 CH340N UD+/UD-，板上无 USB 数据线 ESD 保护（uncovered 的 TVS 条目只覆盖 VBUS 电源路径口径）。 | 建议: 在连接器侧为 USB_DP/USB_DM 加低电容 ESD 阵列（如 USBLC6-2SC6），并保持器件靠近连接器放置。
+- [CRITIC_THERMAL@ldo1] sizing 估算 Tj≈136°C、裕量为负（-30°C），AMS1117 在当前负载下热失控风险明确，说明 5V→3.3V 全部用 LDO 承担的架构本身不成立，而非仅换封装可解。 | 建议: 架构层修改：用 BUCK（如 5V→3.3V 同步降压）替代 AMS1117，或将大电流负载与 ESP32 供电分离；若维持 LDO 则需明确限制负载电流并核算散热铜面积。
+- [CRITIC_DECOUPLING@led_pwr/led_user] led-indicator 块描述为“LED + 限流电阻”已含限流电阻，外部又串联了 r_led_pwr(1k)/r_led_user(330)，双重限流会导致 LED 亮度远低于设计值（尤其 led_pwr 3.3V 经 1k+块内电阻）。 | 建议: 确认 led-indicator 块是否内置限流电阻：若内置则删除外部 r_led_*；若不内置则在块参数中显式声明阻值（按 sizing 的 270Ω），避免重复。
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

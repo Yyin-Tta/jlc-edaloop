@@ -1,0 +1,330 @@
+{
+  "id": "req_283952",
+  "ok": true,
+  "result": {
+    "passed": false,
+    "summary": {
+      "floatingPins": 10,
+      "componentsWithFloating": 3,
+      "geomNetMismatches": 0,
+      "netMarkerMismatches": 0,
+      "multiNetWires": 0,
+      "wireCrossings": 2,
+      "wireOverPins": 0,
+      "zeroLengthWires": 0,
+      "danglingWires": 3,
+      "duplicateNetMarkers": 0,
+      "titleblockOverlaps": 0,
+      "markerOverlaps": 4,
+      "missingPartitions": 3,
+      "noteOutsideZones": 0,
+      "redundantNetMarkers": 0,
+      "foldedNetLabels": 0,
+      "reversedNetFlags": 0,
+      "polarityConventionOutliers": 0,
+      "total": 15
+    },
+    "findings": [
+      {
+        "type": "floating-pin",
+        "level": "warn",
+        "designator": "U3",
+        "primitiveId": "024d964848c15094",
+        "pins": [
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12",
+          "15"
+        ],
+        "pinDetails": [
+          {
+            "number": "7",
+            "name": "NC.",
+            "x": 575,
+            "y": 725
+          },
+          {
+            "number": "8",
+            "name": "OUT#",
+            "x": 575,
+            "y": 715
+          },
+          {
+            "number": "9",
+            "name": "CTS#",
+            "x": 665,
+            "y": 715
+          },
+          {
+            "number": "10",
+            "name": "DSR#",
+            "x": 665,
+            "y": 725
+          },
+          {
+            "number": "11",
+            "name": "RI#",
+            "x": 665,
+            "y": 735
+          },
+          {
+            "number": "12",
+            "name": "DCD#",
+            "x": 665,
+            "y": 745
+          },
+          {
+            "number": "15",
+            "name": "R232",
+            "x": 665,
+            "y": 775
+          }
+        ],
+        "count": 7,
+        "message": "7 个引脚悬空(无导线连接,未打 NC 标识)"
+      },
+      {
+        "type": "floating-pin",
+        "level": "warn",
+        "designator": "C7",
+        "primitiveId": "a6c76a6f2a64fb42",
+        "pins": [
+          "2"
+        ],
+        "pinDetails": [
+          {
+            "number": "2",
+            "name": "2",
+            "x": 574.9999999999999,
+            "y": 525.0000000000001
+          }
+        ],
+        "count": 1,
+        "message": "1 个引脚悬空(无导线连接,未打 NC 标识)"
+      },
+      {
+        "type": "floating-pin",
+        "level": "warn",
+        "designator": "J2",
+        "primitiveId": "9b225495ae5c89ab",
+        "pins": [
+          "B8",
+          "A8"
+        ],
+        "pinDetails": [
+          {
+            "number": "B8",
+            "name": "SBU2",
+            "x": 940,
+            "y": 470
+          },
+          {
+            "number": "A8",
+            "name": "SBU1",
+            "x": 850,
+            "y": 480
+          }
+        ],
+        "count": 2,
+        "message": "2 个引脚悬空(无导线连接,未打 NC 标识)"
+      },
+      {
+        "type": "wire-crossing",
+        "level": "warn",
+        "count": 1,
+        "message": "两条导线交叉(走线打结;改走通道/换 L 形拐点避开)",
+        "at": {
+          "x": 850,
+          "y": 520
+        }
+      },
+      {
+        "type": "wire-crossing",
+        "level": "warn",
+        "count": 1,
+        "message": "两条导线交叉(走线打结;改走通道/换 L 形拐点避开)",
+        "at": {
+          "x": 940,
+          "y": 430
+        }
+      },
+      {
+        "type": "dangling-wire",
+        "level": "warn",
+        "wirePrimitiveId": "4b98e9a59761fef4",
+        "message": "疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除)",
+        "at": {
+          "x": 765,
+          "y": 520
+        }
+      },
+      {
+        "type": "dangling-wire",
+        "level": "warn",
+        "wirePrimitiveId": "15ede3e2501bb781",
+        "message": "疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除)",
+        "at": {
+          "x": 515,
+          "y": 475
+        }
+      },
+      {
+        "type": "dangling-wire",
+        "level": "warn",
+        "wirePrimitiveId": "fac2980e2b8297b2",
+        "message": "疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除)",
+        "at": {
+          "x": 995,
+          "y": 430
+        }
+      },
+      {
+        "type": "marker-overlap",
+        "level": "warn",
+        "designator": "U3",
+        "primitiveId": "024d964848c15094",
+        "message": "U3(part) 与 C7_N3(netport) 视觉重叠 11.00×11.00 — 换方向/offset 或 stagger",
+        "componentType": "part",
+        "primitiveIds": [
+          "024d964848c15094",
+          "92ce349719e40945"
+        ],
+        "bbox": {
+          "minX": 584.5,
+          "minY": 704.5,
+          "maxX": 655.5,
+          "maxY": 795.5
+        },
+        "other": {
+          "primitiveId": "92ce349719e40945",
+          "componentType": "netport",
+          "net": "C7_N3",
+          "bbox": {
+            "minX": 644.5,
+            "minY": 749.5,
+            "maxX": 713.5,
+            "maxY": 760.5
+          }
+        },
+        "overlapX": 11,
+        "overlapY": 11
+      },
+      {
+        "type": "marker-overlap",
+        "level": "warn",
+        "designator": "U3",
+        "primitiveId": "024d964848c15094",
+        "message": "U3(part) 与 C7_N5(netport) 视觉重叠 41.00×11.00 — 换方向/offset 或 stagger",
+        "componentType": "part",
+        "primitiveIds": [
+          "024d964848c15094",
+          "c4310253bc672f45"
+        ],
+        "bbox": {
+          "minX": 584.5,
+          "minY": 704.5,
+          "maxX": 655.5,
+          "maxY": 795.5
+        },
+        "other": {
+          "primitiveId": "c4310253bc672f45",
+          "componentType": "netport",
+          "net": "C7_N5",
+          "bbox": {
+            "minX": 614.5,
+            "minY": 729.5,
+            "maxX": 683.5,
+            "maxY": 740.5
+          }
+        },
+        "overlapX": 41,
+        "overlapY": 11
+      },
+      {
+        "type": "marker-overlap",
+        "level": "warn",
+        "primitiveId": "0f9672e821485033",
+        "markerNet": "USB_DTR",
+        "message": "USB_DTR(netport) 与 C7_N3(netport) 视觉重叠 9.00×11.00 — 换方向/offset 或 stagger",
+        "componentType": "netport",
+        "primitiveIds": [
+          "0f9672e821485033",
+          "92ce349719e40945"
+        ],
+        "bbox": {
+          "minX": 704.5,
+          "minY": 749.5,
+          "maxX": 785.5,
+          "maxY": 760.5
+        },
+        "other": {
+          "primitiveId": "92ce349719e40945",
+          "componentType": "netport",
+          "net": "C7_N3",
+          "bbox": {
+            "minX": 644.5,
+            "minY": 749.5,
+            "maxX": 713.5,
+            "maxY": 760.5
+          }
+        },
+        "overlapX": 9,
+        "overlapY": 11
+      },
+      {
+        "type": "marker-overlap",
+        "level": "warn",
+        "primitiveId": "38186e3568f570eb",
+        "markerNet": "C7_N7",
+        "message": "C7_N7(netport) 与 5V(netflag) 视觉重叠 22.50×7.50 — 换方向/offset 或 stagger",
+        "componentType": "netport",
+        "primitiveIds": [
+          "38186e3568f570eb",
+          "f0c1924a8cadb37d"
+        ],
+        "bbox": {
+          "minX": 789.5,
+          "minY": 494.5,
+          "maxX": 858.5,
+          "maxY": 505.5
+        },
+        "other": {
+          "primitiveId": "f0c1924a8cadb37d",
+          "componentType": "netflag",
+          "net": "5V",
+          "bbox": {
+            "minX": 809.5,
+            "minY": 484.5,
+            "maxX": 832,
+            "maxY": 502
+          }
+        },
+        "overlapX": 22.5,
+        "overlapY": 7.5
+      },
+      {
+        "type": "missing-partition",
+        "level": "warn",
+        "count": 7,
+        "message": "7 个器件的页已分成 6 个功能模块(虚拟组/认领)但一个分区框都没画 — 铁律#15:`sch zone-draw --mode partition`;被拒(partitionOverlap / titleBlockHits)就先跑 `sch zone-plan` 看逐条 ✗ —— 它点名是哪两个区顶住、还差多少,并给出一条 `sch zone move --zone \u003c区\u003e --dx/--dy \u003c量\u003e` 的最小挪动;挪完再画,整页重排 `sch zone-arrange --apply` 或拆页是最后一档"
+      },
+      {
+        "type": "missing-note",
+        "level": "warn",
+        "count": 7,
+        "message": "7 个器件的页没有电路说明(区名标签不算)— 每模块 1~3 行 `sch note`:作用 + 关键参数 + 设计要点;交付前必须有"
+      },
+      {
+        "type": "missing-titleblock",
+        "level": "warn",
+        "count": 3,
+        "message": "图签未填:Name(图纸标题)、Drawed(设计者)、Description(图纸说明) — 交付图必须能认领(`sch titleblock --data '{\"Name\":\"…\",\"Drawed\":\"…\"}'`)"
+      }
+    ]
+  },
+  "type": "response",
+  "version": "v1"
+}

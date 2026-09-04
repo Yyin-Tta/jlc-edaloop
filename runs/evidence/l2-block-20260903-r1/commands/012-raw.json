@@ -1,0 +1,46 @@
+{
+  "id": "req_265758",
+  "type": "response",
+  "version": "v1",
+  "createdAt": "2026-09-03T02:27:46.0989384Z",
+  "ok": true,
+  "result": {
+    "count": 2,
+    "scope": "activePage",
+    "texts": [
+      {
+        "bold": null,
+        "color": "#5A5A5A",
+        "content": "ams1117_ldo_3v3(C1)",
+        "fontName": null,
+        "fontSize": 14,
+        "italic": null,
+        "primitiveId": "ebdfe29378ad3175",
+        "rotation": 0,
+        "x": 669.5,
+        "y": 799
+      },
+      {
+        "bold": null,
+        "color": "#5A5A5A",
+        "content": "LDO: 5V -\u003e 3V3 / 1A\n输入 10uF + 100nF，输出 22uF",
+        "fontName": null,
+        "fontSize": 10,
+        "italic": null,
+        "primitiveId": "ddb7c46cb16d9027",
+        "rotation": 0,
+        "x": 680,
+        "y": 235.5
+      }
+    ]
+  },
+  "context": {
+    "projectUuid": "5c5728757764408aaa9cbf1895e48e9d",
+    "projectName": "edaloop-block-baseline",
+    "documentUuid": "f83ed65a7d62827c",
+    "documentType": "schematic",
+    "tabId": "f83ed65a7d62827c@5c5728757764408aaa9cbf1895e48e9d"
+  },
+  "seq": 1537,
+  "seqAbandoned": 0
+}

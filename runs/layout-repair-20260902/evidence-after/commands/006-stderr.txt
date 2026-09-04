@@ -1,0 +1,1 @@
+sch check: 1 blocking finding(s) (--strict; info 级不计入)

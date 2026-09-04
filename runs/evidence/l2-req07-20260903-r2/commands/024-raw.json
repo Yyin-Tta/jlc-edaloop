@@ -1,0 +1,88 @@
+{
+  "overall": 91,
+  "verdict": "excellent",
+  "dimensions": [
+    {
+      "id": "folded-labels",
+      "title": "标签折叠",
+      "status": "scored",
+      "score": 100,
+      "weight": 1.2
+    },
+    {
+      "id": "reversed-labels",
+      "title": "标签反向",
+      "status": "scored",
+      "score": 100,
+      "weight": 1.2
+    },
+    {
+      "id": "proximity",
+      "title": "外围贴核心",
+      "status": "skipped",
+      "score": 0,
+      "weight": 1,
+      "reason": "页面无可评的 R/C/L 无源件(或无核心大件可参照)"
+    },
+    {
+      "id": "stub-tidiness",
+      "title": "长链/挤压",
+      "status": "scored",
+      "score": 64,
+      "weight": 0.8,
+      "attributions": [
+        {
+          "dimension": "stub-tidiness",
+          "target": "RLEDM2A",
+          "penalty": 10,
+          "message": "RLEDM2A 与其 2 个标记连成跨度 276 的长链(\u003e250)— 收短最远标记的 offset",
+          "fix": "easyeda sch disconnect --pin RLEDM2A:2 \u0026\u0026 easyeda sch connect --x 525 --y 410 --kind netport --net LEDM2A_P --direction right --offset 24",
+          "at": {
+            "x": 505,
+            "y": 410
+          }
+        },
+        {
+          "dimension": "stub-tidiness",
+          "target": "ULNM2",
+          "penalty": 10,
+          "message": "ULNM2 与其 14 个标记连成跨度 461 的长链(\u003e250)— 收短最远标记的 offset",
+          "fix": "easyeda sch disconnect --pin ULNM2:6 \u0026\u0026 easyeda sch connect --x 250 --y 735 --kind netport --net GND --direction left --offset 24",
+          "at": {
+            "x": 290,
+            "y": 750
+          }
+        },
+        {
+          "dimension": "stub-tidiness",
+          "target": "LED8↔R10",
+          "penalty": 8,
+          "message": "LED8 与 R10 同排净距 104 \u003c 117(相向水平 netport 标签最小距)— 拉开间距(sch distribute --axis x)或把一侧标签换 direction"
+        },
+        {
+          "dimension": "stub-tidiness",
+          "target": "R12↔RLEDM2A",
+          "penalty": 8,
+          "message": "R12 与 RLEDM2A 同排净距 4 \u003c 117(相向水平 netport 标签最小距)— 拉开间距(sch distribute --axis x)或把一侧标签换 direction"
+        }
+      ]
+    },
+    {
+      "id": "frame-fit",
+      "title": "版面整洁",
+      "status": "skipped",
+      "score": 0,
+      "weight": 0.5,
+      "reason": "components.list 未暴露 text 图元 bbox,且分区框几何不在 workflow state — 未测(≠满分)"
+    }
+  ],
+  "dimensionScores": {
+    "folded-labels": 100,
+    "reversed-labels": 100,
+    "stub-tidiness": 64
+  },
+  "componentCount": 54,
+  "scoredDims": 3,
+  "skippedDims": 2,
+  "summary": "sch layout-score: 综合 91.0 [excellent] — 3 维已测 / 2 维未测(skipped≠满分),54 图元"
+}

@@ -1,0 +1,1244 @@
+{
+  "ok": false,
+  "verdict": "fail",
+  "stages": [
+    {
+      "name": "layout-lint",
+      "status": "fail",
+      "errors": 0,
+      "warnings": 2,
+      "blockingReasons": [
+        "2 tight-spacing (--strict)"
+      ],
+      "summary": "0 overlap, 0 pin-coincidence, 2 tight, 0 off-grid, 0 out-of-sheet, 0 no-bbox, 0 unchecked-pin, 0 unproven-pin, 0 invalid-geometry (zone-check=not-configured sheet-check=checked)",
+      "detail": {
+        "schemaVersion": 2,
+        "ok": false,
+        "strict": true,
+        "minGap": 2.54,
+        "componentCount": 14,
+        "withBBox": 14,
+        "skippedNonParts": 49,
+        "overlaps": null,
+        "tightSpacing": [
+          {
+            "a": "CBULK1",
+            "b": "CMCU1",
+            "gap": 2.27076,
+            "type": "spacing"
+          },
+          {
+            "a": "HDRSWD1",
+            "b": "U2",
+            "gap": 1.016,
+            "type": "spacing"
+          }
+        ],
+        "pinCoincidences": null,
+        "measurementUnit": "mm",
+        "coordinateUnit": "0.01inch",
+        "anchorGridRaw": 5,
+        "anchorGridUnit": "0.01inch",
+        "zoneCheckStatus": "not-configured",
+        "sheetCheckStatus": "checked",
+        "pinEps": 0,
+        "summary": "strict=true: 14 components (14 with bbox): 0 overlap, 2 tight (\u003c2.54mm), 0 pin-coincidence, 0 off-grid, 0 out-of-sheet, 0 unchecked-bbox, 0 unchecked-pins, 0 unproven-pins, 0 invalid-geometry; zoneCheck=not-configured sheetCheck=checked"
+      }
+    },
+    {
+      "name": "clusters",
+      "status": "fail",
+      "errors": 2,
+      "warnings": 4,
+      "blockingReasons": [
+        "2 处组间图元重叠",
+        "4 处组间过近 (--strict)"
+      ],
+      "summary": "14 个虚拟组:2 重叠 / 0 出图纸 / 4 过近",
+      "detail": {
+        "clusters": [
+          {
+            "designator": "CMCU3",
+            "primitiveId": "ea1724b5ec1e25cc",
+            "body": {
+              "minX": 129.5,
+              "minY": 291.5,
+              "maxX": 150.5,
+              "maxY": 308.5
+            },
+            "box": {
+              "minX": 33.500000000000014,
+              "minY": 291.5,
+              "maxX": 246.5,
+              "maxY": 308.5
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     CMCU3    x=[130,150] y=[292,308]",
+              "wire              x=[100,120] y=[300,300]",
+              "wire              x=[160,180] y=[300,300]",
+              "netport  3V3      x=[34,91] y=[294,306]",
+              "netport  GND      x=[190,246] y=[294,306]"
+            ]
+          },
+          {
+            "designator": "SW1",
+            "primitiveId": "6e33023be4431270",
+            "body": {
+              "minX": 139.5,
+              "minY": 372.5,
+              "maxX": 180.5,
+              "maxY": 382.5
+            },
+            "box": {
+              "minX": 80.5,
+              "minY": 369.5,
+              "maxX": 298.5,
+              "maxY": 392
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     SW1      x=[140,180] y=[372,382]",
+              "wire              x=[190,220] y=[380,380]",
+              "wire              x=[100,130] y=[380,380]",
+              "netport  BOOT0    x=[230,298] y=[374,386]",
+              "netflag  GND      x=[80,118] y=[370,392]"
+            ]
+          },
+          {
+            "designator": "U1MCU",
+            "primitiveId": "8ade64300fb97353",
+            "body": {
+              "minX": 539.5,
+              "minY": 544.5,
+              "maxX": 690.5,
+              "maxY": 795.5
+            },
+            "box": {
+              "minX": 223.49999999999994,
+              "minY": 544.5,
+              "maxX": 969.5,
+              "maxY": 797
+            },
+            "markers": 21,
+            "wires": 25,
+            "members": [
+              "part     U1MCU    x=[540,690] y=[544,796]",
+              "wire              x=[320,530] y=[605,605]",
+              "wire              x=[510,530] y=[565,565]",
+              "wire              x=[550,700] y=[775,775]",
+              "wire              x=[530,680] y=[555,555]",
+              "wire              x=[550,700] y=[785,785]",
+              "wire              x=[700,950] y=[645,645]",
+              "wire              x=[500,530] y=[725,725]",
+              "wire              x=[510,530] y=[715,715]",
+              "wire              x=[470,530] y=[705,705]",
+              "wire              x=[465,530] y=[695,695]",
+              "wire              x=[425,530] y=[685,685]",
+              "wire              x=[530,560] y=[675,675]",
+              "wire              x=[510,530] y=[665,665]",
+              "wire              x=[475,530] y=[655,655]",
+              "wire              x=[530,620] y=[645,645]",
+              "wire              x=[510,530] y=[635,635]",
+              "wire              x=[475,530] y=[625,625]",
+              "wire              x=[530,560] y=[615,615]",
+              "wire              x=[700,720] y=[605,605]",
+              "wire              x=[700,885] y=[615,615]",
+              "wire              x=[670,700] y=[655,655]",
+              "wire              x=[700,720] y=[665,665]",
+              "wire              x=[550,700] y=[745,745]",
+              "wire              x=[500,530] y=[785,785]",
+              "wire              x=[700,725] y=[675,675]",
+              "netport  STAT_FLT x=[223,310] y=[600,610]",
+              "netport  NRST     x=[428,490] y=[720,731]",
+              "netport  M1_IN_A  x=[374,455] y=[690,701]",
+              "netport  M1_IN_B  x=[334,415] y=[680,690]",
+              "netport  M1_IN_C  x=[570,650] y=[670,680]",
+              "netport  M1_IN_D  x=[419,500] y=[660,671]",
+              "netport  M2_IN_A  x=[384,465] y=[650,661]",
+              "netport  M2_IN_B  x=[630,710] y=[640,650]",
+              "netport  M2_IN_C  x=[419,500] y=[630,641]",
+              "netport  M2_IN_D  x=[384,465] y=[620,631]",
+              "netport  STAT_EN  x=[570,650] y=[610,620]",
+              "netport  MCU_TX   x=[730,804] y=[600,610]",
+              "netport  MCU_RX   x=[894,970] y=[610,620]",
+              "netport  BOOT0    x=[471,540] y=[740,751]",
+              "netport  SWCLK    x=[734,804] y=[670,680]",
+              "netflag  GND      x=[490,528] y=[554,577]",
+              "netflag  GND      x=[490,528] y=[704,727]",
+              "netflag  GND      x=[650,688] y=[644,667]",
+              "netflag  3V3      x=[460,488] y=[700,717]",
+              "netflag  3V3      x=[702,730] y=[659,677]",
+              "netflag  3V3      x=[490,518] y=[780,797]"
+            ]
+          },
+          {
+            "designator": "CMCU4",
+            "primitiveId": "fed07c03d4ad970d",
+            "body": {
+              "minX": 399.5,
+              "minY": 291.5,
+              "maxX": 420.5,
+              "maxY": 308.5
+            },
+            "box": {
+              "minX": 303.49999999999994,
+              "minY": 291.5,
+              "maxX": 516.5,
+              "maxY": 308.5
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     CMCU4    x=[400,420] y=[292,308]",
+              "wire              x=[370,390] y=[300,300]",
+              "wire              x=[430,450] y=[300,300]",
+              "netport  3V3      x=[303,360] y=[295,306]",
+              "netport  GND      x=[460,516] y=[294,306]"
+            ]
+          },
+          {
+            "designator": "SW2",
+            "primitiveId": "78c8d99b8bfa51e8",
+            "body": {
+              "minX": 409.49999999999994,
+              "minY": 377.50000000000006,
+              "maxX": 450.49999999999994,
+              "maxY": 387.5
+            },
+            "box": {
+              "minX": 350.5,
+              "minY": 374.49999999999994,
+              "maxX": 562.5,
+              "maxY": 397
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     SW2      x=[409,450] y=[378,388]",
+              "wire              x=[460,490] y=[385,385]",
+              "wire              x=[370,400] y=[385,385]",
+              "netport  NRST     x=[500,562] y=[380,390]",
+              "netflag  GND      x=[350,388] y=[374,397]"
+            ]
+          },
+          {
+            "designator": "C6",
+            "primitiveId": "f4e04ab65849d6f4",
+            "body": {
+              "minX": 541.5,
+              "minY": 469.5,
+              "maxX": 558.5,
+              "maxY": 490.5
+            },
+            "box": {
+              "minX": 541.5,
+              "minY": 460,
+              "maxX": 570,
+              "maxY": 500
+            },
+            "markers": 0,
+            "wires": 2,
+            "members": [
+              "part     C6       x=[542,558] y=[470,490]",
+              "wire              x=[550,570] y=[460,460]",
+              "wire              x=[550,570] y=[500,500]"
+            ]
+          },
+          {
+            "designator": "CMCU1",
+            "primitiveId": "a271e040493fa100",
+            "body": {
+              "minX": 649.5,
+              "minY": 316.5,
+              "maxX": 670.5,
+              "maxY": 333.5
+            },
+            "box": {
+              "minX": 543.5,
+              "minY": 316.5,
+              "maxX": 776.5,
+              "maxY": 333.5
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     CMCU1    x=[650,670] y=[316,334]",
+              "wire              x=[610,640] y=[325,325]",
+              "wire              x=[680,710] y=[325,325]",
+              "netport  3V3      x=[544,600] y=[320,331]",
+              "netport  GND      x=[720,776] y=[320,330]"
+            ]
+          },
+          {
+            "designator": "CBULK1",
+            "primitiveId": "565507d00762d079",
+            "body": {
+              "minX": 674.5,
+              "minY": 291.5,
+              "maxX": 695.5,
+              "maxY": 308.5
+            },
+            "box": {
+              "minX": 568.5,
+              "minY": 291.5,
+              "maxX": 801.5,
+              "maxY": 308.5
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     CBULK1   x=[674,696] y=[292,308]",
+              "wire              x=[635,665] y=[300,300]",
+              "wire              x=[705,735] y=[300,300]",
+              "netport  3V3      x=[568,626] y=[295,306]",
+              "netport  GND      x=[744,802] y=[294,306]"
+            ]
+          },
+          {
+            "designator": "U2",
+            "primitiveId": "da2e0d308f33e2db",
+            "body": {
+              "minX": 854.5,
+              "minY": 739.5,
+              "maxX": 925.5,
+              "maxY": 780.5
+            },
+            "box": {
+              "minX": 723.4999999999999,
+              "minY": 707.5000000000001,
+              "maxX": 980.5,
+              "maxY": 780.5
+            },
+            "markers": 4,
+            "wires": 4,
+            "members": [
+              "part     U2       x=[854,926] y=[740,780]",
+              "wire              x=[935,970] y=[760,760]",
+              "wire              x=[845,845] y=[730,750]",
+              "wire              x=[825,845] y=[760,760]",
+              "wire              x=[790,845] y=[770,770]",
+              "netport  3V3      x=[758,815] y=[755,766]",
+              "netport  GND      x=[723,780] y=[765,776]",
+              "netflag  3V3      x=[952,980] y=[754,772]",
+              "netflag  5V       x=[839,851] y=[708,726]"
+            ]
+          },
+          {
+            "designator": "HDRSWD1",
+            "primitiveId": "a6eba9a86f2f3292",
+            "body": {
+              "minX": 929.5,
+              "minY": 729.5,
+              "maxX": 950.5,
+              "maxY": 780.5
+            },
+            "box": {
+              "minX": 781.4999999999999,
+              "minY": 623.4999999999999,
+              "maxX": 1010,
+              "maxY": 790
+            },
+            "markers": 3,
+            "wires": 6,
+            "members": [
+              "part     HDRSWD1  x=[930,950] y=[730,780]",
+              "wire              x=[860,920] y=[770,770]",
+              "wire              x=[920,1010] y=[740,740]",
+              "wire              x=[825,945] y=[790,790]",
+              "wire              x=[945,945] y=[690,720]",
+              "wire              x=[860,920] y=[760,760]",
+              "wire              x=[860,920] y=[750,750]",
+              "netport  GND      x=[940,950] y=[623,680]",
+              "netport  SWDIO    x=[781,850] y=[755,766]",
+              "netport  SWCLK    x=[781,850] y=[745,756]"
+            ]
+          },
+          {
+            "designator": "C4",
+            "primitiveId": "47fa7198be82690c",
+            "body": {
+              "minX": 836.5,
+              "minY": 529.5,
+              "maxX": 853.5,
+              "maxY": 550.5
+            },
+            "box": {
+              "minX": 795.5,
+              "minY": 477.5,
+              "maxX": 854,
+              "maxY": 572
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     C4       x=[836,854] y=[530,550]",
+              "wire              x=[845,845] y=[500,520]",
+              "wire              x=[815,845] y=[560,560]",
+              "netflag  GND      x=[796,833] y=[549,572]",
+              "netflag  3V3      x=[836,854] y=[478,496]"
+            ]
+          },
+          {
+            "designator": "CMCU2",
+            "primitiveId": "cc5b6c0f3e99e7de",
+            "body": {
+              "minX": 929.5,
+              "minY": 371.5,
+              "maxX": 950.5,
+              "maxY": 388.5
+            },
+            "box": {
+              "minX": 833.5,
+              "minY": 371.5,
+              "maxX": 1046.5,
+              "maxY": 388.5
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     CMCU2    x=[930,950] y=[372,388]",
+              "wire              x=[900,920] y=[380,380]",
+              "wire              x=[960,980] y=[380,380]",
+              "netport  3V3      x=[834,890] y=[374,386]",
+              "netport  GND      x=[990,1046] y=[374,386]"
+            ]
+          },
+          {
+            "designator": "C5",
+            "primitiveId": "af07908bfb989d9e",
+            "body": {
+              "minX": 836.5,
+              "minY": 629.5,
+              "maxX": 853.5,
+              "maxY": 650.5
+            },
+            "box": {
+              "minX": 834.4999999999999,
+              "minY": 567.5000000000001,
+              "maxX": 855.4999999999999,
+              "maxY": 711.5000000000001
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     C5       x=[836,854] y=[630,650]",
+              "wire              x=[845,845] y=[660,680]",
+              "wire              x=[845,845] y=[590,620]",
+              "netflag  GND      x=[834,855] y=[690,712]",
+              "netflag  5V       x=[839,851] y=[568,586]"
+            ]
+          },
+          {
+            "designator": "RBOOT1",
+            "primitiveId": "818bd7aa9e0f8791",
+            "body": {
+              "minX": 954.5,
+              "minY": 215.5,
+              "maxX": 975.5,
+              "maxY": 224.5
+            },
+            "box": {
+              "minX": 939.5,
+              "minY": 214.5,
+              "maxX": 1071.5,
+              "maxY": 328.5
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     RBOOT1   x=[954,976] y=[216,224]",
+              "wire              x=[985,1005] y=[220,220]",
+              "wire              x=[945,945] y=[220,250]",
+              "netport  GND      x=[1014,1072] y=[214,226]",
+              "netport  BOOT0    x=[940,950] y=[260,328]"
+            ]
+          }
+        ],
+        "findings": [
+          {
+            "type": "overlap",
+            "a": "U2",
+            "b": "HDRSWD1",
+            "ovX": 34,
+            "ovY": 11,
+            "level": "ERROR"
+          },
+          {
+            "type": "overlap",
+            "a": "U2",
+            "b": "C5",
+            "ovX": 12,
+            "ovY": 4,
+            "level": "ERROR"
+          },
+          {
+            "type": "tight",
+            "a": "U1MCU",
+            "b": "HDRSWD1",
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "U1MCU",
+            "b": "C5",
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "CMCU1",
+            "b": "CBULK1",
+            "gap": 8,
+            "level": "WARN"
+          },
+          {
+            "type": "tight",
+            "a": "C4",
+            "b": "C5",
+            "gap": 6,
+            "level": "WARN"
+          }
+        ],
+        "sheetUsable": {
+          "minX": 12,
+          "minY": 12,
+          "maxX": 1158,
+          "maxY": 813
+        }
+      }
+    },
+    {
+      "name": "check",
+      "status": "fail",
+      "errors": 0,
+      "warnings": 21,
+      "blockingReasons": [
+        "21 个 warn finding (--strict;info 不阻塞): dangling-wire×9, marker-overlap×7, floating-pin×1, missing-note×1, missing-partition×1, missing-titleblock×1, wire-crossing×1"
+      ],
+      "summary": "21 finding(s): 0 error/fatal, 21 warn/info",
+      "detail": {
+        "passed": false,
+        "summary": {
+          "floatingPins": 23,
+          "componentsWithFloating": 1,
+          "geomNetMismatches": 0,
+          "netMarkerMismatches": 0,
+          "multiNetWires": 0,
+          "wireCrossings": 1,
+          "wireOverPins": 0,
+          "zeroLengthWires": 0,
+          "danglingWires": 9,
+          "duplicateNetMarkers": 0,
+          "titleblockOverlaps": 0,
+          "markerOverlaps": 7,
+          "missingPartitions": 3,
+          "noteOutsideZones": 0,
+          "redundantNetMarkers": 0,
+          "foldedNetLabels": 0,
+          "reversedNetFlags": 0,
+          "polarityConventionOutliers": 0,
+          "total": 21
+        },
+        "findings": [
+          {
+            "type": "floating-pin",
+            "level": "warn",
+            "designator": "U1MCU",
+            "primitiveId": "8ade64300fb97353",
+            "pins": [
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "20",
+              "21",
+              "22",
+              "25",
+              "26",
+              "27",
+              "28",
+              "29",
+              "32",
+              "33",
+              "38",
+              "39",
+              "40",
+              "41",
+              "42",
+              "43",
+              "45",
+              "46"
+            ],
+            "pinDetails": [
+              {
+                "number": "2",
+                "name": "PC13-TAMPER-RTC",
+                "x": 530,
+                "y": 775
+              },
+              {
+                "number": "3",
+                "name": "PC14-OSC32_IN",
+                "x": 530,
+                "y": 765
+              },
+              {
+                "number": "4",
+                "name": "PC15-OSC32_OUT",
+                "x": 530,
+                "y": 755
+              },
+              {
+                "number": "5",
+                "name": "PD0-OSC_IN",
+                "x": 530,
+                "y": 745
+              },
+              {
+                "number": "6",
+                "name": "PD1-OSC_OUT",
+                "x": 530,
+                "y": 735
+              },
+              {
+                "number": "20",
+                "name": "PB2",
+                "x": 530,
+                "y": 595
+              },
+              {
+                "number": "21",
+                "name": "PB10",
+                "x": 530,
+                "y": 585
+              },
+              {
+                "number": "22",
+                "name": "PB11",
+                "x": 530,
+                "y": 575
+              },
+              {
+                "number": "25",
+                "name": "PB12",
+                "x": 700,
+                "y": 555
+              },
+              {
+                "number": "26",
+                "name": "PB13",
+                "x": 700,
+                "y": 565
+              },
+              {
+                "number": "27",
+                "name": "PB14",
+                "x": 700,
+                "y": 575
+              },
+              {
+                "number": "28",
+                "name": "PB15",
+                "x": 700,
+                "y": 585
+              },
+              {
+                "number": "29",
+                "name": "PA8",
+                "x": 700,
+                "y": 595
+              },
+              {
+                "number": "32",
+                "name": "PA11",
+                "x": 700,
+                "y": 625
+              },
+              {
+                "number": "33",
+                "name": "PA12",
+                "x": 700,
+                "y": 635
+              },
+              {
+                "number": "38",
+                "name": "PA15",
+                "x": 700,
+                "y": 685
+              },
+              {
+                "number": "39",
+                "name": "PB3",
+                "x": 700,
+                "y": 695
+              },
+              {
+                "number": "40",
+                "name": "PB4",
+                "x": 700,
+                "y": 705
+              },
+              {
+                "number": "41",
+                "name": "PB5",
+                "x": 700,
+                "y": 715
+              },
+              {
+                "number": "42",
+                "name": "PB6",
+                "x": 700,
+                "y": 725
+              },
+              {
+                "number": "43",
+                "name": "PB7",
+                "x": 700,
+                "y": 735
+              },
+              {
+                "number": "45",
+                "name": "PB8",
+                "x": 700,
+                "y": 755
+              },
+              {
+                "number": "46",
+                "name": "PB9",
+                "x": 700,
+                "y": 765
+              }
+            ],
+            "count": 23,
+            "message": "23 个引脚悬空(无导线连接,未打 NC 标识)"
+          },
+          {
+            "type": "wire-crossing",
+            "level": "warn",
+            "count": 1,
+            "message": "两条导线交叉(走线打结;改走通道/换 L 形拐点避开)",
+            "at": {
+              "x": 845,
+              "y": 615
+            }
+          },
+          {
+            "type": "dangling-wire",
+            "level": "warn",
+            "wirePrimitiveId": "844072d1199dd577",
+            "message": "疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除)",
+            "at": {
+              "x": 860,
+              "y": 770
+            }
+          },
+          {
+            "type": "dangling-wire",
+            "level": "warn",
+            "wirePrimitiveId": "9b19839e6d1438a8",
+            "message": "疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除)",
+            "at": {
+              "x": 550,
+              "y": 775
+            }
+          },
+          {
+            "type": "dangling-wire",
+            "level": "warn",
+            "wirePrimitiveId": "1ea70df8331e2520",
+            "message": "疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除)",
+            "at": {
+              "x": 680,
+              "y": 555
+            }
+          },
+          {
+            "type": "dangling-wire",
+            "level": "warn",
+            "wirePrimitiveId": "c6f1e6c44ec6d7ca",
+            "message": "疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除)",
+            "at": {
+              "x": 550,
+              "y": 785
+            }
+          },
+          {
+            "type": "dangling-wire",
+            "level": "warn",
+            "wirePrimitiveId": "f36a4dec884c1108",
+            "message": "疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除)",
+            "at": {
+              "x": 1010,
+              "y": 740
+            }
+          },
+          {
+            "type": "dangling-wire",
+            "level": "warn",
+            "wirePrimitiveId": "faa6796ebfaed041",
+            "message": "疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除)",
+            "at": {
+              "x": 825,
+              "y": 790
+            }
+          },
+          {
+            "type": "dangling-wire",
+            "level": "warn",
+            "wirePrimitiveId": "fcb00676e5f7732a",
+            "message": "疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除)",
+            "at": {
+              "x": 570,
+              "y": 460
+            }
+          },
+          {
+            "type": "dangling-wire",
+            "level": "warn",
+            "wirePrimitiveId": "72a414540551791b",
+            "message": "疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除)",
+            "at": {
+              "x": 570,
+              "y": 500
+            }
+          },
+          {
+            "type": "dangling-wire",
+            "level": "warn",
+            "wirePrimitiveId": "c990e8acf842397e",
+            "message": "疑似孤儿 stub(一端连引脚、另一端游离,网名  为 EasyEDA 自动生成 — flag/port 疑似已删除,wire 残留;用 sch disconnect 清除)",
+            "at": {
+              "x": 950,
+              "y": 645
+            }
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "primitiveId": "4d9b8ae112e399a0",
+            "markerNet": "5V",
+            "message": "5V(netflag) 与 GND(netflag) 视觉重叠 12.00×4.00 — 换方向/offset 或 stagger",
+            "componentType": "netflag",
+            "primitiveIds": [
+              "4d9b8ae112e399a0",
+              "a657b573d5430a58"
+            ],
+            "bbox": {
+              "minX": 839,
+              "minY": 707.5000000000001,
+              "maxX": 851,
+              "maxY": 725.5000000000001
+            },
+            "other": {
+              "primitiveId": "a657b573d5430a58",
+              "componentType": "netflag",
+              "net": "GND",
+              "bbox": {
+                "minX": 834.4999999999999,
+                "minY": 689.5000000000001,
+                "maxX": 855.4999999999999,
+                "maxY": 711.5000000000001
+              }
+            },
+            "overlapX": 12,
+            "overlapY": 4
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "primitiveId": "6027964146913574",
+            "markerNet": "SWDIO",
+            "message": "SWDIO(netport) 与 3V3(netport) 视觉重叠 34.00×11.00 — 换方向/offset 或 stagger",
+            "componentType": "netport",
+            "primitiveIds": [
+              "6027964146913574",
+              "a4ba024d0f895302"
+            ],
+            "bbox": {
+              "minX": 781.4999999999999,
+              "minY": 754.5000000000001,
+              "maxX": 850.4999999999999,
+              "maxY": 765.5000000000001
+            },
+            "other": {
+              "primitiveId": "a4ba024d0f895302",
+              "componentType": "netport",
+              "net": "3V3",
+              "bbox": {
+                "minX": 758.4999999999999,
+                "minY": 754.5000000000001,
+                "maxX": 815.4999999999999,
+                "maxY": 765.5000000000001
+              }
+            },
+            "overlapX": 34,
+            "overlapY": 11
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "designator": "U1MCU",
+            "primitiveId": "8ade64300fb97353",
+            "message": "U1MCU(part) 与 M1_IN_C(netport) 视觉重叠 81.00×11.00 — 换方向/offset 或 stagger",
+            "componentType": "part",
+            "primitiveIds": [
+              "8ade64300fb97353",
+              "90f04a00961cba80"
+            ],
+            "bbox": {
+              "minX": 539.5,
+              "minY": 544.5,
+              "maxX": 690.5,
+              "maxY": 795.5
+            },
+            "other": {
+              "primitiveId": "90f04a00961cba80",
+              "componentType": "netport",
+              "net": "M1_IN_C",
+              "bbox": {
+                "minX": 569.5,
+                "minY": 669.5,
+                "maxX": 650.5,
+                "maxY": 680.5
+              }
+            },
+            "overlapX": 81,
+            "overlapY": 11
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "designator": "U1MCU",
+            "primitiveId": "8ade64300fb97353",
+            "message": "U1MCU(part) 与 STAT_EN(netport) 视觉重叠 81.00×11.00 — 换方向/offset 或 stagger",
+            "componentType": "part",
+            "primitiveIds": [
+              "8ade64300fb97353",
+              "af0170043a3ed7b4"
+            ],
+            "bbox": {
+              "minX": 539.5,
+              "minY": 544.5,
+              "maxX": 690.5,
+              "maxY": 795.5
+            },
+            "other": {
+              "primitiveId": "af0170043a3ed7b4",
+              "componentType": "netport",
+              "net": "STAT_EN",
+              "bbox": {
+                "minX": 569.5,
+                "minY": 609.5,
+                "maxX": 650.5,
+                "maxY": 620.5
+              }
+            },
+            "overlapX": 81,
+            "overlapY": 11
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "designator": "U1MCU",
+            "primitiveId": "8ade64300fb97353",
+            "message": "U1MCU(part) 与 GND(netflag) 视觉重叠 37.50×22.50 — 换方向/offset 或 stagger",
+            "componentType": "part",
+            "primitiveIds": [
+              "8ade64300fb97353",
+              "b942040349be7f2d"
+            ],
+            "bbox": {
+              "minX": 539.5,
+              "minY": 544.5,
+              "maxX": 690.5,
+              "maxY": 795.5
+            },
+            "other": {
+              "primitiveId": "b942040349be7f2d",
+              "componentType": "netflag",
+              "net": "GND",
+              "bbox": {
+                "minX": 650.5,
+                "minY": 644.4999999999999,
+                "maxX": 688,
+                "maxY": 667
+              }
+            },
+            "overlapX": 37.5,
+            "overlapY": 22.5
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "designator": "U1MCU",
+            "primitiveId": "8ade64300fb97353",
+            "message": "U1MCU(part) 与 M2_IN_B(netport) 视觉重叠 61.00×11.00 — 换方向/offset 或 stagger",
+            "componentType": "part",
+            "primitiveIds": [
+              "8ade64300fb97353",
+              "c320664315dd9248"
+            ],
+            "bbox": {
+              "minX": 539.5,
+              "minY": 544.5,
+              "maxX": 690.5,
+              "maxY": 795.5
+            },
+            "other": {
+              "primitiveId": "c320664315dd9248",
+              "componentType": "netport",
+              "net": "M2_IN_B",
+              "bbox": {
+                "minX": 629.5,
+                "minY": 639.5,
+                "maxX": 710.5,
+                "maxY": 650.5
+              }
+            },
+            "overlapX": 61,
+            "overlapY": 11
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "primitiveId": "b942040349be7f2d",
+            "markerNet": "GND",
+            "message": "GND(netflag) 与 M2_IN_B(netport) 视觉重叠 37.50×6.00 — 换方向/offset 或 stagger",
+            "componentType": "netflag",
+            "primitiveIds": [
+              "b942040349be7f2d",
+              "c320664315dd9248"
+            ],
+            "bbox": {
+              "minX": 650.5,
+              "minY": 644.4999999999999,
+              "maxX": 688,
+              "maxY": 667
+            },
+            "other": {
+              "primitiveId": "c320664315dd9248",
+              "componentType": "netport",
+              "net": "M2_IN_B",
+              "bbox": {
+                "minX": 629.5,
+                "minY": 639.5,
+                "maxX": 710.5,
+                "maxY": 650.5
+              }
+            },
+            "overlapX": 37.5,
+            "overlapY": 6
+          },
+          {
+            "type": "missing-partition",
+            "level": "warn",
+            "count": 14,
+            "message": "14 个器件的页已分成 14 个功能模块(虚拟组/认领)但一个分区框都没画 — 铁律#15:`sch zone-draw --mode partition`;被拒(partitionOverlap / titleBlockHits)就先跑 `sch zone-plan` 看逐条 ✗ —— 它点名是哪两个区顶住、还差多少,并给出一条 `sch zone move --zone \u003c区\u003e --dx/--dy \u003c量\u003e` 的最小挪动;挪完再画,整页重排 `sch zone-arrange --apply` 或拆页是最后一档"
+          },
+          {
+            "type": "missing-note",
+            "level": "warn",
+            "count": 14,
+            "message": "14 个器件的页没有电路说明(区名标签不算)— 每模块 1~3 行 `sch note`:作用 + 关键参数 + 设计要点;交付前必须有"
+          },
+          {
+            "type": "missing-titleblock",
+            "level": "warn",
+            "count": 3,
+            "message": "图签未填:Name(图纸标题)、Drawed(设计者)、Description(图纸说明) — 交付图必须能认领(`sch titleblock --data '{\"Name\":\"…\",\"Drawed\":\"…\"}'`)"
+          }
+        ]
+      }
+    },
+    {
+      "name": "bridge-check",
+      "status": "fail",
+      "errors": 0,
+      "warnings": 9,
+      "blockingReasons": [
+        "9 orphan-stub (--strict)"
+      ],
+      "summary": "0 bridge(short), 9 orphan-stub, 0 orphan-flag, 0 orphan-tree (57 wire tree(s))",
+      "detail": {
+        "passed": false,
+        "summary": {
+          "trees": 9,
+          "bridges": 0,
+          "orphans": 9,
+          "orphanFlags": 0,
+          "orphanTrees": 0,
+          "wireTreesTotal": 57
+        },
+        "trees": [
+          {
+            "kind": "ORPHAN",
+            "type": "orphan-stub",
+            "level": "warn",
+            "wireIds": [
+              "844072d1199dd577"
+            ],
+            "flagIds": [],
+            "pins": [
+              "HDRSWD1:1"
+            ],
+            "nets": []
+          },
+          {
+            "kind": "ORPHAN",
+            "type": "orphan-stub",
+            "level": "warn",
+            "wireIds": [
+              "9b19839e6d1438a8"
+            ],
+            "flagIds": [],
+            "pins": [
+              "U1MCU:47"
+            ],
+            "nets": []
+          },
+          {
+            "kind": "ORPHAN",
+            "type": "orphan-stub",
+            "level": "warn",
+            "wireIds": [
+              "1ea70df8331e2520"
+            ],
+            "flagIds": [],
+            "pins": [
+              "U1MCU:24"
+            ],
+            "nets": []
+          },
+          {
+            "kind": "ORPHAN",
+            "type": "orphan-stub",
+            "level": "warn",
+            "wireIds": [
+              "c6f1e6c44ec6d7ca"
+            ],
+            "flagIds": [],
+            "pins": [
+              "U1MCU:48"
+            ],
+            "nets": []
+          },
+          {
+            "kind": "ORPHAN",
+            "type": "orphan-stub",
+            "level": "warn",
+            "wireIds": [
+              "f36a4dec884c1108"
+            ],
+            "flagIds": [],
+            "pins": [
+              "HDRSWD1:4"
+            ],
+            "nets": []
+          },
+          {
+            "kind": "ORPHAN",
+            "type": "orphan-stub",
+            "level": "warn",
+            "wireIds": [
+              "faa6796ebfaed041"
+            ],
+            "flagIds": [],
+            "pins": [
+              "HDRSWD1:5"
+            ],
+            "nets": []
+          },
+          {
+            "kind": "ORPHAN",
+            "type": "orphan-stub",
+            "level": "warn",
+            "wireIds": [
+              "fcb00676e5f7732a"
+            ],
+            "flagIds": [],
+            "pins": [
+              "C6:1"
+            ],
+            "nets": []
+          },
+          {
+            "kind": "ORPHAN",
+            "type": "orphan-stub",
+            "level": "warn",
+            "wireIds": [
+              "72a414540551791b"
+            ],
+            "flagIds": [],
+            "pins": [
+              "C6:2"
+            ],
+            "nets": []
+          },
+          {
+            "kind": "ORPHAN",
+            "type": "orphan-stub",
+            "level": "warn",
+            "wireIds": [
+              "c990e8acf842397e"
+            ],
+            "flagIds": [],
+            "pins": [
+              "U1MCU:34"
+            ],
+            "nets": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "drc",
+      "status": "fail",
+      "errors": 0,
+      "warnings": 29,
+      "blockingReasons": [
+        "29 warn-level DRC violation (--strict;平台只回聚合数,逐条明细请在 EasyEDA 的 DRC 面板查看)"
+      ],
+      "summary": "0 fatal, 0 error, 29 warn, 0 info (total 29)",
+      "detail": {
+        "passed": false,
+        "fatal": 0,
+        "summary": {
+          "fatal": 0,
+          "error": 0,
+          "warn": 29,
+          "info": 0,
+          "unknown": 0,
+          "total": 29
+        },
+        "violations": [
+          {
+            "level": "warn",
+            "type": "warn",
+            "count": 29,
+            "raw": {
+              "count": 29,
+              "type": "warn"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "blockers": [
+    "layout-lint: 2 tight-spacing (--strict)",
+    "clusters: 2 处组间图元重叠; 4 处组间过近 (--strict)",
+    "check: 21 个 warn finding (--strict;info 不阻塞): dangling-wire×9, marker-overlap×7, floating-pin×1, missing-note×1, missing-partition×1, missing-titleblock×1, wire-crossing×1",
+    "bridge-check: 9 orphan-stub (--strict)",
+    "drc: 29 warn-level DRC violation (--strict;平台只回聚合数,逐条明细请在 EasyEDA 的 DRC 面板查看)"
+  ],
+  "warnings": [
+    "layout-lint: 2 条告警",
+    "clusters: 4 条告警",
+    "check: 21 条告警",
+    "bridge-check: 9 条告警",
+    "drc: 29 条告警"
+  ]
+}

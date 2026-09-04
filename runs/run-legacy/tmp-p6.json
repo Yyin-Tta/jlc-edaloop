@@ -1,0 +1,252 @@
+﻿{
+  "clusters": [
+    {
+      "designator": "U3",
+      "primitiveId": "3afac9a8f62d5a7a",
+      "body": {
+        "minX": 314.5,
+        "minY": 759.5,
+        "maxX": 365.5,
+        "maxY": 810.5
+      },
+      "box": {
+        "minX": 18.500000000000014,
+        "minY": 718.5,
+        "maxX": 570.5,
+        "maxY": 812
+      },
+      "markers": 8,
+      "wires": 8,
+      "members": [
+        "part     U3       x=[314,366] y=[760,810]",
+        "wire              x=[375,395] y=[800,800]",
+        "wire              x=[375,375] y=[750,770]",
+        "wire              x=[285,305] y=[800,800]",
+        "wire              x=[285,305] y=[770,770]",
+        "wire              x=[375,395] y=[780,780]",
+        "wire              x=[375,480] y=[790,790]",
+        "wire              x=[115,305] y=[790,790]",
+        "wire              x=[205,305] y=[780,780]",
+        "netflag  3V3      x=[377,406] y=[794,812]",
+        "netflag  GND      x=[364,386] y=[718,740]",
+        "netport  MCU_RX   x=[200,276] y=[794,806]",
+        "netport  MCU_TX   x=[200,276] y=[764,776]",
+        "netport  RS485_A  x=[404,486] y=[774,786]",
+        "netport  RS485_B  x=[490,570] y=[784,796]",
+        "netport  RS485_DE x=[19,106] y=[784,796]",
+        "netport  RS485_DE x=[109,196] y=[774,786]"
+      ]
+    },
+    {
+      "designator": "C6",
+      "primitiveId": "8361dcf08f3b799f",
+      "body": {
+        "minX": 329.5,
+        "minY": 291.5,
+        "maxX": 350.5,
+        "maxY": 308.5
+      },
+      "box": {
+        "minX": 289.5,
+        "minY": 289.5,
+        "maxX": 399.5,
+        "maxY": 312
+      },
+      "markers": 2,
+      "wires": 2,
+      "members": [
+        "part     C6       x=[330,350] y=[292,308]",
+        "wire              x=[300,320] y=[300,300]",
+        "wire              x=[360,380] y=[300,300]",
+        "netflag  3V3      x=[290,318] y=[294,312]",
+        "netflag  GND      x=[362,400] y=[290,312]"
+      ]
+    },
+    {
+      "designator": "R7",
+      "primitiveId": "9fb44ac4814c88a5",
+      "body": {
+        "minX": 329.5,
+        "minY": 615.5,
+        "maxX": 350.5,
+        "maxY": 624.5
+      },
+      "box": {
+        "minX": 289.5,
+        "minY": 614.5,
+        "maxX": 470.5,
+        "maxY": 632
+      },
+      "markers": 2,
+      "wires": 2,
+      "members": [
+        "part     R7       x=[330,350] y=[616,624]",
+        "wire              x=[360,380] y=[620,620]",
+        "wire              x=[300,320] y=[620,620]",
+        "netport  RS485_A  x=[390,470] y=[614,626]",
+        "netflag  3V3      x=[290,318] y=[614,632]"
+      ]
+    },
+    {
+      "designator": "D5",
+      "primitiveId": "b0c1ca68eba368a2",
+      "body": {
+        "minX": 637.5,
+        "minY": 271.5,
+        "maxX": 685.5,
+        "maxY": 328.5
+      },
+      "box": {
+        "minX": 514.5,
+        "minY": 271.5,
+        "maxX": 734.5,
+        "maxY": 328.5
+      },
+      "markers": 3,
+      "wires": 3,
+      "members": [
+        "part     D5       x=[638,686] y=[272,328]",
+        "wire              x=[605,625] y=[320,320]",
+        "wire              x=[605,625] y=[280,280]",
+        "wire              x=[695,715] y=[300,300]",
+        "netport  RS485_A  x=[514,596] y=[315,326]",
+        "netport  RS485_B  x=[514,596] y=[275,286]",
+        "netflag  GND      x=[697,734] y=[290,312]"
+      ]
+    },
+    {
+      "designator": "R8",
+      "primitiveId": "32a263c894929746",
+      "body": {
+        "minX": 649.5,
+        "minY": 615.5,
+        "maxX": 670.5,
+        "maxY": 624.5
+      },
+      "box": {
+        "minX": 529.4999999999999,
+        "minY": 609.5,
+        "maxX": 719.5,
+        "maxY": 632
+      },
+      "markers": 2,
+      "wires": 2,
+      "members": [
+        "part     R8       x=[650,670] y=[616,624]",
+        "wire              x=[620,640] y=[620,620]",
+        "wire              x=[680,700] y=[620,620]",
+        "netport  RS485_B  x=[529,610] y=[615,626]",
+        "netflag  GND      x=[682,720] y=[610,632]"
+      ]
+    },
+    {
+      "designator": "J3",
+      "primitiveId": "f041234a5d2a53f3",
+      "body": {
+        "minX": 969.5,
+        "minY": 279.5,
+        "maxX": 1010.5,
+        "maxY": 320.5
+      },
+      "box": {
+        "minX": 764.5,
+        "minY": 279.5,
+        "maxX": 1010.5,
+        "maxY": 320.5
+      },
+      "markers": 3,
+      "wires": 3,
+      "members": [
+        "part     J3       x=[970,1010] y=[280,320]",
+        "wire              x=[940,960] y=[310,310]",
+        "wire              x=[855,960] y=[300,300]",
+        "wire              x=[940,960] y=[290,290]",
+        "netport  RS485_A  x=[850,930] y=[304,316]",
+        "netport  RS485_B  x=[764,846] y=[294,306]",
+        "netflag  GND      x=[920,958] y=[280,302]"
+      ]
+    },
+    {
+      "designator": "R9",
+      "primitiveId": "73be93770ad2ffda",
+      "body": {
+        "minX": 969.5,
+        "minY": 615.5,
+        "maxX": 990.5,
+        "maxY": 624.5
+      },
+      "box": {
+        "minX": 861.4999999999999,
+        "minY": 614.5,
+        "maxX": 1110.5,
+        "maxY": 625.5000000000001
+      },
+      "markers": 2,
+      "wires": 2,
+      "members": [
+        "part     R9       x=[970,990] y=[616,624]",
+        "wire              x=[940,960] y=[620,620]",
+        "wire              x=[1000,1020] y=[620,620]",
+        "netport  C6_N5    x=[861,930] y=[615,626]",
+        "netport  RS485_B  x=[1030,1110] y=[614,626]"
+      ]
+    },
+    {
+      "designator": "J4",
+      "primitiveId": "a83d8cb010bc6073",
+      "body": {
+        "minX": 1134.5,
+        "minY": 209.5,
+        "maxX": 1155.5,
+        "maxY": 235.5
+      },
+      "box": {
+        "minX": 941.5,
+        "minY": 209.5,
+        "maxX": 1155.5,
+        "maxY": 235.5
+      },
+      "markers": 2,
+      "wires": 2,
+      "members": [
+        "part     J4       x=[1134,1156] y=[210,236]",
+        "wire              x=[1020,1125] y=[215,215]",
+        "wire              x=[1105,1125] y=[225,225]",
+        "netport  C6_N5    x=[942,1010] y=[210,220]",
+        "netport  RS485_A  x=[1014,1096] y=[220,231]"
+      ]
+    },
+    {
+      "designator": "R10",
+      "primitiveId": "5953f327ab69250b",
+      "body": {
+        "minX": 1084.5,
+        "minY": 555.5,
+        "maxX": 1105.5,
+        "maxY": 564.5
+      },
+      "box": {
+        "minX": 958.5,
+        "minY": 549.5,
+        "maxX": 1154.5,
+        "maxY": 572
+      },
+      "markers": 2,
+      "wires": 2,
+      "members": [
+        "part     R10      x=[1084,1106] y=[556,564]",
+        "wire              x=[1115,1135] y=[560,560]",
+        "wire              x=[1055,1075] y=[560,560]",
+        "netflag  GND      x=[1117,1154] y=[550,572]",
+        "netport  RS485_DE x=[958,1046] y=[555,566]"
+      ]
+    }
+  ],
+  "findings": null,
+  "sheetUsable": {
+    "minX": 12,
+    "minY": 12,
+    "maxX": 1158,
+    "maxY": 813
+  }
+}

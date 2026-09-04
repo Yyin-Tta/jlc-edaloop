@@ -1,0 +1,124 @@
+{
+  "overall": 65.6,
+  "verdict": "fair",
+  "dimensions": [
+    {
+      "id": "folded-labels",
+      "title": "标签折叠",
+      "status": "scored",
+      "score": 100,
+      "weight": 1.2
+    },
+    {
+      "id": "reversed-labels",
+      "title": "标签反向",
+      "status": "scored",
+      "score": 40,
+      "weight": 1.2,
+      "attributions": [
+        {
+          "dimension": "reversed-labels",
+          "target": "C1:1",
+          "penalty": 20,
+          "message": "C1 的 VDD netport 背向核心 PROTFS(朝左,核心在右)",
+          "fix": "easyeda sch disconnect --pin C1:1 \u0026\u0026 easyeda sch connect --x 115 --y 685 --kind netport --net VDD --direction right --offset 24",
+          "at": {
+            "x": 95,
+            "y": 685
+          }
+        },
+        {
+          "dimension": "reversed-labels",
+          "target": "R1:2",
+          "penalty": 20,
+          "message": "R1 的 VDD netport 背向核心 PROTFS(朝右,核心在左)",
+          "fix": "easyeda sch disconnect --pin R1:2 \u0026\u0026 easyeda sch connect --x 760 --y 690 --kind netport --net VDD --direction left --offset 24",
+          "at": {
+            "x": 780,
+            "y": 690
+          }
+        },
+        {
+          "dimension": "reversed-labels",
+          "target": "TERMBATT:1",
+          "penalty": 20,
+          "message": "TERMBATT 的 VBAT netport 背向核心 PROTFS(朝左,核心在右)",
+          "fix": "easyeda sch disconnect --pin TERMBATT:1 \u0026\u0026 easyeda sch connect --x 175 --y 785 --kind netport --net VBAT --direction right --offset 24",
+          "at": {
+            "x": 110,
+            "y": 785
+          }
+        }
+      ]
+    },
+    {
+      "id": "proximity",
+      "title": "外围贴核心",
+      "status": "scored",
+      "score": 43.5,
+      "weight": 1,
+      "attributions": [
+        {
+          "dimension": "proximity",
+          "target": "C1",
+          "penalty": 56.5,
+          "message": "C1 距核心 PROTFS 边距 348(\u003e150 开始扣分)— 建议移到 PROTFS 上方 (510,590) 附近后重连",
+          "fix": "easyeda sch modify --id e357715825f1ca6c --patch '{\"x\":510,\"y\":590}'",
+          "at": {
+            "x": 135,
+            "y": 685
+          }
+        }
+      ]
+    },
+    {
+      "id": "stub-tidiness",
+      "title": "长链/挤压",
+      "status": "scored",
+      "score": 80,
+      "weight": 0.8,
+      "attributions": [
+        {
+          "dimension": "stub-tidiness",
+          "target": "PROTDW01",
+          "penalty": 10,
+          "message": "PROTDW01 与其 5 个标记连成跨度 286 的长链(\u003e250)— 收短最远标记的 offset",
+          "fix": "easyeda sch disconnect --pin PROTDW01:3 \u0026\u0026 easyeda sch connect --x 935 --y 765 --kind netport --net OC --direction left --offset 24",
+          "at": {
+            "x": 970,
+            "y": 775
+          }
+        },
+        {
+          "dimension": "stub-tidiness",
+          "target": "PROTFS",
+          "penalty": 10,
+          "message": "PROTFS 与其 5 个标记连成跨度 281 的长链(\u003e250)— 收短最远标记的 offset",
+          "fix": "easyeda sch disconnect --pin PROTFS:6 \u0026\u0026 easyeda sch connect --x 560 --y 540 --kind netport --net OC --direction right --offset 24",
+          "at": {
+            "x": 510,
+            "y": 530
+          }
+        }
+      ]
+    },
+    {
+      "id": "frame-fit",
+      "title": "版面整洁",
+      "status": "skipped",
+      "score": 0,
+      "weight": 0.5,
+      "reason": "components.list 未暴露 text 图元 bbox,且分区框几何不在 workflow state — 未测(≠满分)"
+    }
+  ],
+  "dimensionScores": {
+    "folded-labels": 100,
+    "proximity": 43.5,
+    "reversed-labels": 40,
+    "stub-tidiness": 80
+  },
+  "componentCount": 28,
+  "scoredDims": 4,
+  "skippedDims": 1,
+  "summary": "sch layout-score: 综合 65.6 [fair] — 4 维已测 / 1 维未测(skipped≠满分),28 图元"
+}

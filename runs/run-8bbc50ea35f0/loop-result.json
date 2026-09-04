@@ -1,0 +1,37 @@
+{
+ "status": "PASS",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "e1fe1e530036",
+   "gate_verdict": "pass",
+   "findings": [
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='3 个状态 LED(电源红/心跳绿/总线黄):目录无 LED 块或 LED 器件,无法覆盖' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='SWD 4-pin 调试排针(3V3/SWDIO/SWCLK/GND):目录无排针块,MCU 已预留 SWDIO/SWCLK 网络,但排针本体缺失' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='3V3/GND 测试点:目录无测试点块' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True"
+   ],
+   "feedback": "",
+   "halted": ""
+  }
+ ],
+ "delivery": {
+  "svg": "E:\\jlc-edaloop\\runs\\run-8bbc50ea35f0\\delivery-P1.svg",
+  "svg_pages": [
+   "E:\\jlc-edaloop\\runs\\run-8bbc50ea35f0\\delivery-P1.svg",
+   "E:\\jlc-edaloop\\runs\\run-8bbc50ea35f0\\delivery-P2.svg",
+   "E:\\jlc-edaloop\\runs\\run-8bbc50ea35f0\\delivery-P3.svg",
+   "E:\\jlc-edaloop\\runs\\run-8bbc50ea35f0\\delivery-P4.svg",
+   "E:\\jlc-edaloop\\runs\\run-8bbc50ea35f0\\delivery-P5.svg",
+   "E:\\jlc-edaloop\\runs\\run-8bbc50ea35f0\\delivery-P6.svg"
+  ],
+  "netlist": "runs\\run-8bbc50ea35f0\\delivery.net.json",
+  "netlist_sha256_16": "16cf553036ce3346",
+  "bom": "runs\\run-8bbc50ea35f0\\delivery.bom.json",
+  "bom_total": 0.0,
+  "swap": "runs\\run-8bbc50ea35f0\\delivery.swap.txt",
+  "sizing": "runs\\run-8bbc50ea35f0\\delivery.sizing.txt",
+  "sizing_count": 4,
+  "review": "runs\\run-8bbc50ea35f0\\delivery.review.txt",
+  "review_findings": 3
+ }
+}

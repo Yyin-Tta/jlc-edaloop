@@ -1,0 +1,46 @@
+{
+ "status": "HALT",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "2a0a02c6a565",
+   "gate_verdict": "fail",
+   "findings": [
+    "code='UNDECLARED_RAIL' where=Where(ref='', net='5V_USB', pin='', xy='') evidence='网 5V_USB 呈轨特征(家族 5|main≈5.0V)但 DesignIR 未声明该轨;planner 应在 IR 电源段显式声明,或把该网改绑到既有轨家族' severity='warn' suggested_fix_class='REPLAN' weak=True",
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:3 个块缺 v_supply 区间或单边(mcu_esp32s3, ldo_3v3, sd_card)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/2(覆盖率 0%),缺 i_typ:mcu_esp32s3, sd_card' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='电源/USB 活动/存储 LED ×3:目录无 LED 器件块,无法覆盖(含限流电阻)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='MCU 块端口缺少 SPI(SD_*)与 LED GPIO 引出端口,SD_* 网络已预留但无块侧端口绑定来源' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='FUNC_UNCOVERED' where=Where(ref='指示与控制', net='', pin='', xy='') evidence='IR 功能「指示与控制」在计划 8 块的词表/词元匹配中无覆盖证据(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='GATE_FAIL' where=Where(ref='layout-lint', net='', pin='', xy='') evidence='type=overlap a=C6 b=U3' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=overlap a=U3 b=L1' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=overlap a=U3 b=C6' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet a=R12' severity='error' suggested_fix_class='REPLAN' weak=False"
+   ],
+   "feedback": "[GATE_FAIL@layout-lint] type=overlap a=C6 b=U3 → 修复:放置几何问题:给冲突块设置 params.spacing(如 300;过宽块编译器会自动截到 A4 内)或 at 空位(A4 页内坐标,x∈[100,1100] y∈[300,780];编译器优先读这两个字段)\n[GATE_FAIL@clusters] type=overlap a=U3 b=L1 → 修复:放置几何问题:给冲突块设置 params.spacing(如 300;过宽块编译器会自动截到 A4 内)或 at 空位(A4 页内坐标,x∈[100,1100] y∈[300,780];编译器优先读这两个字段)\nsizing 建议值(确定性公式,输入出处见 delivery.sizing.txt;采纳时用 resistor-std/capacitor-std 块 + params.value 表内标准值,值不要发明):\n- tvs-rating@usbc_j1: VRWM≥3.6V / VC≤7V(SMAJ/SMBJ 系列按此筛)\n- fuse-rating@usbc_j1: I_hold≥0.15A(自恢复 PPTC 按此档)\n- fuse-rating@term_5v_j2: I_hold≥0.15A(自恢复 PPTC 按此档)\n- reg-caps@ldo_3v3: 见 notes(惯例值)\n- thermal@ldo_3v3: Tj≈136°C(裕量-30°C)",
+   "halted": ""
+  },
+  {
+   "round_no": 2,
+   "plan_id": "f2dbf3a4eaba",
+   "gate_verdict": "fail",
+   "findings": [
+    "code='UNDECLARED_RAIL' where=Where(ref='', net='5V', pin='', xy='') evidence='网 5V 呈轨特征(家族 5|main≈5.0V)但 DesignIR 未声明该轨;planner 应在 IR 电源段显式声明,或把该网改绑到既有轨家族' severity='warn' suggested_fix_class='REPLAN' weak=True",
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:3 个块缺 v_supply 区间或单边(mcu_esp32s3, ldo_3v3, sd_card)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/2(覆盖率 0%),缺 i_typ:mcu_esp32s3, sd_card' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='电源/USB 活动/存储 LED ×3:目录无 LED 块,且无 sizing 建议限流阻值(330 虽在标准表内但无出处),不予发明' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='USB-C 口 TVS(SMAJ 系列)与入口自恢复保险丝(PPTC ≥0.15A):sizing 有建议档但目录无对应器件块,无法落图' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='MCU 模组块缺少 SPI/SD 用 GPIO 端口定义,SD_*/INA_ALERT 只能以网名汇合,具体引脚分配需编译期/后续定' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='open question Q1(AMS1117 输入取自 USB 5V 还是 SS34 后汇流)未答复,本方案默认取 SS34 后汇流 5V' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='FUNC_UNCOVERED' where=Where(ref='指示与控制', net='', pin='', xy='') evidence='IR 功能「指示与控制」在计划 9 块的词表/词元匹配中无覆盖证据(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='GATE_FAIL' where=Where(ref='layout-lint', net='', pin='', xy='') evidence='type=overlap a=C5 b=U2' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=overlap a=U2 b=L1' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=overlap a=U2 b=C5' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=out-of-sheet a=R8' severity='error' suggested_fix_class='REPLAN' weak=False"
+   ],
+   "feedback": "",
+   "halted": "同错 2 轮:GATE_FAIL,升级人工"
+  }
+ ],
+ "delivery": {}
+}

@@ -1,0 +1,12 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 12 blocks, status=PASS
+
+- [CRITIC_THERMAL@u_ldo1117] AMS1117-3.3 在 5V→3.3V、负载电流接近 5V 轨 2A 档时功耗可达 ~3.4W,sizing 结果 Tj≈136°C、裕量-30°C,已超结温上限,SOT-223 亦无散热增强措施 | 建议: 改用同步 BUCK(如 MP2315/TPS54331 类)完成 5V→3.3V,或大幅降低 3.3V 负载预算并重新核算热设计;若坚持 LDO 需加大铺铜散热并明确限流
+- [CRITIC_POWER_INTEGRITY@u_ldo1117] sizing_recommendations 给出的热裕量为负(-30°C),说明当前 LDO 选型与电流预算不自洽,属于设计层选型错误而非仅数值问题 | 建议: 重选电源架构,见上条;在定稿前必须消除负裕量
+- [CRITIC_POWER_INTEGRITY@j_usbc] USB-C 与 DC 端子(j_dc5v)两路 5V 直接共轨,plan 中两个块的描述均要求肖特基/理想二极管防倒灌,但目录无该器件且 uncovered 已确认按直接共轨处理,USB 端子会被 DC 5V 倒灌 | 建议: 补充理想二极管或肖特基 ORing 器件(如 SS34/理想二极管 IC),在 USB-C VBUS 与 DC 5V 各串一路后汇入 5V 主轨;若无法补件,应删除其中一路输入并明示单源供电
+- [CRITIC_INTERFACE_PROTECTION@j_dc5v] 5V 端子输入的 TVS 浪涌钳位器件缺失(uncovered 明确目录无 TVS/ESD 器件),j_dc5v 块描述中的入口保护只落了保险丝,TVS 未落图 | 建议: 在 5V 入口并联 TVS(如 SMAJ5.0A/SMBJ5.0A)并置于保险丝前级,若目录无法补件需在 BOM/板框阶段明确补位号
+- [CRITIC_INTERFACE_PROTECTION@u_rs485] RS-485 总线侧 A/B 端子描述要求 TVS 保护,但目录同样无 TVS/ESD 器件可落图,长线外部总线缺少防护实际未落实 | 建议: 补总线侧 TVS(如 SM712 专用 RS-485 保护管)到 A/B 对 GND,若目录缺件需列入待补器件清单
+- [CRITIC_INTERFACE_PROTECTION@u_ch340] CH340N 的 UD+/UD- 直连 USB-C 差分对,仅 j_usbc 块提及 VBUS 的 TVS/ESD,USB 数据线本身无 ESD 保护器件落图(目录无 ESD 器件) | 建议: 在 UD+/UD- 上加 USB ESD 保护(如 USBLC6-2SC6),靠近 USB-C 连接器放置;若目录缺件列入待补
+- [CRITIC_PULL_RESISTORS@u_rs485] 块描述写 MAX485(5V 器件)但电源绑定到 3V3 轨;MAX485 供电范围 4.75–5.25V,接 3.3V 无法工作。同时其 DI/DE 逻辑输入与 3.3V MCU 直连在选 5V 供电时还存在电平不匹配风险 | 建议: 若用 MAX485,电源改接 5V 并为 DE/DI 增加电平转换或选用宽压收发器;更简单是确认采用 SP3485 等原生 3.3V 器件并在 BOM 中锁定型号,避免误贴 MAX485
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

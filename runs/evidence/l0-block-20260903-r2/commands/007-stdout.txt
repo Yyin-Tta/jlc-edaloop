@@ -1,0 +1,33 @@
+{
+  "id": "req_262983",
+  "ok": true,
+  "result": {
+    "passed": true,
+    "summary": {
+      "trees": 0,
+      "bridges": 0,
+      "orphans": 0,
+      "orphanFlags": 0,
+      "orphanTrees": 0,
+      "wireTreesTotal": 10
+    },
+    "trees": null,
+    "toolProbes": [
+      {
+        "kind": "ORPHAN_FLAG",
+        "type": "orphan-flag",
+        "level": "warn",
+        "wireIds": [],
+        "flagIds": [
+          "42f33a8bebf84d3d"
+        ],
+        "pins": [],
+        "nets": [
+          "__ROTPROBE__"
+        ]
+      }
+    ]
+  },
+  "type": "response",
+  "version": "v1"
+}

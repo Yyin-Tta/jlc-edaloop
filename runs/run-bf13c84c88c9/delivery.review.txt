@@ -1,0 +1,10 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 7 blocks, status=PASS
+
+- [CRITIC_POWER_INTEGRITY@terminal_5v] 接线端子 5V_TERM 与 USB-C 5V 直接共轨汇合，块描述明确要求肖特基/理想二极管防倒灌，但 plan 中无任何防倒灌器件，USB 口会通过 5V 端子对外倒灌或反之 | 建议: 在 5V_TERM→5V 汇合路径加肖特基(如 SS34)或理想二极管，USB 5V 与端子 5V 分别单向汇入 5V 主轨
+- [CRITIC_PULL_RESISTORS@usb_c_conn] USB-C UFP 设备必须在 CC1/CC2 各接 5.1k 下拉，当前目录无独立电阻器件且 plan 未落实，缺失会导致标准 C-to-C 线缆不供电 | 建议: 补充 CC1/CC2 各 5.1k 下拉电阻(可用通用电阻块)，这是 USB-C 取电的强制要求
+- [CRITIC_INTERFACE_PROTECTION@usb_c_conn] USB-C 为外部热插拔接口，USB_DP/DN(VBUS 同样)无 ESD/TVS 保护器件 | 建议: 在连接器侧增加 USB2.0 ESD 管(如 ESDA5V3L 或 USBLC6-2)保护 DP/DN,VBUS 已由端子块内 TVS 覆盖但 USB 口独立路径也建议加
+- [CRITIC_DECOUPLING@uart_ch340n] CH340N 的 USB 差分口 UD+/UD- 未绑定到 USB_DP/USB_DN(块 upstream 未暴露该端口)，USB 通讯链路在绑定层面断开 | 建议: 为 CH340N 块暴露 UD+/UD- 端口并绑定至 USB_DP/USB_DN，走 90Ω 差分对
+- [CRITIC_THERMAL@ldo_3v3] AMS1117-3.3 (SOT-223) 从 5V 降 3.3V，ESP32-S3 Wi-Fi 峰值电流约 0.4~0.5A，压降约 1.7V，功耗约 0.7~0.85W，接近 SOT-223 无铺铜加固时的散热极限，可能过热降额 | 建议: 确认峰值电流并加大输入/输出铺铜散热区；若峰值持续 >0.5A，建议换 DCDC(如 TPS5430/MP2315)或低功耗 LDO
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

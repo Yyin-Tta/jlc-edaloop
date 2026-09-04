@@ -1,0 +1,6 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 4 blocks, status=PASS
+
+- [CRITIC_DECOUPLING@prot_dw01] DW01 的 VCC(经 r_vdd 100R 到 B+)对地没有任何去耦电容;DW01/FS8205 标准应用电路要求 VCC-B- 之间接 0.1µF 电容(与 100R 构成 RC 滤波,滤除电池电压纹波防止保护误触发)。目录中未挂 decoupling-caps-bank,块内也未包含。 | 建议: 在 VDD_R 与 B- 之间增加 0.1µF 陶瓷电容(或挂接 decoupling-caps-bank 块)。
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

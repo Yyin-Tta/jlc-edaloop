@@ -1,0 +1,84 @@
+{
+ "total": 4.7443,
+ "priced_lines": 6,
+ "no_price": [
+  "C9900016950(api ok but no price (C99xx 延展号段常见,基础库未挂商务数据))",
+  "capacitor-std(无 C 号)",
+  "resistor-std(无 C 号)"
+ ],
+ "no_stock": [
+  "C4075(stock=0)"
+ ],
+ "details": [
+  {
+   "ref": "C9900016950",
+   "qty": 10,
+   "price": null,
+   "note": "api ok but no price (C99xx 延展号段常见,基础库未挂商务数据)",
+   "smt_type": "extended"
+  },
+  {
+   "ref": "C6186",
+   "qty": 1,
+   "unit": 0.2039,
+   "line": 0.2039,
+   "stock": 745205,
+   "smt_type": "basic"
+  },
+  {
+   "ref": "capacitor-std",
+   "qty": 7,
+   "price": null,
+   "note": "no-lcsc",
+   "smt_type": "unknown"
+  },
+  {
+   "ref": "C382171",
+   "qty": 1,
+   "unit": 2.0236,
+   "line": 2.0236,
+   "stock": 3,
+   "smt_type": "extended"
+  },
+  {
+   "ref": "C8734",
+   "qty": 1,
+   "unit": 1.7292,
+   "line": 1.7292,
+   "stock": 57652,
+   "smt_type": "basic"
+  },
+  {
+   "ref": "resistor-std",
+   "qty": 12,
+   "price": null,
+   "note": "no-lcsc",
+   "smt_type": "unknown"
+  },
+  {
+   "ref": "C4075",
+   "qty": 4,
+   "unit": 0.1462,
+   "line": 0.5848,
+   "stock": 0,
+   "smt_type": "basic"
+  },
+  {
+   "ref": "C7512",
+   "qty": 1,
+   "unit": 0.1728,
+   "line": 0.1728,
+   "stock": 282175,
+   "smt_type": "basic"
+  },
+  {
+   "ref": "C23024",
+   "qty": 3,
+   "unit": 0.01,
+   "line": 0.03,
+   "stock": 465300,
+   "smt_type": "basic"
+  }
+ ],
+ "smt_note": "库类型近似判定(JLC SMT API 无公开契约,R13 兜底):basic=基础库(免上料费倾向),extended=扩展库"
+}

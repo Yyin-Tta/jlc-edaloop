@@ -1,0 +1,535 @@
+{
+  "id": "12dff936c93e",
+  "design_ir_id": "27fd86d71ab9",
+  "source": "req-07-motor-driver-board.md",
+  "created": "2026-08-28T07:09:01.214368Z",
+  "blocks": [
+    {
+      "block_id": "mcu-stm32f103c8-min",
+      "upstream_id": "",
+      "instance": "mcu_u1",
+      "ports_binding": {},
+      "pins_binding": {
+        "1": "3V3",
+        "7": "NRST",
+        "9": "3V3",
+        "10": "M1_IN1",
+        "11": "M1_IN2",
+        "12": "M1_IN3",
+        "13": "M1_IN4",
+        "14": "M2_IN1",
+        "15": "M2_IN2",
+        "16": "M2_IN3",
+        "17": "M2_IN4",
+        "18": "LED_EN",
+        "19": "LED_FAULT",
+        "23": "GND",
+        "24": "3V3",
+        "30": "MCU_TX",
+        "31": "MCU_RX",
+        "34": "SWDIO",
+        "35": "GND",
+        "36": "3V3",
+        "37": "SWCLK",
+        "44": "BOOT0",
+        "47": "GND",
+        "48": "3V3"
+      },
+      "params": {},
+      "provenance": "目录 STM32F103C8T6 最小系统,place 通道逐脚绑定",
+      "at": "",
+      "zone": "center",
+      "page": ""
+    },
+    {
+      "block_id": "driver-uln2003",
+      "upstream_id": "",
+      "instance": "uln_m1",
+      "ports_binding": {},
+      "pins_binding": {
+        "1": "M1_IN1",
+        "2": "M1_IN2",
+        "3": "M1_IN3",
+        "4": "M1_IN4",
+        "8": "GND",
+        "9": "VIN_MOT",
+        "13": "M1_A",
+        "14": "M1_B",
+        "15": "M1_C",
+        "16": "M1_D"
+      },
+      "params": {},
+      "provenance": "ULN2003A 通道1:1B-4B 输入,1C-4C 输出,COM 接电机电源续流",
+      "at": "",
+      "zone": "right",
+      "page": ""
+    },
+    {
+      "block_id": "driver-uln2003",
+      "upstream_id": "",
+      "instance": "uln_m2",
+      "ports_binding": {},
+      "pins_binding": {
+        "1": "M2_IN1",
+        "2": "M2_IN2",
+        "3": "M2_IN3",
+        "4": "M2_IN4",
+        "8": "GND",
+        "9": "VIN_MOT",
+        "13": "M2_A",
+        "14": "M2_B",
+        "15": "M2_C",
+        "16": "M2_D"
+      },
+      "params": {},
+      "provenance": "ULN2003A 通道2:第二路步进 4 线驱动,共用 COM 续流",
+      "at": "",
+      "zone": "right",
+      "page": ""
+    },
+    {
+      "block_id": "usb-c-16p",
+      "upstream_id": "",
+      "instance": "usb_c_j1",
+      "ports_binding": {},
+      "pins_binding": {
+        "A4B9": "5V",
+        "B4A9": "5V",
+        "A1B12": "GND",
+        "B1A12": "GND",
+        "A6": "USB_DP",
+        "A7": "USB_DM",
+        "B6": "USB_DP",
+        "B7": "USB_DM",
+        "A5": "CC1",
+        "B5": "CC2"
+      },
+      "params": {},
+      "provenance": "USB-C 供电+数据,DP/DN 双取向同网接 CH340N 差分对",
+      "at": "",
+      "zone": "left-top",
+      "page": ""
+    },
+    {
+      "block_id": "usb-serial-ch340n",
+      "upstream_id": "block.ch340c_usb_serial",
+      "instance": "ch340_u2",
+      "ports_binding": {
+        "VBUS_5V": "5V",
+        "GND": "GND",
+        "TXD": "MCU_RX",
+        "RXD": "MCU_TX",
+        "DTR": "USB_DTR",
+        "RTS": "USB_RTS"
+      },
+      "pins_binding": {},
+      "params": {},
+      "provenance": "CH340N 串口烧录,TXD/RX 与 MCU 交叉",
+      "at": "",
+      "zone": "",
+      "page": ""
+    },
+    {
+      "block_id": "header-1x4",
+      "upstream_id": "",
+      "instance": "swd_j1",
+      "ports_binding": {},
+      "pins_binding": {
+        "1": "3V3",
+        "2": "SWDIO",
+        "3": "SWCLK",
+        "4": "GND"
+      },
+      "params": {},
+      "provenance": "SWD 4-pin 调试排针,3V3/SWDIO/SWCLK/GND",
+      "at": "",
+      "zone": "center-bottom",
+      "page": ""
+    },
+    {
+      "block_id": "buttons-boot-reset",
+      "upstream_id": "block.tactile_boot_reset",
+      "instance": "btn_boot_rst",
+      "ports_binding": {
+        "IO0": "BOOT0",
+        "EN": "NRST",
+        "GND": "GND"
+      },
+      "pins_binding": {},
+      "params": {},
+      "provenance": "BOOT0/NRST 按键,块内含上拉与 RC 消抖",
+      "at": "",
+      "zone": "",
+      "page": ""
+    },
+    {
+      "block_id": "dc-terminal-wide-input",
+      "upstream_id": "block.vehicle_input_tps54360_5v",
+      "instance": "dc_in_j2",
+      "ports_binding": {
+        "IGN_12V": "VIN_12_24",
+        "VBAT_RAW": "VIN_PROT",
+        "5V": "5V",
+        "GND": "GND"
+      },
+      "pins_binding": {},
+      "params": {},
+      "provenance": "宽压输入端子+防反接+TVS+保险丝,后级 DC-DC 出 5V(见 uncovered)",
+      "at": "",
+      "zone": "",
+      "page": ""
+    },
+    {
+      "block_id": "ldo-ams1117-3v3",
+      "upstream_id": "block.ams1117_ldo_3v3",
+      "instance": "ldo_u3",
+      "ports_binding": {
+        "VIN_5V": "5V",
+        "3V3": "3V3",
+        "GND": "GND"
+      },
+      "pins_binding": {},
+      "params": {},
+      "provenance": "5V→3.3V 给主控与调试口",
+      "at": "",
+      "zone": "",
+      "page": ""
+    },
+    {
+      "block_id": "led-indicator",
+      "upstream_id": "block.led_indicator_gpio",
+      "instance": "led_pwr",
+      "ports_binding": {
+        "CTRL": "3V3",
+        "GND": "GND"
+      },
+      "pins_binding": {},
+      "params": {
+        "color": "red"
+      },
+      "provenance": "电源指示 LED,常亮",
+      "at": "",
+      "zone": "",
+      "page": ""
+    },
+    {
+      "block_id": "led-indicator",
+      "upstream_id": "block.led_indicator_gpio",
+      "instance": "led_en",
+      "ports_binding": {
+        "CTRL": "LED_EN",
+        "GND": "GND"
+      },
+      "pins_binding": {},
+      "params": {
+        "color": "red"
+      },
+      "provenance": "使能指示 LED,MCU PB0 驱动",
+      "at": "",
+      "zone": "",
+      "page": ""
+    },
+    {
+      "block_id": "led-indicator",
+      "upstream_id": "block.led_indicator_gpio",
+      "instance": "led_fault",
+      "ports_binding": {
+        "CTRL": "LED_FAULT",
+        "GND": "GND"
+      },
+      "pins_binding": {},
+      "params": {
+        "color": "red"
+      },
+      "provenance": "故障指示 LED,MCU PB1 驱动",
+      "at": "",
+      "zone": "",
+      "page": ""
+    },
+    {
+      "block_id": "led-indicator",
+      "upstream_id": "block.led_indicator_gpio",
+      "instance": "led_m1a",
+      "ports_binding": {
+        "CTRL": "M1_A",
+        "GND": "GND"
+      },
+      "pins_binding": {},
+      "params": {
+        "color": "red"
+      },
+      "provenance": "M1 A 相输出指示",
+      "at": "",
+      "zone": "",
+      "page": ""
+    },
+    {
+      "block_id": "led-indicator",
+      "upstream_id": "block.led_indicator_gpio",
+      "instance": "led_m1b",
+      "ports_binding": {
+        "CTRL": "M1_B",
+        "GND": "GND"
+      },
+      "pins_binding": {},
+      "params": {
+        "color": "red"
+      },
+      "provenance": "M1 B 相输出指示",
+      "at": "",
+      "zone": "",
+      "page": ""
+    },
+    {
+      "block_id": "led-indicator",
+      "upstream_id": "block.led_indicator_gpio",
+      "instance": "led_m1c",
+      "ports_binding": {
+        "CTRL": "M1_C",
+        "GND": "GND"
+      },
+      "pins_binding": {},
+      "params": {
+        "color": "red"
+      },
+      "provenance": "M1 C 相输出指示",
+      "at": "",
+      "zone": "",
+      "page": ""
+    },
+    {
+      "block_id": "led-indicator",
+      "upstream_id": "block.led_indicator_gpio",
+      "instance": "led_m1d",
+      "ports_binding": {
+        "CTRL": "M1_D",
+        "GND": "GND"
+      },
+      "pins_binding": {},
+      "params": {
+        "color": "red"
+      },
+      "provenance": "M1 D 相输出指示",
+      "at": "",
+      "zone": "",
+      "page": ""
+    },
+    {
+      "block_id": "led-indicator",
+      "upstream_id": "block.led_indicator_gpio",
+      "instance": "led_m2a",
+      "ports_binding": {
+        "CTRL": "M2_A",
+        "GND": "GND"
+      },
+      "pins_binding": {},
+      "params": {
+        "color": "red"
+      },
+      "provenance": "M2 A 相输出指示",
+      "at": "",
+      "zone": "",
+      "page": ""
+    },
+    {
+      "block_id": "led-indicator",
+      "upstream_id": "block.led_indicator_gpio",
+      "instance": "led_m2b",
+      "ports_binding": {
+        "CTRL": "M2_B",
+        "GND": "GND"
+      },
+      "pins_binding": {},
+      "params": {
+        "color": "red"
+      },
+      "provenance": "M2 B 相输出指示",
+      "at": "",
+      "zone": "",
+      "page": ""
+    },
+    {
+      "block_id": "led-indicator",
+      "upstream_id": "block.led_indicator_gpio",
+      "instance": "led_m2c",
+      "ports_binding": {
+        "CTRL": "M2_C",
+        "GND": "GND"
+      },
+      "pins_binding": {},
+      "params": {
+        "color": "red"
+      },
+      "provenance": "M2 C 相输出指示",
+      "at": "",
+      "zone": "",
+      "page": ""
+    },
+    {
+      "block_id": "led-indicator",
+      "upstream_id": "block.led_indicator_gpio",
+      "instance": "led_m2d",
+      "ports_binding": {
+        "CTRL": "M2_D",
+        "GND": "GND"
+      },
+      "pins_binding": {},
+      "params": {
+        "color": "red"
+      },
+      "provenance": "M2 D 相输出指示",
+      "at": "",
+      "zone": "",
+      "page": ""
+    }
+  ],
+  "nets": [
+    {
+      "name": "VIN_12_24",
+      "net_class": "power"
+    },
+    {
+      "name": "VIN_PROT",
+      "net_class": "power"
+    },
+    {
+      "name": "VIN_MOT",
+      "net_class": "power"
+    },
+    {
+      "name": "5V",
+      "net_class": "power"
+    },
+    {
+      "name": "3V3",
+      "net_class": "power"
+    },
+    {
+      "name": "GND",
+      "net_class": "power"
+    },
+    {
+      "name": "MCU_TX",
+      "net_class": "signal"
+    },
+    {
+      "name": "MCU_RX",
+      "net_class": "signal"
+    },
+    {
+      "name": "USB_DP",
+      "net_class": "signal"
+    },
+    {
+      "name": "USB_DM",
+      "net_class": "signal"
+    },
+    {
+      "name": "CC1",
+      "net_class": "signal"
+    },
+    {
+      "name": "CC2",
+      "net_class": "signal"
+    },
+    {
+      "name": "SWDIO",
+      "net_class": "signal"
+    },
+    {
+      "name": "SWCLK",
+      "net_class": "signal"
+    },
+    {
+      "name": "BOOT0",
+      "net_class": "signal"
+    },
+    {
+      "name": "NRST",
+      "net_class": "signal"
+    },
+    {
+      "name": "LED_EN",
+      "net_class": "signal"
+    },
+    {
+      "name": "LED_FAULT",
+      "net_class": "signal"
+    },
+    {
+      "name": "M1_IN1",
+      "net_class": "signal"
+    },
+    {
+      "name": "M1_IN2",
+      "net_class": "signal"
+    },
+    {
+      "name": "M1_IN3",
+      "net_class": "signal"
+    },
+    {
+      "name": "M1_IN4",
+      "net_class": "signal"
+    },
+    {
+      "name": "M2_IN1",
+      "net_class": "signal"
+    },
+    {
+      "name": "M2_IN2",
+      "net_class": "signal"
+    },
+    {
+      "name": "M2_IN3",
+      "net_class": "signal"
+    },
+    {
+      "name": "M2_IN4",
+      "net_class": "signal"
+    },
+    {
+      "name": "M1_A",
+      "net_class": "signal"
+    },
+    {
+      "name": "M1_B",
+      "net_class": "signal"
+    },
+    {
+      "name": "M1_C",
+      "net_class": "signal"
+    },
+    {
+      "name": "M1_D",
+      "net_class": "signal"
+    },
+    {
+      "name": "M2_A",
+      "net_class": "signal"
+    },
+    {
+      "name": "M2_B",
+      "net_class": "signal"
+    },
+    {
+      "name": "M2_C",
+      "net_class": "signal"
+    },
+    {
+      "name": "M2_D",
+      "net_class": "signal"
+    }
+  ],
+  "uncovered": [
+    "XL1509 降压 DC-DC(12-24V→5V):目录无对应块,暂以宽压输入块的 5V 输出口近似,需补 XL1509 电路",
+    "TVS(SMBJ)与自恢复保险丝具体器件:目录无独立块/库外条目",
+    "USB-C CC1/CC2 各 5.1k 下拉电阻:目录无 resistor-std 通道,无法给出标准阻值实例",
+    "CH340N 的 UD+/UD- 差分端口:上游块 ports 中无该口,USB_DP/USB_DM 已在网络层预留,需块级补口",
+    "电机输出接线端子(每路 4 线 XH/5.08 端子):目录无 4P 功率端子块"
+  ],
+  "confidence": 0.72,
+  "provenance": [
+    "主控/驱动/串口/按键/LED 均由目录块覆盖;两片 ULN2003A 实现双通道 4 线步进驱动并共用 COM 续流,11 个 LED 指示全覆盖;未覆盖:XL1509 DC-DC、TVS/保险丝器件、USB-C CC 下拉电阻、CH340N 差分口、电机输出端子"
+  ]
+}

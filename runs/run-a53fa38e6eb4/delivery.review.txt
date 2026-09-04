@@ -1,0 +1,9 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 8 blocks, status=PASS
+
+- [CRITIC_POWER_INTEGRITY@ina226_u2] INA226 的 VBAT_IN 绑定到 '5V_USB',但全网无任何块输出该网络——usbc_j1 的 5V_BUS 直接绑到 '5V',跳过了电流采样路径。结果 5V_USB 是悬空网络,INA226 实际测不到 USB 路电流,且 USB 5V 与端子 5V 在 '5V' 汇合后 SS34 防倒灌逻辑失效(USB 侧无隔离,端子供电时会倒灌 USB-C)。 | 建议: 把 usbc_j1 的 5V_BUS 改绑到 '5V_USB',由 INA226 采样后从 VOUT
+- [CRITIC_PULL_RESISTORS@ina226_u2] ALERT_N(绑定到 INA_ALERT)为开漏输出,块描述与全 plan 均未提供该网络的上拉电阻,MCU 中断引脚将无法读到有效高电平。 | 建议: 在 INA_ALERT 上增加 10kΩ 上拉至 3V3(或启用 ESP32 内部上拉并在 notes 中注明)。
+- [CRITIC_DECOUPLING@ina226_u2] INA226 的 VS(3V3 供电)无任何去耦电容,块描述未包含,目录中也未见为该 IC 补充去耦的安排。 | 建议: 在 VS 引脚就近加 100nF 去耦电容(可加 1µF~10µF 陶瓷并联)。
+- [CRITIC_INTERFACE_PROTECTION@usbc_j1] USB-C 入口仅提到 VBUS 的 TVS/ESD 与共模扼流圈,USB_DP/USB_DM 数据线(外接可插拔接口)无 ESD 防护;共模扼流圈不能替代 TVS。 | 建议: 在 D+/D- 靠近连接器处加 USB2.0 低容 ESD 管(如 ESD5V0D1 或同阵列),置于扼流圈 connector 侧。
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

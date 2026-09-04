@@ -1,0 +1,8 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 5 blocks, status=PASS
+
+- [CRITIC_DECOUPLING@prot_dw01] DW01 的 VDD(经 r_vdd 100Ω 接 B+)到 GND 之间没有任何去耦电容。DW01+FS8205A 标准电路要求 VCC 与 P- 之间并联 0.1µF 电容,用于电流检测滤波和过流检测瞬态抑制;缺少该电容会导致过流误触发或 CS 检测抖动 | 建议: 在 VDD 与 P_MINUS 之间增加一个 0.1µF 陶瓷电容(decoupling-caps-bank 或独立电容块)
+- [CRITIC_PULL_RESISTORS@prot_dw01] DW01 的 pin4 TD(测试脚,数据手册要求接地)未出现在 pins_binding 中,处于悬空状态,可能导致保护逻辑异常 | 建议: 将 prot_dw01 引脚 4 绑定到 P_MINUS(地),按数据手册要求处理测试脚
+- [CRITIC_POWER_INTEGRITY@pad_out] 端子块描述为 5V/2A 输入端子且含 PPTC+TVS,但实际绑定网络是 VBAT/P_MINUS,即用作电芯 P+/P- 输出焊盘。块的功能定位(5V 输入、防倒灌)与实际用途(锂电保护板输出/电芯接入)不符,目录中描述的 TVS/PPTC 对 3~4.2V 电芯连接点并不适用,且 uncovered 已承认电芯焊盘未落图 | 建议: 为电芯 B+/B- 与输出 P+/P- 使用裸焊盘或专用电池端子块,避免借用 5V 输入端子的集成保护逻辑造成误导;电芯接入点无需 5V 
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

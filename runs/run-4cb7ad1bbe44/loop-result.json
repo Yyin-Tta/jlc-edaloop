@@ -1,0 +1,37 @@
+{
+ "status": "PASS",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "481e2075cf76",
+   "gate_verdict": "pass",
+   "findings": [
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:2 个块缺 v_supply 区间或单边(ldo3v3, eeprom_ir)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='5V', pin='', xy='') evidence='轨 5V 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/2(覆盖率 0%),缺 i_typ:ldo3v3, ir_txrx' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/1(覆盖率 0%),缺 i_typ:eeprom_ir' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='主控 MCU:目录无任何主控块,IR_RX 解码/红外码学习与发射、I2C 主机(IR_RX/IR_TX/SDA/SCL/IO0/EN 均为无对端的悬空网络)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='LED 指示 ×3(学习/发射/电源):目录无 LED 与限流电阻标准通道,无法生成' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='SDA/SCL 上拉电阻 4.7k×2(EEPROM 块说明要求)、RESET 上拉 10k+100nF、AMS1117 输入/输出去耦电容:目录无标准 R/C 通道,无法生成' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True"
+   ],
+   "feedback": "",
+   "halted": ""
+  }
+ ],
+ "delivery": {
+  "svg": "E:\\jlc-edaloop\\runs\\run-4cb7ad1bbe44\\delivery-P1.svg",
+  "svg_pages": [
+   "E:\\jlc-edaloop\\runs\\run-4cb7ad1bbe44\\delivery-P1.svg",
+   "E:\\jlc-edaloop\\runs\\run-4cb7ad1bbe44\\delivery-P2.svg",
+   "E:\\jlc-edaloop\\runs\\run-4cb7ad1bbe44\\delivery-P3.svg"
+  ],
+  "netlist": "runs\\run-4cb7ad1bbe44\\delivery.net.json",
+  "netlist_sha256_16": "706c058b4f909e49",
+  "bom": "runs\\run-4cb7ad1bbe44\\delivery.bom.json",
+  "bom_total": 1.2436,
+  "swap": "runs\\run-4cb7ad1bbe44\\delivery.swap.txt",
+  "sizing": "runs\\run-4cb7ad1bbe44\\delivery.sizing.txt",
+  "sizing_count": 3,
+  "review": "runs\\run-4cb7ad1bbe44\\delivery.review.txt",
+  "review_findings": 5
+ }
+}

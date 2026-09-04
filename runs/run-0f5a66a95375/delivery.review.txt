@@ -1,0 +1,8 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 7 blocks, status=PASS
+
+- [CRITIC_INTERFACE_PROTECTION@rs485_xcvr] RS-485 A/B 总线直接接端子出板,块描述只包含 120Ω 终端与偏置电阻,未见任何 TVS/ESD 保护器件(如 SM712)。RS-485 长线易受浪涌与静电,工业面板场景风险更高。 | 建议: 在 A/B 线到端子之间增加针对 RS-485 的 TVS 阵列(如 SM712/-7V/+12V 非对称 TVS),并考虑共模电感或 PTC 保险丝做进一步保护。
+- [CRITIC_POWER_INTEGRITY@rs485_xcvr] 块选择 MAX485(5V 器件),但电源端口直接绑定到 3V3 轨:MAX485 在 3.3V 供电超出数据手册范围,且若真用 5V 供电,其 RO 逻辑高电平约 5V,会直接打到 MCU 3.3V 的 RX 引脚,存在电平不匹配/过压风险。 | 建议: 明确选用 3.3V 供电的 SP3485 等收发器(与 3V3 绑定一致);若保留 MAX485 则需 5V 供电并在 RO→MCU_RX 加电平转换,同时 DE 逻辑电平也需匹配。
+- [CRITIC_INTERFACE_PROTECTION@ch340_prog] CH340K 的 USB_DP/USB_DM 直连 USB-C 连接器(经 usbc_pwr 块),虽然描述称 CH340K 内置 ESD 保护,但连接器入口侧的 TVS/ESD(当前仅描述 VBUS 有 TVS)未覆盖差分数据线,长插拔/带电插拔场景数据线仍暴露。 | 建议: 在 USB-C 连接器侧为 D+/D- 增加 USB2.0 专用 ESD 器件(如 ESD224/USBLC6-2),靠近连接器放置。
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

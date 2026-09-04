@@ -1,0 +1,953 @@
+{
+  "id": "req_15756",
+  "type": "response",
+  "version": "v1",
+  "createdAt": "2026-08-28T01:25:14.1867792Z",
+  "ok": true,
+  "result": {
+    "components": [
+      {
+        "addIntoBom": true,
+        "addIntoPcb": true,
+        "bbox": {
+          "maxX": 1170,
+          "maxY": 825,
+          "minX": 0,
+          "minY": 0
+        },
+        "component": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "Drawing-Symbol_A4",
+          "uuid": "8eb047617dcca69f"
+        },
+        "componentType": "sheet",
+        "device": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "",
+          "uuid": "8eb047617dcca69f"
+        },
+        "mirror": false,
+        "name": "",
+        "net": "",
+        "otherProperty": {
+          "@Assembly Variant": "Basic",
+          "@Board Name": "",
+          "@Create Date": "2026-08-27",
+          "@Create Time": "18:21:53",
+          "@Page Count": "8",
+          "@Page Name": "P7",
+          "@Page No": "7",
+          "@Project Name": "edaloop",
+          "@Schematic Name": "Schematic1",
+          "@Update Date": "2026-08-27",
+          "@Update Time": "18:32:16",
+          "Blade Width": "10",
+          "Border": "1",
+          "Color": "",
+          "Company": "嘉立创EDA",
+          "Description": "",
+          "Drawed": "",
+          "Height": "825",
+          "Page Size": "A4",
+          "Part Number": "",
+          "Region Start": "1",
+          "Reviewed": "",
+          "Size": "A4",
+          "Title Block": "0",
+          "Title Block Position": "3",
+          "Version": "V1.0",
+          "Width": "1170",
+          "X Region Count": "6",
+          "Y Region Count": "4"
+        },
+        "pins": [],
+        "pinsAvailable": true,
+        "primitiveId": "db5fdcec75d691f4",
+        "rotation": 0,
+        "subPartName": "pid8a0e77bacb214e",
+        "symbol": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "Drawing-Symbol_A4",
+          "uuid": "9d9f5df8e9e1cda3"
+        },
+        "x": 0,
+        "y": 0
+      },
+      {
+        "addIntoBom": true,
+        "addIntoPcb": true,
+        "bbox": {
+          "maxX": 925.5,
+          "maxY": 780.5,
+          "minX": 854.5,
+          "minY": 739.5
+        },
+        "component": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "AMS1117-3.3_C6186",
+          "uuid": "0ebb843b8efea188"
+        },
+        "componentType": "part",
+        "designator": "U2",
+        "device": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "={Manufacturer Part}",
+          "uuid": "0ebb843b8efea188"
+        },
+        "footprint": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "SOT-223-3_L6.5-W3.4-P2.30-LS7.0-BR",
+          "uuid": "ce721632f8fe9642"
+        },
+        "manufacturer": "Advanced Monolithic Systems",
+        "manufacturerId": "AMS1117-3.3",
+        "mirror": false,
+        "name": "={Manufacturer Part}",
+        "net": "",
+        "otherProperty": {
+          "Datasheet": "https://item.szlcsc.com/datasheet/AMS1117-3.3/6652.html",
+          "Description": "输出极性:正极;工作电压:15V;输出电压:3.3V;输出电流:1A;电源纹波抑制比(PSRR):72dB@(120Hz);输出类型:固定;",
+          "Features": "短路保护；热关断；过流保护",
+          "JLCPCB Part Class": "Basic Part",
+          "LCSC Part Name": "3.3V 1A 15V",
+          "Noise": "0.003%Vout",
+          "Number of Outputs": "1",
+          "Operating Temperature": "-40℃~+125℃",
+          "Output Configuration": "正极",
+          "Output Current": "1A",
+          "Output Type": "固定",
+          "Output Voltage": "3.3V",
+          "Power Supply Rejection Ratio (PSRR)": "72dB@(120Hz)",
+          "Supplier Footprint": "SOT-223",
+          "Voltage - Supply": "15V",
+          "Voltage Dropout": "1.1V@(800mA)",
+          "standby current": "5mA"
+        },
+        "pins": [
+          {
+            "net": "GND",
+            "noConnected": false,
+            "pinName": "GND",
+            "pinNumber": "1",
+            "primitiveId": "19be411fcff076be-e2",
+            "rotation": 180,
+            "x": 845,
+            "y": 770
+          },
+          {
+            "net": "3V3",
+            "noConnected": false,
+            "pinName": "VOUT",
+            "pinNumber": "2",
+            "primitiveId": "19be411fcff076be-e6",
+            "rotation": 180,
+            "x": 845,
+            "y": 760
+          },
+          {
+            "net": "5V",
+            "noConnected": false,
+            "pinName": "VIN",
+            "pinNumber": "3",
+            "primitiveId": "19be411fcff076be-e10",
+            "rotation": 180,
+            "x": 845,
+            "y": 750
+          },
+          {
+            "net": "3V3",
+            "noConnected": false,
+            "pinName": "VOUT",
+            "pinNumber": "4",
+            "primitiveId": "19be411fcff076be-e14",
+            "rotation": 0,
+            "x": 935,
+            "y": 760
+          }
+        ],
+        "pinsAvailable": true,
+        "primitiveId": "19be411fcff076be",
+        "rotation": 0,
+        "subPartName": "pid8a0e77bacb214e",
+        "supplier": "LCSC",
+        "supplierId": "C6186",
+        "symbol": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "AMS1117-3.3",
+          "uuid": "c8149af93380b072"
+        },
+        "uniqueId": "gge25",
+        "x": 890,
+        "y": 760
+      },
+      {
+        "addIntoBom": true,
+        "addIntoPcb": true,
+        "bbox": {
+          "maxX": 853.5,
+          "maxY": 280.5,
+          "minX": 836.5,
+          "minY": 259.5
+        },
+        "component": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "GRM21BR61H106KE43L",
+          "uuid": "9852c3fd91aa5ec9"
+        },
+        "componentType": "part",
+        "designator": "C11",
+        "device": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "={Value}",
+          "uuid": "9852c3fd91aa5ec9"
+        },
+        "footprint": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "C0805",
+          "uuid": "03b1fe1688b9ff7a"
+        },
+        "manufacturer": "muRata(村田)",
+        "manufacturerId": "GRM21BR61H106KE43L",
+        "mirror": false,
+        "name": "={Value}",
+        "net": "",
+        "otherProperty": {
+          "Datasheet": "https://item.szlcsc.com/datasheet/GRM21BR61H106KE43L/439567.html",
+          "Description": "容值:10uF;精度:±10%;额定电压:50V;温度系数:X5R;",
+          "JLCPCB Part Class": "Basic Part",
+          "LCSC Part Name": "10uF ±10% 50V",
+          "Supplier Footprint": "0805",
+          "Temperature Coefficient": "X5R",
+          "Tolerance": "±10%",
+          "Value": "10uF",
+          "Voltage Rating": "50V"
+        },
+        "pins": [
+          {
+            "net": "5V",
+            "noConnected": false,
+            "pinName": "1",
+            "pinNumber": "1",
+            "primitiveId": "1886927ac6e06010-e4",
+            "rotation": 270,
+            "x": 845,
+            "y": 250
+          },
+          {
+            "net": "GND",
+            "noConnected": false,
+            "pinName": "2",
+            "pinNumber": "2",
+            "primitiveId": "1886927ac6e06010-e10",
+            "rotation": 90,
+            "x": 845,
+            "y": 290
+          }
+        ],
+        "pinsAvailable": true,
+        "primitiveId": "1886927ac6e06010",
+        "rotation": 90,
+        "subPartName": "GRM21BR61H106KE43L.1",
+        "supplier": "LCSC",
+        "supplierId": "C440198",
+        "symbol": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "GRM21BR61H106KE43L",
+          "uuid": "0eb8ec2409fa68ca"
+        },
+        "uniqueId": "gge26",
+        "x": 845,
+        "y": 270
+      },
+      {
+        "addIntoBom": true,
+        "addIntoPcb": true,
+        "bbox": {
+          "maxX": 558.5,
+          "maxY": 720.5,
+          "minX": 541.5,
+          "minY": 699.5
+        },
+        "component": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "CL21A226MAQNNNE",
+          "uuid": "04944869a5be41c4"
+        },
+        "componentType": "part",
+        "designator": "C12",
+        "device": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "={Value}",
+          "uuid": "04944869a5be41c4"
+        },
+        "footprint": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "C0805",
+          "uuid": "03b1fe1688b9ff7a"
+        },
+        "manufacturer": "SAMSUNG(三星)",
+        "manufacturerId": "CL21A226MAQNNNE",
+        "mirror": false,
+        "name": "={Value}",
+        "net": "",
+        "otherProperty": {
+          "Datasheet": "https://item.szlcsc.com/datasheet/CL21A226MAQNNNE/46786.html",
+          "Description": "容值:22uF;精度:±20%;额定电压:25V;温度系数:X5R;",
+          "JLCPCB Part Class": "Basic Part",
+          "LCSC Part Name": "22uF ±20% 25V",
+          "Supplier Footprint": "0805",
+          "Temperature Coefficient": "X5R",
+          "Tolerance": "±20%",
+          "Value": "22uF",
+          "Voltage Rating": "25V"
+        },
+        "pins": [
+          {
+            "net": "3V3",
+            "noConnected": false,
+            "pinName": "1",
+            "pinNumber": "1",
+            "primitiveId": "6967f41dff1fe849-e4",
+            "rotation": 270,
+            "x": 550,
+            "y": 690
+          },
+          {
+            "net": "GND",
+            "noConnected": false,
+            "pinName": "2",
+            "pinNumber": "2",
+            "primitiveId": "6967f41dff1fe849-e10",
+            "rotation": 90,
+            "x": 550,
+            "y": 730
+          }
+        ],
+        "pinsAvailable": true,
+        "primitiveId": "6967f41dff1fe849",
+        "rotation": 90,
+        "subPartName": "CL21A226MAQNNNE.1",
+        "supplier": "LCSC",
+        "supplierId": "C45783",
+        "symbol": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "CL21A226MAQNNNE",
+          "uuid": "5426b36ed351fb5e"
+        },
+        "uniqueId": "gge27",
+        "x": 550,
+        "y": 710
+      },
+      {
+        "addIntoBom": true,
+        "addIntoPcb": true,
+        "bbox": {
+          "maxX": 853.5,
+          "maxY": 500.5,
+          "minX": 836.5,
+          "minY": 479.5
+        },
+        "component": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "CL05B104KO5NNNC",
+          "uuid": "4ec3e35ff791e603"
+        },
+        "componentType": "part",
+        "designator": "C10",
+        "device": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "={Value}",
+          "uuid": "4ec3e35ff791e603"
+        },
+        "footprint": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "C0402",
+          "uuid": "4d5ecfecc1d063c6"
+        },
+        "manufacturer": "SAMSUNG(三星)",
+        "manufacturerId": "CL05B104KO5NNNC",
+        "mirror": false,
+        "name": "={Value}",
+        "net": "",
+        "otherProperty": {
+          "Datasheet": "https://item.szlcsc.com/datasheet/CL05B104KO5NNNC/1877.html",
+          "Description": "容值:100nF;精度:±10%;额定电压:16V;温度系数:X7R;",
+          "JLCPCB Part Class": "Basic Part",
+          "LCSC Part Name": "100nF ±10% 16V",
+          "Supplier Footprint": "0402",
+          "Temperature Coefficient": "X7R",
+          "Tolerance": "±10%",
+          "Value": "100nF",
+          "Voltage Rating": "16V"
+        },
+        "pins": [
+          {
+            "net": "GND",
+            "noConnected": false,
+            "pinName": "2",
+            "pinNumber": "2",
+            "primitiveId": "0c69eb0be5080032-e4",
+            "rotation": 90,
+            "x": 845,
+            "y": 510
+          },
+          {
+            "net": "3V3",
+            "noConnected": false,
+            "pinName": "1",
+            "pinNumber": "1",
+            "primitiveId": "0c69eb0be5080032-e10",
+            "rotation": 270,
+            "x": 845,
+            "y": 470
+          }
+        ],
+        "pinsAvailable": true,
+        "primitiveId": "0c69eb0be5080032",
+        "rotation": 90,
+        "subPartName": "CL05B104KO5NNNC.1",
+        "supplier": "LCSC",
+        "supplierId": "C1525",
+        "symbol": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "CL05B104KO5NNNC",
+          "uuid": "142be1f77db1a3bb"
+        },
+        "uniqueId": "gge28",
+        "x": 845,
+        "y": 490
+      },
+      {
+        "addIntoBom": true,
+        "addIntoPcb": true,
+        "bbox": {
+          "maxX": 820.5,
+          "maxY": 755.5,
+          "minX": 814.5,
+          "minY": 744.5
+        },
+        "component": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "Power-5V",
+          "uuid": "6d7d91f695e15933"
+        },
+        "componentType": "netflag",
+        "device": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "5V",
+          "uuid": "6d7d91f695e15933"
+        },
+        "mirror": false,
+        "name": "5V",
+        "net": "5V",
+        "otherProperty": {
+          "Description": "Power-5V",
+          "Global Net Name": "5V",
+          "Relevance": "[]"
+        },
+        "pins": [
+          {
+            "net": null,
+            "noConnected": false,
+            "pinName": "Pin1",
+            "pinNumber": "1",
+            "primitiveId": "5a040938695cde70-e11",
+            "rotation": 0,
+            "x": 825,
+            "y": 750
+          }
+        ],
+        "pinsAvailable": true,
+        "primitiveId": "5a040938695cde70",
+        "rotation": 90,
+        "subPartName": "pid8a0e77bacb214e",
+        "symbol": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "Power-5V",
+          "uuid": "d99a1986543d30b2"
+        },
+        "x": 825,
+        "y": 750
+      },
+      {
+        "addIntoBom": true,
+        "addIntoPcb": true,
+        "bbox": {
+          "maxX": 850.5,
+          "maxY": 225.5,
+          "minX": 839.5,
+          "minY": 219.5
+        },
+        "component": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "Power-5V",
+          "uuid": "6d7d91f695e15933"
+        },
+        "componentType": "netflag",
+        "device": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "5V",
+          "uuid": "6d7d91f695e15933"
+        },
+        "mirror": false,
+        "name": "5V",
+        "net": "5V",
+        "otherProperty": {
+          "Description": "Power-5V",
+          "Global Net Name": "5V",
+          "Relevance": "[]"
+        },
+        "pins": [
+          {
+            "net": null,
+            "noConnected": false,
+            "pinName": "Pin1",
+            "pinNumber": "1",
+            "primitiveId": "d0b3b5b129093ba2-e11",
+            "rotation": 90,
+            "x": 845,
+            "y": 230
+          }
+        ],
+        "pinsAvailable": true,
+        "primitiveId": "d0b3b5b129093ba2",
+        "rotation": 180,
+        "subPartName": "pid8a0e77bacb214e",
+        "symbol": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "Power-5V",
+          "uuid": "d99a1986543d30b2"
+        },
+        "x": 845,
+        "y": 230
+      },
+      {
+        "addIntoBom": true,
+        "addIntoPcb": true,
+        "bbox": {
+          "maxX": 790.5,
+          "maxY": 765.5,
+          "minX": 784.5,
+          "minY": 754.5
+        },
+        "component": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "Power-5V",
+          "uuid": "6d7d91f695e15933"
+        },
+        "componentType": "netflag",
+        "device": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "3V3",
+          "uuid": "6d7d91f695e15933"
+        },
+        "mirror": false,
+        "name": "3V3",
+        "net": "3V3",
+        "otherProperty": {
+          "Description": "Power-5V",
+          "Global Net Name": "3V3",
+          "Relevance": "[]"
+        },
+        "pins": [
+          {
+            "net": null,
+            "noConnected": false,
+            "pinName": "Pin1",
+            "pinNumber": "1",
+            "primitiveId": "980eda80181e0dbd-e11",
+            "rotation": 0,
+            "x": 795,
+            "y": 760
+          }
+        ],
+        "pinsAvailable": true,
+        "primitiveId": "980eda80181e0dbd",
+        "rotation": 90,
+        "subPartName": "pid8a0e77bacb214e",
+        "symbol": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "Power-5V",
+          "uuid": "d99a1986543d30b2"
+        },
+        "x": 795,
+        "y": 760
+      },
+      {
+        "addIntoBom": true,
+        "addIntoPcb": true,
+        "bbox": {
+          "maxX": 965.5,
+          "maxY": 765.5,
+          "minX": 959.5,
+          "minY": 754.5
+        },
+        "component": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "Power-5V",
+          "uuid": "6d7d91f695e15933"
+        },
+        "componentType": "netflag",
+        "device": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "3V3",
+          "uuid": "6d7d91f695e15933"
+        },
+        "mirror": false,
+        "name": "3V3",
+        "net": "3V3",
+        "otherProperty": {
+          "Description": "Power-5V",
+          "Global Net Name": "3V3",
+          "Relevance": "[]"
+        },
+        "pins": [
+          {
+            "net": null,
+            "noConnected": false,
+            "pinName": "Pin1",
+            "pinNumber": "1",
+            "primitiveId": "9c3f548ab6d7e5fe-e11",
+            "rotation": 180,
+            "x": 955,
+            "y": 760
+          }
+        ],
+        "pinsAvailable": true,
+        "primitiveId": "9c3f548ab6d7e5fe",
+        "rotation": 270,
+        "subPartName": "pid8a0e77bacb214e",
+        "symbol": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "Power-5V",
+          "uuid": "d99a1986543d30b2"
+        },
+        "x": 955,
+        "y": 760
+      },
+      {
+        "addIntoBom": true,
+        "addIntoPcb": true,
+        "bbox": {
+          "maxX": 555.5,
+          "maxY": 665.5,
+          "minX": 544.5,
+          "minY": 659.5
+        },
+        "component": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "Power-5V",
+          "uuid": "6d7d91f695e15933"
+        },
+        "componentType": "netflag",
+        "device": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "3V3",
+          "uuid": "6d7d91f695e15933"
+        },
+        "mirror": false,
+        "name": "3V3",
+        "net": "3V3",
+        "otherProperty": {
+          "Description": "Power-5V",
+          "Global Net Name": "3V3",
+          "Relevance": "[]"
+        },
+        "pins": [
+          {
+            "net": null,
+            "noConnected": false,
+            "pinName": "Pin1",
+            "pinNumber": "1",
+            "primitiveId": "dde641265392d976-e11",
+            "rotation": 90,
+            "x": 550,
+            "y": 670
+          }
+        ],
+        "pinsAvailable": true,
+        "primitiveId": "dde641265392d976",
+        "rotation": 180,
+        "subPartName": "pid8a0e77bacb214e",
+        "symbol": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "Power-5V",
+          "uuid": "d99a1986543d30b2"
+        },
+        "x": 550,
+        "y": 670
+      },
+      {
+        "addIntoBom": true,
+        "addIntoPcb": true,
+        "bbox": {
+          "maxX": 850.5,
+          "maxY": 445.5,
+          "minX": 839.5,
+          "minY": 439.5
+        },
+        "component": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "Power-5V",
+          "uuid": "6d7d91f695e15933"
+        },
+        "componentType": "netflag",
+        "device": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "3V3",
+          "uuid": "6d7d91f695e15933"
+        },
+        "mirror": false,
+        "name": "3V3",
+        "net": "3V3",
+        "otherProperty": {
+          "Description": "Power-5V",
+          "Global Net Name": "3V3",
+          "Relevance": "[]"
+        },
+        "pins": [
+          {
+            "net": null,
+            "noConnected": false,
+            "pinName": "Pin1",
+            "pinNumber": "1",
+            "primitiveId": "76bc45dbedd72979-e11",
+            "rotation": 90,
+            "x": 845,
+            "y": 450
+          }
+        ],
+        "pinsAvailable": true,
+        "primitiveId": "76bc45dbedd72979",
+        "rotation": 180,
+        "subPartName": "pid8a0e77bacb214e",
+        "symbol": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "Power-5V",
+          "uuid": "d99a1986543d30b2"
+        },
+        "x": 845,
+        "y": 450
+      },
+      {
+        "addIntoBom": true,
+        "addIntoPcb": true,
+        "bbox": {
+          "maxX": 755.5,
+          "maxY": 780.5,
+          "minX": 745.5,
+          "minY": 759.5
+        },
+        "component": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "Ground-GND",
+          "uuid": "b9a8676b9fb3d62e"
+        },
+        "componentType": "netflag",
+        "device": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "GND",
+          "uuid": "b9a8676b9fb3d62e"
+        },
+        "mirror": false,
+        "name": "GND",
+        "net": "GND",
+        "otherProperty": {
+          "Description": "",
+          "Global Net Name": "GND",
+          "Relevance": "[]"
+        },
+        "pins": [
+          {
+            "net": null,
+            "noConnected": false,
+            "pinName": "Pin1",
+            "pinNumber": "1",
+            "primitiveId": "46d85e3357062d00-e15",
+            "rotation": 0,
+            "x": 765,
+            "y": 770
+          }
+        ],
+        "pinsAvailable": true,
+        "primitiveId": "46d85e3357062d00",
+        "rotation": 270,
+        "subPartName": "pid8a0e77bacb214e",
+        "symbol": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "Ground-GND",
+          "uuid": "b5cf87ac7e78abaf"
+        },
+        "x": 765,
+        "y": 770
+      },
+      {
+        "addIntoBom": true,
+        "addIntoPcb": true,
+        "bbox": {
+          "maxX": 855.5,
+          "maxY": 329.5,
+          "minX": 834.5,
+          "minY": 319.5
+        },
+        "component": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "Ground-GND",
+          "uuid": "b9a8676b9fb3d62e"
+        },
+        "componentType": "netflag",
+        "device": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "GND",
+          "uuid": "b9a8676b9fb3d62e"
+        },
+        "mirror": false,
+        "name": "GND",
+        "net": "GND",
+        "otherProperty": {
+          "Description": "",
+          "Global Net Name": "GND",
+          "Relevance": "[]"
+        },
+        "pins": [
+          {
+            "net": null,
+            "noConnected": false,
+            "pinName": "Pin1",
+            "pinNumber": "1",
+            "primitiveId": "cafba98b3f83f25d-e15",
+            "rotation": 270,
+            "x": 845,
+            "y": 310
+          }
+        ],
+        "pinsAvailable": true,
+        "primitiveId": "cafba98b3f83f25d",
+        "rotation": 180,
+        "subPartName": "pid8a0e77bacb214e",
+        "symbol": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "Ground-GND",
+          "uuid": "b5cf87ac7e78abaf"
+        },
+        "x": 845,
+        "y": 310
+      },
+      {
+        "addIntoBom": true,
+        "addIntoPcb": true,
+        "bbox": {
+          "maxX": 560.5,
+          "maxY": 769.5,
+          "minX": 539.5,
+          "minY": 759.5
+        },
+        "component": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "Ground-GND",
+          "uuid": "b9a8676b9fb3d62e"
+        },
+        "componentType": "netflag",
+        "device": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "GND",
+          "uuid": "b9a8676b9fb3d62e"
+        },
+        "mirror": false,
+        "name": "GND",
+        "net": "GND",
+        "otherProperty": {
+          "Description": "",
+          "Global Net Name": "GND",
+          "Relevance": "[]"
+        },
+        "pins": [
+          {
+            "net": null,
+            "noConnected": false,
+            "pinName": "Pin1",
+            "pinNumber": "1",
+            "primitiveId": "446a65da6ebdbfbb-e15",
+            "rotation": 270,
+            "x": 550,
+            "y": 750
+          }
+        ],
+        "pinsAvailable": true,
+        "primitiveId": "446a65da6ebdbfbb",
+        "rotation": 180,
+        "subPartName": "pid8a0e77bacb214e",
+        "symbol": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "Ground-GND",
+          "uuid": "b5cf87ac7e78abaf"
+        },
+        "x": 550,
+        "y": 750
+      },
+      {
+        "addIntoBom": true,
+        "addIntoPcb": true,
+        "bbox": {
+          "maxX": 855.5,
+          "maxY": 549.5,
+          "minX": 834.5,
+          "minY": 539.5
+        },
+        "component": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "Ground-GND",
+          "uuid": "b9a8676b9fb3d62e"
+        },
+        "componentType": "netflag",
+        "device": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "GND",
+          "uuid": "b9a8676b9fb3d62e"
+        },
+        "mirror": false,
+        "name": "GND",
+        "net": "GND",
+        "otherProperty": {
+          "Description": "",
+          "Global Net Name": "GND",
+          "Relevance": "[]"
+        },
+        "pins": [
+          {
+            "net": null,
+            "noConnected": false,
+            "pinName": "Pin1",
+            "pinNumber": "1",
+            "primitiveId": "d04b8f0e4567471a-e15",
+            "rotation": 270,
+            "x": 845,
+            "y": 530
+          }
+        ],
+        "pinsAvailable": true,
+        "primitiveId": "d04b8f0e4567471a",
+        "rotation": 180,
+        "subPartName": "pid8a0e77bacb214e",
+        "symbol": {
+          "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+          "name": "Ground-GND",
+          "uuid": "b5cf87ac7e78abaf"
+        },
+        "x": 845,
+        "y": 530
+      }
+    ],
+    "count": 15,
+    "wires": []
+  },
+  "context": {
+    "projectUuid": "7c0361b40cbf4b60b68383bcfa69f362",
+    "projectName": "edaloop",
+    "documentUuid": "3d94bad4392f5b17",
+    "documentType": "schematic",
+    "tabId": "3d94bad4392f5b17@7c0361b40cbf4b60b68383bcfa69f362"
+  },
+  "seq": 11844,
+  "seqAbandoned": 0
+}

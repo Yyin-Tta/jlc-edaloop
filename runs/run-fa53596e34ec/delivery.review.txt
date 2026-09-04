@@ -1,0 +1,8 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 30 blocks, status=PASS
+
+- [CRITIC_THERMAL@ldo1] sizing_recommendations 已算出 Tj≈136°C、裕量-30°C,AMS1117(SOT-223)在当前负载下结温超限,仅靠铺铜无法解决;这不是数值建议能覆盖的,而是拓扑选择问题 | 建议: 将 3V3 主电源改为 BUCK(如 TPS54xxx/MP1584 类),或拆分负载:ESP32-S3 模组(WiFi 峰值电流大)单独由高效 DCDC 供电,AMS1117 仅带 STM32/EEPROM 等小电流负载
+- [CRITIC_POWER_INTEGRITY@usb_c1] USB-C 与 5V 端子(term5v1)两路 5V 直接并轨,但目录内无肖特基/理想二极管实现防倒灌,两块 desc 均要求防倒灌而未落实;并联后电压高的一路会向另一路倒灌 | 建议: 必须在两路输入各串一个肖特基(或理想二极管 MOS 电路)再汇到 5V 轨;若目录确实无此器件,应放弃双输入之一,或将防倒灌器件列为强制目录缺口先行解决
+- [CRITIC_INTERFACE_PROTECTION@usb_c1] usb_c1 设计为仅供电(CC1/CC2 各 5.1k 下拉,不传数据),但 CH340N(ch340_1)的 USB 数据需要从同一 USB-C 的 USB_DP/USB_DM 取,二者矛盾:CC 拉成 UFP 供电配置时多数主机不会枚举数据,且 UD+/UD- 未绑定,烧录链路实际不可用 | 建议: 明确该 USB-C 的角色:若要 CH340 烧录,应去掉 5.1k 下拉的“仅供电”定位,把 CC 做成 5.1k 下拉 + 全功能数据口,并在块上导出 CC 与 UD+
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

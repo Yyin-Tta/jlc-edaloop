@@ -1,0 +1,2 @@
+[watchdog 02:08:51] attempt 1 开跑
+{'req': 'req-06-pico-native-usb-gateway.md', 'status': 'PASS', 'rounds': 1, 'n_rounds': 1}

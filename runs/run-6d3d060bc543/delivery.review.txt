@@ -1,0 +1,7 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 11 blocks, status=PASS
+
+- [CRITIC_POWER_INTEGRITY@d_ss34] 双输入(USB-C 与 5V 端子)汇合到 5V 共轨,但肖特基防倒灌只装在端子侧(SS34),USB-C 的 VBUS 无隔离。若端子输入电压略高于 USB 5V,会向 USB-C 口倒灌。 | 建议: 在 usbc1 的 VBUS 入口同样串一只肖特基(或改用理想二极管/PowerPath 块),实现双向隔离;若接受'端子优先供电、USB 只在被动机'的策略,需在文档明确该行为。
+- [CRITIC_POWER_INTEGRITY@ina1] INA226 采样电阻只串在 5V→5V_LOAD 支路,而主要负载(MCU/SD 卡)由 LDO 从 5V 母线(采样电阻之前)取电降压到 3V3,该支路电流完全绕过 INA226,功率监测覆盖不到系统的实际主要功耗路径。 | 建议: 把 INA226 的采样电阻移到 5V 母线总入口(LDO 输入之前,即 usbc1/d_ss34 汇合点之后),或将 LDO 输入改接到 5V_LOAD,使被测回路包含全部负载。
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

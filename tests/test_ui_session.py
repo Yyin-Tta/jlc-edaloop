@@ -49,6 +49,28 @@ class TestFormatEvent:
         assert "PASS" in format_event("loop-done", {"status": "PASS", "rounds": 3})
         assert "HALT" in format_event("loop-halt", {"reason": "同错 2 轮"})
 
+    def test_layout_review_status_is_explicit(self):
+        line = format_event(
+            "loop-done",
+            {
+                "status": "LAYOUT_REVIEW_REQUIRED",
+                "rounds": 1,
+                "review_required": True,
+                "failure_class": "LAYOUT",
+            },
+        )
+        assert "LAYOUT_REVIEW_REQUIRED" in line
+        assert "需人工布局复核" in line
+        assert "LAYOUT" in line
+
+    def test_layout_review_event_lists_codes(self):
+        line = format_event(
+            "layout-review-required",
+            {"codes": ["LAYOUT_MARKER_ON_BODY", "LAYOUT_PAGE_INK_SPARSE"]},
+        )
+        assert "需人工布局复核" in line
+        assert "LAYOUT_MARKER_ON_BODY" in line
+
     def test_place_ok_and_fail(self):
         assert "U1" in format_event("sch-place", {"instance": "U1", "page": "P1", "ok": True})
         line = format_event(

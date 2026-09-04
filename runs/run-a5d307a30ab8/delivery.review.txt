@@ -1,0 +1,7 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 6 blocks, status=PASS
+
+- [CRITIC_INTERFACE_PROTECTION/LEVEL_SHIFT@usb_serial_ch340k] CH340K 由 5V 供电(pin7=5V),其 TXD(pin8→MCU_RX)高电平约为 5V,而 STM32 为 3.3V 无 5V 容忍 IO;块描述也未提及 V3 引脚处理或电平转换 | 建议: 确认 CH340K V3 引脚按数据手册处理(VCC=5V 时 V3 悬空接去耦电容,IO 仍为 5V);建议 TXD 串电阻分压/使用电平转换,或将 CH340 供电与 MCU 对齐 3.3V 方案
+- [CRITIC_PULL_RESISTORS@btn_boot_reset] 按键块描述 BOOT 键为"默认高、按下接地进下载模式",与 MCU 块的 BOOT0 10k 下拉接地矛盾;STM32 需 BOOT0 为高才进入 bootloader,按下接地 + 下拉配置无法触发下载模式 | 建议: 统一为:BOOT0 经 10k 下拉默认低(正常启动),按键按下拉到 3V3 进 bootloader;同步修正按键块描述
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

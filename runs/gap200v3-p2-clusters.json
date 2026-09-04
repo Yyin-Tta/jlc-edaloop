@@ -1,0 +1,303 @@
+{
+  "clusters": [
+    {
+      "designator": "ULNCH3",
+      "primitiveId": "d45a30385cb60b9b",
+      "body": {
+        "minX": 264.5,
+        "minY": 62.5,
+        "maxX": 325.5,
+        "maxY": 157.5
+      },
+      "box": {
+        "minX": 32.5,
+        "minY": 62.5,
+        "maxX": 445.5,
+        "maxY": 255.5
+      },
+      "markers": 10,
+      "wires": 10,
+      "members": [
+        "part     ULNCH3   x=[264,326] y=[62,158]",
+        "wire              x=[235,255] y=[145,145]",
+        "wire              x=[200,255] y=[135,135]",
+        "wire              x=[135,255] y=[125,125]",
+        "wire              x=[235,255] y=[115,115]",
+        "wire              x=[235,255] y=[75,75]",
+        "wire              x=[335,355] y=[75,75]",
+        "wire              x=[335,355] y=[115,115]",
+        "wire              x=[335,355] y=[125,125]",
+        "wire              x=[335,355] y=[135,135]",
+        "wire              x=[335,335] y=[145,165]",
+        "netport  STEP1_INA x=[132,226] y=[140,150]",
+        "netport  STEP1_INB x=[98,190] y=[130,140]",
+        "netport  STEP1_INC x=[32,126] y=[120,130]",
+        "netport  STEP1_IND x=[132,226] y=[110,120]",
+        "netflag  GND      x=[216,253] y=[64,87]",
+        "netflag  5V       x=[343,366] y=[70,87]",
+        "netport  STEP1_A  x=[364,446] y=[110,120]",
+        "netport  STEP1_B  x=[364,446] y=[120,130]",
+        "netport  STEP1_C  x=[364,446] y=[130,140]",
+        "netport  STEP1_D  x=[330,340] y=[174,256]"
+      ]
+    },
+    {
+      "designator": "D7",
+      "primitiveId": "0cc56a92f9e91faa",
+      "body": {
+        "minX": 212.5,
+        "minY": 601.5,
+        "maxX": 260.5,
+        "maxY": 658.5
+      },
+      "box": {
+        "minX": 95.5,
+        "minY": 601.5,
+        "maxX": 309.5,
+        "maxY": 658.5
+      },
+      "markers": 3,
+      "wires": 3,
+      "members": [
+        "part     D7       x=[212,260] y=[602,658]",
+        "wire              x=[270,290] y=[630,630]",
+        "wire              x=[180,200] y=[650,650]",
+        "wire              x=[180,200] y=[610,610]",
+        "netflag  GND      x=[272,310] y=[620,642]",
+        "netport  C21_N4   x=[96,170] y=[644,656]",
+        "netport  C21_N5   x=[96,170] y=[604,616]"
+      ]
+    },
+    {
+      "designator": "U6",
+      "primitiveId": "f3fb102ddb8c373b",
+      "body": {
+        "minX": 584.5,
+        "minY": 584.5,
+        "maxX": 655.5,
+        "maxY": 675.5
+      },
+      "box": {
+        "minX": 267.5,
+        "minY": 584.5,
+        "maxX": 860.5,
+        "maxY": 677
+      },
+      "markers": 8,
+      "wires": 8,
+      "members": [
+        "part     U6       x=[584,656] y=[584,676]",
+        "wire              x=[665,685] y=[665,665]",
+        "wire              x=[555,575] y=[665,665]",
+        "wire              x=[665,685] y=[635,635]",
+        "wire              x=[665,770] y=[645,645]",
+        "wire              x=[555,575] y=[645,645]",
+        "wire              x=[370,575] y=[655,655]",
+        "wire              x=[475,575] y=[625,625]",
+        "wire              x=[555,575] y=[615,615]",
+        "netflag  5V       x=[673,696] y=[660,677]",
+        "netflag  GND      x=[536,573] y=[654,677]",
+        "netport  USB_DTR  x=[694,776] y=[630,640]",
+        "netport  USB_RTS  x=[780,860] y=[640,650]",
+        "netport  USART1_TX x=[452,546] y=[640,650]",
+        "netport  USART1_RX x=[268,360] y=[650,660]",
+        "netport  C21_N4   x=[390,466] y=[620,630]",
+        "netport  C21_N5   x=[470,546] y=[610,620]"
+      ]
+    },
+    {
+      "designator": "R32",
+      "primitiveId": "3d0077893a3f7ac6",
+      "body": {
+        "minX": 320.5,
+        "minY": 379.5,
+        "maxX": 329.5,
+        "maxY": 400.5
+      },
+      "box": {
+        "minX": 314.5,
+        "minY": 379.5,
+        "maxX": 335.5,
+        "maxY": 461.5
+      },
+      "markers": 1,
+      "wires": 1,
+      "members": [
+        "part     R32      x=[320,330] y=[380,400]",
+        "wire              x=[325,325] y=[410,430]",
+        "netflag  GND      x=[314,336] y=[440,462]"
+      ]
+    },
+    {
+      "designator": "C22",
+      "primitiveId": "2c4e4d06c911effe",
+      "body": {
+        "minX": 361.5,
+        "minY": 694.5,
+        "maxX": 378.5,
+        "maxY": 715.5
+      },
+      "box": {
+        "minX": 359.5,
+        "minY": 642.5,
+        "maxX": 380.5,
+        "maxY": 776.5
+      },
+      "markers": 2,
+      "wires": 2,
+      "members": [
+        "part     C22      x=[362,378] y=[694,716]",
+        "wire              x=[370,370] y=[665,685]",
+        "wire              x=[370,370] y=[725,745]",
+        "netflag  5V       x=[364,376] y=[642,660]",
+        "netflag  GND      x=[360,380] y=[754,776]"
+      ]
+    },
+    {
+      "designator": "R33",
+      "primitiveId": "731a29b1afe5ee7d",
+      "body": {
+        "minX": 450.5,
+        "minY": 379.5,
+        "maxX": 459.5,
+        "maxY": 400.5
+      },
+      "box": {
+        "minX": 444.5,
+        "minY": 364.5,
+        "maxX": 559.5,
+        "maxY": 461.5
+      },
+      "markers": 2,
+      "wires": 2,
+      "members": [
+        "part     R33      x=[450,460] y=[380,400]",
+        "wire              x=[455,455] y=[410,430]",
+        "wire              x=[455,475] y=[370,370]",
+        "netflag  GND      x=[444,466] y=[440,462]",
+        "netport  C21_N7   x=[484,560] y=[364,376]"
+      ]
+    },
+    {
+      "designator": "J4",
+      "primitiveId": "057a99bc7981671a",
+      "body": {
+        "minX": 859.5,
+        "minY": 319.5,
+        "maxX": 930.5,
+        "maxY": 390.5
+      },
+      "box": {
+        "minX": 665.5,
+        "minY": 228.5,
+        "maxX": 1124.5,
+        "maxY": 481.5
+      },
+      "markers": 13,
+      "wires": 13,
+      "members": [
+        "part     J4       x=[860,930] y=[320,390]",
+        "wire              x=[940,960] y=[330,330]",
+        "wire              x=[830,850] y=[370,370]",
+        "wire              x=[940,990] y=[340,340]",
+        "wire              x=[800,850] y=[380,380]",
+        "wire              x=[885,885] y=[290,310]",
+        "wire              x=[905,905] y=[260,310]",
+        "wire              x=[885,885] y=[400,420]",
+        "wire              x=[905,905] y=[400,450]",
+        "wire              x=[940,960] y=[370,370]",
+        "wire              x=[830,850] y=[340,340]",
+        "wire              x=[940,1040] y=[360,360]",
+        "wire              x=[750,850] y=[350,350]",
+        "wire              x=[940,1040] y=[380,380]",
+        "netflag  5V       x=[948,970] y=[324,342]",
+        "netflag  5V       x=[820,842] y=[364,382]",
+        "netflag  GND      x=[972,1010] y=[330,352]",
+        "netflag  GND      x=[780,818] y=[370,392]",
+        "netflag  GND      x=[874,896] y=[258,280]",
+        "netflag  GND      x=[894,916] y=[228,250]",
+        "netflag  GND      x=[874,896] y=[430,452]",
+        "netflag  GND      x=[894,916] y=[460,482]",
+        "netport  C21_N4   x=[970,1044] y=[364,376]",
+        "netport  C21_N4   x=[746,820] y=[334,346]",
+        "netport  C21_N5   x=[1050,1124] y=[354,366]",
+        "netport  C21_N5   x=[666,740] y=[344,356]",
+        "netport  C21_N7   x=[1050,1124] y=[374,386]"
+      ]
+    },
+    {
+      "designator": "STEP1HDR1",
+      "primitiveId": "b410f03bce8f086e",
+      "body": {
+        "minX": 934.5,
+        "minY": 104.5,
+        "maxX": 955.5,
+        "maxY": 155.5
+      },
+      "box": {
+        "minX": 804.5,
+        "minY": 104.5,
+        "maxX": 955.5,
+        "maxY": 285.5
+      },
+      "markers": 4,
+      "wires": 4,
+      "members": [
+        "part     STEP1HDR1 x=[934,956] y=[104,156]",
+        "wire              x=[925,925] y=[145,195]",
+        "wire              x=[895,925] y=[135,135]",
+        "wire              x=[895,925] y=[125,125]",
+        "wire              x=[895,925] y=[115,115]",
+        "netport  STEP1_A  x=[920,930] y=[204,286]",
+        "netport  STEP1_B  x=[804,886] y=[130,140]",
+        "netport  STEP1_C  x=[804,886] y=[120,130]",
+        "netport  STEP1_D  x=[804,886] y=[110,120]"
+      ]
+    },
+    {
+      "designator": "C21",
+      "primitiveId": "45722ed3f4beb9e2",
+      "body": {
+        "minX": 896.5,
+        "minY": 694.5,
+        "maxX": 913.5,
+        "maxY": 715.5
+      },
+      "box": {
+        "minX": 894.5,
+        "minY": 694.5,
+        "maxX": 915.5,
+        "maxY": 776.5
+      },
+      "markers": 1,
+      "wires": 1,
+      "members": [
+        "part     C21      x=[896,914] y=[694,716]",
+        "wire              x=[905,905] y=[725,745]",
+        "netflag  GND      x=[894,916] y=[754,776]"
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "type": "tight",
+      "a": "D7",
+      "b": "U6",
+      "gap": 7,
+      "level": "WARN"
+    },
+    {
+      "type": "tight",
+      "a": "J4",
+      "b": "STEP1HDR1",
+      "gap": 4,
+      "level": "WARN"
+    }
+  ],
+  "sheetUsable": {
+    "minX": 12,
+    "minY": 12,
+    "maxX": 1158,
+    "maxY": 813
+  }
+}

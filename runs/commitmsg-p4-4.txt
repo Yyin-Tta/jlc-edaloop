@@ -1,0 +1,26 @@
+feat(p4-b4): parameter closed loop - in-round sizing, std-part value pinning, PARAM_OFF_SPEC weak gate, critic->refine
+
+①sizing 轮内化: controller _size_round 每轮 make_plan 后计算+审计出处,
+  deliver 复用末轮结果 (delivery.sizing.txt 输入来源表);
+  轨输入零硬编码三级解析 (rail_volts_map→net_volts→单轨推断), 全失败降级不猜;
+  SizingAdvice.inputs 逐输入出处 + gap() 硬编码检测器; TL431 阈值=监控轨 v_min
+②确定性选值落图: seeds/standard-parts.json (29R+22C, 源头 easyeda-agent curated 表) 单源;
+  generate/stdparts.py 精确查表不猜最近值; resistor-std/capacitor-std 种子块;
+  planner std_value 白名单 + make_plan/compile 双层校验; place 查表得 C 号驱动 lib-search
+③PARAM_OFF_SPEC 弱观察: 通道 A instance 直连 + 通道 B 网组
+  (电容 pins-net-set 相等 / LED 驱动网恰一相交且非轨; 组内容差成员豁免);
+  电容单向只判欠额 (超规格=工程裕量); 缺件不判归 critic;
+  weak REPLAN → attribution 逐条展开 + _sizing_feedback 注入下轮
+④critic 闭环: netlist/ir_rails/sizing 三输入 (弃 desc 截断);
+  critic 与 PARAM_OFF_SPEC findings 都进 refine questions (采纳补件/人工忽略)
+⑤eval --tier params 注入 harness: 错值拦截 3/3 (Go≥2), 干净误杀 0/6,
+  电源块覆盖 18/22=82% (Go≥80%), 轨硬编码缺口 0, critic 捕获 5/5 (真 LLM, Go≥4) → 全 Go
+
+daily E2E 回归暴露两处残留,已修:
+- ensure_std_candidates: std R/C 通道常驻候选 (controller 每轮从全量 catalog 补) —
+  提示词宣传的通道检索没召回时, planner 按规则用 resistor-std 反被「目录外块」校验
+  击杀, 耗尽重试后整轮 ERROR:PlanError (req-11 实证)
+- make_plan 校验拒绝带原因重问: attempts 重试原先发同一提示词 (同问必同错),
+  现在附上次拒绝原因让 LLM 修正 (FakeChat 支持按次序回复)
+
+seed 重建 97 块 (95 + resistor-std/capacitor-std); pytest 208 passed (+22)。

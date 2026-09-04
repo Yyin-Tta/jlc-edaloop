@@ -1,0 +1,9 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 14 blocks, status=PASS
+
+- [CRITIC_POWER_INTEGRITY@ldo3v3] AMS1117 输入绑定为 12V_IN,实际压差 12V→3.3V 约 8.7V,热评估 Tj≈590°C 严重超温;块描述按 5V 输入编写,与实际绑定不符,AMS1117 绝对最大输入 15V 也无裕量 | 建议: 在 LDO 前加 BUCK 预降压(如 12V→5V)再接 AMS1117,或将 3.3V 轨整体换为 BUCK 方案;确认 12V_IN 浪涌不超过 AMS1117 15V 上限
+- [CRITIC_THERMAL@ldo3v3] sizing 已算出 Tj≈590°C 裕量-486°C,即使中等电流(如 200mA)12V 压降下功耗也远超 SOT-223 无散热能力,块描述中『铺铜加固/压差余量算够』的假设(5V 输入)已不成立 | 建议: 同上,必须改为 BUCK 或 BUCK+LDO 两级架构,不能依赖铺铜解决
+- [CRITIC_INTERFACE_PROTECTION@SENSHDR] SENSOR_AIN 为外部端子排针输入直连 MCU ADC(STM32F103 无内置钳位耐高压能力),无串联电阻/RC 滤波/ESD 保护,外部长线或误接高电压易损坏 MCU | 建议: 在 SENSOR_AIN 串 1k~10k 电阻 + 100nF 对地 RC 滤波,并加 ESD 二极管(如 USBLC5-1)到 3V3/GND 轨
+- [CRITIC_PULL_RESISTORS@r_boot] r_boot 下拉的是 BOOT_NET,但 MCUU1 的 BOOT0 脚未绑定到 BOOT_NET(引脚表无 BOOT0 连接,且按块描述 44=BOOT0 被绑为 GND),BOOT_NET 悬空未起作用 | 建议: 将 MCU BOOT0 引脚显式绑定到 BOOT_NET,确保 r_boot 下拉真正接到 MCU 启动脚
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

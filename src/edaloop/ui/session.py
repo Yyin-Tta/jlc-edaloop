@@ -65,7 +65,16 @@ def format_event(kind: str, fields: dict[str, Any]) -> str | None:
     if kind == "arrange-result":
         return f"— 布局收口 {fields.get('page')}:残留 {fields.get('remaining')}"
     if kind == "loop-done":
-        return f"— 结束:{fields.get('status')}(共 {fields.get('rounds')} 轮)"
+        status = fields.get("status")
+        suffix = ""
+        if fields.get("review_required") or status == "LAYOUT_REVIEW_REQUIRED":
+            suffix = "(需人工布局复核)"
+        if fields.get("failure_class"):
+            suffix += f"[{fields['failure_class']}]"
+        return f"— 结束:{status}(共 {fields.get('rounds')} 轮){suffix}"
+    if kind == "layout-review-required":
+        codes = ", ".join(str(c) for c in (fields.get("codes") or []))
+        return f"— 需人工布局复核{f': {codes}' if codes else ''}"
     if kind == "loop-halt":
         return f"— HALT:{fields.get('reason')}"
     if kind == "refine-retry":

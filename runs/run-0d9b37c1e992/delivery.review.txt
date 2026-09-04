@@ -1,0 +1,8 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 12 blocks, status=PASS
+
+- [CRITIC_POWER_INTEGRITY@ldo_3v3] AMS1117 5V→3.3V 热校核 Tj≈136°C,裕量为 -30°C,已明显超温;SOT-223 在该压差/电流下无法安全工作,属选型级缺陷(热提示已给出但结果为负裕量,需设计层改方案而非仅铺铜) | 建议: 改用同步 BUCK(如 TPS54202/MP2315 类)或换低压差、可散热的 LDO,并降低该轨负载或从 5V 减小压差
+- [CRITIC_INTERFACE_PROTECTION@ir_txrx] VSOP38338 由 5V 供电,其 OUT 高电平约 5V,直连 ESP32-S3(IO 非 5V 耐压)存在超压风险;块内仅描述串阻+下拉,未含电平转换 | 建议: 接收头 OUT 后加电阻分压或 NPN/MOS 电平转换,或改用 3.3V 供电的接收头型号
+- [CRITIC_EMC@usb_c_in] USB-C 口声明仅供电不传数据,但 USB_DP/DM 仍绑定到全局网络且无任何负载/ESD 阵列,网络悬空且差分对 90Ω 阻抗控制描述无意义 | 建议: 若确不传数据,将 DP/DM 悬空(NC)并移除相关绑定与阻抗说明;若保留未来数据用途,应加 USB ESD 阵列并接到 USB 桥/PHY
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

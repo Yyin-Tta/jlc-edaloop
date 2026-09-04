@@ -1,0 +1,11 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 34 blocks, status=PASS
+
+- [CRITIC_PULL_RESISTORS@u_mcu] NRST 复位网络(10k 上拉 + 100nF)与 8MHz 晶振 + 22pF 负载电容仅在 block_desc 文字中提及,plan 中没有任何对应元件实例,且 uncovered 明确承认这些外围'不在标准表内'——实际落图时 NRST 将悬空 | 建议: 为 NRST 补充 10k 上拉到 3V3 与 100nF 到 GND(或采用带内部上拉的 MCU 配置并显式说明),晶振 22pF 需走定制/非标件通道,不得只写在描述里
+- [CRITIC_DECOUPLING@u_mcu] block_desc 要求'每 VDD 100nF + 整体 4.7µF',但 plan 中只放了 1 颗 c_vdd1(100n)和 1 颗 10u,而 LQFP-48 有多个 VDD/VDDA 引脚绑定到 3V3(9/24/36/48 等),单颗 100n 无法就近覆盖各电源脚 | 建议: 按绑定到 3V3 的 VDD/VDDA 引脚数量各配 100nF 就近去耦,VDDA 可另加专用滤波
+- [CRITIC_INTERFACE_PROTECTION@u_uln1] ULN2003 的 COM(引脚 9,续流二极管公共端)接到 5V_ISO,而输出端子 DO*_OUT 驱动的是 24V 侧负载(感性)。续流二极管将负载反向电压钳位到 5V_ISO+0.7V,感性负载断开时的能量会灌入 5V_ISO 轨,既不能正确续流也可能损坏 1W 的 B0505S 输出 | 建议: COM(9 脚)应接到输出负载电源 24V_IN,与负载电压一致才能正确吸收感性能量;同时确认 24V 电源轨的耐压与钳位
+- [CRITIC_POWER_INTEGRITY@u_uln1] ULN2003 输入(1-4 脚)接 MCU 的 DO1-DO4(逻辑侧,参考 GND),但其 GND(8 脚)接到 GND_ISO(隔离侧地)。同一芯片的输入与地跨接两个互相隔离的地域,破坏了 B0505S/PC817 建立的隔离结构,且 GND 与 GND_ISO 无直连通路时 ULN2003 输入门限参考错误,可能不导通 | 建议: 明确 Q2 决策:若确实选择'输出不隔离'(Q2=B),ULN2003 的 GND 应接逻辑侧 GND、COM 接 24V;若需隔离,MC
+- [CRITIC_INTERFACE_PROTECTION@j_di1] DI1-DI4 为外部长线 24V 数字输入端子,仅有 2.2k 限流电阻,无任何 TVS/ESD 保护;外部接线浪涌/静电会直接打进光耦 LED 与限流电阻 | 建议: 每个 DI 输入端子对 GND_ISO 并接 TVS(如 SMAJ 系列,钳位约 30V 档),靠近端子放置
+- [CRITIC_INTERFACE_PROTECTION@j_24v] 24V 现场电源输入端子无 TVS/防反接保护;工业 24V 供电常见浪涌与反接,直接接到 ULN2003 COM 与 DI 分压回路 | 建议: 在 24V_IN 与 GND_ISO 间加 TVS(如 SMBJ33A),并考虑串联二极管或 PPTC(sizing 已给 0.15A 档 PPTC 建议但未落实例)做防反接/过流
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

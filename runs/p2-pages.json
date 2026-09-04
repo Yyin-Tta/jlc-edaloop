@@ -1,0 +1,49 @@
+{
+  "id": "req_588393",
+  "type": "response",
+  "version": "v1",
+  "createdAt": "2026-08-25T13:17:09.6168426Z",
+  "ok": true,
+  "result": {
+    "pages": [
+      {
+        "name": "P1",
+        "parentSchematicUuid": "4bf64cb381361109",
+        "uuid": "8525dd2f28ea0848"
+      },
+      {
+        "name": "P2",
+        "parentSchematicUuid": "4bf64cb381361109",
+        "uuid": "b44a9c749a2fc16c"
+      }
+    ],
+    "schematics": [
+      {
+        "name": "schematic1",
+        "page": [
+          {
+            "name": "p1",
+            "parentSchematicUuid": "4bf64cb381361109",
+            "uuid": "8525dd2f28ea0848"
+          },
+          {
+            "name": "p2",
+            "parentSchematicUuid": "4bf64cb381361109",
+            "uuid": "b44a9c749a2fc16c"
+          }
+        ],
+        "parentProjectUuid": "7c0361b40cbf4b60b68383bcfa69f362",
+        "uuid": "4bf64cb381361109"
+      }
+    ]
+  },
+  "context": {
+    "projectUuid": "7c0361b40cbf4b60b68383bcfa69f362",
+    "projectName": "edaloop",
+    "documentUuid": "b44a9c749a2fc16c",
+    "documentType": "schematic",
+    "tabId": "b44a9c749a2fc16c@7c0361b40cbf4b60b68383bcfa69f362"
+  },
+  "seq": 30715,
+  "seqAbandoned": 0
+}

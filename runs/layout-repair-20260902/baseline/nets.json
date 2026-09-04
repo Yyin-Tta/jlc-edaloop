@@ -1,0 +1,93 @@
+{
+  "ok": true,
+  "totalNets": 9,
+  "singlePinNets": [
+    {
+      "net": "$43N122",
+      "pins": 1,
+      "parts": [
+        "PROTFS83"
+      ]
+    },
+    {
+      "net": "GATE_OD",
+      "pins": 1,
+      "parts": [
+        "PROTFS83"
+      ]
+    }
+  ],
+  "nets": [
+    {
+      "net": "$43N122",
+      "pins": 1,
+      "parts": [
+        "PROTFS83"
+      ]
+    },
+    {
+      "net": "CSI",
+      "pins": 2,
+      "parts": [
+        "PROTDW2",
+        "R4"
+      ]
+    },
+    {
+      "net": "FET_MID",
+      "pins": 2,
+      "parts": [
+        "PROTFS83"
+      ]
+    },
+    {
+      "net": "GATE_OC",
+      "pins": 2,
+      "parts": [
+        "PROTDW2",
+        "PROTFS83"
+      ]
+    },
+    {
+      "net": "GATE_OD",
+      "pins": 1,
+      "parts": [
+        "PROTFS83"
+      ]
+    },
+    {
+      "net": "GND",
+      "pins": 2,
+      "parts": [
+        "JBAT1",
+        "PROTDW2"
+      ]
+    },
+    {
+      "net": "P_NEG",
+      "pins": 3,
+      "parts": [
+        "JPOUT1",
+        "PROTFS83",
+        "R4"
+      ]
+    },
+    {
+      "net": "VBAT",
+      "pins": 3,
+      "parts": [
+        "JBAT1",
+        "JPOUT1",
+        "R3"
+      ]
+    },
+    {
+      "net": "VDD",
+      "pins": 2,
+      "parts": [
+        "PROTDW2",
+        "R3"
+      ]
+    }
+  ]
+}

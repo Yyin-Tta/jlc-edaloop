@@ -1,0 +1,20 @@
+{
+  "ok": true,
+  "totalNets": 9,
+  "singlePinNets": [
+    {
+      "net": "$1N305",
+      "pins": 1,
+      "parts": [
+        "PROTFS"
+      ]
+    },
+    {
+      "net": "FET_MID",
+      "pins": 1,
+      "parts": [
+        "PROTFS"
+      ]
+    }
+  ]
+}

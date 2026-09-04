@@ -1,0 +1,8 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 13 blocks, status=PASS
+
+- [CRITIC_THERMAL@ldo_3v3] AMS1117-3.3 在 5V→3.3V 下热计算 Tj≈136°C,裕量为 -30°C(已超温),SOT-223 无散热增强也无法挽救,说明负载电流对该 LDO 拓扑明显过大 | 建议: 改用降压 BUCK(如同步整流 DCDC)产生 3V3,或拆分负载/降低 3V3 电流;若坚持 LDO 需大幅降额并加铺铜散热,但当前裕量为负,换拓扑是更可靠选择
+- [CRITIC_PULL_RESISTORS@r_sda_pu/r_scl_pu] I2C 总线上拉重复三处:独立 4.7k×2(r_sda_pu/r_scl_pu)、eeprom_cfg 块内自带 4.7k×2、OLED 模组自带上拉,并联后等效约 2.35k 甚至更低,拉低电流增大、低功耗/总线驱动余量受损 | 建议: 只保留一组上拉(建议保留板上 4.7k×2,eeprom 块内上拉与 OLED 模组上拉移除或确认其阻值后再统一核算)
+- [CRITIC_INTERFACE_PROTECTION@touch_tp1/touch_tp2] TTP223 引脚绑定可疑:按块描述 5=CS0(灵敏度/选项脚)、6=VDD,但绑定把 3V3 接到引脚 5,且 VDD(6)未绑定;CS0 直接接电源不是标准配置,器件可能无法供电或行为异常 | 建议: 核对 TTP223 实际 pinout:VDD(通常 pin5? 以数据手册为准)接 3V3,VSS 接 GND,CS0/CS1 按默认瞬时模式接对应电平或悬空,修正 pins_binding 并补 100nF 去耦
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

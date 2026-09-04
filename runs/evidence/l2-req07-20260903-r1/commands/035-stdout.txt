@@ -1,0 +1,95 @@
+{
+  "overall": 88.6,
+  "verdict": "good",
+  "dimensions": [
+    {
+      "id": "folded-labels",
+      "title": "标签折叠",
+      "status": "scored",
+      "score": 100,
+      "weight": 1.2
+    },
+    {
+      "id": "reversed-labels",
+      "title": "标签反向",
+      "status": "scored",
+      "score": 100,
+      "weight": 1.2
+    },
+    {
+      "id": "proximity",
+      "title": "外围贴核心",
+      "status": "scored",
+      "score": 74.6,
+      "weight": 1,
+      "attributions": [
+        {
+          "dimension": "proximity",
+          "target": "C8",
+          "penalty": 25.4,
+          "message": "C8 距核心 U3 边距 239(\u003e150 开始扣分)— 建议移到 U3 下方 (620,665) 附近后重连",
+          "fix": "easyeda sch modify --id e0702238f4a40cbf --patch '{\"x\":620,\"y\":665}'",
+          "at": {
+            "x": 665,
+            "y": 455
+          }
+        }
+      ]
+    },
+    {
+      "id": "stub-tidiness",
+      "title": "长链/挤压",
+      "status": "scored",
+      "score": 72,
+      "weight": 0.8,
+      "attributions": [
+        {
+          "dimension": "stub-tidiness",
+          "target": "J2",
+          "penalty": 10,
+          "message": "J2 与其 12 个标记连成跨度 296 的长链(\u003e250)— 收短最远标记的 offset",
+          "fix": "easyeda sch disconnect --pin J2:B6 \u0026\u0026 easyeda sch connect --x 940 --y 490 --kind netport --net C7_N4 --direction right --offset 24",
+          "at": {
+            "x": 890,
+            "y": 480
+          }
+        },
+        {
+          "dimension": "stub-tidiness",
+          "target": "U3",
+          "penalty": 10,
+          "message": "U3 与其 9 个标记连成跨度 291 的长链(\u003e250)— 收短最远标记的 offset",
+          "fix": "easyeda sch disconnect --pin U3:14 \u0026\u0026 easyeda sch connect --x 665 --y 765 --kind netport --net USB_RTS --direction right --offset 24",
+          "at": {
+            "x": 620,
+            "y": 750
+          }
+        },
+        {
+          "dimension": "stub-tidiness",
+          "target": "J2↔R5",
+          "penalty": 8,
+          "message": "J2 与 R5 同排净距 105 \u003c 117(相向水平 netport 标签最小距)— 拉开间距(sch distribute --axis x)或把一侧标签换 direction"
+        }
+      ]
+    },
+    {
+      "id": "frame-fit",
+      "title": "版面整洁",
+      "status": "skipped",
+      "score": 0,
+      "weight": 0.5,
+      "reason": "components.list 未暴露 text 图元 bbox,且分区框几何不在 workflow state — 未测(≠满分)"
+    }
+  ],
+  "dimensionScores": {
+    "folded-labels": 100,
+    "proximity": 74.6,
+    "reversed-labels": 100,
+    "stub-tidiness": 72
+  },
+  "componentCount": 38,
+  "scoredDims": 4,
+  "skippedDims": 1,
+  "summary": "sch layout-score: 综合 88.6 [good] — 4 维已测 / 1 维未测(skipped≠满分),38 图元"
+}

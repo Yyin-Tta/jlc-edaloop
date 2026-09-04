@@ -1,0 +1,9 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 40 blocks, status=PASS
+
+- [CRITIC_INTERFACE_PROTECTION@do_drv] ULN2003 的 COM 脚(pin 9,续流二极管公共端)绑定到 5V_ISO,但 DO 负载由 24V_FIELD 供电(t_24v / DO 输出端子)。续流二极管钳位到 5V 而负载回路是 24V,感性负载断开时续流路径错误/二极管可能反向击穿,起不到续流保护作用。 | 建议: 将 pin 9 (COM) 改绑到 24V_FIELD,与感性负载电源同轨;确认 pin 8 (GND) 参考点与输出地一致。
+- [CRITIC_POWER_INTEGRITY@do_drv] ULN2003 输入(pin1-4)直接接 MCU 的 DO1-DO4 网络,但其地(pin 8)与电源(pin 9)绑定在隔离侧 GND_ISO/5V_ISO。MCU 以非隔离 GND 为参考,信号跨隔离屏障直接驱动隔离侧器件,既破坏 DI 光耦建立的隔离,又因无共地导致输入电平参考错误。 | 建议: DO 通道增加隔离(每路 PC817 或数字隔离器)使 MCU 侧与 ULN2003 侧分属各自地;或将 ULN2003 电源/地改回非隔离侧并重新评估隔离架构。
+- [CRITIC_DECOUPLING@dc_iso] B0505S 隔离输出侧(5V_ISO/GND_ISO)块描述明确要求加 LC 滤波/输出去耦,但 plan 中输出侧没有任何电容;且块描述要求的输入 TVS 也未落图。隔离 5V 直接给 ULN2003 与 DI 光耦使用,纹波/噪声无抑制。 | 建议: 在 5V_ISO-GND_ISO 间补充 10µF+100nF(及按描述的 LC 滤波),输入 5V 侧补 TVS。
+- [CRITIC_DECOUPLING@mcu] STM32F103C8 最小系统块描述要求每个 VDD 对 100nF + 整体 4.7µF 去耦(多个 VDD/VDDA 引脚),plan 仅落了一只 c_mcu1 100nF,且无 4.7µF 大容量电容,VDDA(模拟)也未单独处理。 | 建议: 按块描述为各 VDD 引脚分别配置 100nF,并增加整体 4.7µF;VDDA 建议经 RC/磁珠单独去耦。
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

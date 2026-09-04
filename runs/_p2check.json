@@ -1,0 +1,24 @@
+sch check: 9 finding(s) — 8 floating pin(s)/2 comp, 0 geom-net mismatch(es), 0 net-marker mismatch(es), 1 multi-net wire(s), 0 wire-crossing(s), 0 wire-over-pin(s), 0 zero-length wire(s), 0 dangling wire(s), 0 duplicate-net-marker(s), 0 titleblock-overlap(s), 3 marker-overlap(s), 3 missing-deliverable(partition/note/titleblock), 0 note-outside-zone(s), 0 folded-net-label(s), 0 redundant-net-marker(s), 0 reversed-net-flag(s), 0 polarity-convention outlier(s)
+  WARN   multi-net-wire     f722e556759b6c0f  导线有多个网络名: 5V、GND  nets=[5V,GND]
+  WARN   floating-pin       DRVM3  6 个引脚悬空(无导线连接,未打 NC 标识)  [5,6,7,10,11,12]
+          pin 5 (5B)  @(215.00,225.00)
+          pin 6 (6B)  @(215.00,215.00)
+          pin 7 (7B)  @(215.00,205.00)
+          pin 10 (7C)  @(295.00,205.00)
+          pin 11 (6C)  @(295.00,215.00)
+          pin 12 (5C)  @(295.00,225.00)
+  WARN   floating-pin       SWDHDR1  2 个引脚悬空(无导线连接,未打 NC 标识)  [5,6]
+          pin 5 (5)  @(890.00,290.00)
+          pin 6 (6)  @(890.00,220.00)
+  WARN   marker-overlap     0cfb13478e23c676  M1_IN2(netport) 与 M1_IN1(netport) 视觉重叠 40.00×1.00 — 换方向/offset 或 stagger  marker=M1_IN2 wire=
+  WARN   marker-overlap     3642a8b44b050840  GND(netflag) 与 LED1(part) 视觉重叠 13.50×19.00 — 换方向/offset 或 stagger  marker=GND wire=
+  WARN   marker-overlap     C5  C5(part) 与 GND(netflag) 视觉重叠 17.00×11.00 — 换方向/offset 或 stagger
+  WARN   missing-partition  8 个器件的页已分成 5 个功能模块(虚拟组/认领)但一个分区框都没画 — 铁律#15:`sch zone-draw --mode partition`;被拒(partitionOverlap / titleBlockHits)就先跑 `sch zone-plan` 看逐条 ✗ —— 它点名是哪两个区顶住、还差多少,并给出一条 `sch zone move --zone <区> --dx/--dy <量>` 的最小挪动;挪完再画,整页重排 `sch zone-arrange --apply` 或拆页是最后一档
+  WARN   missing-note       5 个功能模块只有 4 条电路说明,还缺 1 条(区名标签不算)— 每模块 1~3 行 `sch note --zone <模块名>`:作用 + 关键参数 + 设计要点。⚠ `sch note` 可能**静默失败**(落点装不下 / exec_js 抖动),写完用 `sch text-list` 回读复核,别只看退出码
+  WARN   missing-titleblock  图签未填:Name(图纸标题)、Drawed(设计者)、Description(图纸说明) — 交付图必须能认领(`sch titleblock --data '{"Name":"…","Drawed":"…"}'`)
+→ floating pins: wire them, or (where supported) mark intentional ones NC
+→ net names: fix mismatched flags/ports/labels before treating schematic DRC as clean
+→ marker overlap: net markers cover a part/each other — stagger the labels or re-run autoconnect with more offset
+→ missing-partition: 多器件页没画功能分区框(铁律#15) — `sch zones set`→`sch zone-draw`(整纸版式 --mode partition);若 `sch zone-plan` 报 partitionOverlap,先 `sch zone-arrange --apply` 或拆页,再画
+→ missing-note: 多器件页没有电路说明(区名标签不算,铁律#15) — 每模块 `sch note --zone <区>` 加 1~3 行:作用 + 关键参数 + 设计要点
+→ missing-titleblock: 图签必填项空着,交付图必须能认领 — `sch titleblock --data '{"Name":"…","Drawed":"…","Description":"…"}'`

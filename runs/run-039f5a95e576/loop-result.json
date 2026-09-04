@@ -1,0 +1,25 @@
+{
+ "status": "FAIL",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "53b29ba13abb",
+   "gate_verdict": "not-run",
+   "findings": [
+    "code='GATE_FAIL' where=Where(ref='', net='', pin='', xy='') evidence='round 1: block-apply 存在失败(autoconnect 连线失败或环境错误或清页失败跳过落图,详见 apply-error/page-clear 审计);本轮 spacing=250(A4 页流;RELAYOUT 反馈请给 at/params.spacing)' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:1 个块缺 v_supply 区间或单边(ldo3v3)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='5V', pin='', xy='') evidence='轨 5V 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/2(覆盖率 0%),缺 i_typ:ldo3v3, ch340' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/1(覆盖率 0%),缺 i_typ:mcu' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='USB-C 母座连接器(目录无 USB 连接器块,CH340N 的 UD+/UD- 差分对无落点)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='XL1509 DC-DC 降压芯片(目录无该块,现用宽压输入块自带的 5V 输出路径替代,拓扑/器件与需求指定不符,需人工确认)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='8MHz 晶振及 22pF 负载电容(电容标准值表中无 22p,晶振无块)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='TVS(SMBJ)与自恢复保险丝为宽压输入块描述内容,块 upstream 未显式落图,需编译期人工确认' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='[自由拓扑:reverse-polarity] P-MOS 防反接:G/S 并联到输入侧(栅极串稳压管可选),D 出 VSYS;压降远低于肖特基' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='PAGE_CLEAR_FAILED' where=Where(ref='', net='', pin='', xy='') evidence='清页两趟仍有残件:P1,P2,P3,P4,P5,P6,P7,P8,P9,P10,P11;本轮跳过落图防叠残件' severity='warning' suggested_fix_class='RELAYOUT' weak=True"
+   ],
+   "feedback": "[GATE_FAIL@-] round 1: block-apply 存在失败(autoconnect 连线失败或环境错误或清页失败跳过落图,详见 apply-error/page-clear 审计);本轮 spacing=250(A4 页流;RELAYOUT 反馈请给 at/params.spacing) → 修复:放置几何问题:给冲突块设置 params.spacing(如 300;过宽块编译器会自动截到 A4 内)或 at 空位(A4 页内坐标,x∈[100,1100] y∈[300,780];编译器优先读这两个字段)\nsizing 建议值(确定性公式,输入出处见 delivery.sizing.txt;采纳时用 resistor-std/capacitor-std 块 + params.value 表内标准值,值不要发明):\n- tvs-rating@vin_prot: VRWM≥26.4V / VC≤48V(SMAJ/SMBJ 系列按此筛)\n- fuse-rating@vin_prot: I_hold≥0.15A(自恢复 PPTC 按此档)\n- reg-caps@ldo3v3: 见 notes(惯例值)\n- thermal@ldo3v3: Tj≈136°C(裕量-30°C)\n- led-resistor@led_pwr: 推荐 270(就近换表内值)\n- led-resistor@led_fault: 推荐 270(就近换表内值)",
+   "halted": ""
+  }
+ ],
+ "delivery": {}
+}

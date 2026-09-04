@@ -1,0 +1,8 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 7 blocks, status=PASS
+
+- [CRITIC_INTERFACE_PROTECTION@rs485_sp3485] RS-485 A/B 为外部端子长线接口,块描述仅含终端电阻与偏置电阻,未提及 TVS/ESD 保护(A/B 对 GND/对间),工业长线场景易受浪涌与静电损伤 | 建议: 在 A/B 端子处增加 RS-485 专用 TVS(如 SM712 或 PESD1CAN),并保留 GND 参考端子
+- [CRITIC_INTERFACE_PROTECTION@usbc_entry] 块描述仅声明 VBUS 经 TVS/ESD 保护,USB_DP/DM 数据线未见 ESD 防护;且该差分对直接连到 ch340_prog 的 UD+/UD- | 建议: 在 USB-C 连接器近端为 D+/D-/CC 增加 USB2.0 专用 ESD 阵列(如 USBLC6-2SC6)
+- [CRITIC_DECOUPLING@rs485_sp3485] SP3485/MAX485 收发器块描述未提及相关去耦电容,3V3 供电脚缺少 100nF 就近去耦 | 建议: 在 SP3485 的 VCC 引脚就近放置 100nF 去耦电容
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

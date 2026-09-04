@@ -1,0 +1,10 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 8 blocks, status=PASS
+
+- [CRITIC_PULL_RESISTORS@mcu_stm32] NRST(p7)与 BOOT0(p44)无上拉/下拉电阻块,目录也无电阻器件(uncovered 已列出但未解决),浮空会导致复位不可靠与误入 bootloader | 建议: 补充 NRST 10k 上拉(或 100nF+10k RC)和 BOOT0 10k 下拉的电阻块,或将复位 RC/BOOT 下拉纳入 mcu 最小系统块内部
+- [CRITIC_PULL_RESISTORS@di_opto1/2/3/4] PC817 输出侧为开集(发射极接地、集电极接 DIx_IN),DIx_IN 无上拉电阻(uncovered 明确缺 4.7-10k 上拉),MCU 输入将浮空 | 建议: 为每个 DIx_IN 增加 4.7-10k 上拉到 3V3,或改用带内置上拉的块/在块描述中固化该电阻
+- [CRITIC_THERMAL@ldo_3v3] AMS1117 5V→3.3V,若按描述输出接近 1A,压降功耗约 1.7W,远超 SOT-223 无铺铜散热的安全范围;desc 仅称'压差余量够',未落实散热/限流 | 建议: 核算实际 3V3 峰值电流:若 >300-400mA 建议改用 BUCK 或多级降压,并要求大面积铺铜/散热过孔;desc 中写明允许的最大输出电流
+- [CRITIC_POWER_INTEGRITY@di_opto1/2/3/4] DI 输入侧 LED 限流电阻缺失(uncovered 已指出 24V→10mA 需约 2.2k),直接接 24V 会烧毁光耦 LED | 建议: 每路 DI 前级增加 2.2k 左右限流电阻(考虑 24V 波动与 PC817 IF 额定降额),或将限流电阻并入光耦块
+- [CRITIC_INTERFACE_PROTECTION@di_opto1/2/3/4] 24V 现场输入长线直接进板内,仅有光耦隔离但输入端无 TVS/反向保护,长线感应浪涌可能损坏光耦 LED 或前级电阻 | 建议: 在 DI_24V 端子处增加 TVS 或稳压管钳位及反接保护(如串二极管),与限流电阻配合
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

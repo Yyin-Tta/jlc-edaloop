@@ -1,0 +1,52 @@
+{
+  "overall": 100,
+  "verdict": "excellent",
+  "dimensions": [
+    {
+      "id": "folded-labels",
+      "title": "标签折叠",
+      "status": "scored",
+      "score": 100,
+      "weight": 1.2
+    },
+    {
+      "id": "reversed-labels",
+      "title": "标签反向",
+      "status": "scored",
+      "score": 100,
+      "weight": 1.2
+    },
+    {
+      "id": "proximity",
+      "title": "外围贴核心",
+      "status": "skipped",
+      "score": 0,
+      "weight": 1,
+      "reason": "1 个无源件只挂电源/地网(去耦类)且页面未分区认领 — 无信号核心可信推导,全部豁免;要评它们先 `sch zones set` 落模块认领"
+    },
+    {
+      "id": "stub-tidiness",
+      "title": "长链/挤压",
+      "status": "scored",
+      "score": 100,
+      "weight": 0.8
+    },
+    {
+      "id": "frame-fit",
+      "title": "版面整洁",
+      "status": "skipped",
+      "score": 0,
+      "weight": 0.5,
+      "reason": "components.list 未暴露 text 图元 bbox,且分区框几何不在 workflow state — 未测(≠满分)"
+    }
+  ],
+  "dimensionScores": {
+    "folded-labels": 100,
+    "reversed-labels": 100,
+    "stub-tidiness": 100
+  },
+  "componentCount": 3,
+  "scoredDims": 3,
+  "skippedDims": 2,
+  "summary": "sch layout-score: 综合 100.0 [excellent] — 3 维已测 / 2 维未测(skipped≠满分),3 图元"
+}

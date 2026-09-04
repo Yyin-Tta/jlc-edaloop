@@ -1,0 +1,9 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 7 blocks, status=PASS
+
+- [CRITIC_PULL_RESISTORS@mcu_esp32s3] 设计包含 2x4 I2C 扩展排针(uncovered 中明确 SDA/SCL),但全板无任何 I2C 上拉电阻来源:MCU 模组块、充电块均不含 SDA/SCL 上拉,目录也无分立阻容块。 | 建议: 若板上将要挂 I2C 排针,需在 3V3 与 SDA/SCL 各加 4.7kΩ 上拉(或选用含上拉的 I2C 连接器块);否则在 BOM/说明中明确由外接模块提供上拉。
+- [CRITIC_POWER_INTEGRITY@alarm_tl431] TL431 引脚 1 绑定到网络 'BAT',但全板电池网络名为 'VBAT'(chg_tp4056/boost_5v 均用 VBAT),'BAT' 是孤立网络,告警电路实际监测不到电池电压。 | 建议: 将 TL431 分压网络输入改绑到 VBAT,消除网络名不一致。
+- [CRITIC_INTERFACE_PROTECTION@usb_in] 块描述为'仅供电不传数据'(CC 只接 5.1k 下拉),但 ports_binding 仍绑定了 USB_DP/USB_DM,且板上无任何 USB 数据功能,数据线悬空绑定易引起误连线/阻抗控制浪费。 | 建议: 删除 USB_DP/USB_DM 端口绑定,或将描述改为'预留数据未用',DP/DM 按悬空处理。
+- [CRITIC_POWER_INTEGRITY@boost_5v] EN 直接接 VBAT(常使能),插 USB 充电时升压始终开启,5V 轨持续输出并经 AMS1117 产生静态功耗,且 USB 输入(5V_IN)与升压输出(5V)虽已隔离为不同网络,但常开升压增加电池损耗。 | 建议: 考虑由充电器检测信号(CHG_OK 反逻辑)或 MCU GPIO 控制升压 EN,插 USB 时关断升压以省电。
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

@@ -1,0 +1,41 @@
+{
+ "status": "PASS",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "548f18c7a621",
+   "gate_verdict": "pass",
+   "findings": [
+    "code='UNDECLARED_RAIL' where=Where(ref='', net='5V', pin='', xy='') evidence='网 5V 呈轨特征(家族 5|main≈5.0V)但 DesignIR 未声明该轨;planner 应在 IR 电源段显式声明,或把该网改绑到既有轨家族' severity='warn' suggested_fix_class='REPLAN' weak=True",
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:2 个块缺 v_supply 区间或单边(ldo1, eeprom1)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/4(覆盖率 0%),缺 i_typ:mcu1, eeprom1, tp1, tp2' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='OLED_RST 复位控制:目录 WROOM1 最小系统块与 OLED 块均未提供专用 RST 端口/OLED 模组 pinout 不全,需后续补 GPIO→OLED_RST 连接' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='OLED 模组 SCL/SDA 引脚:目录 oled-ssd1306 pinout 仅列脚 1/2(GND/VCC),I2C 信号脚号缺失,编译期需按实际模组补脚 3=SCL、4=SDA 到 I2C_SCL/I2C_SDA' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True"
+   ],
+   "feedback": "",
+   "halted": ""
+  }
+ ],
+ "delivery": {
+  "svg": "D:\\gyt-pro\\jlc-edaloop\\runs\\run-db243869e2a0\\delivery-P1.svg",
+  "svg_pages": [
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-db243869e2a0\\delivery-P1.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-db243869e2a0\\delivery-P2.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-db243869e2a0\\delivery-P3.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-db243869e2a0\\delivery-P4.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-db243869e2a0\\delivery-P5.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-db243869e2a0\\delivery-P6.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-db243869e2a0\\delivery-P7.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-db243869e2a0\\delivery-P8.svg"
+  ],
+  "netlist": "runs\\run-db243869e2a0\\delivery.net.json",
+  "netlist_sha256_16": "8e07733aff5ee3d9",
+  "bom": "runs\\run-db243869e2a0\\delivery.bom.json",
+  "bom_total": 5.9843,
+  "swap": "runs\\run-db243869e2a0\\delivery.swap.txt",
+  "sizing": "runs\\run-db243869e2a0\\delivery.sizing.txt",
+  "sizing_count": 8,
+  "review": "runs\\run-db243869e2a0\\delivery.review.txt",
+  "review_findings": 3
+ }
+}

@@ -1,0 +1,338 @@
+[watchdog 06:59:20] attempt 1 å¼€è·‘
+{'req': 'req-06-pico-native-usb-gateway.md', 'status': 'PASS', 'rounds': 1, 'n_rounds': 1}
+{'req': 'req-07-motor-driver-board.md', 'status': 'HALT', 'rounds': None, 'n_rounds': 2}
+{'req': 'req-10-esp32s3-industrial-4layer.md', 'status': 'PASS', 'rounds': 1, 'n_rounds': 1}
+{'req': 'req-12-hybrid-dual-mcu-gateway.md', 'status': 'PASS', 'rounds': 1, 'n_rounds': 1}
+{'req': 'req-13-env-sensor-motherboard.md', 'status': 'HALT', 'rounds': None, 'n_rounds': 2}
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 457, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 432, in main
+    return _cmd_eval(args)
+           ^^^^^^^^^^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\cli.py", line 162, in _cmd_eval
+    summary = run_w3_loop_eval(tier=args.tier)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\evals_w3.py", line 136, in run_w3_loop_eval
+    _health_check()
+  File "D:\gyt-pro\jlc-edaloop\src\edaloop\evals_w3.py", line 79, in _health_check
+    raise RuntimeError(
+RuntimeError: Á¬½ÓÆ÷ÎŞÏìÓ¦(EasyEDA ¿ÉÄÜ¼ÙËÀ):ÇëÖØÆô EasyEDA Pro ²¢´ò¿ª¹¤³Ì,È»ºóÖØÅÜÍ¬Ò»ÃüÁî¡ª¡ª¶ÏµãÒÑ±£´æ,½«´ÓÊ£ÓàĞèÇó¼ÌĞø
+[watchdog 08:30:42] attempt 1 exit=1 è¿›åº¦ 3/5
+[watchdog 08:30:42] ç¯å¢ƒä¸è‡ªæ´½,å°è¯•æ¢å¤
+no connected window for project "edaloop" (run `easyeda daemon health`)
+[watchdog] è½»æ¢å¤æ— æ•ˆ,é‡å¯ EasyEDA(å…ˆä¼˜é›…å…³å†å¼ºæ€)
+³É¹¦: ¸ø½ø³Ì "lceda-pro.exe" ·¢ËÍÁËÖÕÖ¹ĞÅºÅ£¬½ø³ÌµÄ PID Îª 6172¡£
+³É¹¦: ¸ø½ø³Ì "lceda-pro.exe" ·¢ËÍÁËÖÕÖ¹ĞÅºÅ£¬½ø³ÌµÄ PID Îª 22236¡£
+³É¹¦: ¸ø½ø³Ì "lceda-pro.exe" ·¢ËÍÁËÖÕÖ¹ĞÅºÅ£¬½ø³ÌµÄ PID Îª 22516¡£
+³É¹¦: ¸ø½ø³Ì "lceda-pro.exe" ·¢ËÍÁËÖÕÖ¹ĞÅºÅ£¬½ø³ÌµÄ PID Îª 21212¡£
+´íÎó: ÎŞ·¨ÖÕÖ¹½ø³Ì "lceda-pro.exe"£¬Æä PID Îª 21044¡£
+Ô­Òò: Ö»ÄÜÇ¿ĞĞÖÕÖ¹Õâ¸ö½ø³Ì(´ø /F Ñ¡Ïî)¡£
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+{
+  "id": "req_443636",
+  "type": "response",
+  "version": "v1",
+  "createdAt": "2026-08-25T00:32:21.4440597Z",
+  "ok": true,
+  "result": {
+    "message": "å›å½’çœ‹é—¨ç‹—:è¯·æ‰“å¼€å·¥ç¨‹ edaloop å¹¶åˆ‡åˆ°åŸç†å›¾é¡µ(äº‘ç«¯å·¥ç¨‹é‡å¯åä¸è‡ªåŠ¨æ¢å¤)",
+    "shown": true,
+    "type": "warn"
+  },
+  "context": {
+    "documentUuid": "tab_page1",
+    "documentType": "home",
+    "tabId": "tab_page1"
+  },
+  "seq": 1,
+  "seqAbandoned": 0
+}
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+{
+  "id": "req_443643",
+  "type": "response",
+  "version": "v1",
+  "createdAt": "2026-08-25T00:33:47.0377821Z",
+  "ok": true,
+  "result": {
+    "message": "å›å½’çœ‹é—¨ç‹—:è¯·æ‰“å¼€å·¥ç¨‹ edaloop å¹¶åˆ‡åˆ°åŸç†å›¾é¡µ(äº‘ç«¯å·¥ç¨‹é‡å¯åä¸è‡ªåŠ¨æ¢å¤)",
+    "shown": true,
+    "type": "warn"
+  },
+  "context": {
+    "documentUuid": "tab_page1",
+    "documentType": "home",
+    "tabId": "tab_page1"
+  },
+  "seq": 2,
+  "seqAbandoned": 0
+}
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+{
+  "id": "req_443650",
+  "type": "response",
+  "version": "v1",
+  "createdAt": "2026-08-25T00:35:12.6387142Z",
+  "ok": true,
+  "result": {
+    "message": "å›å½’çœ‹é—¨ç‹—:è¯·æ‰“å¼€å·¥ç¨‹ edaloop å¹¶åˆ‡åˆ°åŸç†å›¾é¡µ(äº‘ç«¯å·¥ç¨‹é‡å¯åä¸è‡ªåŠ¨æ¢å¤)",
+    "shown": true,
+    "type": "warn"
+  },
+  "context": {
+    "documentUuid": "tab_page1",
+    "documentType": "home",
+    "tabId": "tab_page1"
+  },
+  "seq": 3,
+  "seqAbandoned": 0
+}
+[watchdog] æ¢å¤å¤±è´¥(å¤§æ¦‚ç‡:äº‘ç«¯å·¥ç¨‹æœªæ¢å¤ä¸” CLI æ— æ³•å¼€å·¥ç¨‹)â€”â€”è½¬äººå·¥:è¯·åœ¨ EasyEDA æ‰“å¼€ edaloop åé‡è·‘ bash runs/p5-0-watchdog.sh rest runs/log-rest-b3.log
+[watchdog] è½¬äººå·¥
+[watchdog 08:37:31] attempt 1 å¼€è·‘
+[watchdog 08:37:32] ç¯å¢ƒä¸è‡ªæ´½,å°è¯•æ¢å¤
+no connected window for project "edaloop" (run `easyeda daemon health`)
+[watchdog] è½»æ¢å¤æ— æ•ˆ,é‡å¯ EasyEDA(å…ˆä¼˜é›…å…³å†å¼ºæ€)
+³É¹¦: ¸ø½ø³Ì "lceda-pro.exe" ·¢ËÍÁËÖÕÖ¹ĞÅºÅ£¬½ø³ÌµÄ PID Îª 12484¡£
+³É¹¦: ¸ø½ø³Ì "lceda-pro.exe" ·¢ËÍÁËÖÕÖ¹ĞÅºÅ£¬½ø³ÌµÄ PID Îª 22452¡£
+³É¹¦: ¸ø½ø³Ì "lceda-pro.exe" ·¢ËÍÁËÖÕÖ¹ĞÅºÅ£¬½ø³ÌµÄ PID Îª 2888¡£
+³É¹¦: ¸ø½ø³Ì "lceda-pro.exe" ·¢ËÍÁËÖÕÖ¹ĞÅºÅ£¬½ø³ÌµÄ PID Îª 9308¡£
+´íÎó: ÎŞ·¨ÖÕÖ¹½ø³Ì "lceda-pro.exe"£¬Æä PID Îª 20944¡£
+Ô­Òò: Ö»ÄÜÇ¿ĞĞÖÕÖ¹Õâ¸ö½ø³Ì(´ø /F Ñ¡Ïî)¡£
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+{
+  "id": "req_443660",
+  "type": "response",
+  "version": "v1",
+  "createdAt": "2026-08-25T00:39:10.6511802Z",
+  "ok": true,
+  "result": {
+    "message": "å›å½’çœ‹é—¨ç‹—:è¯·æ‰“å¼€å·¥ç¨‹ edaloop å¹¶åˆ‡åˆ°åŸç†å›¾é¡µ(äº‘ç«¯å·¥ç¨‹é‡å¯åä¸è‡ªåŠ¨æ¢å¤)",
+    "shown": true,
+    "type": "warn"
+  },
+  "context": {
+    "documentUuid": "tab_page1",
+    "documentType": "home",
+    "tabId": "tab_page1"
+  },
+  "seq": 1,
+  "seqAbandoned": 0
+}
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+{
+  "id": "req_443667",
+  "type": "response",
+  "version": "v1",
+  "createdAt": "2026-08-25T00:40:36.2467348Z",
+  "ok": true,
+  "result": {
+    "message": "å›å½’çœ‹é—¨ç‹—:è¯·æ‰“å¼€å·¥ç¨‹ edaloop å¹¶åˆ‡åˆ°åŸç†å›¾é¡µ(äº‘ç«¯å·¥ç¨‹é‡å¯åä¸è‡ªåŠ¨æ¢å¤)",
+    "shown": true,
+    "type": "warn"
+  },
+  "context": {
+    "documentUuid": "tab_page1",
+    "documentType": "home",
+    "tabId": "tab_page1"
+  },
+  "seq": 2,
+  "seqAbandoned": 0
+}
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+{
+  "id": "req_443674",
+  "type": "response",
+  "version": "v1",
+  "createdAt": "2026-08-25T00:42:01.8629807Z",
+  "ok": true,
+  "result": {
+    "message": "å›å½’çœ‹é—¨ç‹—:è¯·æ‰“å¼€å·¥ç¨‹ edaloop å¹¶åˆ‡åˆ°åŸç†å›¾é¡µ(äº‘ç«¯å·¥ç¨‹é‡å¯åä¸è‡ªåŠ¨æ¢å¤)",
+    "shown": true,
+    "type": "warn"
+  },
+  "context": {
+    "documentUuid": "tab_page1",
+    "documentType": "home",
+    "tabId": "tab_page1"
+  },
+  "seq": 3,
+  "seqAbandoned": 0
+}
+[watchdog] æ¢å¤å¤±è´¥(å¤§æ¦‚ç‡:äº‘ç«¯å·¥ç¨‹æœªæ¢å¤ä¸” CLI æ— æ³•å¼€å·¥ç¨‹)â€”â€”è½¬äººå·¥:è¯·åœ¨ EasyEDA æ‰“å¼€ edaloop åé‡è·‘ bash runs/p5-0-watchdog.sh rest runs/log-rest-b3.log
+[watchdog] è½¬äººå·¥
+[watchdog 08:52:27] attempt 1 å¼€è·‘
+[watchdog 08:52:27] ç¯å¢ƒä¸è‡ªæ´½,å°è¯•æ¢å¤
+no connected window for project "edaloop" (run `easyeda daemon health`)
+[watchdog] è½»æ¢å¤æ— æ•ˆ,é‡å¯ EasyEDA(å…ˆä¼˜é›…å…³å†å¼ºæ€)
+³É¹¦: ¸ø½ø³Ì "lceda-pro.exe" ·¢ËÍÁËÖÕÖ¹ĞÅºÅ£¬½ø³ÌµÄ PID Îª 19484¡£
+³É¹¦: ¸ø½ø³Ì "lceda-pro.exe" ·¢ËÍÁËÖÕÖ¹ĞÅºÅ£¬½ø³ÌµÄ PID Îª 9840¡£
+³É¹¦: ¸ø½ø³Ì "lceda-pro.exe" ·¢ËÍÁËÖÕÖ¹ĞÅºÅ£¬½ø³ÌµÄ PID Îª 3992¡£
+³É¹¦: ¸ø½ø³Ì "lceda-pro.exe" ·¢ËÍÁËÖÕÖ¹ĞÅºÅ£¬½ø³ÌµÄ PID Îª 21684¡£
+´íÎó: ÎŞ·¨ÖÕÖ¹½ø³Ì "lceda-pro.exe"£¬Æä PID Îª 18344¡£
+Ô­Òò: Ö»ÄÜÇ¿ĞĞÖÕÖ¹Õâ¸ö½ø³Ì(´ø /F Ñ¡Ïî)¡£
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+{
+  "id": "req_443686",
+  "type": "response",
+  "version": "v1",
+  "createdAt": "2026-08-25T00:54:05.9255755Z",
+  "ok": true,
+  "result": {
+    "message": "å›å½’çœ‹é—¨ç‹—:è¯·æ‰“å¼€å·¥ç¨‹ edaloop å¹¶åˆ‡åˆ°åŸç†å›¾é¡µ(äº‘ç«¯å·¥ç¨‹é‡å¯åä¸è‡ªåŠ¨æ¢å¤)",
+    "shown": true,
+    "type": "warn"
+  },
+  "context": {
+    "documentUuid": "tab_page1",
+    "documentType": "home",
+    "tabId": "tab_page1"
+  },
+  "seq": 1,
+  "seqAbandoned": 0
+}
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+{
+  "id": "req_443693",
+  "type": "response",
+  "version": "v1",
+  "createdAt": "2026-08-25T00:55:31.566413Z",
+  "ok": true,
+  "result": {
+    "message": "å›å½’çœ‹é—¨ç‹—:è¯·æ‰“å¼€å·¥ç¨‹ edaloop å¹¶åˆ‡åˆ°åŸç†å›¾é¡µ(äº‘ç«¯å·¥ç¨‹é‡å¯åä¸è‡ªåŠ¨æ¢å¤)",
+    "shown": true,
+    "type": "warn"
+  },
+  "context": {
+    "documentUuid": "tab_page1",
+    "documentType": "home",
+    "tabId": "tab_page1"
+  },
+  "seq": 2,
+  "seqAbandoned": 0
+}
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+no connected window for project "edaloop" (run `easyeda daemon health`)
+{
+  "id": "req_443702",
+  "type": "response",
+  "version": "v1",
+  "createdAt": "2026-08-25T00:56:57.2276393Z",
+  "ok": true,
+  "result": {
+    "message": "å›å½’çœ‹é—¨ç‹—:è¯·æ‰“å¼€å·¥ç¨‹ edaloop å¹¶åˆ‡åˆ°åŸç†å›¾é¡µ(äº‘ç«¯å·¥ç¨‹é‡å¯åä¸è‡ªåŠ¨æ¢å¤)",
+    "shown": true,
+    "type": "warn"
+  },
+  "context": {
+    "documentUuid": "tab_page1",
+    "documentType": "home",
+    "tabId": "tab_page1"
+  },
+  "seq": 3,
+  "seqAbandoned": 0
+}
+[watchdog] æ¢å¤å¤±è´¥(å¤§æ¦‚ç‡:äº‘ç«¯å·¥ç¨‹æœªæ¢å¤ä¸” CLI æ— æ³•å¼€å·¥ç¨‹)â€”â€”è½¬äººå·¥:è¯·åœ¨ EasyEDA æ‰“å¼€ edaloop åé‡è·‘ bash runs/p5-0-watchdog.sh rest runs/log-rest-b3.log
+[watchdog] è½¬äººå·¥
+[watchdog 09:27:24] attempt 1 å¼€è·‘
+skip(done) req-06-pico-native-usb-gateway.md: {'req': 'req-06-pico-native-usb-gateway.md', 'status': 'PASS', 'rounds': 1, 'n_rounds': 1}
+{'req': 'req-07-motor-driver-board.md', 'status': 'HALT', 'rounds': None, 'n_rounds': 2}
+skip(done) req-10-esp32s3-industrial-4layer.md: {'req': 'req-10-esp32s3-industrial-4layer.md', 'status': 'PASS', 'rounds': 1, 'n_rounds': 1}
+skip(done) req-12-hybrid-dual-mcu-gateway.md: {'req': 'req-12-hybrid-dual-mcu-gateway.md', 'status': 'PASS', 'rounds': 1, 'n_rounds': 1}
+{'req': 'req-13-env-sensor-motherboard.md', 'status': 'HALT', 'rounds': None, 'n_rounds': 2}
+{'req': 'req-14-door-sensor-e2e.md', 'status': 'HALT', 'rounds': None, 'n_rounds': 2}
+{
+ "rows": [
+  {
+   "req": "req-06-pico-native-usb-gateway.md",
+   "status": "PASS",
+   "rounds": 1,
+   "n_rounds": 1
+  },
+  {
+   "req": "req-07-motor-driver-board.md",
+   "status": "HALT",
+   "rounds": null,
+   "n_rounds": 2
+  },
+  {
+   "req": "req-10-esp32s3-industrial-4layer.md",
+   "status": "PASS",
+   "rounds": 1,
+   "n_rounds": 1
+  },
+  {
+   "req": "req-12-hybrid-dual-mcu-gateway.md",
+   "status": "PASS",
+   "rounds": 1,
+   "n_rounds": 1
+  },
+  {
+   "req": "req-13-env-sensor-motherboard.md",
+   "status": "HALT",
+   "rounds": null,
+   "n_rounds": 2
+  },
+  {
+   "req": "req-14-door-sensor-e2e.md",
+   "status": "HALT",
+   "rounds": null,
+   "n_rounds": 2
+  }
+ ],
+ "pass@3": 0.5,
+ "pass@5": 0.5,
+ "go3": false,
+ "go5": false
+}
+[watchdog 10:47:43] attempt 1 exit=1 è¿›åº¦ 3/6
+[watchdog 10:48:13] attempt 2 å¼€è·‘
+skip(done) req-06-pico-native-usb-gateway.md: {'req': 'req-06-pico-native-usb-gateway.md', 'status': 'PASS', 'rounds': 1, 'n_rounds': 1}

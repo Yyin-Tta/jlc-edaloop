@@ -1,0 +1,42 @@
+{
+ "status": "PASS",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "3e54264b673f",
+   "gate_verdict": "pass",
+   "findings": [
+    "code='MISSING_RAIL' where=Where(ref='', net='VBAT', pin='', xy='') evidence='DesignIR 电源轨 VBAT(3-4.2V) 在 BlockPlan 任何端口绑定中都未出现(按轨家族 3.7|main 归一比对)' severity='error' suggested_fix_class='REBIND_NET' weak=False",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='DW01A VDD 串接 100R 至 B+、CSI 串接 1k 至 B- 的两颗采样电阻:目录无电阻类块,需补充' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='18650 电芯 B+/B- 焊盘与保护后 P+/P- 输出焊盘:目录无电池座/焊盘类器件,需补充(P+ 与 B+ 直连同网)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True"
+   ],
+   "feedback": "[MISSING_RAIL@VBAT] DesignIR 电源轨 VBAT(3-4.2V) 在 BlockPlan 任何端口绑定中都未出现(按轨家族 3.7|main 归一比对) → 修复:把缺失的网络补进对应块的绑定:upstream 块用 ports_binding,place 通道器件用 pins_binding(引脚号→网名);同名引脚族(VSS*/VDD*/EP)都要绑",
+   "halted": ""
+  },
+  {
+   "round_no": 2,
+   "plan_id": "74fa4f355c6d",
+   "gate_verdict": "pass",
+   "findings": [
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='DW01A VDD 串联 100R 与 CSI 串联 1k 的取样/限流电阻:目录无带 lcsc 的电阻器件,需库外补充' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='单节 18650 电芯 B+/B- 焊盘及保护后 P+/P- 输出焊盘:目录无对应电池座/焊盘器件(P_PLUS 直接与 VBAT 同网汇合,需补焊盘)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True"
+   ],
+   "feedback": "",
+   "halted": ""
+  }
+ ],
+ "delivery": {
+  "svg": "E:\\jlc-edaloop\\runs\\run-d4ba89d92fb8\\delivery-P1.svg",
+  "svg_pages": [
+   "E:\\jlc-edaloop\\runs\\run-d4ba89d92fb8\\delivery-P1.svg",
+   "E:\\jlc-edaloop\\runs\\run-d4ba89d92fb8\\delivery-P2.svg"
+  ],
+  "netlist": "runs\\run-d4ba89d92fb8\\delivery.net.json",
+  "netlist_sha256_16": "79b326bec19e76a6",
+  "bom": "runs\\run-d4ba89d92fb8\\delivery.bom.json",
+  "bom_total": 0.0737,
+  "swap": "runs\\run-d4ba89d92fb8\\delivery.swap.txt",
+  "review": "runs\\run-d4ba89d92fb8\\delivery.review.txt",
+  "review_findings": 3
+ }
+}

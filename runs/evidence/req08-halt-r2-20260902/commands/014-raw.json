@@ -1,0 +1,20 @@
+{
+  "ok": true,
+  "totalNets": 2,
+  "singlePinNets": [
+    {
+      "net": "B_MINUS",
+      "pins": 1,
+      "parts": [
+        "C1"
+      ]
+    },
+    {
+      "net": "VDD",
+      "pins": 1,
+      "parts": [
+        "C1"
+      ]
+    }
+  ]
+}

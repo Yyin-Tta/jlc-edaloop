@@ -1,0 +1,8 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 16 blocks, status=PASS
+
+- [CRITIC_THERMAL@ldo1] sizing_recommendations 给出 Tj≈136°C、裕量 -30°C，AMS1117(SOT-223) 在当前负载下结温已超 125°C 上限，块描述中“压差余量按峰值电流算够”掩盖了热失效风险，且无任何降载/换器件措施。 | 建议: 改用同步 BUCK(如 TPS5430/MP1584 类)降压到 3.3V，或降低 LDO 输入压差(如 5V→3.3V 换效率更高的拓扑)；若必须保留 1117，需限制负载电流至热裕量为正并加大铺铜散热，但建议直接换拓扑。
+- [CRITIC_PULL_RESISTORS@r_sda/r_scl] OLED 块描述已注明“模块含上拉”，EEPROM 块描述也写“上拉 4.7k×2”，而 plan 又外置 r_sda/r_scl 4.7k，存在重复上拉(并联约 2.35k)。虽通常仍可工作，但与两块自述内容矛盾，说明总线配置意图不一致。 | 建议: 统一策略：确认 OLED/EEPROM 模块上拉是否实际存在，若外置 4.7k 保留则去掉块内/模组上的上拉描述；或将外置上拉改为 10k 以弱化并联影响，并在 netlist 中只保留一组上拉。
+- [CRITIC_连接完整性(设计层)@mcu1] mcu1 的 pins_binding 为空，仅绑定电源/EN/IO0/UART；而 plan 中 I2C_SDA/I2C_SCL(OLED、EEPROM)、TP1/TP2 触摸输出、LED_PWR_CTRL/LED_BL_CTRL/LED_TP_CTRL 等信号均无任何 MCU GPIO 绑定，存在多处逻辑孤岛，靠后期补网极易遗漏。 | 建议: 在 mcu1 上为 I2C(建议 ESP32-S3 任意 GPIO，如 IO8/IO9)、TP1/TP2 输入、三路 LED 控制
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

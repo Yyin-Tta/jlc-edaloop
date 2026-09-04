@@ -1,0 +1,414 @@
+{
+  "id": "req_30980",
+  "type": "response",
+  "version": "v1",
+  "createdAt": "2026-08-22T13:53:40.4527938Z",
+  "ok": true,
+  "result": {
+    "pages": [
+      {
+        "name": "P1",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "7c4a751c5136cb01"
+      },
+      {
+        "name": "P35",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "4b484b07e1724274"
+      },
+      {
+        "name": "P34",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "b772798d5aa70f02"
+      },
+      {
+        "name": "P22",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "4900612c860bb447"
+      },
+      {
+        "name": "P23",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "050bfe3bac7af4b5"
+      },
+      {
+        "name": "P25",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "500793555d4e213f"
+      },
+      {
+        "name": "P26",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "1933e1fb2156d180"
+      },
+      {
+        "name": "P27",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "9fc8a712ff68d3ae"
+      },
+      {
+        "name": "P28",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "c54c6c6943729a35"
+      },
+      {
+        "name": "P29",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "e19df3eddc844032"
+      },
+      {
+        "name": "P31",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "2b32c2873ee378b6"
+      },
+      {
+        "name": "P32",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "ab659c22a9941419"
+      },
+      {
+        "name": "P14",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "aa7c3373a2917220"
+      },
+      {
+        "name": "P16",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "47159b767f800fcc"
+      },
+      {
+        "name": "P17",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "951bce87f30d7108"
+      },
+      {
+        "name": "P19",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "fd508f64db778352"
+      },
+      {
+        "name": "P21",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "e96b083e098dddeb"
+      },
+      {
+        "name": "P2",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "77858da24f77cd3d"
+      },
+      {
+        "name": "P3",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "6da16db45c671da1"
+      },
+      {
+        "name": "P5",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "2600e2d8da6a730d"
+      },
+      {
+        "name": "P6",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "5b896fc1e1e8b7dc"
+      },
+      {
+        "name": "P7",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "7d6f699e3548603e"
+      },
+      {
+        "name": "P8",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "d9eb706ec173c36f"
+      },
+      {
+        "name": "P9",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "9ef43fad1e756b61"
+      },
+      {
+        "name": "P11",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "dda729b5dbdbbfe0"
+      },
+      {
+        "name": "P13",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "b5297f7367590c0f"
+      },
+      {
+        "name": "P24",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "522dd101ebffa1fe"
+      },
+      {
+        "name": "P36",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "c2e06110256fd8c8"
+      },
+      {
+        "name": "P33",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "e825f182df153f76"
+      },
+      {
+        "name": "P30",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "dbd84ea45098ea00"
+      },
+      {
+        "name": "P20",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "05275a32ffac8dcb"
+      },
+      {
+        "name": "P18",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "045ffba01f960c27"
+      },
+      {
+        "name": "P15",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "010bbbcb81e19828"
+      },
+      {
+        "name": "P10",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "7618a60b0b29d772"
+      },
+      {
+        "name": "P12",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "905b1b1e2644365f"
+      },
+      {
+        "name": "P4",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "df7e82a1a192d5a9"
+      },
+      {
+        "name": "P37",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "e9ed6a9aa117d3fc"
+      },
+      {
+        "name": "P38",
+        "parentSchematicUuid": "f328f96d6b0c3fd2",
+        "uuid": "3a5b8289aee0709d"
+      }
+    ],
+    "schematics": [
+      {
+        "name": "schematic1",
+        "page": [
+          {
+            "name": "p1",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "7c4a751c5136cb01"
+          },
+          {
+            "name": "p35",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "4b484b07e1724274"
+          },
+          {
+            "name": "p34",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "b772798d5aa70f02"
+          },
+          {
+            "name": "p22",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "4900612c860bb447"
+          },
+          {
+            "name": "p23",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "050bfe3bac7af4b5"
+          },
+          {
+            "name": "p25",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "500793555d4e213f"
+          },
+          {
+            "name": "p26",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "1933e1fb2156d180"
+          },
+          {
+            "name": "p27",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "9fc8a712ff68d3ae"
+          },
+          {
+            "name": "p28",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "c54c6c6943729a35"
+          },
+          {
+            "name": "p29",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "e19df3eddc844032"
+          },
+          {
+            "name": "p31",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "2b32c2873ee378b6"
+          },
+          {
+            "name": "p32",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "ab659c22a9941419"
+          },
+          {
+            "name": "p14",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "aa7c3373a2917220"
+          },
+          {
+            "name": "p16",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "47159b767f800fcc"
+          },
+          {
+            "name": "p17",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "951bce87f30d7108"
+          },
+          {
+            "name": "p19",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "fd508f64db778352"
+          },
+          {
+            "name": "p21",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "e96b083e098dddeb"
+          },
+          {
+            "name": "p2",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "77858da24f77cd3d"
+          },
+          {
+            "name": "p3",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "6da16db45c671da1"
+          },
+          {
+            "name": "p5",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "2600e2d8da6a730d"
+          },
+          {
+            "name": "p6",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "5b896fc1e1e8b7dc"
+          },
+          {
+            "name": "p7",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "7d6f699e3548603e"
+          },
+          {
+            "name": "p8",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "d9eb706ec173c36f"
+          },
+          {
+            "name": "p9",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "9ef43fad1e756b61"
+          },
+          {
+            "name": "p11",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "dda729b5dbdbbfe0"
+          },
+          {
+            "name": "p13",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "b5297f7367590c0f"
+          },
+          {
+            "name": "p24",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "522dd101ebffa1fe"
+          },
+          {
+            "name": "p36",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "c2e06110256fd8c8"
+          },
+          {
+            "name": "p33",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "e825f182df153f76"
+          },
+          {
+            "name": "p30",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "dbd84ea45098ea00"
+          },
+          {
+            "name": "p20",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "05275a32ffac8dcb"
+          },
+          {
+            "name": "p18",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "045ffba01f960c27"
+          },
+          {
+            "name": "p15",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "010bbbcb81e19828"
+          },
+          {
+            "name": "p10",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "7618a60b0b29d772"
+          },
+          {
+            "name": "p12",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "905b1b1e2644365f"
+          },
+          {
+            "name": "p4",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "df7e82a1a192d5a9"
+          },
+          {
+            "name": "p37",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "e9ed6a9aa117d3fc"
+          },
+          {
+            "name": "p38",
+            "parentSchematicUuid": "f328f96d6b0c3fd2",
+            "uuid": "3a5b8289aee0709d"
+          }
+        ],
+        "parentProjectUuid": "993e2ad9b7944f92b44333b630a754da",
+        "uuid": "f328f96d6b0c3fd2"
+      }
+    ]
+  },
+  "context": {
+    "projectUuid": "993e2ad9b7944f92b44333b630a754da",
+    "projectName": "edaloop-w2-req01",
+    "documentUuid": "7c4a751c5136cb01",
+    "documentType": "schematic",
+    "tabId": "7c4a751c5136cb01@993e2ad9b7944f92b44333b630a754da"
+  },
+  "seq": 512,
+  "seqAbandoned": 3,
+  "abandonedIds": [
+    "req_30288",
+    "req_30299",
+    "req_30308"
+  ]
+}

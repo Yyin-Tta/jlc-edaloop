@@ -1,0 +1,30 @@
+{
+ "status": "PASS",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "203eed7ca0ba",
+   "gate_verdict": "pass",
+   "findings": [
+    "code='FUNC_UNCOVERED' where=Where(ref='充/放电双向关断', net='', pin='', xy='') evidence='IR 功能「充/放电双向关断」在计划 5 块的词表/词元匹配中无覆盖证据(启发式对齐,恒弱;确属需要时补块,或 refine 补充需求细节)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True"
+   ],
+   "feedback": "",
+   "halted": ""
+  }
+ ],
+ "delivery": {
+  "svg": "D:\\gyt-pro\\jlc-edaloop\\runs\\run-e89808c395b8\\delivery-P1.svg",
+  "svg_pages": [
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-e89808c395b8\\delivery-P1.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-e89808c395b8\\delivery-P2.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-e89808c395b8\\delivery-P3.svg"
+  ],
+  "netlist": "runs\\run-e89808c395b8\\delivery.net.json",
+  "netlist_sha256_16": "0322c94769b6bcc6",
+  "bom": "runs\\run-e89808c395b8\\delivery.bom.json",
+  "bom_total": 0.0737,
+  "swap": "runs\\run-e89808c395b8\\delivery.swap.txt",
+  "review": "runs\\run-e89808c395b8\\delivery.review.txt",
+  "review_findings": 2
+ }
+}

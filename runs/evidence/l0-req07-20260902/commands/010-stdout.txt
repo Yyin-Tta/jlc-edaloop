@@ -1,0 +1,54 @@
+{
+  "id": "req_193463",
+  "type": "response",
+  "version": "v1",
+  "createdAt": "2026-09-02T14:57:23.5150079Z",
+  "ok": true,
+  "result": {
+    "check": {
+      "findings": [],
+      "passed": true,
+      "summary": {
+        "componentsWithFloating": 0,
+        "danglingWires": 0,
+        "floatingPins": 0,
+        "geomNetMismatches": 0,
+        "multiNetWires": 0,
+        "netMarkerMismatches": 0,
+        "polarityConventionOutliers": 0,
+        "total": 0,
+        "wireCrossings": 0,
+        "wireOverPins": 0,
+        "zeroLengthWires": 0
+      }
+    },
+    "componentCount": 1,
+    "components": [
+      {
+        "componentType": "sheet",
+        "designator": "",
+        "footprint": "",
+        "name": "",
+        "pins": [],
+        "primitiveId": "9ee6750183e09013",
+        "supplierId": "",
+        "uniqueId": "",
+        "x": 0,
+        "y": 0
+      }
+    ],
+    "floatingPinCount": 0,
+    "floatingPins": [],
+    "netCount": 0,
+    "nets": []
+  },
+  "context": {
+    "projectUuid": "7d17ff6aa40b4252914acbf836d4991b",
+    "projectName": "edaloop-req07-baseline",
+    "documentUuid": "a02b4d70c4ef0f40",
+    "documentType": "schematic",
+    "tabId": "a02b4d70c4ef0f40@7d17ff6aa40b4252914acbf836d4991b"
+  },
+  "seq": 90,
+  "seqAbandoned": 0
+}

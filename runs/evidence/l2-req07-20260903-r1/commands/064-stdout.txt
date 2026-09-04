@@ -1,0 +1,45 @@
+{
+  "ok": false,
+  "verdict": "blocked",
+  "stages": [
+    {
+      "name": "layout-lint",
+      "status": "error",
+      "errors": 0,
+      "warnings": 0,
+      "summary": "layout-lint 没能跑起来",
+      "error": "schematic page: activate target page: --doc guard: document.current failed: connector did not respond"
+    },
+    {
+      "name": "clusters",
+      "status": "skipped",
+      "errors": 0,
+      "warnings": 0,
+      "summary": "前一个 stage 没能跑起来,后续未执行"
+    },
+    {
+      "name": "check",
+      "status": "skipped",
+      "errors": 0,
+      "warnings": 0,
+      "summary": "前一个 stage 没能跑起来,后续未执行"
+    },
+    {
+      "name": "bridge-check",
+      "status": "skipped",
+      "errors": 0,
+      "warnings": 0,
+      "summary": "前一个 stage 没能跑起来,后续未执行"
+    },
+    {
+      "name": "drc",
+      "status": "skipped",
+      "errors": 0,
+      "warnings": 0,
+      "summary": "前一个 stage 没能跑起来,后续未执行"
+    }
+  ],
+  "blockers": [
+    "layout-lint 没能跑起来: schematic page: activate target page: --doc guard: document.current failed: connector did not respond"
+  ]
+}

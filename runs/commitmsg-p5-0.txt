@@ -1,0 +1,11 @@
+wip(p5-0): 断点双机同步——钉扎1.1.1+版本门前移+页修剪+resume修复(回归未全绿,非closeout)
+
+- adapter._PINNED_VERSION + pyproject [tool.edaloop] 0.25.1→1.1.1(ADR-0011/ADR-0002修订)
+- 版本门前移 controller.run() 真机首轮前(此前仅 stage_apply 查,run 主链裸跑)
+- controller._ensure_pages 页修剪:删计划外 ^P\d+$ 孤儿页(单发不重试,失败不判负;真机首删验证)
+- evals_w3 resume 只跳 PASS,HALT/ERROR 重跑(旧代码把环境崩溃遗留 HALT 当已完成,曾把回归掏空成 2/3;+2 测试)
+- evals_params critic 评测改 pass@2 并集口径(单发类别方差,生产仍单发)
+- bomcost 缺价查询 SSL/连接瞬态重试一次(P5-4② 提前落;弱信号不抛原则不变)
+- seeds tvs C143135→C1979411(云端库损坏实锤,issue 草稿待用户确认)
+- 回归:pytest 239 全绿/w1 94.6%/electrical+params+refine 全 Go;smoke 1/3(req-01/req-11 挂环境雷,非代码)
+- 断点详情:docs/DEVELOPMENT.md §5.4(docs 私有仓);全绿后补 changelog v0.6.10+执行记录即 closeout

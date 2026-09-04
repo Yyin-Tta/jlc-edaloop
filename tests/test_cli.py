@@ -10,17 +10,22 @@ def test_version_flag(capsys: pytest.CaptureFixture[str]) -> None:
     with pytest.raises(SystemExit) as exc:
         build_parser().parse_args(["--version"])
     assert exc.value.code == 0
-    assert __version__ in capsys.readouterr().out
+    assert capsys.readouterr().out.strip() == f"edaloop {__version__}"
 
 
 def test_subcommands_parse() -> None:
     parser = build_parser()
     assert parser.parse_args(["run", "req.md"]).command == "run"
+    routed = parser.parse_args(["run", "req.md", "--project", "demo", "--window", "window-1"])
+    assert routed.project == "demo" and routed.window == "window-1"
     assert parser.parse_args(["ingest", "a.pdf", "b.pdf"]).pdf == ["a.pdf", "b.pdf"]
     assert parser.parse_args(["eval", "--subset", "w1-retrieval"]).subset == "w1-retrieval"
+    assert parser.parse_args(["eval", "--offline"]).offline is True
     assert parser.parse_args(["replay", "runs/run-x"]).audit_dir == "runs/run-x"
     assert parser.parse_args(["seed", "--db", "x.db"]).db == "x.db"
     assert parser.parse_args(["retrieve", "TP4056 充电", "--top-k", "3"]).top_k == 3
+    assert parser.parse_args(["evidence", "--out", "runs/l0"]).command == "evidence"
+    assert parser.parse_args(["collect-l0"]).command == "collect-l0"
 
 
 def test_no_command_prints_help(capsys: pytest.CaptureFixture[str]) -> None:

@@ -1,0 +1,61 @@
+{
+ "status": "PASS",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "0f88ee1feb01",
+   "gate_verdict": "fail",
+   "findings": [
+    "code='GATE_FAIL' where=Where(ref='', net='', pin='', xy='') evidence='round 1: block-apply 存在失败(autoconnect 连线失败或环境错误,详见 apply-error 审计);本轮 spacing=250(A4 页流;RELAYOUT 反馈请给 at/params.spacing)' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:1 个块缺 v_supply 区间或单边(rs485_u2)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/2(覆盖率 0%),缺 i_typ:mcu_u1, rs485_u2' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='供电方案未决(Q3):DesignIR 无电源输入且 3V3 无来源,目录的 buck(需电池 VSYS)与 LDO(需 +5V)均依赖未定输入,需客户确认后再补电源块' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='模拟传感器具体形式未决(Q1):NTC 分压(需电阻+标准值)或电压输出型传感器接口(连接器)均未落图,仅预留 SENSOR_AIN(PA0)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='SWD 调试排针:由 mcu-stm32f103c8-min 块内自带 4-pin SWD 排针(3V3/SWDIO/SWCLK/GND)覆盖,无需独立块' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='433MHz 无线回传备选(CC1101 块存在但需 SPI 引脚分配),因 Q2 未决未纳入,确认后可加 up-cc1101_433m_balun_ipex' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='PIN_MISMATCH' where=Where(ref='mcu_u1', net='', pin='8', xy='') evidence='自由拓扑器件 mcu_u1 的地脚 8(VSSA) 未绑定网络' severity='error' suggested_fix_class='REBIND_NET' weak=False",
+    "code='GATE_FAIL' where=Where(ref='layout-lint', net='', pin='', xy='') evidence='type=overlap' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=overlap' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=overlap' severity='error' suggested_fix_class='RELAYOUT' weak=False",
+    "code='GATE_FAIL' where=Where(ref='clusters', net='', pin='', xy='') evidence='type=overlap' severity='error' suggested_fix_class='RELAYOUT' weak=False"
+   ],
+   "feedback": "[GATE_FAIL@-] round 1: block-apply 存在失败(autoconnect 连线失败或环境错误,详见 apply-error 审计);本轮 spacing=250(A4 页流;RELAYOUT 反馈请给 at/params.spacing) → 修复:放置几何问题:给冲突块设置 params.spacing(如 300;过宽块编译器会自动截到 A4 内)或 at 空位(A4 页内坐标,x∈[100,1100] y∈[300,780];编译器优先读这两个字段)\n[PIN_MISMATCH@mcu_u1:8] 自由拓扑器件 mcu_u1 的地脚 8(VSSA) 未绑定网络 → 修复:把缺失的网络补进对应块的绑定:upstream 块用 ports_binding,place 通道器件用 pins_binding(引脚号→网名);同名引脚族(VSS*/VDD*/EP)都要绑\n[GATE_FAIL@layout-lint] type=overlap → 修复:放置几何问题:给冲突块设置 params.spacing(如 300;过宽块编译器会自动截到 A4 内)或 at 空位(A4 页内坐标,x∈[100,1100] y∈[300,780];编译器优先读这两个字段)\n[GATE_FAIL@clusters] type=overlap → 修复:放置几何问题:给冲突块设置 params.spacing(如 300;过宽块编译器会自动截到 A4 内)或 at 空位(A4 页内坐标,x∈[100,1100] y∈[300,780];编译器优先读这两个字段)\nsizing 建议值(确定性公式,输入出处见 delivery.sizing.txt;采纳时用 resistor-std/capacitor-std 块 + params.value 表内标准值,值不要发明):\n- led-resistor@led_pwr: 推荐 270(就近换表内值)\n- led-resistor@led_act: 推荐 270(就近换表内值)",
+   "halted": ""
+  },
+  {
+   "round_no": 2,
+   "plan_id": "c0a938c902ab",
+   "gate_verdict": "pass",
+   "findings": [
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:1 个块缺 v_supply 区间或单边(rs485_u1)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/2(覆盖率 0%),缺 i_typ:mcu_u1, rs485_u1' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='SWD 调试排针连接器(目录无排针/连接器块,SWDIO/SWCLK 已预留网名)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='模拟传感器调理(NTC 分压或电压输出型,目录无对应块且无 sizing 出处,未发明阻容值)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='433MHz 无线回传备选(CC1101 块存在但 SPI 引脚未绑,与 RS-485 二选一,待 Q2 确认)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='电池充电电路备选(Q3 未答;若选电池供电需充电+保护,目录无整块)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='12V 适配器输入连接器与保护(目录无电源入口连接器块)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='LED 限流电阻 270(resistor-std 表内值,sizing 推荐,建议在原理图阶段补 r270×2)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True"
+   ],
+   "feedback": "",
+   "halted": ""
+  }
+ ],
+ "delivery": {
+  "svg": "E:\\jlc-edaloop\\runs\\run-b7a9b906225f\\delivery-P1.svg",
+  "svg_pages": [
+   "E:\\jlc-edaloop\\runs\\run-b7a9b906225f\\delivery-P1.svg",
+   "E:\\jlc-edaloop\\runs\\run-b7a9b906225f\\delivery-P2.svg",
+   "E:\\jlc-edaloop\\runs\\run-b7a9b906225f\\delivery-P3.svg",
+   "E:\\jlc-edaloop\\runs\\run-b7a9b906225f\\delivery-P4.svg"
+  ],
+  "netlist": "runs\\run-b7a9b906225f\\delivery.net.json",
+  "netlist_sha256_16": "0c8606dea14a39b7",
+  "bom": "runs\\run-b7a9b906225f\\delivery.bom.json",
+  "bom_total": 2.3355,
+  "swap": "runs\\run-b7a9b906225f\\delivery.swap.txt",
+  "sizing": "runs\\run-b7a9b906225f\\delivery.sizing.txt",
+  "sizing_count": 3,
+  "review": "runs\\run-b7a9b906225f\\delivery.review.txt",
+  "review_findings": 0
+ }
+}

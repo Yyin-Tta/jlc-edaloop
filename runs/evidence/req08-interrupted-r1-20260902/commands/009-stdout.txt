@@ -1,0 +1,712 @@
+{
+  "ok": false,
+  "verdict": "fail",
+  "stages": [
+    {
+      "name": "layout-lint",
+      "status": "pass",
+      "errors": 0,
+      "warnings": 0,
+      "summary": "0 overlap, 0 pin-coincidence, 0 tight, 0 off-grid, 0 out-of-sheet, 0 no-bbox, 0 unchecked-pin, 0 unproven-pin, 0 invalid-geometry (zone-check=not-configured sheet-check=checked)",
+      "detail": {
+        "schemaVersion": 2,
+        "ok": true,
+        "strict": true,
+        "minGap": 2.54,
+        "componentCount": 7,
+        "withBBox": 7,
+        "skippedNonParts": 22,
+        "overlaps": null,
+        "tightSpacing": null,
+        "pinCoincidences": null,
+        "measurementUnit": "mm",
+        "coordinateUnit": "0.01inch",
+        "anchorGridRaw": 5,
+        "anchorGridUnit": "0.01inch",
+        "zoneCheckStatus": "not-configured",
+        "sheetCheckStatus": "checked",
+        "pinEps": 0,
+        "summary": "strict=true: 7 components (7 with bbox): 0 overlap, 0 tight (\u003c2.54mm), 0 pin-coincidence, 0 off-grid, 0 out-of-sheet, 0 unchecked-bbox, 0 unchecked-pins, 0 unproven-pins, 0 invalid-geometry; zoneCheck=not-configured sheetCheck=checked"
+      }
+    },
+    {
+      "name": "clusters",
+      "status": "fail",
+      "errors": 3,
+      "warnings": 0,
+      "blockingReasons": [
+        "3 处组间图元重叠"
+      ],
+      "summary": "7 个虚拟组:3 重叠 / 0 出图纸 / 0 过近",
+      "detail": {
+        "clusters": [
+          {
+            "designator": "RVDD",
+            "primitiveId": "a3900aa538c4da09",
+            "body": {
+              "minX": 134.5,
+              "minY": 590.5,
+              "maxX": 155.5,
+              "maxY": 599.5
+            },
+            "box": {
+              "minX": 32.5,
+              "minY": 589.5,
+              "maxX": 251.5,
+              "maxY": 600.5
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     RVDD     x=[134,156] y=[590,600]",
+              "wire              x=[105,125] y=[595,595]",
+              "wire              x=[165,185] y=[595,595]",
+              "netport  VBAT     x=[32,96] y=[590,600]",
+              "netport  VDD      x=[194,252] y=[590,600]"
+            ]
+          },
+          {
+            "designator": "PROTFS82",
+            "primitiveId": "0e9d49b8b6ff8d5c",
+            "body": {
+              "minX": 214.5,
+              "minY": 754.5,
+              "maxX": 295.5,
+              "maxY": 795.5
+            },
+            "box": {
+              "minX": 84.5,
+              "minY": 644.5,
+              "maxX": 590.5,
+              "maxY": 795.5
+            },
+            "markers": 6,
+            "wires": 6,
+            "members": [
+              "part     PROTFS82 x=[214,296] y=[754,796]",
+              "wire              x=[205,295] y=[785,785]",
+              "wire              x=[175,205] y=[775,775]",
+              "wire              x=[205,205] y=[735,765]",
+              "wire              x=[305,305] y=[735,765]",
+              "wire              x=[305,500] y=[775,775]",
+              "wire              x=[305,330] y=[785,785]",
+              "netport  B_NEG    x=[304,374] y=[780,790]",
+              "netport  FET_MID  x=[84,166] y=[770,780]",
+              "netport  P_NEG    x=[200,210] y=[656,726]",
+              "netport  OC_GATE  x=[300,310] y=[644,726]",
+              "netport  FET_MID  x=[510,590] y=[770,780]",
+              "netport  OD_GATE  x=[340,420] y=[780,790]"
+            ]
+          },
+          {
+            "designator": "JBATIN",
+            "primitiveId": "9b6a28b6e2ee0885",
+            "body": {
+              "minX": 169.5,
+              "minY": 664.5,
+              "maxX": 190.5,
+              "maxY": 695.5
+            },
+            "box": {
+              "minX": 154.5,
+              "minY": 664.5,
+              "maxX": 190.5,
+              "maxY": 787.5
+            },
+            "markers": 1,
+            "wires": 1,
+            "members": [
+              "part     JBATIN   x=[170,190] y=[664,696]",
+              "wire              x=[160,160] y=[685,715]",
+              "netport  VBAT     x=[154,166] y=[724,788]"
+            ]
+          },
+          {
+            "designator": "JPOUT",
+            "primitiveId": "b1b1375c532970d2",
+            "body": {
+              "minX": 394.5,
+              "minY": 664.5,
+              "maxX": 415.5,
+              "maxY": 695.5
+            },
+            "box": {
+              "minX": 251.5,
+              "minY": 664.5,
+              "maxX": 415.5,
+              "maxY": 695.5
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     JPOUT    x=[394,416] y=[664,696]",
+              "wire              x=[365,385] y=[685,685]",
+              "wire              x=[330,385] y=[675,675]",
+              "netport  VBAT     x=[292,356] y=[680,690]",
+              "netport  P_NEG    x=[252,320] y=[670,680]"
+            ]
+          },
+          {
+            "designator": "CVDD",
+            "primitiveId": "dec577727ce5a6ab",
+            "body": {
+              "minX": 574.4999999999999,
+              "minY": 676.5000000000001,
+              "maxX": 595.4999999999999,
+              "maxY": 693.5000000000001
+            },
+            "box": {
+              "minX": 559.5,
+              "minY": 576.5,
+              "maxX": 614,
+              "maxY": 693.5000000000001
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     CVDD     x=[574,595] y=[677,694]",
+              "wire              x=[565,565] y=[655,685]",
+              "wire              x=[605,605] y=[655,685]",
+              "netport  B_NEG    x=[560,570] y=[576,646]",
+              "netflag  VDD      x=[596,614] y=[632,650]"
+            ]
+          },
+          {
+            "designator": "PROTDW01",
+            "primitiveId": "b8500a62fca9e0bb",
+            "body": {
+              "minX": 764.5,
+              "minY": 754.5,
+              "maxX": 815.5,
+              "maxY": 795.5
+            },
+            "box": {
+              "minX": 628.5,
+              "minY": 644.5,
+              "maxX": 915.5,
+              "maxY": 795.5
+            },
+            "markers": 6,
+            "wires": 6,
+            "members": [
+              "part     PROTDW01 x=[764,816] y=[754,796]",
+              "wire              x=[825,905] y=[775,775]",
+              "wire              x=[755,815] y=[785,785]",
+              "wire              x=[725,755] y=[775,775]",
+              "wire              x=[755,755] y=[735,765]",
+              "wire              x=[825,825] y=[735,765]",
+              "wire              x=[825,890] y=[785,785]",
+              "netflag  VDD      x=[887,916] y=[770,787]",
+              "netport  OD_GATE  x=[824,906] y=[780,790]",
+              "netport  CS_SENSE x=[628,716] y=[770,780]",
+              "netport  OC_GATE  x=[750,760] y=[644,726]",
+              "netport  B_NEG    x=[820,830] y=[656,726]",
+              "netflag  B_NEG    x=[894,900] y=[780,790]"
+            ]
+          },
+          {
+            "designator": "RCS",
+            "primitiveId": "b5911dce4cc44990",
+            "body": {
+              "minX": 889.4999999999999,
+              "minY": 685.5000000000001,
+              "maxX": 910.4999999999999,
+              "maxY": 694.5000000000001
+            },
+            "box": {
+              "minX": 771.5,
+              "minY": 684.5,
+              "maxX": 920,
+              "maxY": 695.5
+            },
+            "markers": 2,
+            "wires": 2,
+            "members": [
+              "part     RCS      x=[889,910] y=[686,695]",
+              "wire              x=[850,880] y=[690,690]",
+              "wire              x=[890,920] y=[690,690]",
+              "netport  P_NEG    x=[772,840] y=[684,696]",
+              "netport  CS_SENSE x=[794,880] y=[684,696]"
+            ]
+          }
+        ],
+        "findings": [
+          {
+            "type": "overlap",
+            "a": "PROTFS82",
+            "b": "JBATIN",
+            "ovX": 11,
+            "ovY": 11,
+            "level": "ERROR"
+          },
+          {
+            "type": "overlap",
+            "a": "PROTFS82",
+            "b": "JPOUT",
+            "ovX": 11,
+            "ovY": 11,
+            "level": "ERROR"
+          },
+          {
+            "type": "overlap",
+            "a": "PROTDW01",
+            "b": "RCS",
+            "ovX": 11,
+            "ovY": 11,
+            "level": "ERROR"
+          }
+        ],
+        "sheetUsable": {
+          "minX": 12,
+          "minY": 12,
+          "maxX": 1158,
+          "maxY": 813
+        }
+      }
+    },
+    {
+      "name": "check",
+      "status": "fail",
+      "errors": 0,
+      "warnings": 14,
+      "blockingReasons": [
+        "14 个 warn finding (--strict;info 不阻塞): marker-overlap×10, floating-pin×1, missing-note×1, missing-partition×1, missing-titleblock×1"
+      ],
+      "summary": "14 finding(s): 0 error/fatal, 14 warn/info",
+      "detail": {
+        "passed": false,
+        "summary": {
+          "floatingPins": 1,
+          "componentsWithFloating": 1,
+          "geomNetMismatches": 0,
+          "netMarkerMismatches": 0,
+          "multiNetWires": 0,
+          "wireCrossings": 0,
+          "wireOverPins": 0,
+          "zeroLengthWires": 0,
+          "danglingWires": 0,
+          "duplicateNetMarkers": 0,
+          "titleblockOverlaps": 0,
+          "markerOverlaps": 10,
+          "missingPartitions": 3,
+          "noteOutsideZones": 0,
+          "redundantNetMarkers": 0,
+          "foldedNetLabels": 0,
+          "reversedNetFlags": 0,
+          "polarityConventionOutliers": 0,
+          "total": 14
+        },
+        "findings": [
+          {
+            "type": "floating-pin",
+            "level": "warn",
+            "designator": "JBATIN",
+            "primitiveId": "9b6a28b6e2ee0885",
+            "pins": [
+              "2"
+            ],
+            "pinDetails": [
+              {
+                "number": "2",
+                "name": "2",
+                "x": 160,
+                "y": 675
+              }
+            ],
+            "count": 1,
+            "message": "1 个引脚悬空(无导线连接,未打 NC 标识)"
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "primitiveId": "005caf607fa4b781",
+            "markerNet": "FET_MID",
+            "message": "FET_MID(netport) 与 VBAT(netport) 视觉重叠 11.00×11.00 — 换方向/offset 或 stagger",
+            "componentType": "netport",
+            "primitiveIds": [
+              "005caf607fa4b781",
+              "7ec125cd38ed04c4"
+            ],
+            "bbox": {
+              "minX": 84.5,
+              "minY": 769.5,
+              "maxX": 165.5,
+              "maxY": 780.5
+            },
+            "other": {
+              "primitiveId": "7ec125cd38ed04c4",
+              "componentType": "netport",
+              "net": "VBAT",
+              "bbox": {
+                "minX": 154.5,
+                "minY": 724.5,
+                "maxX": 165.5,
+                "maxY": 787.5
+              }
+            },
+            "overlapX": 11,
+            "overlapY": 11
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "primitiveId": "03ad545410a8f640",
+            "markerNet": "OD_GATE",
+            "message": "OD_GATE(netport) 与 VDD(netflag) 视觉重叠 18.50×7.50 — 换方向/offset 或 stagger",
+            "componentType": "netport",
+            "primitiveIds": [
+              "03ad545410a8f640",
+              "7b0cdcda2d3c0e08"
+            ],
+            "bbox": {
+              "minX": 824.5,
+              "minY": 779.5,
+              "maxX": 905.5,
+              "maxY": 790.5
+            },
+            "other": {
+              "primitiveId": "7b0cdcda2d3c0e08",
+              "componentType": "netflag",
+              "net": "VDD",
+              "bbox": {
+                "minX": 887,
+                "minY": 769.5,
+                "maxX": 915.5,
+                "maxY": 787
+              }
+            },
+            "overlapX": 18.5,
+            "overlapY": 7.5
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "primitiveId": "03ad545410a8f640",
+            "markerNet": "OD_GATE",
+            "message": "OD_GATE(netport) 与 B_NEG(netflag) 视觉重叠 6.00×11.00 — 换方向/offset 或 stagger",
+            "componentType": "netport",
+            "primitiveIds": [
+              "03ad545410a8f640",
+              "7d766af2eee9533b"
+            ],
+            "bbox": {
+              "minX": 824.5,
+              "minY": 779.5,
+              "maxX": 905.5,
+              "maxY": 790.5
+            },
+            "other": {
+              "primitiveId": "7d766af2eee9533b",
+              "componentType": "netflag",
+              "net": "B_NEG",
+              "bbox": {
+                "minX": 894.5,
+                "minY": 779.5,
+                "maxX": 900.5,
+                "maxY": 790.5
+              }
+            },
+            "overlapX": 6,
+            "overlapY": 11
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "primitiveId": "174e4abd9a4fc774",
+            "markerNet": "B_NEG",
+            "message": "B_NEG(netport) 与 CS_SENSE(netport) 视觉重叠 11.00×11.00 — 换方向/offset 或 stagger",
+            "componentType": "netport",
+            "primitiveIds": [
+              "174e4abd9a4fc774",
+              "5210e44c04a75bab"
+            ],
+            "bbox": {
+              "minX": 819.5,
+              "minY": 656.5,
+              "maxX": 830.5,
+              "maxY": 725.5
+            },
+            "other": {
+              "primitiveId": "5210e44c04a75bab",
+              "componentType": "netport",
+              "net": "CS_SENSE",
+              "bbox": {
+                "minX": 793.5,
+                "minY": 684.5,
+                "maxX": 880.5,
+                "maxY": 695.5
+              }
+            },
+            "overlapX": 11,
+            "overlapY": 11
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "primitiveId": "174e4abd9a4fc774",
+            "markerNet": "B_NEG",
+            "message": "B_NEG(netport) 与 P_NEG(netport) 视觉重叠 11.00×11.00 — 换方向/offset 或 stagger",
+            "componentType": "netport",
+            "primitiveIds": [
+              "174e4abd9a4fc774",
+              "89490490d7438ec1"
+            ],
+            "bbox": {
+              "minX": 819.5,
+              "minY": 656.5,
+              "maxX": 830.5,
+              "maxY": 725.5
+            },
+            "other": {
+              "primitiveId": "89490490d7438ec1",
+              "componentType": "netport",
+              "net": "P_NEG",
+              "bbox": {
+                "minX": 771.5,
+                "minY": 684.5,
+                "maxX": 840.5,
+                "maxY": 695.5
+              }
+            },
+            "overlapX": 11,
+            "overlapY": 11
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "primitiveId": "38a8f35b3d299a02",
+            "markerNet": "OD_GATE",
+            "message": "OD_GATE(netport) 与 B_NEG(netport) 视觉重叠 34.00×11.00 — 换方向/offset 或 stagger",
+            "componentType": "netport",
+            "primitiveIds": [
+              "38a8f35b3d299a02",
+              "5a8d9a75a1bc1a60"
+            ],
+            "bbox": {
+              "minX": 339.5,
+              "minY": 779.5,
+              "maxX": 420.5,
+              "maxY": 790.5
+            },
+            "other": {
+              "primitiveId": "5a8d9a75a1bc1a60",
+              "componentType": "netport",
+              "net": "B_NEG",
+              "bbox": {
+                "minX": 304.5,
+                "minY": 779.5,
+                "maxX": 373.5,
+                "maxY": 790.5
+              }
+            },
+            "overlapX": 34,
+            "overlapY": 11
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "primitiveId": "5210e44c04a75bab",
+            "markerNet": "CS_SENSE",
+            "message": "CS_SENSE(netport) 与 P_NEG(netport) 视觉重叠 47.00×11.00 — 换方向/offset 或 stagger",
+            "componentType": "netport",
+            "primitiveIds": [
+              "5210e44c04a75bab",
+              "89490490d7438ec1"
+            ],
+            "bbox": {
+              "minX": 793.5,
+              "minY": 684.5,
+              "maxX": 880.5,
+              "maxY": 695.5
+            },
+            "other": {
+              "primitiveId": "89490490d7438ec1",
+              "componentType": "netport",
+              "net": "P_NEG",
+              "bbox": {
+                "minX": 771.5,
+                "minY": 684.5,
+                "maxX": 840.5,
+                "maxY": 695.5
+              }
+            },
+            "overlapX": 47,
+            "overlapY": 11
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "primitiveId": "76447fac2aaf8b35",
+            "markerNet": "P_NEG",
+            "message": "P_NEG(netport) 与 OC_GATE(netport) 视觉重叠 11.00×11.00 — 换方向/offset 或 stagger",
+            "componentType": "netport",
+            "primitiveIds": [
+              "76447fac2aaf8b35",
+              "d48176559e42d71e"
+            ],
+            "bbox": {
+              "minX": 251.5,
+              "minY": 669.5,
+              "maxX": 320.5,
+              "maxY": 680.5
+            },
+            "other": {
+              "primitiveId": "d48176559e42d71e",
+              "componentType": "netport",
+              "net": "OC_GATE",
+              "bbox": {
+                "minX": 299.5,
+                "minY": 644.5,
+                "maxX": 310.5,
+                "maxY": 725.5
+              }
+            },
+            "overlapX": 11,
+            "overlapY": 11
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "primitiveId": "7b0cdcda2d3c0e08",
+            "markerNet": "VDD",
+            "message": "VDD(netflag) 与 B_NEG(netflag) 视觉重叠 6.00×7.50 — 换方向/offset 或 stagger",
+            "componentType": "netflag",
+            "primitiveIds": [
+              "7b0cdcda2d3c0e08",
+              "7d766af2eee9533b"
+            ],
+            "bbox": {
+              "minX": 887,
+              "minY": 769.5,
+              "maxX": 915.5,
+              "maxY": 787
+            },
+            "other": {
+              "primitiveId": "7d766af2eee9533b",
+              "componentType": "netflag",
+              "net": "B_NEG",
+              "bbox": {
+                "minX": 894.5,
+                "minY": 779.5,
+                "maxX": 900.5,
+                "maxY": 790.5
+              }
+            },
+            "overlapX": 6,
+            "overlapY": 7.5
+          },
+          {
+            "type": "marker-overlap",
+            "level": "warn",
+            "primitiveId": "c33c319416d804bf",
+            "markerNet": "VBAT",
+            "message": "VBAT(netport) 与 OC_GATE(netport) 视觉重叠 11.00×11.00 — 换方向/offset 或 stagger",
+            "componentType": "netport",
+            "primitiveIds": [
+              "c33c319416d804bf",
+              "d48176559e42d71e"
+            ],
+            "bbox": {
+              "minX": 292.5,
+              "minY": 679.5,
+              "maxX": 355.5,
+              "maxY": 690.5
+            },
+            "other": {
+              "primitiveId": "d48176559e42d71e",
+              "componentType": "netport",
+              "net": "OC_GATE",
+              "bbox": {
+                "minX": 299.5,
+                "minY": 644.5,
+                "maxX": 310.5,
+                "maxY": 725.5
+              }
+            },
+            "overlapX": 11,
+            "overlapY": 11
+          },
+          {
+            "type": "missing-partition",
+            "level": "warn",
+            "count": 7,
+            "message": "7 个器件的页没有功能分区框 — 铁律#15:`sch zones set` → `sch zone-draw`(整纸版式 `--mode partition`);交付前必须有"
+          },
+          {
+            "type": "missing-note",
+            "level": "warn",
+            "count": 7,
+            "message": "7 个器件的页没有电路说明(区名标签不算)— 每模块 1~3 行 `sch note`:作用 + 关键参数 + 设计要点;交付前必须有"
+          },
+          {
+            "type": "missing-titleblock",
+            "level": "warn",
+            "count": 3,
+            "message": "图签未填:Name(图纸标题)、Drawed(设计者)、Description(图纸说明) — 交付图必须能认领(`sch titleblock --data '{\"Name\":\"…\",\"Drawed\":\"…\"}'`)"
+          }
+        ]
+      }
+    },
+    {
+      "name": "bridge-check",
+      "status": "pass",
+      "errors": 0,
+      "warnings": 0,
+      "summary": "0 bridge(short), 0 orphan-stub, 0 orphan-flag, 0 orphan-tree (22 wire tree(s))",
+      "detail": {
+        "passed": true,
+        "summary": {
+          "trees": 0,
+          "bridges": 0,
+          "orphans": 0,
+          "orphanFlags": 0,
+          "orphanTrees": 0,
+          "wireTreesTotal": 22
+        },
+        "trees": []
+      }
+    },
+    {
+      "name": "drc",
+      "status": "fail",
+      "errors": 0,
+      "warnings": 1,
+      "blockingReasons": [
+        "1 warn-level DRC violation (--strict;平台只回聚合数,逐条明细请在 EasyEDA 的 DRC 面板查看)"
+      ],
+      "summary": "0 fatal, 0 error, 1 warn, 0 info (total 1)",
+      "detail": {
+        "passed": false,
+        "fatal": 0,
+        "summary": {
+          "fatal": 0,
+          "error": 0,
+          "warn": 1,
+          "info": 0,
+          "unknown": 0,
+          "total": 1
+        },
+        "violations": [
+          {
+            "level": "warn",
+            "type": "warn",
+            "count": 1,
+            "raw": {
+              "count": 1,
+              "type": "warn"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "blockers": [
+    "clusters: 3 处组间图元重叠",
+    "check: 14 个 warn finding (--strict;info 不阻塞): marker-overlap×10, floating-pin×1, missing-note×1, missing-partition×1, missing-titleblock×1",
+    "drc: 1 warn-level DRC violation (--strict;平台只回聚合数,逐条明细请在 EasyEDA 的 DRC 面板查看)"
+  ],
+  "warnings": [
+    "check: 14 条告警",
+    "drc: 1 条告警"
+  ]
+}

@@ -14,7 +14,7 @@ from edaloop.intent.ir import DesignIR
 from edaloop.knowledge.models import BlockRecord, RetrievedBlock, UpstreamRef
 from edaloop.llm.fake import FakeChat
 from edaloop.loop.attribution import attribute
-from edaloop.loop.controller import LoopController
+from edaloop.loop.controller import LoopController, _classify_failure, _finding_hash
 from edaloop.validate.checks import (
     check_gauge,
     check_net_existence,
@@ -23,6 +23,68 @@ from edaloop.validate.checks import (
     check_uncovered,
 )
 from edaloop.validate.models import Finding, Where
+
+
+def test_finding_hash_ignores_round_specific_evidence() -> None:
+    first = Finding(
+        code="LAYOUT_BODY_OVERLAP",
+        where=Where(ref="U1", net="", pin="", xy="100,200"),
+        evidence="round 1: overlap with C1",
+        suggested_fix_class="RELAYOUT",
+    )
+    second = first.model_copy(update={"evidence": "round 2: overlap with C1 (rechecked)"})
+    assert _finding_hash([first]) == _finding_hash([second])
+
+
+def test_failure_classification_prefers_pin_net_data_over_gate_envelope() -> None:
+    findings = [
+        Finding(
+            code="GATE_UNVERIFIED",
+            evidence="aggregate gate returned ok=false",
+            severity="error",
+            suggested_fix_class="RETRY_ENV",
+        ),
+        Finding(
+            code="LAYOUT_PIN_NET_MISMATCH",
+            evidence="JBAT:1 expected VBAT, read back $1N190",
+            severity="error",
+            suggested_fix_class="REWIRE",
+        ),
+    ]
+
+    assert _classify_failure(findings) == "DATA"
+
+
+def test_failure_classification_prefers_layout_defect_over_gate_envelope() -> None:
+    findings = [
+        Finding(
+            code="GATE_UNVERIFIED",
+            evidence="aggregate gate returned ok=false",
+            severity="error",
+            suggested_fix_class="RETRY_ENV",
+        ),
+        Finding(
+            code="GATE_FAIL",
+            evidence="layout-lint: component overlap PROTDW01/JPOUT",
+            severity="error",
+            suggested_fix_class="RELAYOUT",
+        ),
+    ]
+
+    assert _classify_failure(findings) == "LAYOUT"
+
+
+def test_failure_classification_keeps_unverified_only_as_platform() -> None:
+    findings = [
+        Finding(
+            code="GATE_UNVERIFIED",
+            evidence="gate response could not be verified",
+            severity="error",
+            suggested_fix_class="RETRY_ENV",
+        )
+    ]
+
+    assert _classify_failure(findings) == "PLATFORM"
 
 
 def _ir_with_rails(*volts: tuple[str, float]) -> DesignIR:
@@ -410,6 +472,36 @@ def test_loop_gate_fail_blocks(tmp_path) -> None:
     result = lc.run()
     assert result.status == "HALT"
     assert any(f.code == "GATE_FAIL" for f in result.rounds[0].findings if not f.weak)
+
+
+def test_controller_applies_and_verifies_no_connect(tmp_path) -> None:
+    """NC actions use the designator translation and require readback state."""
+    catalog = _catalog()
+    catalog["dw01-place"] = BlockRecord(
+        block_id="dw01-place", name="DW01A", desc="battery protection",
+        lcsc="C1", pinout={"1": "OD", "2": "CSI", "3": "OC", "4": "NC", "5": "VDD", "6": "GND"},
+    )
+    plan = BlockPlan.model_validate({
+        "blocks": [{"block_id": "dw01-place", "instance": "prot_dw01",
+                     "pins_binding": {"1": "OD_NET", "2": "CSI_NET", "3": "OC_NET", "5": "VBAT", "6": "GND"},
+                     "no_connect": ["4"]}],
+    })
+    actions = compile_actions(plan, catalog)
+    adapter = _FakeAdapter("pass")
+    # _FakeAdapter's generic place fixture is intentionally simple; make its
+    # readback include the requested NC pin for this focused contract test.
+    def run_json(args):
+        adapter.calls.append(args)
+        if len(args) > 1 and args[1] == "read":
+            return {"result": {"components": [{"designator": "PROTDW01",
+                "pins": [{"number": "4", "name": "NC", "noConnected": True}]}]}}
+        if len(args) > 1 and args[1] == "gate":
+            return {"verdict": "pass", "stages": []}
+        return {"ok": "applied"}
+    adapter.run_json = run_json
+    lc = _loop(FakeChat(json.dumps(_PLAN_OK, ensure_ascii=False)), adapter, tmp=str(tmp_path))
+    assert lc._verify_no_connect(1, "PROTDW01", ["4"], "P1") is True
+    assert any(a.kind == "sch-no-connect" for a in actions)
 
 
 # ---- P4-1②:功能分区编排(zones set/zone-plan/zone-draw/note,EDALOOP_ZONES 门控) ----
@@ -842,6 +934,19 @@ def test_arrange_closeout_tries_gap_40_before_split(tmp_path) -> None:
     assert [c[c.index("--gap") + 1] for c in arr] == ["80", "60", "40"]
 
 
+def test_arrange_refusal_emits_page_capacity_replan(tmp_path) -> None:
+    adapter = _ArrangeFakeAdapter(
+        "fail", dirty_arranges=99, arrange_rc=1, refuse_first=99
+    )
+    lc = _loop(FakeChat(json.dumps(_PLAN_OK, ensure_ascii=False)), adapter, tmp=str(tmp_path))
+    lc._layout_warnings = []
+    lc._arrange_closeout(1, {"P1": {"usb": adapter.placed}})
+    warnings = [w for w in lc._layout_warnings if w.get("code") == "PAGE_CAPACITY_REPLAN"]
+    assert warnings
+    assert "gap=80,60,40" in warnings[0]["evidence"]
+    assert "分页" in warnings[0]["evidence"]
+
+
 def test_arrange_closeout_clamps_strays_when_arrange_refuses(tmp_path) -> None:
     """v0.6.11 分流:收口先试最小干预钳移——首钳被内核拒移(keepout Δ0/
     共享连线树类)→ 梯子 80/60/40 全拒(arrange 的组占地含挂线,拆组不缩
@@ -1181,6 +1286,89 @@ def test_apply_renames_colliding_designator(tmp_path) -> None:
     assert not any(c[c.index("--pin") + 1].startswith("C1:") for c in ac)
 
 
+def test_apply_designator_rename_is_scoped_to_block_instance(tmp_path) -> None:
+    """同一模板位号的两个实例各自改号时,autoconnect 不能串到后一个实例。
+
+    旧实现用 ``requested -> actual`` 全局映射;第二个 C1 覆盖第一个后,
+    第一个实例的网也会被重写到 C3(或最后一个实际位号)。映射必须按
+    ``Action.block_instance`` 隔离。
+    """
+    adapter = _DesigFakeAdapter("pass")
+    lc = _loop(FakeChat("{}"), adapter, ir=_ir_loop(), tmp=str(tmp_path))
+    actions = [
+        Action(
+            kind="lib-search", block_instance="cap_a", lcsc="C123",
+            args=["lib", "search", "--query", "C123", "--limit", "3"],
+        ),
+        Action(
+            kind="sch-place", block_instance="cap_a", page="P1",
+            args=["sch", "place", "--lib", "", "--uuid", "", "--x", "100",
+                  "--y", "300", "--designator", "C1"],
+        ),
+        Action(
+            kind="sch-autoconnect", block_instance="cap_a", page="P1",
+            args=["sch", "autoconnect", "--pin", "C1:1", "--net", "N_A"],
+        ),
+        Action(
+            kind="lib-search", block_instance="cap_b", lcsc="C123",
+            args=["lib", "search", "--query", "C123", "--limit", "3"],
+        ),
+        Action(
+            kind="sch-place", block_instance="cap_b", page="P1",
+            args=["sch", "place", "--lib", "", "--uuid", "", "--x", "300",
+                  "--y", "300", "--designator", "C1"],
+        ),
+        Action(
+            kind="sch-autoconnect", block_instance="cap_b", page="P1",
+            args=["sch", "autoconnect", "--pin", "C1:1", "--net", "N_B"],
+        ),
+    ]
+
+    ok, _gate = lc._apply(actions, 1)
+
+    assert ok
+    ac = [c for c in adapter.calls if c[:2] == ["sch", "autoconnect"]]
+    assert [(c[c.index("--pin") + 1], c[c.index("--net") + 1]) for c in ac] == [
+        ("C1:1", "N_A"),
+        ("C2:1", "N_B"),
+    ]
+    assert lc._designator_map_by_instance["cap_b"] == ("C1", "C2")
+    assert "cap_a" not in lc._designator_map_by_instance
+
+
+def test_apply_tracks_connector_readback_designator_rename(tmp_path) -> None:
+    """即使未预见冲突而由连接器回包改号,后续网线也跟随实际位号。"""
+
+    class ReadbackRenameAdapter(_DesigFakeAdapter):
+        def run_json(self, args):
+            self.calls.append(args)
+            if args[1] == "place":
+                requested = args[args.index("--designator") + 1]
+                actual = {"C1": "C9", "C2": "C8"}.get(requested, requested)
+                self.last_place = actual
+                return {"result": {"component": {"designator": actual}}}
+            return super().run_json(args)
+
+    adapter = ReadbackRenameAdapter("pass")
+    lc = _loop(FakeChat("{}"), adapter, ir=_ir_loop(), tmp=str(tmp_path))
+    actions = [
+        Action(kind="lib-search", block_instance="cap_a", lcsc="C123",
+               args=["lib", "search", "--query", "C123", "--limit", "3"]),
+        Action(kind="sch-place", block_instance="cap_a", page="P1",
+               args=["sch", "place", "--lib", "", "--uuid", "", "--x", "100",
+                     "--y", "300", "--designator", "C1"]),
+        Action(kind="sch-autoconnect", block_instance="cap_a", page="P1",
+               args=["sch", "autoconnect", "--pin", "C1:1", "--net", "N_A"]),
+    ]
+
+    ok, _gate = lc._apply(actions, 1)
+
+    assert ok
+    ac = [c for c in adapter.calls if c[:2] == ["sch", "autoconnect"]]
+    assert ac and ac[-1][ac[-1].index("--pin") + 1] == "C9:1"
+    assert lc._designator_map_by_instance["cap_a"] == ("C1", "C9")
+
+
 # ---- repack:两阶段布局(试放定框 → 离线装箱 → 逐页重放)----
 
 
@@ -1221,6 +1409,7 @@ class _RepackFakeAdapter(_ZoneFakeAdapter):
         self.wires_all: list[tuple[str, str, str]] = []
         self.disconnects: list[str] = []  # page:desig:net(--pin 形式)
         self.autoconnects: list[tuple[str, str, str]] = []  # 恢复路径(--pin --net)
+        self.no_connects: set[tuple[str, str, str]] = set()  # page, designator, pin
         self.modifies: list[tuple[str, str, float]] = []  # page, designator, rotation
         self.connects: list[tuple] = []  # (page,pin,kind,net,dir,off) 确定性落桩
         # autoconnect 盲落标记夹具(默认关=不落标记,老测试零扰动):page →
@@ -1514,10 +1703,24 @@ class _RepackFakeAdapter(_ZoneFakeAdapter):
                 self.autoconnects.append((self.active_page,
                                           args[args.index("--pin") + 1], net))
             return 0, "ok", ""
+        if args[:2] == ["sch", "no-connect"]:
+            page = args[args.index("--doc") + 1] if "--doc" in args else self.active_page
+            designator = args[args.index("--designator") + 1]
+            pins = args[args.index("--pin") + 1].split(",")
+            for pin in pins:
+                self.no_connects.add((page, designator, str(pin)))
+            return 0, "{}", ""
         if args[:2] == ["sch", "read"]:
             page = args[args.index("--page") + 1] if "--page" in args else "P1"
-            comps = [{"designator": d, "pins": [{"number": "1", "name": "A"}, {"number": "2", "name": "B"}]}
-                     for d in self.model.get(page, {})]
+            comps = []
+            for d in self.model.get(page, {}):
+                pins = [{"number": "1", "name": "A"}, {"number": "2", "name": "B"}]
+                pins.extend(
+                    {"number": p, "name": "NC", "noConnected": True}
+                    for pg, ref, p in sorted(self.no_connects)
+                    if pg == page and ref == d and p not in {q["number"] for q in pins}
+                )
+                comps.append({"designator": d, "pins": pins})
             # 真机契约:sch read 恒含 nets[](页网表)。合成口径=页网表键 ∪
             # 脚网 ∪ 标记网 ∪ 自画线网——disconnect 拆桩删标记、wire/autoconnect
             # 回填,四个通道的消长即 _net_presence 的 actual 演化(保真补齐)

@@ -1,0 +1,38 @@
+{
+ "status": "PASS",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "51b3d880cf80",
+   "gate_verdict": "pass",
+   "findings": [
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:2 个块缺 v_supply 区间或单边(ldo_3v3, eeprom_24c02)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='5V', pin='', xy='') evidence='轨 5V 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/2(覆盖率 0%),缺 i_typ:ldo_3v3, ir_txrx' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/2(覆盖率 0%),缺 i_typ:mcu_esp32s3, eeprom_24c02' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='WROOM 最小系统块未提供 I2C/LED/IR 的 GPIO 端口,I2C_SDA/SCL、LED_LEARN/LED_TX、IR_RX/IR_TX 需在原理图上手动连到模组可用 GPIO(引脚分配留给编译/布局阶段)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True"
+   ],
+   "feedback": "",
+   "halted": ""
+  }
+ ],
+ "delivery": {
+  "svg": "D:\\gyt-pro\\jlc-edaloop\\runs\\run-0d9b37c1e992\\delivery-P1.svg",
+  "svg_pages": [
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-0d9b37c1e992\\delivery-P1.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-0d9b37c1e992\\delivery-P2.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-0d9b37c1e992\\delivery-P3.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-0d9b37c1e992\\delivery-P4.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-0d9b37c1e992\\delivery-P5.svg",
+   "D:\\gyt-pro\\jlc-edaloop\\runs\\run-0d9b37c1e992\\delivery-P6.svg"
+  ],
+  "netlist": "runs\\run-0d9b37c1e992\\delivery.net.json",
+  "netlist_sha256_16": "f782f34e0ff9b58f",
+  "bom": "runs\\run-0d9b37c1e992\\delivery.bom.json",
+  "bom_total": 6.3581,
+  "swap": "runs\\run-0d9b37c1e992\\delivery.swap.txt",
+  "sizing": "runs\\run-0d9b37c1e992\\delivery.sizing.txt",
+  "sizing_count": 6,
+  "review": "runs\\run-0d9b37c1e992\\delivery.review.txt",
+  "review_findings": 3
+ }
+}

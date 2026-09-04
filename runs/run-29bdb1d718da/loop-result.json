@@ -1,0 +1,30 @@
+{
+ "status": "PASS",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "db661e919fd3",
+   "gate_verdict": "pass",
+   "findings": [
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='DW01A VDD 串联 100Ω 与 CSI 串联 1kΩ 电阻:目录无独立电阻块,需在原理图阶段手工补挂' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='输出端子(P+/P- 焊盘/接插件):目录无对应电池端子块,需手工放置' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True"
+   ],
+   "feedback": "",
+   "halted": ""
+  }
+ ],
+ "delivery": {
+  "svg": "E:\\jlc-edaloop\\runs\\run-29bdb1d718da\\delivery-P1.svg",
+  "svg_pages": [
+   "E:\\jlc-edaloop\\runs\\run-29bdb1d718da\\delivery-P1.svg",
+   "E:\\jlc-edaloop\\runs\\run-29bdb1d718da\\delivery-P2.svg"
+  ],
+  "netlist": "runs\\run-29bdb1d718da\\delivery.net.json",
+  "netlist_sha256_16": "2970f9c96b97bd9a",
+  "bom": "runs\\run-29bdb1d718da\\delivery.bom.json",
+  "bom_total": 0.0737,
+  "swap": "runs\\run-29bdb1d718da\\delivery.swap.txt",
+  "review": "runs\\run-29bdb1d718da\\delivery.review.txt",
+  "review_findings": 3
+ }
+}

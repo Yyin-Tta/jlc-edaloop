@@ -1,0 +1,62 @@
+{
+ "status": "PASS",
+ "rounds": [
+  {
+   "round_no": 1,
+   "plan_id": "1cda8bc08573",
+   "gate_verdict": "pass",
+   "findings": [
+    "code='UNDECLARED_RAIL' where=Where(ref='', net='VBAT', pin='', xy='') evidence='网 VBAT 呈轨特征(家族 3.7|main≈3.7V)但 DesignIR 未声明该轨;planner 应在 IR 电源段显式声明,或把该网改绑到既有轨家族' severity='warn' suggested_fix_class='REPLAN' weak=True",
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:1 个块缺 v_supply 区间或单边(rs485)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/2(覆盖率 0%),缺 i_typ:mcu, rs485' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='Q1 电池方案的充电电路与锂电保护(目录无充电 IC/DW01A+FS8205A 等可组合器件,目录仅 24C02/MAX3232/W25Q64/WS2812 为库外器件,无法组合出充电保护)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='Q1 备选 12V 适配器方案的高压降压(SY8089 VIN≤5.5V、AMS1117 压差功耗不足,目录无 12V 输入 buck)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='Q3 NTC 分压/偏置电阻网络与电压输出式的 ADC 输入保护(目录无分立电阻/TVS 可用块或器件,PA0/SENSOR_ADC 已预留)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='Q2 备选 433MHz 无线方案未布线(CC1101 块在目录中存在,如确认选 433 可替换 rs485 实例,SPI 网已可由 MCU 引出)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='PIN_MISMATCH' where=Where(ref='mcu_actled_pin', net='', pin='1', xy='') evidence='自由拓扑器件 mcu_actled_pin 的电源脚 1(VBAT) 未绑定网络' severity='error' suggested_fix_class='REBIND_NET' weak=False",
+    "code='PIN_MISMATCH' where=Where(ref='mcu_actled_pin', net='', pin='8', xy='') evidence='自由拓扑器件 mcu_actled_pin 的地脚 8(VSSA) 未绑定网络' severity='error' suggested_fix_class='REBIND_NET' weak=False",
+    "code='PIN_MISMATCH' where=Where(ref='mcu_actled_pin', net='', pin='9', xy='') evidence='自由拓扑器件 mcu_actled_pin 的电源脚 9(VDDA) 未绑定网络' severity='error' suggested_fix_class='REBIND_NET' weak=False",
+    "code='PIN_MISMATCH' where=Where(ref='mcu_actled_pin', net='', pin='23', xy='') evidence='自由拓扑器件 mcu_actled_pin 的地脚 23(VSS_1) 未绑定网络' severity='error' suggested_fix_class='REBIND_NET' weak=False",
+    "code='PIN_MISMATCH' where=Where(ref='mcu_actled_pin', net='', pin='24', xy='') evidence='自由拓扑器件 mcu_actled_pin 的电源脚 24(VDD_1) 未绑定网络' severity='error' suggested_fix_class='REBIND_NET' weak=False",
+    "code='PIN_MISMATCH' where=Where(ref='mcu_actled_pin', net='', pin='35', xy='') evidence='自由拓扑器件 mcu_actled_pin 的地脚 35(VSS_2) 未绑定网络' severity='error' suggested_fix_class='REBIND_NET' weak=False",
+    "code='PIN_MISMATCH' where=Where(ref='mcu_actled_pin', net='', pin='36', xy='') evidence='自由拓扑器件 mcu_actled_pin 的电源脚 36(VDD_2) 未绑定网络' severity='error' suggested_fix_class='REBIND_NET' weak=False",
+    "code='PIN_MISMATCH' where=Where(ref='mcu_actled_pin', net='', pin='47', xy='') evidence='自由拓扑器件 mcu_actled_pin 的地脚 47(VSS_3) 未绑定网络' severity='error' suggested_fix_class='REBIND_NET' weak=False",
+    "code='PIN_MISMATCH' where=Where(ref='mcu_actled_pin', net='', pin='48', xy='') evidence='自由拓扑器件 mcu_actled_pin 的电源脚 48(VDD_3) 未绑定网络' severity='error' suggested_fix_class='REBIND_NET' weak=False"
+   ],
+   "feedback": "[PIN_MISMATCH@mcu_actled_pin:1] 自由拓扑器件 mcu_actled_pin 的电源脚 1(VBAT) 未绑定网络 → 修复:把缺失的网络补进对应块的绑定:upstream 块用 ports_binding,place 通道器件用 pins_binding(引脚号→网名);同名引脚族(VSS*/VDD*/EP)都要绑\n[PIN_MISMATCH@mcu_actled_pin:8] 自由拓扑器件 mcu_actled_pin 的地脚 8(VSSA) 未绑定网络 → 修复:把缺失的网络补进对应块的绑定:upstream 块用 ports_binding,place 通道器件用 pins_binding(引脚号→网名);同名引脚族(VSS*/VDD*/EP)都要绑\n[PIN_MISMATCH@mcu_actled_pin:9] 自由拓扑器件 mcu_actled_pin 的电源脚 9(VDDA) 未绑定网络 → 修复:把缺失的网络补进对应块的绑定:upstream 块用 ports_binding,place 通道器件用 pins_binding(引脚号→网名);同名引脚族(VSS*/VDD*/EP)都要绑\n[PIN_MISMATCH@mcu_actled_pin:23] 自由拓扑器件 mcu_actled_pin 的地脚 23(VSS_1) 未绑定网络 → 修复:把缺失的网络补进对应块的绑定:upstream 块用 ports_binding,place 通道器件用 pins_binding(引脚号→网名);同名引脚族(VSS*/VDD*/EP)都要绑\n[PIN_MISMATCH@mcu_actled_pin:24] 自由拓扑器件 mcu_actled_pin 的电源脚 24(VDD_1) 未绑定网络 → 修复:把缺失的网络补进对应块的绑定:upstream 块用 ports_binding,place 通道器件用 pins_binding(引脚号→网名);同名引脚族(VSS*/VDD*/EP)都要绑\n[PIN_MISMATCH@mcu_actled_pin:35] 自由拓扑器件 mcu_actled_pin 的地脚 35(VSS_2) 未绑定网络 → 修复:把缺失的网络补进对应块的绑定:upstream 块用 ports_binding,place 通道器件用 pins_binding(引脚号→网名);同名引脚族(VSS*/VDD*/EP)都要绑\n[PIN_MISMATCH@mcu_actled_pin:36] 自由拓扑器件 mcu_actled_pin 的电源脚 36(VDD_2) 未绑定网络 → 修复:把缺失的网络补进对应块的绑定:upstream 块用 ports_binding,place 通道器件用 pins_binding(引脚号→网名);同名引脚族(VSS*/VDD*/EP)都要绑\n[PIN_MISMATCH@mcu_actled_pin:47] 自由拓扑器件 mcu_actled_pin 的地脚 47(VSS_3) 未绑定网络 → 修复:把缺失的网络补进对应块的绑定:upstream 块用 ports_binding,place 通道器件用 pins_binding(引脚号→网名);同名引脚族(VSS*/VDD*/EP)都要绑\n[PIN_MISMATCH@mcu_actled_pin:48] 自由拓扑器件 mcu_actled_pin 的电源脚 48(VDD_3) 未绑定网络 → 修复:把缺失的网络补进对应块的绑定:upstream 块用 ports_binding,place 通道器件用 pins_binding(引脚号→网名);同名引脚族(VSS*/VDD*/EP)都要绑",
+   "halted": ""
+  },
+  {
+   "round_no": 2,
+   "plan_id": "28f5aab40560",
+   "gate_verdict": "pass",
+   "findings": [
+    "code='ELECTRICAL_DATA_DEBT' where=Where(ref='', net='', pin='', xy='') evidence='供电核对数据债:1 个块缺 v_supply 区间或单边(rs485_xcvr)——无法强判兼容性,按 UNKNOWN 降级;请回填块库 electrical 字段' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='RAIL_BUDGET_UNKNOWN' where=Where(ref='', net='3V3', pin='', xy='') evidence='轨 3V3 电流预算 UNKNOWN:轨容量 imax 未知(IR 未声明);已知负载 0/2(覆盖率 0%),缺 i_typ:mcu_main, rs485_xcvr' severity='warn' suggested_fix_class='DATA_DEBT' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='供电前端(Q1 未决:电池+充电电路 或 12V 适配器+降压;目录仅有 3V3 后级,无充电/12V 前级块)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='SWD 调试排针连接器(SWDIO/SWCLK 网络已预留,目录无排针类块)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='模拟传感器调理(Q3 未决:NTC 分压偏置电阻 或 电压输出 ADC 输入保护;目录无电阻/TVS 分立器件,ADC 网名 SENSOR_ADC 已预留)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True",
+    "code='IR_UNCOVERED' where=Where(ref='', net='', pin='', xy='') evidence='433MHz 无线方案(Q2 未决;CC1101 块可用,若确认无线则替换 rs485_xcvr)' severity='warn' suggested_fix_class='ADD_BLOCK' weak=True"
+   ],
+   "feedback": "",
+   "halted": ""
+  }
+ ],
+ "delivery": {
+  "svg": "E:\\jlc-edaloop\\runs\\run-2a6f5ad7838b\\delivery-P1.svg",
+  "svg_pages": [
+   "E:\\jlc-edaloop\\runs\\run-2a6f5ad7838b\\delivery-P1.svg",
+   "E:\\jlc-edaloop\\runs\\run-2a6f5ad7838b\\delivery-P2.svg",
+   "E:\\jlc-edaloop\\runs\\run-2a6f5ad7838b\\delivery-P3.svg"
+  ],
+  "netlist": "runs\\run-2a6f5ad7838b\\delivery.net.json",
+  "netlist_sha256_16": "d3a2c171f1b1ce24",
+  "bom": "runs\\run-2a6f5ad7838b\\delivery.bom.json",
+  "bom_total": 2.0305,
+  "swap": "runs\\run-2a6f5ad7838b\\delivery.swap.txt",
+  "sizing": "runs\\run-2a6f5ad7838b\\delivery.sizing.txt",
+  "sizing_count": 2,
+  "review": "runs\\run-2a6f5ad7838b\\delivery.review.txt",
+  "review_findings": 5
+ }
+}

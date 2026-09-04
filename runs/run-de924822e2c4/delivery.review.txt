@@ -1,0 +1,7 @@
+# 设计评审报告(critic,弱门禁)
+评审对象: 4 blocks, status=PASS
+
+- [CRITIC_DECOUPLING@prot_dw01] DW01 的 VDD(pin5)经 100R 接 VBAT,但整板无任何去耦电容;DW01 数据手册要求 VDD-GND 间就近接 0.1µF 电容(与 100R 构成 RC 滤波,滤除电池线瞬态,防止过流误触发) | 建议: 在 VDD_100R(或 VDD)与 P_MINUS/GND 之间增加 0.1µF 陶瓷电容,靠近 DW01 放置
+- [CRITIC_PULL_RESISTORS@prot_dw01] DW01 pin4(TD)未在 pins_binding 中连接,悬空可能导致保护逻辑异常;数据手册要求 TD 接地 | 建议: 将 DW01 pin4(TD)绑定到 P_MINUS(GND)网络
+
+(以上为 warn 级建议,不阻断交付;采纳与否人工决定)

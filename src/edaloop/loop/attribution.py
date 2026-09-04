@@ -9,6 +9,21 @@ _FIX_INSTRUCTION = {
     "REWIRE": "连线问题:检查悬空/短路网络的重叠与绑定",
     "ADD_BLOCK": "知识库无对应块:确认 uncovered 列表是否已如实登记,不要发明器件",
     "RETRY_ENV": "环境问题(连接器/窗口/页面):无需改 plan,重试即可",
+    # Terminal layout checks distinguish a readback failure from a real
+    # circuit/layout defect.  Keep that distinction in planner feedback so a
+    # stale connector response does not trigger needless re-planning.
+    "RETRY_READBACK": "回读证据不足:重读当前页并确认返回非空、结构完整的器件/引脚数据;不要改电路计划",
+    "DEDUPE_MARKER": "标记整理:删除同一 pin/net 的重复 netport/netflag/netlabel,保留一个后重新回读",
+    "RESEAT_MARKER": "标记可读性:优先执行 sch destagger --doc <页> --apply;不要直接移动 marker 坐标以免脱离桩线",
+    "REPACK": "分页/利用率:合并同模块小块并重新运行确定性 repack;不要只收紧间距",
+}
+
+_CODE_FIX_CLASS = {
+    "GATE_UNVERIFIED": "RETRY_ENV",
+    "LAYOUT_READ_UNVERIFIED": "RETRY_READBACK",
+    "LAYOUT_SNAPSHOT_INVALID": "RETRY_READBACK",
+    "LAYOUT_MARKER_ON_BODY": "RESEAT_MARKER",
+    "LAYOUT_PAGE_INK_SPARSE": "REPACK",
 }
 
 
@@ -25,7 +40,8 @@ def attribute(findings: list[Finding]) -> str:
         if key in seen:
             continue
         seen.add(key)
-        instr = _FIX_INSTRUCTION.get(f.suggested_fix_class, _FIX_INSTRUCTION["REPLAN"])
+        fix_class = f.suggested_fix_class or _CODE_FIX_CLASS.get(f.code, "REPLAN")
+        instr = _FIX_INSTRUCTION.get(fix_class, _FIX_INSTRUCTION["REPLAN"])
         where = f.where.pin and f"{f.where.ref}:{f.where.pin}" or (f.where.net or f.where.ref or "-")
         lines.append(f"[{f.code}@{where}] {f.evidence} → 修复:{instr}")
     if weak:

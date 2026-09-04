@@ -1,0 +1,2 @@
+⚠ connector looks DEGRADED under load (recent EFFECT failure rate 80%, 16 consecutive failures) — insert a light read + short pause before retrying; consider `easyeda doc reload` if this persists. Worst road(s): document.current
+schematic page: activate target page: --doc guard: document.current failed: connector did not respond

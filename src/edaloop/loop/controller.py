@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import math
 import re
 import os
 import time
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -17,10 +19,434 @@ from edaloop.intent.ir import DesignIR
 from edaloop.knowledge.models import BlockRecord
 from edaloop.loop.attribution import attribute
 from edaloop.validate.checks import validate
+from edaloop.validate.layout import (
+    InkSnapshot,
+    LAYOUT_MARKER_ON_BODY,
+    LAYOUT_PAGE_INK_SPARSE,
+    LayoutSnapshot,
+    MarkerSnapshot,
+    audit_layout_snapshot,
+    page_ink_metrics,
+)
 from edaloop.validate.models import Finding
 
 MAX_ROUNDS = 5
 SAME_CODE_HALT = 2
+
+
+def _finding_hash(findings: list[Finding]) -> str:
+    """Return a stable identity for the current blocking geometry findings.
+
+    Evidence strings often contain round numbers or adapter wording and are
+    therefore unsuitable as a convergence signal.  The identity deliberately
+    uses the semantic location/class fields only; a repeated identity means
+    the controller is looking at the same defect again, even if prose changed.
+    """
+    rows = []
+    for finding in findings:
+        where = finding.where
+        rows.append({
+            "code": finding.code,
+            "ref": where.ref,
+            "net": where.net,
+            "pin": where.pin,
+            "xy": where.xy,
+            "severity": finding.severity,
+            "weak": finding.weak,
+            "fix": finding.suggested_fix_class,
+        })
+    payload = json.dumps(sorted(rows, key=lambda row: tuple(str(row[k]) for k in row)),
+                         ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
+
+# ``sch gate`` keeps this order and these identifiers stable across its
+# aggregate and individual checker commands.  The controller treats the
+# report as evidence, so a nominal PASS that omits one of these stages must
+# not be accepted silently.
+_GATE_STAGE_ORDER = ("layout-lint", "clusters", "check", "bridge-check", "drc")
+_GATE_STAGE_SET = frozenset(_GATE_STAGE_ORDER)
+
+_GATE_PASS_STATUS = frozenset({
+    "pass", "passed", "ok", "success", "successful", "complete",
+    "completed", "done", "true", "1",
+})
+_GATE_SKIP_STATUS = frozenset({"skip", "skipped", "not-run", "not_run", "notrun"})
+_GATE_FAIL_STATUS = frozenset({
+    "fail", "failed", "failure", "error", "blocked", "false", "0",
+    "invalid", "cancelled", "canceled", "timeout", "timed-out", "timed_out",
+})
+
+
+def _normalized_component_type(value: object) -> str:
+    """Normalize connector component-type aliases at the readback boundary.
+
+    ``sch list`` has used both camelCase and snake/kebab spellings across
+    connector releases.  The pure layout validator already accepts these
+    aliases, but the controller must normalize them *before* filtering parts
+    and markers; otherwise a valid terminal payload can be silently reduced
+    to an empty snapshot.
+    """
+
+    text = str(value or "").strip().casefold().replace("_", "-").replace(" ", "-")
+    aliases = {
+        "": "part",
+        "part": "part",
+        "component": "part",
+        "symbol": "part",
+        "device": "part",
+        "netport": "netport",
+        "net-port": "netport",
+        "netflag": "netflag",
+        "net-flag": "netflag",
+        "netlabel": "netlabel",
+        "net-label": "netlabel",
+        "marker": "marker",
+        "sheet": "sheet",
+        "sheet-symbol": "sheet",
+        "sheetsymbol": "sheet",
+        "sheet-frame": "sheet",
+        "drawing-sheet": "sheet",
+        "titleblock": "sheet",
+        "border": "sheet",
+    }
+    return aliases.get(text, text)
+
+
+class _ReadbackPayloadError(ValueError):
+    """A parsed connector response explicitly says that the operation failed.
+
+    This is kept separate from ordinary JSON/shape errors so the large-output
+    truncation fallback in ``_list_components`` cannot mistake an explicit
+    ``ok:false`` response for a pipe truncation.
+    """
+
+
+def _status_token(value) -> str:
+    """Normalize a status-like scalar without treating arbitrary truthiness as pass."""
+
+    if isinstance(value, bool):
+        return "pass" if value else "fail"
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        if not math.isfinite(float(value)):
+            return "unknown"
+        return "pass" if value else "fail"
+    if value is None:
+        return "unknown"
+    text = str(value).strip().lower().replace(" ", "-")
+    if text in _GATE_PASS_STATUS:
+        return "pass"
+    if text in _GATE_SKIP_STATUS:
+        return "skipped"
+    if text in _GATE_FAIL_STATUS:
+        return "fail"
+    return "unknown"
+
+
+def _has_payload_content(value) -> bool:
+    """Whether an error/failure field contains a meaningful value."""
+
+    if value is None or value is False:
+        return False
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        return bool(value) and math.isfinite(float(value))
+    if isinstance(value, str):
+        return bool(value.strip())
+    if isinstance(value, (list, tuple, set, dict)):
+        return bool(value)
+    return True
+
+
+def _explicit_failure_reason(payload: object, *, include_status: bool = True,
+                             include_verdict: bool = True) -> str:
+    """Find an explicit connector failure marker in a response or nested result.
+
+    ``errors`` is intentionally not treated as a failure key: checker reports
+    commonly use it as a numeric finding count while still returning usable
+    geometry.  The singular ``error``/``failure`` fields are transport or
+    command errors and must fail closed.
+    """
+
+    if not isinstance(payload, dict):
+        return ""
+    for key in ("ok", "success", "passed"):
+        if key in payload and _status_token(payload.get(key)) == "fail":
+            return f"{key}={payload.get(key)!r}"
+    for key in ("error", "exception", "failure"):
+        if key in payload and _has_payload_content(payload.get(key)):
+            return f"{key} payload"
+    if include_status:
+        for key in ("status",):
+            if key in payload and _status_token(payload.get(key)) == "fail":
+                return f"{key}={payload.get(key)!r}"
+    if include_verdict and "verdict" in payload:
+        if _status_token(payload.get("verdict")) == "fail":
+            return f"verdict={payload.get('verdict')!r}"
+    for key in ("result", "data", "detail"):
+        nested = payload.get(key)
+        if isinstance(nested, dict):
+            reason = _explicit_failure_reason(
+                nested, include_status=include_status, include_verdict=include_verdict
+            )
+            if reason:
+                return f"{key}.{reason}"
+    return ""
+
+
+def _classify_failure(findings: list[Finding]) -> str:
+    """Classify a failed round from concrete evidence, not envelope noise.
+
+    A gate response can legitimately contain both checker failures and a
+    command-level ``ok=false``/``GATE_UNVERIFIED`` marker.  The old classifier
+    promoted the latter to ``PLATFORM`` and hid the actionable layout/net
+    defect.  Prefer the most actionable observable defect; reserve PLATFORM
+    for rounds whose only evidence is an unreadable or contradictory response.
+    """
+
+    codes = {f.code for f in findings}
+    data_codes = {
+        "NET_MISSING",
+        "WIRE_RESTORE_BROKEN",
+        "LAYOUT_PIN_NET_MISMATCH",
+        "ELECTRICAL_DATA_DEBT",
+    }
+    if codes & data_codes:
+        return "DATA"
+
+    geometry_codes = {
+        "LAYOUT_BODY_OVERLAP",
+        "LAYOUT_PIN_COINCIDENCE",
+        "LAYOUT_DUPLICATE_MARKER",
+        "LAYOUT_INK_OUT_OF_BAND",
+        "LAYOUT_TITLEBLOCK_OCCLUDE",
+        "LAYOUT_NET_MISSING",
+        "LAYOUT_COMPONENT_MISSING",
+        "LAYOUT_MARKER_ON_BODY",
+        "LAYOUT_PAGE_INK_SPARSE",
+    }
+    if codes & geometry_codes or any(
+        f.code == "GATE_FAIL"
+        and any(
+            token in (f.evidence or "").lower()
+            for token in (
+                "overlap",
+                "tight",
+                "marker",
+                "floating-pin",
+                "dangling-wire",
+                "missing-partition",
+                "missing-note",
+                "missing-titleblock",
+            )
+        )
+        for f in findings
+    ):
+        return "LAYOUT"
+
+    if codes & {"LAYOUT_READ_UNVERIFIED", "LAYOUT_SNAPSHOT_INVALID", "GATE_UNVERIFIED"}:
+        return "PLATFORM"
+    return ""
+
+
+def _readback_status_indicator(payload: object) -> tuple[bool, str, object]:
+    """Return the first explicit status/boolean indicator in a response."""
+
+    if not isinstance(payload, dict):
+        return False, "", None
+    for key in ("status", "state", "ok", "success", "passed"):
+        if key in payload and payload.get(key) is not None:
+            value = payload.get(key)
+            if isinstance(value, str) and not value.strip():
+                continue
+            return True, key, value
+    for key in ("result", "data", "detail"):
+        nested = payload.get(key)
+        if isinstance(nested, dict):
+            found, source, value = _readback_status_indicator(nested)
+            if found:
+                return True, f"{key}.{source}", value
+    return False, "", None
+
+
+def _validate_readback_payload(payload: object, *, kind: str,
+                               require_positive_status: bool = False) -> dict:
+    """Validate a parsed readback envelope and return it as a mapping.
+
+    Connector commands occasionally return a useful-looking ``result`` next
+    to ``ok:false`` or an ``error`` string.  Such a response is not evidence:
+    accepting the nested data would turn a transport failure into a verified
+    layout.  ``errors`` (plural) is deliberately allowed because checker
+    reports use it as a numeric finding count; singular ``error``/``failure``
+    fields are treated as explicit command failures.
+    """
+
+    if not isinstance(payload, dict):
+        raise _ReadbackPayloadError(f"{kind} response is not an object")
+    reason = _explicit_failure_reason(payload, include_status=True, include_verdict=False)
+    if reason:
+        raise _ReadbackPayloadError(f"{kind} response reports failure: {reason}")
+    if require_positive_status:
+        found, source, value = _readback_status_indicator(payload)
+        if found and _status_token(value) != "pass":
+            raise _ReadbackPayloadError(
+                f"{kind} response status is not successful: {source}={value!r}"
+            )
+    return payload
+
+
+def _context_identity(context: Mapping) -> str:
+    """Extract a document/page identity from a connector context object."""
+
+    for key in (
+        "documentUuid",
+        "documentUUID",
+        "document_uuid",
+        "pageUuid",
+        "pageUUID",
+        "page_uuid",
+    ):
+        value = context.get(key)
+        if value is not None and str(value).strip():
+            return str(value).strip()
+    return ""
+
+
+def _validate_terminal_page_context(
+    payload: object,
+    *,
+    page: str,
+    expected_uuid: str,
+    kind: str = "readback",
+) -> str:
+    """Validate that a strict terminal response belongs to the requested page.
+
+    ``--page``/``--doc`` are routing instructions, not evidence: a stale
+    connector can still return a syntactically valid payload from another tab.
+    The live response context is therefore checked against a UUID resolved
+    independently from the page inventory.  This helper is intentionally pure
+    so the contract can be tested without a connector.  Callers may choose to
+    skip it for legacy adapters whose response format has no context.
+    """
+
+    requested_page = str(page or "").strip()
+    expected = str(expected_uuid or "").strip()
+    if not requested_page:
+        raise _ReadbackPayloadError(f"{kind} response page is empty")
+    if not expected:
+        raise _ReadbackPayloadError(
+            f"{kind} response cannot validate page {requested_page!r}: expected UUID is missing"
+        )
+    if not isinstance(payload, Mapping):
+        raise _ReadbackPayloadError(f"{kind} response is not an object")
+    context = payload.get("context")
+    # A few connector wrappers place the context beside the command result;
+    # accept that shape too, but never synthesize an identity when neither
+    # location carries one.
+    if not isinstance(context, Mapping):
+        nested = payload.get("result")
+        if isinstance(nested, Mapping):
+            context = nested.get("context")
+    if not isinstance(context, Mapping):
+        raise _ReadbackPayloadError(
+            f"{kind} response is missing context for page {requested_page!r}"
+        )
+    observed = _context_identity(context)
+    if not observed:
+        raise _ReadbackPayloadError(
+            f"{kind} response context has no documentUuid/pageUuid for page {requested_page!r}"
+        )
+    if observed.casefold() != expected.casefold():
+        raise _ReadbackPayloadError(
+            f"{kind} response context page mismatch: requested {requested_page!r} "
+            f"uuid={expected!r}, observed={observed!r}"
+        )
+    # Newer connectors may also echo a page/document name.  If present, use it
+    # as a second identity check; older payloads legitimately expose UUID only.
+    # ``documentName`` often names the whole schematic, not the active page;
+    # only explicit page-name fields are safe as a second check.
+    for key in ("page", "pageName", "page_name"):
+        value = context.get(key)
+        if value is None or not str(value).strip():
+            continue
+        observed_page = str(value).strip()
+        if observed_page.casefold() not in {
+            requested_page.casefold(),
+            expected.casefold(),
+        }:
+            raise _ReadbackPayloadError(
+                f"{kind} response context name mismatch: requested {requested_page!r}, "
+                f"observed={observed_page!r}"
+            )
+    doc_type = context.get("documentType")
+    if doc_type is not None and str(doc_type).strip():
+        if str(doc_type).strip().casefold() not in {"schematic", "sch"}:
+            raise _ReadbackPayloadError(
+                f"{kind} response context is not a schematic: {doc_type!r}"
+            )
+    return observed
+
+
+def _normalize_gate_stage_status(stage: object) -> str:
+    """Return canonical ``pass``/``skipped``/``fail``/``unknown`` for a stage.
+
+    Explicit failure payloads win over a contradictory positive alias, e.g.
+    ``status=success, ok=false`` must never be accepted as PASS.
+    """
+
+    if not isinstance(stage, dict):
+        return "unknown"
+    if _explicit_failure_reason(stage):
+        return "fail"
+    statuses: list[str] = []
+    for key in ("verdict", "status", "ok", "success", "passed"):
+        if key not in stage or stage.get(key) is None:
+            continue
+        raw = stage.get(key)
+        if isinstance(raw, str) and not raw.strip():
+            continue
+        statuses.append(_status_token(raw))
+    if not statuses:
+        return "unknown"
+    if any(status == "fail" for status in statuses):
+        return "fail"
+    # Contradictory aliases (for example verdict=pass + status=skipped) are
+    # not resolved by field order; accepting the positive one would hide an
+    # incomplete checker response.
+    if any(status == "unknown" for status in statuses):
+        return "unknown"
+    if len(set(statuses)) > 1:
+        return "unknown"
+    return statuses[0]
+
+
+def _normalize_gate_stage(stage: dict) -> dict:
+    """Copy a stage and expose one canonical status to downstream consumers."""
+
+    copied = dict(stage)
+    canonical = _normalize_gate_stage_status(stage)
+    if "verdict" in copied:
+        copied["verdict"] = canonical
+    if "status" in copied or "verdict" not in copied:
+        copied["status"] = canonical
+    return copied
+
+
+def _normalize_gate_verdict(value) -> str:
+    """Normalize aggregate gate verdict aliases while retaining ``blocked``."""
+
+    if isinstance(value, bool):
+        return "pass" if value else "fail"
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        if not math.isfinite(float(value)):
+            return "unknown"
+        return "pass" if value else "fail"
+    token = str(value or "").strip().lower().replace(" ", "-")
+    if token in _GATE_PASS_STATUS:
+        return "pass"
+    if token in {"blocked", "unavailable", "indeterminate", "unknown", "pending", "not-run", "not_run"}:
+        return "blocked" if token in {"blocked", "unavailable", "indeterminate"} else "unknown"
+    if token in _GATE_FAIL_STATUS:
+        return "fail"
+    return "unknown"
 
 
 def _snap5(raw: float) -> int:
@@ -346,6 +772,7 @@ class RoundRecord:
     findings: list[Finding] = field(default_factory=list)
     feedback: str = ""
     halted: str = ""
+    failure_class: str = ""
 
 
 class TrialFreezeSignal(RuntimeError):
@@ -359,6 +786,11 @@ class LoopResult:
     rounds: list[RoundRecord] = field(default_factory=list)
     final_plan: BlockPlan | None = None
     audit_dir: str = ""
+    # A geometrically/electrically valid run may still require a human visual
+    # review (for example marker ink over a body).  Keep the explicit flag
+    # beside the public status so callers do not need to parse audit files.
+    review_required: bool = False
+    failure_class: str = ""
 
     @property
     def converged_round(self) -> int | None:
@@ -382,6 +814,9 @@ class LoopController:
         answer_context: str = "",
         retry_queries: list[str] | None = None,
         acceptance_items: list | None = None,
+        strict_layout: bool | None = None,
+        require_layout_readback: bool | None = None,
+        fixed_plan: BlockPlan | None = None,
     ) -> None:
         self.ir = ir
         self.catalog = catalog
@@ -395,6 +830,7 @@ class LoopController:
         self.retry_queries = list(retry_queries or [])
         # P4-5①:验收条目(「## 期望指标」标注段,run 不再丢弃;空=无标注段)
         self.acceptance_items = list(acceptance_items or [])
+        self.fixed_plan = fixed_plan
         # P4-1② 功能分区编排(声明+整页分区框+分区注记),默认关——真机验证过再转默认开(风险 R17)
         self.zones_enabled = os.environ.get("EDALOOP_ZONES", "") in ("1", "true", "yes")
         # v0.6.11 审计 P1:生产模式画模块框(volume∪自画线),默认开,0/false/no 关
@@ -411,6 +847,46 @@ class LoopController:
         self._net_missing: list[dict] = []
         # P0 收口前网基线(_apply 收口序开头 _snapshot_page_nets 写;终检第三通道)
         self._pre_closeout_nets: dict[str, set[str]] = {}
+        # Terminal layout audit is enabled by default for the real EasyEDA
+        # adapter.  Older unit-test fakes intentionally expose only a small
+        # command surface; they remain compatible unless they opt in via the
+        # constructor or ``strict_layout_audit`` attribute.  Production cannot
+        # silently turn this off through a fake/partial adapter.
+        real_adapter = isinstance(adapter, EasyedaAdapter)
+        if strict_layout is None:
+            strict_layout = require_layout_readback
+        if real_adapter:
+            # A real connector is a production evidence source.  Neither an
+            # environment override nor an injected ``strict_layout=False``
+            # may disable the terminal geometry/readback contract; callers
+            # that need a lightweight path must inject a fake adapter.
+            strict_layout = True
+        elif strict_layout is None:
+            # A process environment is convenient for offline fakes, but it
+            # is not an acceptable escape hatch for the real connector.  A
+            # production run must always collect terminal geometry/readback;
+            # otherwise a stale fake response can be promoted to PASS merely
+            # by inheriting ``EDALOOP_STRICT_LAYOUT=0`` from a shell profile.
+            env_strict = os.environ.get("EDALOOP_STRICT_LAYOUT", "").strip().lower()
+            if env_strict in ("1", "true", "yes", "on"):
+                strict_layout = True
+            elif env_strict in ("0", "false", "no", "off"):
+                strict_layout = False
+            else:
+                strict_layout = bool(getattr(adapter, "strict_layout_audit", False))
+        self.strict_layout = bool(strict_layout)
+        self._layout_snapshots: dict[str, LayoutSnapshot] = {}
+        # Resolved once per terminal page readback.  The UUID is independent
+        # evidence used to validate the connector response context.
+        self._terminal_page_uuids: dict[str, str] = {}
+        self._terminal_layout_findings: list[Finding] = []
+        self._gate_contract_findings: list[Finding] = []
+        # A standard ``sch-place`` action is addressed by the planner's
+        # requested designator, while EasyEDA may assign a different legal
+        # reference (collision/annotation).  Keep that translation keyed by
+        # block instance: two instances can legitimately request the same
+        # template reference and must never overwrite one another's mapping.
+        self._designator_map_by_instance: dict[str, tuple[str, str]] = {}
 
     def _cost_hint(self, candidates) -> str:
         """同功能可互换块的价格对比(实时查询,弱信号;仅 IR 有 cost_target 时生成,无诉求不查)。"""
@@ -485,6 +961,7 @@ class LoopController:
         result = LoopResult(status="FAIL", audit_dir=str(self.audit.dir))
         feedback = ""
         code_streak: dict[str, int] = {}
+        finding_hash_streak: dict[str, int] = {}
         if not self.dry_run:
             # 版本门前移(P5-0):此前只有 stage_apply 查版本,run 主链裸奔——
             # 真机 daily 在钉扎 0.25.1/实装 1.1.1 漂移下照常落图。真机首次
@@ -499,6 +976,11 @@ class LoopController:
             self._wire_boxes = {}  # P1:各页自画直连线 bbox(画框口径=volume ∪ 自画线)
             self._net_missing = []  # P0:net 存在性终检结果(apply 后重算)
             self._pre_closeout_nets = {}  # P0:收口前网基线(终检第三通道,每轮重建)
+            self._layout_snapshots = {}
+            self._terminal_page_uuids = {}
+            self._terminal_layout_findings = []
+            self._gate_contract_findings = []
+            self._designator_map_by_instance = {}
             query = self.ir.query_text()
             digest = self.ir.decisions_digest()
             if digest:
@@ -514,14 +996,21 @@ class LoopController:
                 self.audit.event("refine-retry", round_no=1, queries=self.retry_queries, candidates=len(candidates))
             # P4-4②:std R/C 通道常驻(提示词宣传的通道,检索没召回也要可用,否则目录外校验必杀)
             candidates = ensure_std_candidates(candidates, self.catalog)
-            plan = make_plan(
-                self.ir,
-                candidates,
-                self.llm,
-                feedback=feedback,
-                cost_hint=self._cost_hint(candidates),
-                answer_context=self.answer_context,
-            )
+            if self.fixed_plan is not None and round_no == 1:
+                plan = self.fixed_plan.model_copy(deep=True)
+                plan.design_ir_id = self.ir.id
+                plan.source = self.ir.source
+                self.audit.event("plan-replay", round_no=round_no, plan_id=plan.id,
+                                 blocks=[b.instance for b in plan.blocks])
+            else:
+                plan = make_plan(
+                    self.ir,
+                    candidates,
+                    self.llm,
+                    feedback=feedback,
+                    cost_hint=self._cost_hint(candidates),
+                    answer_context=self.answer_context,
+                )
             plan = self._augment_freeform(plan, candidates, round_no)
             rec.plan_id = plan.id
             self.audit.event(
@@ -604,6 +1093,10 @@ class LoopController:
                 sizing=sizing_advices or None, acceptance=self.acceptance_items or None,
                 oversize_pages=getattr(self, "_repack_oversize_pages", None) or None,
             )
+            if self._terminal_layout_findings:
+                findings.extend(self._terminal_layout_findings)
+            if self._gate_contract_findings:
+                findings.extend(self._gate_contract_findings)
             self._last_acceptance_unmet = [f for f in findings if f.code == "ACCEPTANCE_UNMET"]
             # P0 断网计数门(审计):紧凑化/重落的恢复失败(拆桩后画线失败且回接
             # 失败/重落两档全败)不再是静默 fail-soft——≤3 处记弱告警,>3 处=
@@ -662,6 +1155,12 @@ class LoopController:
                 ] + findings
             rec.findings = findings
             blocking = [f for f in findings if not f.weak]
+            codes = {f.code for f in findings}
+            rec.failure_class = _classify_failure(findings)
+            if rec.failure_class:
+                self.audit.event("failure-classified", round_no=round_no,
+                                 failure_class=rec.failure_class,
+                                 codes=sorted(codes))
             self.audit.event(
                 "round-validate",
                 round_no=round_no,
@@ -672,15 +1171,51 @@ class LoopController:
             )
             result.rounds.append(rec)
             result.final_plan = plan
+            review_required = any(
+                f.code in {LAYOUT_MARKER_ON_BODY, LAYOUT_PAGE_INK_SPARSE}
+                for f in findings
+            )
+            result.review_required = result.review_required or review_required
+            if rec.failure_class:
+                result.failure_class = rec.failure_class
             if not blocking:
-                result.status = "PASS"
-                self.audit.event("loop-done", status="PASS", rounds=round_no)
+                result.status = "LAYOUT_REVIEW_REQUIRED" if result.review_required else "PASS"
+                if result.review_required:
+                    self.audit.event(
+                        "layout-review-required",
+                        round_no=round_no,
+                        codes=sorted(c for c in codes if c in {LAYOUT_MARKER_ON_BODY, LAYOUT_PAGE_INK_SPARSE}),
+                    )
+                self.audit.event(
+                    "loop-done",
+                    status=result.status,
+                    rounds=round_no,
+                    review_required=result.review_required,
+                    failure_class=result.failure_class,
+                )
                 return result
             streak_key = "|".join(sorted({f.code for f in blocking}))
             code_streak[streak_key] = code_streak.get(streak_key, 0) + 1
-            if code_streak[streak_key] >= SAME_CODE_HALT:
+            current_finding_hash = _finding_hash(blocking)
+            finding_hash_streak[current_finding_hash] = finding_hash_streak.get(current_finding_hash, 0) + 1
+            self.audit.event(
+                "finding-convergence",
+                round_no=round_no,
+                finding_hash=current_finding_hash,
+                hash_streak=finding_hash_streak[current_finding_hash],
+                code_streak=code_streak[streak_key],
+                blocking_count=len(blocking),
+            )
+            # A stable semantic finding is stronger evidence of a non-moving
+            # layout than a code-only match.  Halt on the second identical
+            # snapshot to prevent reverse-clamp/group-arrange oscillation.
+            if (finding_hash_streak[current_finding_hash] >= SAME_CODE_HALT
+                    or code_streak[streak_key] >= SAME_CODE_HALT):
                 result.status = "HALT"
-                rec.halted = f"同错 {SAME_CODE_HALT} 轮:{streak_key},升级人工"
+                rec.halted = (
+                    f"同错 {SAME_CODE_HALT} 轮:{streak_key},"
+                    f"finding_hash={current_finding_hash},升级人工"
+                )
                 self.audit.event("loop-halt", round_no=round_no, reason=rec.halted)
                 return result
             feedback = attribute(blocking)
@@ -745,40 +1280,79 @@ class LoopController:
 
     def deliver(self, result) -> dict:
         """PASS 后交付打包:SVG + 网表 + BOM 成本 + 摘要落 run 目录(§1 交付链路)。"""
-        if result.status != "PASS" or self.dry_run:
+        if result.status not in {"PASS", "LAYOUT_REVIEW_REQUIRED"} or self.dry_run:
             return {}
         import hashlib
 
-        arts = {}
+        arts: dict = {}
+        delivery_errors: list[str] = []
+        pages = sorted(
+            {b.page or "P1" for b in (result.final_plan.blocks if result.final_plan else [])}
+        )
+        if not pages:
+            delivery_errors.append("no final pages/plan")
         try:
             # export-image 缺省只导前台页(末轮逐页 gate 把前台留在末页)——多页必须
             # 逐页 --doc 导出,否则交付物静默缺页(P1 电源页丢失类);单页保持原名。
-            pages = sorted(
-                {b.page or "P1" for b in (result.final_plan.blocks if result.final_plan else [])}
-            )
             exported: list[str] = []
             for p in pages:
                 name = "delivery.svg" if len(pages) == 1 else f"delivery-{p}.svg"
                 svg_path = str((self.audit.dir / name).resolve())
-                rc, _, _ = self.adapter.run(
-                    ["sch", "export-image", "--out", svg_path, "--format", "svg", "--doc", p]
-                )
-                if rc == 0 and Path(svg_path).exists():
-                    exported.append(svg_path)
+                path = Path(svg_path)
+                # Do not let a reused audit directory turn an exporter no-op
+                # into a fresh artifact.  Generated SVGs are disposable run
+                # outputs, so remove the exact expected path before invoking
+                # the connector and require a newly written, parseable file.
+                try:
+                    path.unlink(missing_ok=True)
+                except OSError as exc:
+                    delivery_errors.append(f"svg:{p}: cannot clear previous artifact: {exc}")
+                    continue
+                try:
+                    rc, _out, err = self.adapter.run(
+                        ["sch", "export-image", "--out", svg_path, "--format", "svg", "--doc", p]
+                    )
+                except Exception as exc:  # noqa: BLE001 - keep other artifacts auditable
+                    delivery_errors.append(f"svg:{p}: {str(exc)[:160]}")
+                    continue
+                if rc != 0:
+                    detail = f"svg:{p}: export rc={rc}"
+                    if err:
+                        detail += f" ({str(err).strip()[-160:]})"
+                    delivery_errors.append(detail)
+                    continue
+                if not path.exists() or not path.is_file():
+                    delivery_errors.append(f"svg:{p}: exporter produced no file")
+                    continue
+                try:
+                    raw_svg = path.read_bytes()
+                except OSError as exc:
+                    delivery_errors.append(f"svg:{p}: cannot read artifact: {exc}")
+                    continue
+                if not raw_svg.strip() or b"<svg" not in raw_svg[:4096].lower():
+                    delivery_errors.append(f"svg:{p}: artifact is empty or not SVG")
+                    continue
+                exported.append(svg_path)
             if exported:
                 arts["svg"] = exported[0]
                 arts["svg_pages"] = exported
-        except Exception:
-            pass
+        except Exception as e:
+            delivery_errors.append(f"svg export: {str(e)[:160]}")
         try:
-            rc, out, _ = self.adapter.run(["sch", "netlist"])
+            rc, out, err = self.adapter.run(["sch", "netlist"])
             if rc == 0:
                 net = out
-                (self.audit.dir / "delivery.net.json").write_text(net, encoding="utf-8")
-                arts["netlist"] = str(self.audit.dir / "delivery.net.json")
+                parsed = json.loads(net)
+                if not isinstance(parsed, (dict, list)):
+                    raise ValueError("netlist JSON must be object or array")
+                net_path = self.audit.dir / "delivery.net.json"
+                net_path.write_text(net, encoding="utf-8")
+                arts["netlist"] = str(net_path)
                 arts["netlist_sha256_16"] = hashlib.sha256(net.encode()).hexdigest()[:16]
-        except Exception:
-            pass
+            else:
+                delivery_errors.append(f"netlist rc={rc}: {(err or '')[-160:]}")
+        except Exception as e:
+            delivery_errors.append(f"netlist: {str(e)[:160]}")
         try:
             from edaloop.generate.bomcost import summarize_bom
 
@@ -813,6 +1387,7 @@ class LoopController:
                 arts["bom"] = str(self.audit.dir / "delivery.bom.json")
                 arts["bom_total"] = bom.get("total")
         except Exception as e:
+            delivery_errors.append(f"bom: {str(e)[:160]}")
             self.audit.event("bom-cost-error", error=str(e)[:200])
         try:
             from edaloop.generate.selection import proposals_report, propose_swaps
@@ -907,7 +1482,47 @@ class LoopController:
                 self.audit.event("critic", findings=[f.model_dump() for f in findings])
         except Exception as e:
             self.audit.event("critic-error", error=str(e)[:200])
-        self.audit.event("delivery", artifacts=arts)
+        # Delivery is a contract, not a best-effort collection of whatever
+        # exporters happened to return.  A PASS without one SVG per planned
+        # page, a parseable netlist, and a BOM is not safe to hand off or feed
+        # back into the case store.
+        exported_pages = set()
+        for path in arts.get("svg_pages", []) or []:
+            name = Path(path).name
+            if name == "delivery.svg":
+                exported_pages.add(pages[0] if len(pages) == 1 else "")
+            elif name.startswith("delivery-") and name.endswith(".svg"):
+                exported_pages.add(name[len("delivery-"):-4])
+        missing: list[str] = []
+        if len(pages) == 1:
+            if "svg" not in arts:
+                missing.append(f"svg:{pages[0]}")
+        else:
+            missing.extend(f"svg:{p}" for p in pages if p not in exported_pages)
+        if "netlist" not in arts:
+            missing.append("netlist")
+        if "bom" not in arts:
+            missing.append("bom")
+        if delivery_errors:
+            missing.extend(delivery_errors)
+        if missing:
+            arts["ok"] = False
+            arts["missing"] = list(dict.fromkeys(missing))
+            self.audit.event("delivery-failure", artifacts=arts, missing=arts["missing"])
+            # Keep the result status explicit so pipeline callers cannot
+            # accidentally persist a case after an incomplete handoff.
+            result.status = "DELIVERY_FAIL"
+        else:
+            arts["ok"] = True
+            if result.status == "LAYOUT_REVIEW_REQUIRED" or getattr(result, "review_required", False):
+                arts["ok"] = False
+                arts["review_required"] = True
+                arts["review_code"] = "LAYOUT_REVIEW_REQUIRED"
+                arts["missing"] = ["human-layout-review"]
+                result.status = "LAYOUT_REVIEW_REQUIRED"
+                self.audit.event("delivery-review-required", artifacts=arts)
+                return arts
+            self.audit.event("delivery", artifacts=arts)
         return arts
 
     def _verify_pins(self, round_no: int, designator: str, pinout: dict[str, str] | None, page: str = "P1") -> bool:
@@ -943,6 +1558,53 @@ class LoopController:
             ok=ok,
             diff={k: v for k, v in list(diff.items())[:10]},
         )
+        return ok
+
+    def _verify_no_connect(self, round_no: int, designator: str,
+                           pins: list[str], page: str = "P1") -> bool:
+        """Read back the connector's NC state after a typed ``sch no-connect``.
+
+        ``no-connect`` changes a pin attribute and produces no network carrier;
+        accepting its exit code alone would recreate the same false-PASS class
+        as an unmarked floating pin.  Connector versions expose the state as
+        ``noConnected`` (with a few historical aliases), so unknown or missing
+        state is deliberately a failed verification.
+        """
+        wanted = {str(pin).strip() for pin in pins if str(pin).strip()}
+        try:
+            from edaloop.generate.adapter import AdapterError
+
+            read = self._run_json_retry(["sch", "read", "--page", page or "P1"])
+        except AdapterError as e:
+            self.audit.event("no-connect-verify", round_no=round_no, designator=designator,
+                             pins=sorted(wanted), ok=False, error=str(e)[:300])
+            return False
+        placed = next(
+            (c for c in read.get("result", {}).get("components", [])
+             if str(c.get("designator") or "") == designator),
+            None,
+        )
+        observed: dict[str, bool | None] = {}
+        if isinstance(placed, dict):
+            for pin in placed.get("pins", []) or []:
+                if not isinstance(pin, dict):
+                    continue
+                number = str(pin.get("number") or pin.get("pinNumber") or "").strip()
+                if number not in wanted:
+                    continue
+                raw = next((pin[key] for key in ("noConnected", "noConnect", "no_connected")
+                            if key in pin), None)
+                if isinstance(raw, bool):
+                    observed[number] = raw
+                elif isinstance(raw, (int, float)):
+                    observed[number] = bool(raw)
+                elif isinstance(raw, str):
+                    observed[number] = raw.strip().casefold() in {"1", "true", "yes"}
+                else:
+                    observed[number] = None
+        ok = all(observed.get(pin) is True for pin in wanted)
+        self.audit.event("no-connect-verify", round_no=round_no, designator=designator,
+                         pins=sorted(wanted), observed=observed, ok=ok)
         return ok
 
     @staticmethod
@@ -1138,36 +1800,441 @@ class LoopController:
         except AdapterError:
             return None
 
+    @classmethod
+    def _parse_gate_stage_args(
+        cls, gate_args: list[str] | tuple[str, ...] | None
+    ) -> tuple[tuple[str, ...], list[str]]:
+        """Derive the checker stages a gate report must prove.
+
+        The upstream CLI accepts comma-separated ``--only`` and ``--skip``
+        values.  Keep this parser local to the controller so contract checks
+        use exactly the same policy as the per-page invocation.  Unknown or
+        empty values are returned as contract errors instead of being silently
+        ignored.
+        """
+
+        args = [str(a) for a in (gate_args or ())]
+        only_values: list[str] = []
+        skip_values: list[str] = []
+        only_seen = False
+        skip_seen = False
+        errors: list[str] = []
+
+        def consume(value: str, flag: str, target: list[str]) -> None:
+            value = str(value).strip()
+            if not value:
+                errors.append(f"{flag} 不能为空")
+                return
+            for raw_name in value.split(","):
+                name = raw_name.strip().lower()
+                if not name:
+                    errors.append(f"{flag} 包含空 stage")
+                elif name not in _GATE_STAGE_SET:
+                    errors.append(f"{flag} 包含未知 stage: {name}")
+                elif name not in target:
+                    target.append(name)
+
+        i = 0
+        while i < len(args):
+            token = args[i].strip()
+            flag = ""
+            target: list[str] | None = None
+            value: str | None = None
+            if token == "--only":
+                flag, target = "--only", only_values
+                only_seen = True
+                if i + 1 < len(args) and not args[i + 1].strip().startswith("--"):
+                    value = args[i + 1]
+                    i += 1
+                else:
+                    errors.append("--only 缺少值")
+            elif token.startswith("--only="):
+                flag, target, value = "--only", only_values, token.split("=", 1)[1]
+                only_seen = True
+            elif token == "--skip":
+                flag, target = "--skip", skip_values
+                skip_seen = True
+                if i + 1 < len(args) and not args[i + 1].strip().startswith("--"):
+                    value = args[i + 1]
+                    i += 1
+                else:
+                    errors.append("--skip 缺少值")
+            elif token.startswith("--skip="):
+                flag, target, value = "--skip", skip_values, token.split("=", 1)[1]
+                skip_seen = True
+            if flag and value is not None and target is not None:
+                consume(value, flag, target)
+            i += 1
+
+        selected = only_values if only_seen else list(_GATE_STAGE_ORDER)
+        skip = set(skip_values)
+        if only_seen and skip_seen:
+            errors.append("--only 与 --skip 不能同时使用")
+        required = tuple(name for name in _GATE_STAGE_ORDER if name in selected and name not in skip)
+        if not required:
+            errors.append("gate 未保留任何必需 stage")
+        return required, errors
+
+    @classmethod
+    def _gate_required_stages(
+        cls, gate_args: list[str] | tuple[str, ...] | None = None
+    ) -> tuple[str, ...]:
+        """Return required stage names, defaulting to all five checkers.
+
+        This convenience wrapper intentionally omits parse errors; callers
+        enforcing a report contract should use ``_parse_gate_stage_args`` so
+        malformed CLI values become a hard finding.
+        """
+
+        return cls._parse_gate_stage_args(gate_args)[0]
+
+    @staticmethod
+    def _stage_page_copy(stage: dict, requested_page: str, errors: list[str], index: int) -> dict:
+        """Copy a connector stage while preserving a reported page value.
+
+        A single-page connector normally omits ``page``; only that case is
+        filled in.  If it reports a different page, retain the evidence and
+        record a contract error instead of rewriting it to the requested page.
+        """
+
+        copied = dict(stage)
+        reported = stage.get("page")
+        missing = reported is None or (isinstance(reported, str) and not reported.strip())
+        if missing:
+            copied["page"] = requested_page
+            return copied
+        if str(reported).strip() != requested_page:
+            name = str(stage.get("stage") or stage.get("name") or f"stage[{index}]").strip()
+            errors.append(
+                f"{requested_page}: {name or f'stage[{index}]'} 报告 page={reported!r}"
+            )
+        return copied
+
     def _gate_all_pages(self, gate_args: list[str], actions, round_no: int) -> dict:
         """逐页 gate:上游 gate 只校验活动页,多页必须 --doc 逐页跑;verdict 取最坏,stages 并集带页标。"""
         from edaloop.generate.adapter import AdapterError
 
-        worst = {"pass": 0, "unknown": 1, "blocked": 1, "fail": 2}
-        merged: dict = {"verdict": "pass", "stages": []}
+        required_stages, arg_errors = self._parse_gate_stage_args(gate_args)
+        # ``blocked`` means the checker could not establish a result and is
+        # therefore more severe than an unrecognised/unknown response.
+        worst = {"pass": 0, "unknown": 1, "blocked": 2, "fail": 3}
+        gate_args = list(gate_args or [])
+        merged: dict = {
+            # Argument/report-shape errors are evidence that the aggregate
+            # result is not trustworthy even when the connector said PASS.
+            "verdict": "unknown" if arg_errors else "pass",
+            "stages": [],
+            "contract_errors": list(arg_errors),
+            "gate_args": list(gate_args),
+            "required_stages": list(required_stages),
+        }
+        # The compile action historically carried only ``--json``.  In the
+        # production adapter the terminal gate must be strict: otherwise the
+        # connector can report a nominal pass while marker/orphan warnings are
+        # silently downgraded.  Keep offline/fake callers backward-compatible
+        # when they explicitly disable strict layout auditing.
+        gate_base = list(gate_args)
+        if self.strict_layout and "--strict" not in gate_base:
+            gate_base.append("--strict")
         for p in self._plan_pages(actions):
             verdict_page = "unknown"
             stages_page: list = []
             try:
-                rep = self._run_json_retry(list(gate_args) + ["--doc", p])
-                verdict_page = rep.get("verdict", "unknown")
-                stages_page = rep.get("stages", []) or []
-            except AdapterError as e:
+                rc, rep, gate_stderr = self._run_gate_json_retry(gate_base + ["--doc", p])
+                if not isinstance(rep, dict):
+                    raise ValueError("gate response is not an object")
+                raw_verdict = rep.get("verdict")
+                # Connector versions before the aggregate ``verdict`` field
+                # used a scalar status/boolean alias at the envelope level.
+                # Accept that spelling only when ``verdict`` is absent; if
+                # both are present, the explicit verdict remains authoritative
+                # and contradiction handling below still fails closed via the
+                # payload-failure check.
+                if raw_verdict is None:
+                    for key in ("status", "ok", "success", "passed"):
+                        if key in rep and rep.get(key) is not None:
+                            raw_verdict = rep.get(key)
+                            break
+                verdict_page = _normalize_gate_verdict(raw_verdict)
+                # Treat contradictory envelope aliases as unverified.  Some
+                # connector builds emit both ``verdict`` and ``status``; a
+                # stale/pending status must not be hidden by a positive
+                # verdict field.
+                envelope_statuses: list[str] = []
+                for key in ("verdict", "status", "ok", "success", "passed"):
+                    if key not in rep or rep.get(key) is None:
+                        continue
+                    raw = rep.get(key)
+                    if isinstance(raw, str) and not raw.strip():
+                        continue
+                    envelope_statuses.append(_normalize_gate_verdict(raw))
+                if any(s == "fail" for s in envelope_statuses):
+                    # A positive verdict paired with a negative transport
+                    # alias is contradictory evidence, not a trustworthy
+                    # checker FAIL (the latter would invite a layout fix when
+                    # the real issue is the response envelope).
+                    verdict_page = "unknown" if _normalize_gate_verdict(raw_verdict) == "pass" else "fail"
+                elif (any(s == "unknown" for s in envelope_statuses)
+                      or len(set(envelope_statuses)) > 1):
+                    verdict_page = "unknown"
+                payload_failure = _explicit_failure_reason(
+                    rep, include_status=True, include_verdict=False
+                )
+                if payload_failure:
+                    merged["contract_errors"].append(
+                        f"{p}: gate 响应报告失败: {payload_failure}"
+                    )
+                    if verdict_page == "pass":
+                        verdict_page = "unknown"
+                if rc != 0:
+                    # A valid JSON envelope does not erase a command-level
+                    # failure.  Preserve an explicit FAIL verdict as useful
+                    # checker evidence, but downgrade a nominal PASS (or an
+                    # otherwise unverified envelope) so strict contract
+                    # validation emits GATE_UNVERIFIED instead of accepting
+                    # it.  A consistent command FAIL remains GATE_FAIL rather
+                    # than being relabeled as a response-shape error.
+                    detail = f"sch gate rc={rc}"
+                    if gate_stderr:
+                        detail += f": {str(gate_stderr).strip()[-500:]}"
+                    if verdict_page != "fail":
+                        merged["contract_errors"].append(f"{p}: {detail}")
+                        if verdict_page == "pass":
+                            verdict_page = "unknown"
+                    else:
+                        merged.setdefault("command_errors", []).append(
+                            {"page": p, "rc": rc, "detail": detail}
+                        )
+                raw_stages = rep.get("stages", [])
+                if raw_stages is None:
+                    raw_stages = []
+                if not isinstance(raw_stages, list):
+                    raise ValueError("gate stages is not an array")
+                malformed = [s for s in raw_stages if not isinstance(s, dict)]
+                if malformed:
+                    merged["contract_errors"].append(
+                        f"{p}: gate stages contains non-object entries"
+                    )
+                    # A PASS with malformed evidence is not a usable PASS;
+                    # expose it as unknown as well as retaining the detail so
+                    # callers that only inspect verdict cannot proceed.
+                    verdict_page = "unknown"
+                stages_page = [
+                    _normalize_gate_stage(s)
+                    for s in raw_stages
+                    if isinstance(s, dict)
+                ]
+            except (AdapterError, ValueError, TypeError, AttributeError) as e:
                 self.audit.event("gate-error", round_no=round_no, page=p, error=str(e)[:500])
                 verdict_page = "blocked"
+                merged["contract_errors"].append(f"{p}: {str(e)[:180]}")
             if worst.get(verdict_page, 2) > worst.get(merged["verdict"], 2):
                 merged["verdict"] = verdict_page
-            merged["stages"].extend([dict(s, page=p) for s in stages_page])
+            # A connector-reported page mismatch is an evidence race, not a
+            # schematic finding.  Keep the original page in the stage record
+            # for forensics, but fail closed at the aggregate verdict so a
+            # caller that only inspects ``verdict`` cannot accept it.
+            errors_before_page_copy = len(merged["contract_errors"])
+            copied_stages = [
+                self._stage_page_copy(s, p, merged["contract_errors"], index)
+                for index, s in enumerate(stages_page)
+            ]
+            if len(merged["contract_errors"]) > errors_before_page_copy:
+                verdict_page = "unknown"
+            if worst.get(verdict_page, 2) > worst.get(merged["verdict"], 2):
+                merged["verdict"] = verdict_page
+            merged["stages"].extend(copied_stages)
             self.audit.event(
                 "gate",
                 round_no=round_no,
                 page=p,
                 verdict=verdict_page,
+                required_stages=list(required_stages),
                 stages=[
                     f"{s.get('stage') or s.get('name')}:{s.get('verdict') or s.get('status')}"
                     for s in stages_page
                 ],
             )
         return merged
+
+    def _check_gate_contract(
+        self,
+        report: dict | None,
+        actions,
+        round_no: int,
+        gate_args: list[str] | tuple[str, ...] | None = None,
+    ) -> list[Finding]:
+        """Ensure a nominal gate PASS proves every required stage per page.
+
+        ``sch gate`` may return a syntactically valid PASS while omitting a
+        checker (or marking it ``skipped``).  The contract is evaluated only
+        after the upstream verdict is PASS; non-PASS details remain the job of
+        :func:`check_gauge`.  In production, malformed/missing evidence is
+        always an error rather than a best-effort success.
+        """
+
+        if not self.strict_layout:
+            return []
+        pages = set(self._plan_pages(actions))
+        findings: list[Finding] = []
+        if not isinstance(report, dict):
+            findings.append(
+                Finding(
+                    code="GATE_UNVERIFIED",
+                    evidence="gate 未返回结构化报告",
+                    severity="error",
+                    suggested_fix_class="RETRY_ENV",
+                )
+            )
+            return findings
+
+        # _gate_all_pages records the original invocation in the report so
+        # callers that use the historical three-argument helper still get the
+        # same policy without relying on mutable controller state.
+        if gate_args is None:
+            stored_args = report.get("gate_args")
+            if isinstance(stored_args, (list, tuple)) and stored_args:
+                gate_args = list(stored_args)
+        required, arg_errors = self._parse_gate_stage_args(gate_args)
+
+        raw_contract_errors = report.get("contract_errors") or []
+        if isinstance(raw_contract_errors, (list, tuple)):
+            contract_errors = [str(e) for e in raw_contract_errors if str(e).strip()]
+        else:
+            contract_errors = [str(raw_contract_errors)]
+        contract_errors.extend(arg_errors)
+        if contract_errors:
+            detail = "; ".join(contract_errors[:3])
+            findings.append(
+                Finding(
+                    code="GATE_UNVERIFIED",
+                    evidence=f"gate 响应结构无效: {detail}",
+                    severity="error",
+                    suggested_fix_class="RETRY_ENV",
+                )
+            )
+            self.audit.event(
+                "gate-contract",
+                round_no=round_no,
+                expected_pages=sorted(pages),
+                required_stages=list(required),
+                covered_pages=[],
+                missing_stages=[],
+                errors=contract_errors[:5],
+                ok=False,
+            )
+            return findings
+
+        verdict = _normalize_gate_verdict(report.get("verdict"))
+        payload_failure = _explicit_failure_reason(
+            report, include_status=True, include_verdict=False
+        )
+        if payload_failure and verdict == "pass":
+            findings.append(
+                Finding(
+                    code="GATE_UNVERIFIED",
+                    evidence=f"gate PASS 但响应报告失败: {payload_failure}",
+                    severity="error",
+                    suggested_fix_class="RETRY_ENV",
+                )
+            )
+            return findings
+        stages = report.get("stages")
+        if verdict != "pass":
+            # check_gauge supplies the detailed GATE_FAIL/GATE_BLOCKED finding;
+            # this additional code records a contract-level failure only for
+            # an otherwise misleading unknown/empty response.
+            if verdict in {"unknown", ""}:
+                findings.append(
+                    Finding(
+                        code="GATE_UNVERIFIED",
+                        evidence=f"gate verdict={verdict or 'missing'}",
+                        severity="error",
+                        suggested_fix_class="RETRY_ENV",
+                    )
+                )
+            return findings
+        if not isinstance(stages, list) or not stages:
+            findings.append(
+                Finding(
+                    code="GATE_UNVERIFIED",
+                    evidence="gate PASS 但没有任何 stage 证据",
+                    severity="error",
+                    suggested_fix_class="RETRY_ENV",
+                )
+            )
+            return findings
+
+        malformed: list[str] = []
+        by_page: dict[str, dict[str, list[str]]] = {}
+        covered: set[str] = set()
+        for index, stage in enumerate(stages):
+            if not isinstance(stage, dict):
+                malformed.append(f"stage[{index}] 不是对象")
+                continue
+            raw_name = stage.get("stage") or stage.get("name") or ""
+            name = str(raw_name).strip().lower()
+            status = _normalize_gate_stage_status(stage)
+            raw_page = stage.get("page")
+            page = str(raw_page).strip() if raw_page is not None else ""
+            if not name:
+                malformed.append(f"stage[{index}] 缺少 stage/name")
+            elif name not in _GATE_STAGE_SET:
+                malformed.append(f"stage[{index}] 未知 stage: {name}")
+            if status not in {"pass", "skipped"}:
+                malformed.append(f"stage[{index}] 缺少 pass/skipped 结论")
+            if not page:
+                malformed.append(f"stage[{index}] 缺少 page")
+            elif page not in pages:
+                malformed.append(f"stage[{index}] page={page} 不在计划页面")
+            if name and page:
+                page_stages = by_page.setdefault(page, {})
+                entries = page_stages.setdefault(name, [])
+                if entries:
+                    malformed.append(f"{page}: stage {name} 重复")
+                entries.append(status)
+                if page in pages:
+                    covered.add(page)
+
+        missing_required: list[str] = []
+        skipped_required: list[str] = []
+        for page in sorted(pages):
+            page_stages = by_page.get(page, {})
+            for name in required:
+                statuses = page_stages.get(name, [])
+                if not statuses:
+                    missing_required.append(f"{page}:{name}")
+                elif any(status != "pass" for status in statuses):
+                    skipped_required.append(f"{page}:{name}")
+
+        if malformed or missing_required or skipped_required:
+            details: list[str] = []
+            if malformed:
+                details.extend(malformed[:3])
+            if missing_required:
+                details.append("缺少必需 stage=" + ",".join(missing_required[:8]))
+            if skipped_required:
+                details.append("必需 stage 未 pass=" + ",".join(skipped_required[:8]))
+            findings.append(
+                Finding(
+                    code="GATE_UNVERIFIED",
+                    evidence="gate PASS 的 stage 证据不完整: " + "; ".join(details),
+                    severity="error",
+                    suggested_fix_class="RETRY_ENV",
+                )
+            )
+        self.audit.event(
+            "gate-contract",
+            round_no=round_no,
+            expected_pages=sorted(pages),
+            required_stages=list(required),
+            covered_pages=sorted(covered),
+            missing_stages=missing_required,
+            skipped_stages=skipped_required,
+            malformed=malformed[:8],
+            ok=not findings,
+        )
+        return findings
 
     @staticmethod
     def _doc_args(act) -> list[str]:
@@ -1283,6 +2350,339 @@ class LoopController:
         except ValueError:
             return {}
 
+    def _clusters_report_strict(self, page: str) -> dict:
+        """Read a clusters response without converting failure into ``{}``.
+
+        ``clusters`` uses a non-zero return code for ordinary ERROR findings,
+        so the JSON payload (rather than rc alone) is the source of truth.  An
+        empty or malformed payload is still a hard readback failure for the
+        terminal audit.
+        """
+        rc, out, err = self.adapter.run(["sch", "clusters", "--json", "--doc", page])
+        if not (out or "").strip():
+            raise ValueError(f"clusters empty response (rc={rc}): {(err or '')[-160:]}")
+        try:
+            rep = json.loads(out)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"clusters invalid JSON (rc={rc}): {exc}") from exc
+        rep = _validate_readback_payload(
+            rep, kind="clusters", require_positive_status=True
+        )
+        if "clusters" not in rep:
+            raise ValueError("clusters response missing clusters field")
+        if not isinstance(rep.get("clusters"), list):
+            raise ValueError("clusters response clusters is not an array")
+        # The current clusters CLI intentionally unwraps the connector
+        # envelope, so live responses do not carry ``context``.  The list
+        # readback (performed immediately before this call) is the strict
+        # page-identity anchor.  If a connector/CLI build does preserve a
+        # context object, verify it against the same UUID instead of trusting
+        # the requested ``--doc`` string alone.
+        if isinstance(self.adapter, EasyedaAdapter) and "context" in rep:
+            try:
+                expected_uuid = self._terminal_page_uuid(page)
+            except Exception as exc:  # noqa: BLE001 - identity absence fails closed
+                raise _ReadbackPayloadError(
+                    f"clusters cannot validate page identity: {str(exc)[:240]}"
+                ) from exc
+            _validate_terminal_page_context(
+                rep,
+                page=page,
+                expected_uuid=expected_uuid,
+                kind="clusters",
+            )
+        return rep
+
+    @staticmethod
+    def _marker_owner_hint(marker: dict, parts: list[dict]) -> tuple[str, str] | None:
+        """Infer an explicit marker owner only when the connector gives a
+        near, unambiguous pin anchor.  Distant net labels remain ownerless;
+        guessing those would turn valid labels into false duplicate findings.
+        """
+        owner = str(marker.get("ownerRef") or marker.get("owner_ref") or marker.get("designator") or "").strip()
+        pin_no = str(marker.get("pinNumber") or marker.get("pin") or "").strip()
+        if owner and pin_no:
+            return owner, pin_no
+        pins = marker.get("pins") or []
+        anchor = pins[0] if isinstance(pins, list) and pins and isinstance(pins[0], dict) else marker
+        try:
+            mx, my = float(anchor.get("x")), float(anchor.get("y"))
+        except (TypeError, ValueError):
+            return None
+        net = str(marker.get("net") or marker.get("name") or "").strip()
+        if not net:
+            return None
+        hits: list[tuple[float, str, str]] = []
+        for comp in parts:
+            if not isinstance(comp, Mapping):
+                continue
+            ref = str(comp.get("designator") or "").strip()
+            comp_pins = comp.get("pins") or []
+            if not isinstance(comp_pins, (list, tuple)):
+                continue
+            for p in comp_pins:
+                if not isinstance(p, Mapping):
+                    continue
+                if str(p.get("net") or "").strip() != net:
+                    continue
+                try:
+                    d = math.hypot(float(p.get("x")) - mx, float(p.get("y")) - my)
+                except (TypeError, ValueError):
+                    continue
+                if d <= 35.0:
+                    hits.append((d, ref, str(p.get("pinNumber") or p.get("number") or "").strip()))
+        if len(hits) == 1:
+            return hits[0][1], hits[0][2]
+        if len(hits) > 1:
+            hits.sort(key=lambda item: item[0])
+            if hits[0][0] + 1e-6 < hits[1][0]:
+                return hits[0][1], hits[0][2]
+        return None
+
+    def _read_layout_snapshot(
+        self,
+        page: str,
+        round_no: int,
+        actions,
+        expected_components: list[str] | None = None,
+        *,
+        is_last_page: bool = True,
+    ) -> tuple[LayoutSnapshot, list[Finding]]:
+        """Capture one page's final geometry/electrical readback.
+
+        This is deliberately a boundary adapter: all predicates live in
+        ``validate.layout`` and can therefore be replayed with a JSON fixture.
+        Any failed command is represented as an unavailable snapshot, never as
+        an empty component list.
+        """
+        from edaloop.generate.packer import TITLEBLOCK_KEEPOUT
+
+        error = ""
+        degraded = False
+        degraded_note = ""
+        readback_validation_errors: list[str] = []
+        try:
+            # Terminal readback is stricter than the best-effort probes used
+            # during packing.  A non-zero ``sch list`` response must not be
+            # paired with stale stdout and interpreted as a fresh snapshot.
+            comps, degraded_note = self._list_components(page, strict=True)
+            degraded = bool(degraded_note)
+        except _ReadbackPayloadError as exc:
+            comps = []
+            error = f"sch list: {str(exc)[:240]}"
+            readback_validation_errors.append(str(exc)[:300])
+        except Exception as exc:  # noqa: BLE001
+            comps = []
+            error = f"sch list: {str(exc)[:240]}"
+        clusters: dict = {}
+        if not error:
+            try:
+                clusters = self._clusters_report_strict(page)
+            except _ReadbackPayloadError as exc:
+                error = str(exc)[:300]
+                readback_validation_errors.append(str(exc)[:300])
+            except Exception as exc:  # noqa: BLE001
+                error = str(exc)[:300]
+
+        # Normalize connector aliases before filtering.  Keep the original
+        # payload fields, but expose one canonical ``componentType`` spelling
+        # to the pure snapshot checks and marker ownership resolver.
+        normalized_comps: list[dict] = []
+        # Keep malformed records visible to the terminal audit.  Silently
+        # dropping a scalar/object-less entry can turn a partial connector
+        # response into a seemingly complete, verified page.
+        payload_errors: list[str] = list(readback_validation_errors)
+        for index, raw in enumerate(comps):
+            if not isinstance(raw, Mapping):
+                payload_errors.append(
+                    f"components[{index}]:expected object record, got {type(raw).__name__}"
+                )
+                continue
+            item = dict(raw)
+            raw_type = next(
+                (
+                    raw.get(key)
+                    for key in ("componentType", "component_type", "type")
+                    if raw.get(key) is not None and str(raw.get(key)).strip()
+                ),
+                "part",
+            )
+            item["componentType"] = _normalized_component_type(
+                raw_type
+            )
+            # Keep unsupported records visible to the terminal contract.  The
+            # controller filters sheet/marker records before constructing the
+            # snapshot; without this explicit check an unknown connector type
+            # would simply disappear and a partial response could still look
+            # like a verified page.
+            if item["componentType"] not in {
+                "part", "netport", "netflag", "netlabel", "marker", "sheet",
+            }:
+                payload_errors.append(
+                    f"components[{index}]:unknown component type {item['componentType']!r}"
+                )
+            normalized_comps.append(item)
+        comps = normalized_comps
+
+        # Enrich list parts with the physical body and volume boxes measured by
+        # clusters.  Keep the two boxes separate: body overlap is electrical
+        # safety; volume/ink is a readability signal.
+        cluster_by_ref = {
+            str(c.get("designator") or ""): c
+            for c in (clusters.get("clusters") or [])
+            if isinstance(c, dict) and c.get("designator")
+        }
+        parts = [c for c in comps if isinstance(c, dict) and c.get("componentType") == "part" and c.get("designator")]
+        enriched: list[dict] = []
+        for raw in parts:
+            c = dict(raw)
+            cl = cluster_by_ref.get(str(c.get("designator"))) or {}
+            if not c.get("bbox") and cl.get("body"):
+                c["bbox"] = cl.get("body")
+            if cl.get("box"):
+                c["inkBBox"] = cl.get("box")
+            enriched.append(c)
+
+        markers: list[MarkerSnapshot] = []
+        for raw in comps:
+            if not isinstance(raw, Mapping):
+                continue
+            raw_type = next(
+                (
+                    raw.get(key)
+                    for key in ("componentType", "component_type", "type")
+                    if raw.get(key) is not None and str(raw.get(key)).strip()
+                ),
+                "part",
+            )
+            if _normalized_component_type(raw_type) not in ("netport", "netflag", "netlabel", "marker"):
+                continue
+            m = dict(raw)
+            m["componentType"] = _normalized_component_type(m.get("componentType"))
+            # Marker records often carry the anchor only in their single pin.
+            if (m.get("x") is None or m.get("y") is None) and isinstance(m.get("pins"), list) and m["pins"]:
+                anchor = m["pins"][0] if isinstance(m["pins"][0], dict) else {}
+                m.setdefault("x", anchor.get("x"))
+                m.setdefault("y", anchor.get("y"))
+            owner = self._marker_owner_hint(m, enriched)
+            if owner:
+                m.setdefault("ownerRef", owner[0])
+                m.setdefault("pin", owner[1])
+            markers.append(MarkerSnapshot.from_mapping(m))
+
+        ink_boxes: list[InkSnapshot] = []
+        for ia, ib, box in self._wire_boxes.get(page, []):
+            ink_boxes.append(InkSnapshot(bbox=box, kind="wire", ref=f"{ia}/{ib}"))
+
+        expected_pins: dict[str, str] = {}
+        planned = self._planned_nets_by_page(actions).get(page, set())
+        for act in actions:
+            if act.kind != "sch-autoconnect" or (act.page or "P1") != page:
+                continue
+            if "--pin" in act.args and "--net" in act.args:
+                pin_ref = str(act.args[act.args.index("--pin") + 1])
+                # Actions retain their planner spelling for reproducibility;
+                # terminal readback must compare against the actual reference
+                # used by the connector.  Resolve only through the owning
+                # instance so equal requested refs on sibling instances stay
+                # independent.
+                hit = self._designator_map_by_instance.get(act.block_instance)
+                if hit:
+                    old_ref, new_ref = hit
+                    old_designator, sep, pin_no = pin_ref.partition(":")
+                    if sep and old_designator == old_ref:
+                        pin_ref = f"{new_ref}:{pin_no}"
+                expected_pins[pin_ref] = act.args[act.args.index("--net") + 1]
+        # ``clusters`` is allowed to return a non-zero rc for ordinary
+        # geometry findings (overlap/out-of-sheet), so a parsed report still
+        # constitutes a valid readback.  Only an absent/malformed report sets
+        # ``error`` above.  Preserve the distinction in the audit status.
+        status = "degraded" if degraded else ("error" if error else "ok")
+        metadata = {
+            "round": round_no,
+            "component_count": len(enriched),
+            "marker_count": len(markers),
+            "cluster_count": len(clusters.get("clusters") or []) if isinstance(clusters, dict) else 0,
+            "degraded_note": degraded_note if not error else "",
+        }
+        if isinstance(clusters, dict) and clusters.get("findings"):
+            metadata["cluster_findings"] = clusters.get("findings")
+        snapshot = LayoutSnapshot(
+            page=page,
+            components=enriched,
+            markers=markers,
+            ink_boxes=ink_boxes,
+            usable_band=(clusters.get("sheetUsable") if isinstance(clusters, dict) else None),
+            titleblock_keepout=TITLEBLOCK_KEEPOUT,
+            expected_pin_to_net=expected_pins,
+            expected_nets={page: sorted(planned)},
+            tool="easyeda-pro",
+            connector="easyeda-agent",
+            tool_version=os.environ.get("EDALOOP_EASYEDA_VERSION", ""),
+            connector_version=os.environ.get("EDALOOP_CONNECTOR_VERSION", ""),
+            readback_status=status,
+            degraded=degraded,
+            readback_error=error,
+            oversize=page in getattr(self, "_repack_oversize_pages", set()),
+            metadata=metadata,
+            validation_errors=payload_errors,
+        )
+        audit = audit_layout_snapshot(
+            snapshot,
+            require_components=True,
+            expected_components=expected_components,
+            allow_oversize=snapshot.oversize,
+            is_last_page=is_last_page,
+        )
+        findings = list(audit.findings)
+        self.audit.event(
+            "layout-snapshot",
+            round_no=round_no,
+            page=page,
+            snapshot=snapshot.to_dict(),
+            findings=[f.model_dump() for f in findings],
+            verified=audit.verified,
+            ok=audit.ok,
+            review_required=audit.review_required,
+            review_code=audit.review_code,
+            blocking=[f.model_dump() for f in audit.blocking_findings],
+            metrics=page_ink_metrics(snapshot),
+            is_last_page=is_last_page,
+        )
+        return snapshot, findings
+
+    def _terminal_layout_audit(self, actions, round_no: int,
+                               placed_by_page: dict[str, dict[str, list[str]]]) -> list[Finding]:
+        """Run one final, strict per-page audit immediately before gate."""
+        findings: list[Finding] = []
+        self._layout_snapshots = {}
+        pages = self._plan_pages(actions)
+        expected_by_page = {
+            # Use the post-apply manifest, not the requested --designator:
+            # EasyEDA may annotate a colliding request to a different legal
+            # ref, and treating the request as missing would manufacture a
+            # false terminal finding.
+            page: list(dict.fromkeys(
+                designator
+                for designators in (placed_by_page.get(page) or {}).values()
+                for designator in designators
+            ))
+            for page in pages
+        }
+        for page in pages:
+            expected = expected_by_page[page]
+            snapshot, page_findings = self._read_layout_snapshot(
+                page,
+                round_no,
+                actions,
+                expected,
+                is_last_page=page == pages[-1],
+            )
+            self._layout_snapshots[page] = snapshot
+            findings.extend(page_findings)
+        # Stable order is useful for finding-hash convergence and replay.
+        return sorted(findings, key=lambda f: (f.where.ref, f.code, f.where.pin, f.where.net, f.evidence))
+
     def _cluster_errors(self, page: str) -> list[dict]:
         rep = self._clusters_report(page)
         return [f for f in (rep.get("findings") or []) if f.get("level") == "ERROR"]
@@ -1333,12 +2733,13 @@ class LoopController:
                 # 拒排 rc=1 是装不下类(run6 实测 P2 总需仅超带 4~24 单位)→ 逐档缩小
                 # 60→40。仍救不回(P1/P6 类:arrange 的组占地含挂线,拆成单件也不缩
                 # 翼展——run6 现场实验 7 单件仍拒)→ 钳回兜底刚移点名件
-                gap, tried = 80, []
+                gap, tried, arrange_rcs = 80, [], []
                 for _ in range(3):
                     rc, out, err = self.adapter.run(
                         ["sch", "group-arrange", "--annotate=false", "--gap", str(gap), "--doc", page]
                     )
                     tried.append(gap)
+                    arrange_rcs.append(rc)
                     self.audit.event(
                         "arrange-apply",
                         round_no=round_no,
@@ -1360,6 +2761,17 @@ class LoopController:
                     gap = nxt
                 if errs:
                     errs = self._clamp_into_band(round_no, page, (zone_by_page or {}).get(page))
+                if errs and tried and all(rc != 0 for rc in arrange_rcs):
+                    # A rejected arrange at every gap is a capacity/planning
+                    # defect, not a reason to keep widening the same page.
+                    self._layout_warnings.append({
+                        "code": "PAGE_CAPACITY_REPLAN",
+                        "evidence": (
+                            f"{page}: group-arrange 在 gap={','.join(map(str, tried))} 均未清零;"
+                            "页面容量不足或模块需分页，停止继续反向重排"
+                        ),
+                        "fix": "RELAYOUT",
+                    })
                 self.audit.event("arrange-result", round_no=round_no, page=page, remaining=len(errs))
             except AdapterError as e:
                 self.audit.event("arrange-fatal", round_no=round_no, page=page, error=str(e)[:800])
@@ -1740,7 +3152,12 @@ class LoopController:
         # 本轮已引入位号登记在册,place 撞号换同前缀下一空号,并同步改写该件
         # 全部 autoconnect 引用。
         taken_desig: set[str] = set()
-        renamed_desig: dict[str, str] = {}  # 请求名 → 实际落点名
+        # Keep the translation keyed by action/instance, not by requested
+        # designator.  Distinct instances often share a template reference
+        # (for example two ``C1`` blocks); a requested-name keyed map would
+        # let the later rename redirect the earlier instance's autoconnects.
+        renamed_desig: dict[str, tuple[str, str]] = {}
+        self._designator_map_by_instance = {}
         zone_designators: dict[str, dict[str, list[str]]] = {}  # P4-1②/P4-b2:页 → claim → 本轮落图位号
         placed_by_page: dict[str, dict[str, list[str]]] = {}  # P4-b3:页 → 实例 → 落图位号(拆组重排用)
         for act in actions:
@@ -1789,7 +3206,19 @@ class LoopController:
                         self._apply_titleblocks(round_no, actions)
                         if self.frames_enabled:
                             self._draw_module_frames(round_no, actions, placed_by_page)
+                        if self.strict_layout:
+                            # This is the only terminal geometry source of
+                            # truth.  It runs after every mutating closeout
+                            # action and before the upstream gate response is
+                            # accepted, so a stale/empty read cannot become a
+                            # nominal PASS.
+                            self._terminal_layout_findings = self._terminal_layout_audit(
+                                actions, round_no, placed_by_page
+                            )
                     gate_report = self._gate_all_pages(act.args, actions, round_no)
+                    self._gate_contract_findings = self._check_gate_contract(
+                        gate_report, actions, round_no, gate_args=act.args
+                    )
                     continue
                 if act.kind == "lib-search":
                     resp = self._run_json_retry(act.args)
@@ -1837,9 +3266,11 @@ class LoopController:
                         place_args.append(next(holes) if x == "" else x)
                     # 撞号预防:请求名已被本轮先放件(含 block-apply 子件)占用 →
                     # 换同前缀下一空号,免吃异步注解改号(autoconnect 找不到件)。
+                    requested_designator = ""
                     if "--designator" in place_args:
                         i = place_args.index("--designator") + 1
-                        want = place_args[i]
+                        requested_designator = str(place_args[i]).strip()
+                        want = requested_designator
                         actual = want
                         if want in taken_desig:
                             prefix = want.rstrip("0123456789") or "U"
@@ -1848,7 +3279,7 @@ class LoopController:
                                 n += 1
                             actual = f"{prefix}{n}"
                             place_args[i] = actual
-                            renamed_desig[want] = actual
+                            renamed_desig[act.block_instance] = (want, actual)
                             self.audit.event(
                                 "designator-rename",
                                 round_no=round_no,
@@ -1891,6 +3322,31 @@ class LoopController:
                             desig = comp.get("designator", "")
                             if not desig:
                                 desig = self._claim_placed_component(_pg0, _want0, _cx, _cy)
+                    # The connector can legally annotate a requested reference
+                    # even when no local collision was known.  Record that
+                    # observed mapping as well; subsequent autoconnect actions
+                    # for this instance must follow the actual reference.
+                    desig = str(desig or "").strip()
+                    if desig and requested_designator and desig != requested_designator:
+                        observed = (requested_designator, desig)
+                        if renamed_desig.get(act.block_instance) != observed:
+                            renamed_desig[act.block_instance] = observed
+                            self.audit.event(
+                                "designator-rename",
+                                round_no=round_no,
+                                instance=act.block_instance,
+                                requested=requested_designator,
+                                actual=desig,
+                                source="place-readback",
+                            )
+                    if act.block_instance in renamed_desig:
+                        self._designator_map_by_instance[act.block_instance] = renamed_desig[act.block_instance]
+                    if desig:
+                        # A connector-side annotation may choose a reference
+                        # that was not visible in ``taken_desig`` before the
+                        # request.  Reserve the observed value immediately so
+                        # a later place action cannot unknowingly reuse it.
+                        taken_desig.add(desig)
                     ok = bool(desig)
                     if ok:
                         placed_by_page.setdefault(act.page or "P1", {}).setdefault(act.block_instance, []).append(desig)
@@ -1914,20 +3370,32 @@ class LoopController:
                     )
                     continue
                 manifest: dict = {}
-                if act.kind == "sch-autoconnect":
-                    if renamed_desig and "--pin" in args:
-                        i = args.index("--pin") + 1
-                        desig_part, _, pin_part = args[i].partition(":")
-                        if desig_part in renamed_desig:
-                            args = list(args)
-                            args[i] = f"{renamed_desig[desig_part]}:{pin_part}"
+                if act.kind in ("sch-autoconnect", "sch-no-connect"):
+                    args = list(args)
+                    hit = renamed_desig.get(act.block_instance)
+                    if hit:
+                        if act.kind == "sch-autoconnect" and "--pin" in args:
+                            i = args.index("--pin") + 1
+                            desig_part, _, pin_part = args[i].partition(":")
+                            if desig_part == hit[0]:
+                                args[i] = f"{hit[1]}:{pin_part}"
+                        elif act.kind == "sch-no-connect" and "--designator" in args:
+                            i = args.index("--designator") + 1
+                            if args[i] == hit[0]:
+                                args[i] = hit[1]
                     rc, _, aerr = self.adapter.run(args)
                     status = "applied" if rc == 0 else "failed"
-                    # stderr 是 autoconnect 唯一的失败原因载体(ambiguous pin/
-                    # 跨页撞号/无安全落点全在这)——两次诊断盲区后不再丢弃:
-                    # 失败行必须可离线归因(req-07 usb_c/C1-C7 实证)。
                     if rc != 0:
                         manifest = {"failure": (aerr or "").strip()[-300:]}
+                    elif act.kind == "sch-no-connect":
+                        # NC is a stateful pin attribute, not a network.  A
+                        # successful command without a matching readback must
+                        # not be promoted to a verified placement.
+                        designator = args[args.index("--designator") + 1]
+                        pins = args[args.index("--pin") + 1].split(",")
+                        if not self._verify_no_connect(round_no, designator, pins, act.page or "P1"):
+                            status = "failed"
+                            manifest = {"failure": "no-connect 回读未证实"}
                 else:
                     # block-apply 非幂等:manifest 只从本次执行 stdout 解析,
                     # 绝不重发(重放=同页孪生再放一份,详见 _run_manifest_once)
@@ -1941,7 +3409,7 @@ class LoopController:
                     failure=manifest.get("failure", "") or "",
                     window=getattr(self.adapter, "window_id", ""),
                     page=act.page or "P1",
-                    args=args if act.kind in ("block-apply", "sch-place", "sch-autoconnect") else [],
+                    args=args if act.kind in ("block-apply", "sch-place", "sch-autoconnect", "sch-no-connect") else [],
                 )
                 if status != "applied":
                     if str(status).startswith("failed-partial"):
@@ -2353,7 +3821,11 @@ class LoopController:
             self.audit.event("repack-trial-overflow", round_no=round_no,
                              band=tuple(_tband), pages=grid.pages)
         members: dict[str, list[str]] = {}
-        renamed: dict[str, str] = {}
+        # Trial place can encounter the same requested template reference in
+        # multiple instances.  Scope aliases by instance just like the
+        # production apply path; otherwise a later C1->C3 rename can redirect
+        # an earlier instance's trial autoconnects.
+        renamed: dict[str, tuple[str, str]] = {}
         comp_boxes: dict[str, dict] = {}  # 目检口径累计(body;重放改名自由号检查用)
         vol_boxes: dict[str, dict] = {}   # 生产口径累计(volume;同上)
         # 实例 → 实测 body 框(绝对坐标;量测时单块独占页,无跨块归属歧义)
@@ -2551,19 +4023,25 @@ class LoopController:
             if "--designator" in act.args:
                 want = act.args[act.args.index("--designator") + 1]
                 if desig != want:
-                    renamed[want] = desig  # 试放占号被改号:autoconnect --pin 同步换名
+                    renamed[inst] = (want, desig)  # 试放占号被改号:autoconnect --pin 同步换名
             members[inst] = [desig]
             # 本块 autoconnect 就地补齐再量(netport 墨迹是翼展大头,量框前
             # 必须落)——逐块推进与全量后补语义等价:桩按脚独立,无跨块依赖
             for ac in actions:
-                if ac.kind != "sch-autoconnect" or ac.block_instance != inst:
+                if ac.kind not in ("sch-autoconnect", "sch-no-connect") or ac.block_instance != inst:
                     continue
                 ac_args = list(ac.args) + ["--doc", "P1"]
-                if renamed and "--pin" in ac_args:
-                    i = ac_args.index("--pin") + 1
-                    d, _, p = ac_args[i].partition(":")
-                    if d in renamed:
-                        ac_args[i] = f"{renamed[d]}:{p}"
+                if renamed and ("--pin" in ac_args or "--designator" in ac_args):
+                    hit = renamed.get(inst)
+                    if hit and "--pin" in ac_args:
+                        i = ac_args.index("--pin") + 1
+                        d, _, p = ac_args[i].partition(":")
+                        if d == hit[0]:
+                            ac_args[i] = f"{hit[1]}:{p}"
+                    elif hit and "--designator" in ac_args:
+                        i = ac_args.index("--designator") + 1
+                        if ac_args[i] == hit[0]:
+                            ac_args[i] = hit[1]
                 try:
                     rc, _out, _err = self.adapter.run(ac_args)
                 except AdapterError as e:
@@ -2571,18 +4049,29 @@ class LoopController:
                     continue
                 if rc != 0:
                     trial_failed.append(f"{inst}:trial-autoconnect")
+                elif ac.kind == "sch-no-connect":
+                    nc_desig = ac_args[ac_args.index("--designator") + 1]
+                    nc_pins = ac_args[ac_args.index("--pin") + 1].split(",")
+                    if not self._verify_no_connect(round_no, nc_desig, nc_pins, "P1"):
+                        trial_failed.append(f"{inst}:trial-no-connect-verify")
             if not _measure_module(inst, members[inst]):
                 return _fallback("trial-measure-clear:P1")
         _place_inst_set = {a.block_instance for a in place_blocks}
         for act in actions:  # 兜底:不属于任何 place 实例的 autoconnect 照旧跑
-            if act.kind != "sch-autoconnect" or act.block_instance in _place_inst_set:
+            if act.kind not in ("sch-autoconnect", "sch-no-connect") or act.block_instance in _place_inst_set:
                 continue
             args = list(act.args) + ["--doc", "P1"]
-            if renamed and "--pin" in args:
-                i = args.index("--pin") + 1
-                d, _, p = args[i].partition(":")
-                if d in renamed:
-                    args[i] = f"{renamed[d]}:{p}"
+            if renamed and ("--pin" in args or "--designator" in args):
+                hit = renamed.get(act.block_instance)
+                if hit and "--pin" in args:
+                    i = args.index("--pin") + 1
+                    d, _, p = args[i].partition(":")
+                    if d == hit[0]:
+                        args[i] = f"{hit[1]}:{p}"
+                elif hit and "--designator" in args:
+                    i = args.index("--designator") + 1
+                    if args[i] == hit[0]:
+                        args[i] = hit[1]
             try:
                 rc, _out, _err = self.adapter.run(args)
             except AdapterError as e:
@@ -2590,6 +4079,11 @@ class LoopController:
                 continue
             if rc != 0:
                 trial_failed.append(f"{act.block_instance}:trial-autoconnect")
+            elif act.kind == "sch-no-connect":
+                nc_desig = args[args.index("--designator") + 1]
+                nc_pins = args[args.index("--pin") + 1].split(",")
+                if not self._verify_no_connect(round_no, nc_desig, nc_pins, "P1"):
+                    trial_failed.append(f"{act.block_instance}:trial-no-connect-verify")
         upstream_failed = {f.split(":", 1)[0] for f in trial_failed}
         if trial_blocks and all(a.block_instance in upstream_failed for a in trial_blocks):
             return _fallback(f"trial-apply-all:{trial_failed[0]}")
@@ -2838,21 +4332,33 @@ class LoopController:
                         renamed_r[inst] = (want, desig)
                 members_r[inst] = [desig]
             ac_fail: list[str] = []
-            for act in actions:  # 各页 autoconnect 预演同步换名
-                if act.kind != "sch-autoconnect" or act.block_instance not in inst_page:
+            for act in actions:  # 各页连线/NC 动作预演同步换名
+                if act.kind not in ("sch-autoconnect", "sch-no-connect") or act.block_instance not in inst_page:
                     continue
                 args = list(act.args) + ["--doc", inst_page[act.block_instance]]
-                if renamed_r and "--pin" in args:
-                    i = args.index("--pin") + 1
-                    d, _, pnp = args[i].partition(":")
+                if renamed_r and ("--pin" in args or "--designator" in args):
                     hit = renamed_r.get(act.block_instance)
-                    if hit and d == hit[0]:
-                        args[i] = f"{hit[1]}:{pnp}"
-                pin = args[args.index("--pin") + 1] if "--pin" in args else act.block_instance
+                    if hit and "--pin" in args:
+                        i = args.index("--pin") + 1
+                        d, _, pnp = args[i].partition(":")
+                        if d == hit[0]:
+                            args[i] = f"{hit[1]}:{pnp}"
+                    elif hit and "--designator" in args:
+                        i = args.index("--designator") + 1
+                        if args[i] == hit[0]:
+                            args[i] = hit[1]
+                pin = (args[args.index("--pin") + 1] if "--pin" in args
+                       else f"{args[args.index('--designator') + 1]}:NC" if "--designator" in args
+                       else act.block_instance)
                 try:
                     rc, _o, e = self.adapter.run(args)
                     if rc != 0:  # 目检模式:连线失败不阻断画框,但必须入审计
                         ac_fail.append(f"{pin}:{(e or '')[:40]}")
+                    elif act.kind == "sch-no-connect":
+                        nc_desig = args[args.index("--designator") + 1]
+                        nc_pins = args[args.index("--pin") + 1].split(",")
+                        if not self._verify_no_connect(round_no, nc_desig, nc_pins, inst_page[act.block_instance]):
+                            ac_fail.append(f"{pin}:no-connect-readback")
                 except AdapterError as e:
                     ac_fail.append(f"{pin}:{str(e)[:40]}")
             if ac_fail:
@@ -3040,7 +4546,7 @@ class LoopController:
         self._wire_breaks = []
         return True
 
-    def _list_components(self, page: str) -> tuple[list[dict], str]:
+    def _list_components(self, page: str, *, strict: bool = False) -> tuple[list[dict], str]:
         """sch list 逐级降载读取(1MB stdout 截断防线,P0-2)。
 
         真机 run-1dff13dad148:P1 184 件时 `--include-pins --include-bbox`
@@ -3052,21 +4558,55 @@ class LoopController:
         SCH_LIST_TRUNCATED 弱告警(轮末随 validate 显性化),按页去重。
 
         返回 (components, degraded):degraded="no-bbox" 表示本体框缺失;
-        抛 ValueError 表示读到头也没拿到可用的引脚面。
+        抛 ValueError 表示读到头也没拿到可用的引脚面。``strict=True``
+        仅供终态审计使用:此时任何非零 rc 都视为不可证明的回读，即使
+        stdout 恰好还带着上一份有效 JSON，也不能拿来判 PASS。
         """
         variants = (
             ["sch", "list", "--page", page, "--include-pins", "--include-bbox"],
             ["sch", "list", "--page", page, "--include-pins"],
         )
         note = ""
+        strict_context = strict and isinstance(self.adapter, EasyedaAdapter)
+        expected_page_uuid = ""
+        if strict_context:
+            try:
+                expected_page_uuid = self._terminal_page_uuid(page)
+            except Exception as exc:  # noqa: BLE001 - identity absence fails closed
+                raise _ReadbackPayloadError(
+                    f"sch list cannot validate page identity: {str(exc)[:240]}"
+                ) from exc
         for i, args in enumerate(variants):
-            _rc, out, _err = self.adapter.run(args)
+            rc, out, err = self.adapter.run(args)
+            if strict and rc != 0:
+                raise ValueError(
+                    f"sch list failed (rc={rc}): {(err or '')[-240:]}"
+                )
             try:
                 rep = json.loads(out) if (out or "").strip() else {}
-                comps = rep.get("result", {}).get("components") or []
+                # A nested result is not trustworthy when the connector
+                # explicitly reports ``ok:false``/``error``.  Raise the
+                # dedicated exception so the truncation fallback below cannot
+                # reinterpret a large error payload as a recoverable pipe cut.
+                _validate_readback_payload(
+                    rep, kind="sch list", require_positive_status=strict
+                )
+                if strict_context:
+                    _validate_terminal_page_context(
+                        rep,
+                        page=page,
+                        expected_uuid=expected_page_uuid,
+                        kind="sch list",
+                    )
+                result = rep.get("result", {}) if isinstance(rep, dict) else {}
+                comps = result.get("components") if isinstance(result, dict) else None
+                if not isinstance(comps, list):
+                    raise ValueError("components field missing")
                 if not comps:
                     raise ValueError("empty components")
-            except ValueError:
+            except _ReadbackPayloadError:
+                raise
+            except (TypeError, ValueError):
                 if len(out or "") < 900_000:
                     raise
                 note = f"len={len(out or '')}"
@@ -3085,37 +4625,149 @@ class LoopController:
             return comps, ""
         raise ValueError(f"truncated:{note or 'empty'}")
 
+    def _terminal_page_uuid(self, page: str) -> str:
+        """Resolve a requested schematic page name to its live document UUID."""
+
+        key = str(page or "").strip()
+        if not key:
+            raise ValueError("requested page is empty")
+        if key in self._terminal_page_uuids:
+            return self._terminal_page_uuids[key]
+        # The schematic page inventory is the authoritative name→UUID map.
+        # Prefer it over the open-document list because a page may not have a
+        # tab yet (and ``doc ls`` implementations differ on whether hidden
+        # pages are included).
+        errors: list[str] = []
+        try:
+            rc, out, err = self.adapter.run(["sch", "pages"])
+            if rc != 0:
+                errors.append(f"sch pages rc={rc}: {(err or '')[-160:]}")
+            else:
+                report = json.loads(out) if (out or "").strip() else {}
+                _validate_readback_payload(
+                    report, kind="sch pages", require_positive_status=True
+                )
+                result = report.get("result", {}) if isinstance(report, Mapping) else {}
+                entries = list(result.get("pages") or []) if isinstance(result, Mapping) else []
+                if not entries and isinstance(result, Mapping):
+                    for schematic in result.get("schematics") or []:
+                        if isinstance(schematic, Mapping):
+                            entries.extend(schematic.get("page") or [])
+                matches = [
+                    item for item in entries
+                    if isinstance(item, Mapping)
+                    and (
+                        str(item.get("name") or item.get("pageName") or "").strip().casefold() == key.casefold()
+                        or str(item.get("uuid") or item.get("pageUuid") or item.get("documentUuid") or "").strip().casefold() == key.casefold()
+                    )
+                ]
+                if len(matches) == 1:
+                    uuid = str(
+                        matches[0].get("uuid")
+                        or matches[0].get("pageUuid")
+                        or matches[0].get("documentUuid")
+                        or ""
+                    ).strip()
+                    if uuid:
+                        self._terminal_page_uuids[key] = uuid
+                        return uuid
+                errors.append(f"sch pages resolved {len(matches)} matches")
+        except (TypeError, ValueError, json.JSONDecodeError) as exc:
+            errors.append(f"sch pages parse: {exc}")
+
+        # ``doc ls`` is a conservative fallback for connector builds whose
+        # schematic-pages action omits the page table.  It still requires one
+        # exact schematic match; no UUID is guessed from ordering or names.
+        try:
+            rc, out, err = self.adapter.run(["doc", "ls", "--json"])
+            if rc != 0:
+                errors.append(f"doc ls rc={rc}: {(err or '')[-160:]}")
+            else:
+                report = json.loads(out) if (out or "").strip() else {}
+                _validate_readback_payload(
+                    report, kind="doc ls", require_positive_status=True
+                )
+                documents = report.get("documents") if isinstance(report, Mapping) else None
+                if documents is None and isinstance(report, Mapping):
+                    nested = report.get("result")
+                    if isinstance(nested, Mapping):
+                        documents = nested.get("documents")
+                if isinstance(documents, list):
+                    matches = [
+                        item for item in documents
+                        if isinstance(item, Mapping)
+                        and str(item.get("type") or "").strip().casefold() in {"schematic", "sch"}
+                        and (
+                            str(item.get("name") or item.get("pageName") or "").strip().casefold() == key.casefold()
+                            or str(item.get("uuid") or item.get("pageUuid") or item.get("documentUuid") or "").strip().casefold() == key.casefold()
+                        )
+                    ]
+                    if len(matches) == 1:
+                        uuid = str(
+                            matches[0].get("uuid")
+                            or matches[0].get("pageUuid")
+                            or matches[0].get("documentUuid")
+                            or ""
+                        ).strip()
+                        if uuid:
+                            self._terminal_page_uuids[key] = uuid
+                            return uuid
+                    errors.append(f"doc ls resolved {len(matches)} matches")
+                else:
+                    errors.append("doc ls response has no documents")
+        except (TypeError, ValueError, json.JSONDecodeError) as exc:
+            errors.append(f"doc ls parse: {exc}")
+        detail = "; ".join(errors[-3:])
+        raise ValueError(f"page {key!r} UUID cannot be resolved without guessing" + (f": {detail}" if detail else ""))
+
     def _claim_placed_component(self, page: str, want: str, x: float, y: float) -> str:
-        """place 静默成功认领(审计 P1):rc=0 但回包无 designator 时,回读
-        页面组件把"实际落没落"变成真结论。
+        """从页面几何认领一次 ``sch place`` 的实际位号。
 
         为什么:平台 place 回包回显不可信——位号被异步注解顺延后回包仍抄
         请求名;更糟的是空回包不等于没放(真机实证:place 落物成功、回包
         component 空壳,"place 无回=没放"是假阴性,重放整块假失败)。
-        认领序:请求名精确命中 → bbox 包含落点锚(锚是 part 原点,bbox 含
-        本体渲染) → 中心最近且 ≤80(装箱格距 ≥100,近邻不会更近)。全部
-        落空才是真没放。读失败返回 ""(调用方按原口径处理)。"""
+        认领必须优先按落点坐标，而不是先按请求位号。平台会在全工程重名
+        时回显请求名，但真实组件可能是 ``want2``；先命中旧的 ``want``
+        会把另一页/另一件误认领。只有完全没有任何 bbox 几何时，才允许
+        用唯一的请求位号作退化兜底。读失败返回 ""(调用方按原口径处理)。"""
         try:
             comps, _deg = self._list_components(page)
         except Exception:  # noqa: BLE001
             return ""
-        if want:
-            for c in comps:
-                if str(c.get("designator") or "") == want:
-                    return want
         best_d, best = 1e18, ""
+        bbox_count = 0
+        containing: list[tuple[float, str]] = []
         for c in comps:
+            ref = str(c.get("designator") or "").strip()
+            if not ref:
+                continue
             b = c.get("bbox")
             if not (isinstance(b, dict) and "minX" in b):
                 continue
+            bbox_count += 1
             x1, y1, x2, y2 = (float(b["minX"]), float(b["minY"]),
                               float(b["maxX"]), float(b["maxY"]))
             if x1 - 2 <= x <= x2 + 2 and y1 - 2 <= y <= y2 + 2:
-                return str(c.get("designator") or "")
+                d = abs((x1 + x2) / 2 - x) + abs((y1 + y2) / 2 - y)
+                containing.append((d, ref))
             d = abs((x1 + x2) / 2 - x) + abs((y1 + y2) / 2 - y)
             if d < best_d:
-                best_d, best = d, str(c.get("designator") or "")
-        return best if best_d <= 80.0 else ""
+                best_d, best = d, ref
+        if containing:
+            # Two components at the same anchor are ambiguous evidence; do not
+            # guess and accidentally wire the wrong one.
+            containing.sort(key=lambda item: item[0])
+            if len(containing) == 1 or containing[0][0] + 1e-6 < containing[1][0]:
+                return containing[0][1]
+            return ""
+        if best and best_d <= 80.0:
+            return best
+        if bbox_count == 0 and want:
+            matches = [str(c.get("designator") or "").strip()
+                       for c in comps if str(c.get("designator") or "").strip() == want]
+            if len(matches) == 1:
+                return matches[0]
+        return ""
 
     def _groups_of(self, page: str) -> list[tuple[str, list[str]]]:
         """当前组表 → [(gid, [designator...])];读失败返回 [](调用方放弃组操作)。"""
@@ -3646,6 +5298,54 @@ class LoopController:
         moved = [(r, x + dx, y + dy, n) for r, x, y, n in stubs] if rc == 0 else stubs
         self._restub_net_pins(page, round_no, designator, comp, moved,
                               avoid_pts=avoid_pts)
+        if rc == 0 and stubs:
+            # The SDK modify path is known to move only the body.  Restubbing
+            # is therefore followed by an explicit pin→net readback.  If any
+            # expected net is still absent, roll the part back to its original
+            # origin and restore the original stubs; callers then treat the
+            # move as refused instead of propagating a silently broken net.
+            try:
+                comps_v, _ = self._list_components(page)
+                cur = next((c for c in comps_v
+                            if c.get("designator") == designator
+                            and c.get("componentType") == "part"), None)
+                cur_nets = {
+                    str(p.get("pinNumber") or ""): str(p.get("net") or "")
+                    for p in (cur or {}).get("pins") or []
+                }
+            except Exception as exc:  # readback failure is not proof of loss
+                cur_nets = None
+                self.audit.event("pull-move-readback", round_no=round_no,
+                                 page=page, designator=designator,
+                                 status="unavailable", error=str(exc)[:120])
+            missing = [ref for ref, _x, _y, net in stubs
+                       if net and cur_nets is not None
+                       and not cur_nets.get(ref.rsplit(":", 1)[-1], "")]
+            if missing:
+                self.audit.event("pull-move-rollback", round_no=round_no,
+                                 page=page, designator=designator,
+                                 missing=missing)
+                try:
+                    for ref, _x, _y, _net in moved:
+                        self.adapter.run(["sch", "disconnect", "--pin", ref,
+                                          "--doc", page])
+                    back = self.adapter.run(
+                        ["sch", "modify", "--id", str(pid),
+                         "--x", f"{float(ox):.5g}", "--y", f"{float(oy):.5g}",
+                         "--doc", page])
+                    if back[0] == 0:
+                        self._restub_net_pins(page, round_no, designator, comp,
+                                              stubs, avoid_pts=avoid_pts)
+                    else:
+                        self.audit.event("pull-move-rollback-fail",
+                                         round_no=round_no, page=page,
+                                         designator=designator,
+                                         error=(back[2] or "")[-120:])
+                except Exception as exc:  # noqa: BLE001
+                    self.audit.event("pull-move-rollback-fail",
+                                     round_no=round_no, page=page,
+                                     designator=designator, error=str(exc)[:120])
+                return False
         return rc == 0
 
     def _compact_internal_nets(self, page: str, round_no: int,
@@ -5612,6 +7312,48 @@ class LoopController:
                 if i + 1 < attempts:
                     if self._connector_wedged(e):
                         # wedge 不吃短重试:风暴还在降不下来,refresh 钉扎+长等
+                        refresh = getattr(self.adapter, "refresh_window", None)
+                        if refresh:
+                            refresh()
+                        time.sleep(30)
+                    else:
+                        time.sleep(delay)
+        raise last
+
+    def _run_gate_json_retry(
+        self, args, attempts: int = 2, delay: float = 8.0
+    ) -> tuple[int, object, str]:
+        """Read a gate report while retaining the connector return code.
+
+        ``EasyedaAdapter`` exposes ``run_json_with_rc`` for this contract.
+        Older injected fakes only implement ``run_json``; treating those
+        payloads as rc=0 keeps their historical test/offline interface intact.
+        JSON/transport failures use the same retry policy as ordinary reads.
+        """
+
+        from edaloop.generate.adapter import AdapterError
+
+        helper = getattr(self.adapter, "run_json_with_rc", None)
+        if not callable(helper):
+            return 0, self._run_json_retry(args, attempts=attempts, delay=delay), ""
+
+        last: Exception | None = None
+        for i in range(attempts):
+            try:
+                result = helper(args)
+                if not isinstance(result, tuple) or len(result) != 3:
+                    raise AdapterError("gate JSON helper returned an invalid result")
+                rc, payload, stderr = result
+                if isinstance(rc, bool):
+                    rc = int(rc)
+                elif not isinstance(rc, int):
+                    rc = int(rc)
+                return rc, payload, str(stderr or "")
+            except (AdapterError, ValueError, TypeError) as e:
+                last = e
+                self.audit.event("gate-error", attempt=i + 1, error=str(e)[:2000])
+                if i + 1 < attempts:
+                    if self._connector_wedged(e):
                         refresh = getattr(self.adapter, "refresh_window", None)
                         if refresh:
                             refresh()

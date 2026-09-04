@@ -1,0 +1,29 @@
+skip(done) req-01-esp32s3-mini-2layer.md: {'req': 'req-01-esp32s3-mini-2layer.md', 'status': 'HALT', 'rounds': None, 'n_rounds': 2}
+{'req': 'req-08-liion-protection-freeform.md', 'status': 'PASS', 'rounds': 1, 'n_rounds': 1}
+{'req': 'req-11-isolated-dido-module.md', 'status': 'HALT', 'rounds': None, 'n_rounds': 3}
+{
+ "rows": [
+  {
+   "req": "req-01-esp32s3-mini-2layer.md",
+   "status": "HALT",
+   "rounds": null,
+   "n_rounds": 2
+  },
+  {
+   "req": "req-08-liion-protection-freeform.md",
+   "status": "PASS",
+   "rounds": 1,
+   "n_rounds": 1
+  },
+  {
+   "req": "req-11-isolated-dido-module.md",
+   "status": "HALT",
+   "rounds": null,
+   "n_rounds": 3
+  }
+ ],
+ "pass@3": 0.3333333333333333,
+ "pass@5": 0.3333333333333333,
+ "go3": false,
+ "go5": false
+}

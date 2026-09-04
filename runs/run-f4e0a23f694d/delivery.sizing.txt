@@ -1,0 +1,16 @@
+[sizing:tvs-rating@usb_c_conn] VRWM≥1.1×5V;VC<2×V_rail = 5.5 → 推荐 VRWM≥5.5V / VC≤10V(SMAJ/SMBJ 系列按此筛)
+    VRWM 高于工作电压防误触发;VC 低于后级最大耐压才有效
+    功率档:600W(SMAJ)/400W(SMBJ 视浪涌等级;车载选 SMBJ 以上
+
+[sizing:fuse-rating@usb_c_conn] I_hold≥1.25×2000mA = 2.5 → 推荐 I_hold≥2.50A(自恢复 PPTC 按此档)
+    降额 25% 防浪涌误动作;PPTC 恢复后保持电流会随温度下降,高温环境再降额
+
+[sizing:reg-caps@ldo_3v3] buck @ 2000mA = 2000 → 推荐 见 notes(惯例值)
+    C_IN: 22µF×2 低 ESR 陶瓷(开关纹波电流吸收)
+    C_OUT: 22µF×2 + 按 ΔI_L 与允许纹波调整:C=ΔI_L/(8×f_sw×ΔV_ripple)
+    负载 2000mA → LDO 压差功耗=(Vin-Vout)×I,注意散热铜
+
+[sizing:buck-ripple@ldo_3v3] L=Vo(1-D)/(ΔI·f), ΔI=0.3×1000mA = 15.95 → 推荐 L=16µH(E24) + C_out≈2µF
+    D=0.275;ΔI_L=300mA(目标 30% I_out)
+    输出电容 C=ΔI/(8·f·ΔV)=2µF@ΔV=30mV(取 Low-ESR 陶瓷,并联均摊)
+    电感饱和电流 ≥ I_out+ΔI/2=1.15A;DCR 越小效率越高
