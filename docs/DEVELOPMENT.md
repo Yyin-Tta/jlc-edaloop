@@ -5,9 +5,9 @@
 >
 > | 项 | 值 |
 > |---|---|
-> | 版本 | v0.6.18(2026-09-02 终态证据链收口:LayoutSnapshot fail-closed/designator 隔离/低层 apply 降级;包/CLI 版本 v0.7.0,详 §13 v0.6.18) |
-> | 日期 | 2026-09-02 |
-> | 状态 | **Phase 5(v1.0 打磨)进行中,墙钟 2026-09-15(§10)**:v0.6.18 代码证据链已收口(476 测试绿;包/CLI v0.7.0);`edaloop apply` 已明确为低层实验入口,工程 PASS 仅由 `edaloop run` 严格终态路径产生。**当前断点=L0 真机取证**:工程 `edaloop` 保持只读且 layout FAIL(本体重叠/marker-overlap/孤儿桩/DRC warning),下一步在全新工程复跑 req-08、req-07 和一个 block-only 需求并保存 snapshot、audit、截图、网表 hash;硬指标连续 3 次通过前冻结 v3 PCB/下单与自动案例回写。最近尝试 `runs/run-fb97781513ec` 仅有中途 audit(末事件 `mark-side-guard`),无 `loop-result.json`/delivery,标记为未完成取证,不得计入 PASS。
+> | 版本 | v0.6.20(2026-09-06 布局门禁降维+1.4.1 全链钉扎:硬集=本体/引脚几何+电气真错+证据 fail-closed,WARN 级降弱观察;包/CLI 版本 v0.7.0,详 §13 v0.6.20) |
+> | 日期 | 2026-09-06 |
+> | 状态 | **Phase 5(v1.0 打磨)进行中,墙钟 2026-09-15(§10)**:v0.6.18 代码证据链已收口(476 测试绿;包/CLI v0.7.0);`edaloop apply` 已明确为低层实验入口,工程 PASS 仅由 `edaloop run` 严格终态路径产生。**当前断点=L0 真机取证**:工程 `edaloop` 保持只读且 layout FAIL(本体重叠/marker-overlap/孤儿桩/DRC warning),下一步在全新工程复跑 req-08、req-07 和一个 block-only 需求并保存 snapshot、audit、截图、网表 hash;硬指标连续 3 次通过前冻结 v3 PCB/下单与自动案例回写。最近尝试 `runs/run-fb97781513ec` 仅有中途 audit(末事件 `mark-side-guard`),无 `loop-result.json`/delivery,标记为未完成取证,不得计入 PASS。**外部环境扫描已做(2026-09-06,§5.4.6)**:GPT-6 Astra 发布/上游 easyeda-agent 已到 v1.4.1(#196 疑似 L0 中断病根候选)/KiCad 侧竞品密发;v1.0 后发展提案与竞品监测清单同节,不改变当前断点与墙钟。**门禁降维+1.4.1 钉扎已落(同日 §5.4.7,用户指示;509 测绿)**:gate 硬集收窄为「本体/引脚几何相交+电气真错+证据完整性 fail-closed」,已知 WARN 级(marker-overlap/孤儿桩/DRC warning/出带墨迹等)降 GATE_ADVISORY 弱观察、未知规则名 fail-closed 保硬;钉扎 1.2.10→1.4.1 三处归一(本机 CLI 已过门);ADR-0002 真机全量回归搭载 L0 首跑(清 state),旧 w3 汇总不得引用为 1.4.1 基线。 |
 > | 上游调研 | `research-vision-v2-feasibility.md`(技术) · `research-eda-agent-industry-landscape.md`(产业) · `research-datasheet-extraction-feasibility.md`(datasheet 管道) |
 
 ---
@@ -388,13 +388,46 @@ P5-0 回归续跑中插入 G33 修复批(详 §13 v0.6.10),如实记录:
    - **执行进展(2026-09-02,req-08 复跑判读+d040c49 验证)**:C9 修复**验证生效**(P2 FET_MID 每 pin 单枚、side 正确);复跑再曝两缺陷(用户目检):**①标记侧位慢性病**(PROTDW01:2 CSI 终态钉 DW01A 右侧、:5 VDD_S 压本体——用户规范「引脚在哪侧,网标记就放哪侧」)→ 根因链四层:引线型符号 bbox 含引线(DW01A bbox 40..275、本体核 145..225)「贴边 ≤20」侧位判定全员失效;avoid 含自件框把同侧候选全判压叠;reseat 判据②收走救援档落位(三趟原地打转);同侧扫尾中心分半口径漏「脚与中心之间」压体锚 → **四层同修**: `_pin_side` 脚端点列/行聚类侧位判定(聚类含目标脚:DW01A 中排脚夹在两簇间隙)+`_connect_stub` 同侧救援档(压叠只在自件框=引线、方向在本侧/顺边、他件全净→先于全局最小压叠)+reseat 判据② own-body 豁免(`_mark_beyond_pin` 越过脚端点朝外=至多擦引线)+同侧扫尾改引脚相对口径(`_mark_toward_body`)。**②place-only 计划摊 3 页**(5 个 SOT23 小件、每页空白率 >80%)→ 根因=freeform/标准件计划无 block-apply,`_repack_actions` 旧门槛 no-upstream-blocks 整个拦在装箱外退 compile 流式初值 → 放行 place 通道(两通道都空才回退),freeform decompose 补 module=模式 id(装箱亲和同页);362 测绿(+4:聚类侧位/引脚相对扫尾/own-body 豁免/place-only 单页)。**req-08 三跑验收重点:页数=1、DW01A 左脚标记全在左侧、mark-side-guard 事件零 fixed**。
 5. **插入批核算**:本批自身已记 §13 v0.6.15 行三件(动因/挤占/恢复);P5-2/3 顺延至目检审计与 P5-1 收口之后。
 
+#### 5.4.6 外部环境扫描与发展策略批(2026-09-06,用户指示;纯调研/文档批,零代码)
+
+**信源**:GitHub API / Hacker News(Algolia)/ OpenRouter models API / OpenAI·ARC Prize·CNBC 原文,全部一手抓取,无二手转述;检索面="eda agent pcb"/"autorouter"/"schematic"/"GPT-6"/"Flux·Cadence·Altium",采集日 2026-09-06。
+
+**四大发现(全部落在 2026-08 底~09 初两周窗口内)**:
+
+1. **GPT-6 Astra 发布(09-03,OpenAI)**:分阶段推出(企业 cyber 计划先行),已上 API/OpenRouter(1.05M ctx,$10/M in、$50/M out)与 AWS;ARC-AGI-3 实测 62.7%(标准 harness)/99.9%(provider adapter),**动作效率超人类基线(96% 关卡用更少动作)**,关键行为=把陌生环境压缩成符号世界模型并自建 DSL 规划——正是 planner 型 EDA agent 最吃的能力(轮数↓=真机墙钟↓)。GLM-5.3(本仓 planner 现役,ADR-0007)也已上 OpenRouter(1.3M ctx,flash 档 $0.075/M in 近乎免费)——**模型面混排/切换成本已趋近于零**。注:用户转述「GPT-6 发布中演示原理图→PCB 自动绘制」未找到官方一手证据,按传闻处理;最接近的已验证事实是 2025-12 **M0n0/Flux.ai 速度跑**(AI 设计 843 器件双板 Linux 计算机、一次点亮、人工 <40h,Tom's Hardware)。
+2. **上游 easyeda-agent 密集发版(本仓钉扎 1.2.10 → 上游已到 v1.4.1)**:①v1.3.0(09-01)`library.model3d search/copy` + `device.set_model3d`(3D 模型绑定,v3 愿景前置);②v1.3.1/v1.4.1(09-05)**#196 拒绝非法实例 UUID,防连接器队列挂死**——高度疑似 L0 取证中断(`run-fb97781513ec` 只剩中途 audit)的环境病根候选;**#195 Blob/Gerber/ZIP 经 `debug.exec_js` 以 base64 保真**——Gerber/字节类交付物导出直接受益(利好 M9);③外部 autorouter 改走原生 Windows shell+强制超时(M8 前置修复)。
+3. **KiCad 侧竞品密发,"gate+loop"正在成为行业标配**:copperheadhq/copperhead(「Cursor for circuit boards」,2026-07 建仓已 ★61,增速最快)/ mentasystems/fragua(「schematic → routing → fab-ready zip in one loop」,与本仓闭环叙事几乎同构)/ morsheded/hwe(18 项验证门控 agent)/ wenqiiizwq-creator/Autonomous-Schematic-Generation(中文,KiCad 原理图生成+ERC/网表/渲染门)/ oaslananka/kicad-mcp-pro(★67,让 Claude/Cursor 直操 KiCad)/ netlist.io·traceformer.io(LLM 原理图审查,HN 55pts)。**判断:全部在 KiCad 生态,嘉立创/LCSC 供应链原生+中文生态位置仍空——但窗口在收窄,R8 已更新。**
+4. **M0n0 速度跑实证「脑洞→可制造板」全链在 843 器件规模一次点亮可行**——本项目 v3 北极星不是概念验证题,是工程速度题,赛道已被验证。
+
+**策略结论(提案;不改变当前断点=L0 取证与 09-15 墙钟)**:
+
+- **不变**:第一优先仍是 L0 真机取证(全新工程 req-08/req-07/block-only),到线按 §10 墙钟纪律收口 v1.0。
+- **立即可做的便宜验证(零承诺,不破钉扎)**:若取证中 mark-side-guard 后中断可复现,`easyeda update` 至 1.4.1 复跑一次 req-08 探测 #196 是否即根因;探测阳性则「1.2.10→1.4.1 升级批」(独立 PR+清 w3-loop state 全量回归,§10/ADR-0002 纪律)排 v1.0 后第一批,v1.0 仍按 1.2.10 收口;探测阴性如实记录继续 1.2.10。
+- **v1.0 后三主线(按 ROI 排序,提案待排期批准)**:①**模型升级批**(~1 周,最便宜的能力跃升):OpenAI 兼容抽象层现成,加 GPT-6 Astra 只改 env;用现成 evals 量化「1 轮收敛率 × 单需求 token 成本」双指标,对比 GLM-5.3 现役基线,GPT-6 动作效率特性理论上直接压缩迭代轮数;②**M8 PCB 编排提前**(差异化保卫战):fragua 已打到 fab-ready zip,上游 1.4.1 恰好排掉 autorouter 外壳与 Gerber 导出两雷;只做编排+门禁本就是本项目定位(ADR-0009),弹药已齐;③**evals 打磨成社区资产**(最深护城河):上述竞品无一拥有金标回归网(14 需求×10 datasheet)与 visual-audit 12 项协议;「会画图」会被通用模型+MCP 平台化掉,「可机械复验的评测与审计证据链」不会;v1.0 发布同步 Show HN+立创社区帖(上游 ★361 证明中文 EDA 自动化受众存在)。
+- **风险对冲**:①竞品监测清单=R8 内嵌(copperhead/fragua/kicad-mcp-pro/hwe+上游 releases,月度扫);**红色警报线=copperhead/fragua 类接嘉立创制造渠道或中文社区爆量**;②上游 1.4.x 表明平台墙在变矮,本仓 workaround 资产(显式删除重放等)价值趋贬——少投 workaround、多投证据链与知识库。
+
+**插入批核算(§10 纪律)**:动因=用户指示外部环境调研(墙钟前的一次环境校准);挤占=零(纯文档,不占真机/开发批);恢复=无顺延,Phase 5 按 §5.1 原序继续(L0 取证→P5-2/3/4→P5-5)。
+
+#### 5.4.7 布局门禁降维 + 1.4.1 全链钉扎批(2026-09-06,用户指示两件;509 测绿)
+
+**动因**:①布局打磨连续五批(v0.6.12→v0.6.18,08-31~09-02)全扑布局缺陷,翼擦/标记侧位反复且无出口判据(§5.4.5 四病之首),墙钟(09-15)压力下用户指示门禁降维——收口判据收窄到「真错才阻断」;②上游连接器平台侧自动升 1.3.0 后用户手导 1.4.1 .eext 并指示全链钉 1.4.1——§5.4.6 的「探测性验证」提案就此升级为正式钉扎,**v1.0 按 1.4.1 收口(替代原「v1.0 仍按 1.2.10」假设)**;#196 拒绝非法实例 UUID(防连接器队列挂死)=run-fb97781513ec 中断病根候选,1.4.1 已含修复。
+
+1. **门禁降维(§10 同步修订)**:`check_gauge` 按 stage×规则名分硬/软两级。**硬集(仍阻断)=**本体/引脚几何相交(overlap/pin-coincidence)+电气真错(level=fatal/error、wire-bridge 真短路、drc fatal)+证据完整性(unavailable/missing/malformed/no-sheet 词元)。**已知 WARN 级降 GATE_ADVISORY 弱观察**(weak,随交付报告/评审队列走,不驱动 RELAYOUT 轮次、不阻断 PASS):check 族 10 规则(marker-overlap/floating-pin/dangling-wire/multi-net-wire/wire-crossing/polarity-convention-outlier/duplicate-net-marker/titleblock-overlap 等)、bridge 族孤儿桩三规则、lint 族 spacing/tight-spacing/off-grid/out-of-sheet、DRC 全体 warning、clusters 族 marker/ink/wing/flag/orphan 词元命中。layout 侧同口径:`check_ink_bounds`/`check_titleblock_occlusion` 出带墨迹/图签遮挡降 `_weak_finding`。**未知规则名 fail-closed 保持阻塞**——上游新规则先按硬处理,确认无害再入软表。不放松面:v0.6.18 LayoutSnapshot fail-closed(读回失败/空页伪装 PASS)原样。
+2. **钉扎 1.2.10→1.4.1 三处归一**(adapter 权威=pyproject=README;ADR-0002 值链更新);本机 CLI 实测 `easyeda-agent v1.4.1` 过版本门;另一台按双机纪律同步升级后同门。
+3. **测试**:509 全绿(+2 门禁分级行为锁:WARN 规则全弱观察/硬集不放松含未知规则 fail-closed;既有断言随口径更新:版本门测 1.4.1、出带墨迹弱化、apply 契约 fake 版本)。
+4. **欠账(如实)**:ADR-0002 升级纪律=升级批须清 w3-loop state 全量 evals 真跑——本批仅完成代码侧,真机全量回归搭载 L0 取证首跑(全新工程=天然清 state);未跑前 w3-loop 旧 state 汇总(3/6 PASS,req-07/13/14 HALT)不得引用为 1.4.1 基线。次生债清偿确认:另一台 w3-last-error 的 `NameError: AdapterError`(_repack_actions except 引用未就近导入)已修并随批在库。
+
+**教训**:a) 门禁的「严格」要花在真错上——上游 --strict 把 WARN 全升阻塞后,修复环把五个批次的墙钟耗在墨迹级缺陷上;降维不是放松,是把「阻断交付」与「记账观察」两级重新对齐;b) 降维必须留 fail-closed 硬尾(未知规则名先按硬),否则上游新增规则会被静默放行——与 R17「命令存在性探测」同族的防御姿势;c) 探测性提案被用户决策超越时要显式记录(§5.4.6「v1.0 仍按 1.2.10 收口」已被本批替代),不留双口径。
+
+**插入批核算(§10 纪律)**:动因=用户指示(降维+钉扎);挤占=零额外批(钉扎本就是 L0 取证前置,即 §5.4.6 探测路径的直接执行);恢复=下一步即 L0 取证首跑(顺带完成升级批真机回归),墙钟 09-15 不变。
+
 ## 10. 验收与工程纪律
 
 - **每个 PR 必跑**:pytest + evals 子集(金标准不回退);
 - **每轮迭代状态可复放**:审计日志记录(输入IR/检索命中/BlockPlan/findings/修复动作),支持 `edaloop replay`;
 - **门禁零豁免**:任何"先跳过校验"的代码路径禁止合入 main;
 - **依赖钉死**:easyeda-agent 版本升级=独立 PR+全量 evals 回归;**版本门覆盖所有真机变更路径**(run 主链与 apply 同门,P5-0 前移修复);**升级批的 eval 必须清 w3-loop state 真跑**——resume state 的 skip(done) 会把旧 PASS 记录当新回归放行(P5-0 实证);
-- **布局收口判据(2026-09-01 定案,布局批 Go/No-Go 依据)**:**硬门禁(阻断交付)=本体口径相交 0**(`sch clusters --strict` 逐页 ERROR 逐对以本体 bbox 复核为零)+ 引脚同点/错网 0(电气维度 net-presence+connectivity+电压兼容全绿);**软指标(记账不阻断)=翼擦**(纯墨迹级重叠:零本体交+零隐短)**记数进 backlog 不追修**、页空白率不劣于上一基线、页数≤行-货架页流合理密度、出带元素 0;布局批时间盒 1 周,到线按现状收口,残余翼擦如实转 v1.0.x;
+- **布局收口判据(2026-09-01 定案;2026-09-06 降维修订,§5.4.7)**:**硬门禁(阻断交付)=本体/引脚几何相交 0**(overlap/pin-coincidence;`sch clusters --strict` 逐页 ERROR 逐对以本体 bbox 复核为零)+ 电气真错 0(check error/fatal、bridge-check wire-bridge 真短路、drc fatal;net-presence+connectivity+电压兼容全绿)+ 证据完整性 fail-closed(读回失败/空页/几何缺失不得伪装 PASS);**弱观察(GATE_ADVISORY,记账不阻断)=已知 WARN 级规则**——marker-overlap/孤儿桩/spacing/off-grid/out-of-sheet/floating-pin/dangling-wire/DRC warning/出带墨迹/图签遮挡等,随交付报告与评审队列走,不驱动 RELAYOUT 轮次、不阻断 PASS;**未知规则名 fail-closed 先按硬处理**;页空白率不劣于上一基线、页数≤行-货架页流合理密度仍记软指标;布局批时间盒 1 周,到线按现状收口,残余弱观察如实转 v1.0.x;
 - **插入批代价核算(2026-09-01 增补)**:任何计划外插入批(用户指示/中途发现)的 §13 变更行必须记三件:**插入动因、挤占/顺延的原计划批、恢复路径**;连续插入 ≥2 批时须重排 Phase 余下里程碑并更新 §5.1 排序,防止计划批被无限顺延;
 - **Phase 5 墙钟(2026-09-01 定案)**:**2026-09-15 为 v1.0 发布线**,到线按现状执行 P5-5 收口(全层 eval+pytest+真机 smoke+tag v1.0.0),未完项如实转 v1.0.x 里程碑,不整体延期;
 - 每完成一个里程碑:更新本文档对应状态+变更记录+经验教训。
@@ -410,7 +443,7 @@ P5-0 回归续跑中插入 G33 修复批(详 §13 v0.6.10),如实记录:
 | R5 | 多模态 datasheet 提取精度不足 | 中 | W4 引脚 diff<95% | 双通道+三方 diff 已设计;限文字型 PDF | 降级人工确认入库 |
 | R6 | LLM 幻觉器件/引脚 | 中 | pin diff 拦截量 | ground truth 硬约束(原则4) | — |
 | R7 | 平台墙(无undo/增量import失效等) | 中 | 落图部分失败 | 快照+反向操作回滚;沿用 easyeda-agent 趟明的 workaround | 整轮重画(幂等落图) |
-| R8 | 窗口期收窄(Flux 中国区/国产大厂下沉) | 中 | 竞品发布 | 加速开源社区建设先占位 | — |
+| R8 | 窗口期收窄(Flux 中国区/国产大厂下沉)。**2026-09-06 更新(§5.4.6)**:KiCad 侧 agent 竞品密发——copperhead(「Cursor for circuit boards」,07 建仓 ★61)/fragua(schematic→fab zip one loop)/kicad-mcp-pro(★67)/hwe(18 项门控),"gate+loop"成标配趋势;嘉立创/LCSC 生态位暂仍空 | 中→高(趋势) | 竞品发布;**红色警报线=copperhead/fragua 类接嘉立创制造渠道或中文社区爆量** | 加速开源社区建设先占位(v1.0 发布即 Show HN+立创社区帖);evals/审计链立评测事实标准;监测清单月度扫(§5.4.6) | — |
 | R9 | 单人开发带宽 | 高 | 里程碑连续延期 | 严格 PoC 范围;非目标清单挡需求 | 砍 W4 保 W3 |
 | R10 | SPICE 覆盖不了目标电路类别 | 低 | 弱门禁误报 | 仿真仅加分项,强门禁不依赖 | — |
 | R11 | PoC 期 LLM/embedding 走云端,数据出域 | 低 | 涉密/企业数据场景试用 | PoC 数据仅公开 datasheet;接口层抽象隔离 | Phase 1 本地 BGE-M3 权重 + 本地 LLM 端点 |
@@ -432,7 +465,7 @@ P5-0 回归续跑中插入 G33 修复批(详 §13 v0.6.10),如实记录:
 | # | 日期 | 决策 | 状态 |
 |---|---|---|---|
 | ADR-0001 | 2026-08-17 | 愿景冻结为 v2 五段闭环链路 | ✅ |
-| ADR-0002 | 2026-08-17 | easyeda-agent 依赖钉死 v0.25.1;升级=独立 PR+全量 evals 回归 | ✅(钉扎值链:ADR-0011 修订为 1.1.1→2026-08-28 连接器平台侧自动升级跟随至 1.2.10(现值,adapter=pyproject=README 三处归一于 2026-09-01 产品梳理批);升级纪律不变;另 P5-0 补洞:版本门前移到 run 主链,此前仅 apply 查) |
+| ADR-0002 | 2026-08-17 | easyeda-agent 依赖钉死 v0.25.1;升级=独立 PR+全量 evals 回归 | ✅(钉扎值链:ADR-0011 修订为 1.1.1→2026-08-28 连接器平台侧自动升级跟随至 1.2.10(2026-09-01 产品梳理批三处归一)→**2026-09-06 用户指示全链钉 1.4.1(现值,adapter=pyproject=README 同批归一,§5.4.7;真机全量回归搭载 L0 首跑)**;升级纪律不变;另 P5-0 补洞:版本门前移到 run 主链,此前仅 apply 查) |
 | ADR-0003 | 待定 | 多模态模型选型 | ⏳ W1 |
 | ADR-0004 | 2026-08-17 | LCSC 数据通道:PoC 复用 easyeda CLI(`resolve-lcsc`),留 `LcscProvider` 切换位;直连 API 备选,爬虫否决 | 📝 草案,W0 验证 |
 | ADR-0005 | 2026-08-17 | 项目定名 `jlc-edaloop`;仓库 https://github.com/Yyin-Tta/jlc-edaloop.git | ✅ |
@@ -462,3 +495,5 @@ P5-0 回归续跑中插入 G33 修复批(详 §13 v0.6.10),如实记录:
 | 2026-09-01 | v0.6.16 | **目检审计批 C9 修复(d040c49;req-08 首跑触发 §10 No-Go 先修门禁;358 测绿)**:①**C9=同 pin 同网重复标记**(run-746b24879342 终态:FS8205A pin2 两枚 FET_MID 110,300+160,300、pin5 两枚 250,300+260,300,全 failed:fallback 而 round-validate gate=pass)——根因=reseat/盲退多轮拆-落循环里 disconnect 只拆「端点在本脚的导线+netport」,盲落标记的线不总落回脚端点,拆不尽的旧标记留页上、重落再添新枚,载体只增不减;net-presence 只查「网存在」不查「重复」=门禁盲区实锤。②**双治**:盲退链三处幂等清理(`_guarded_autoconnect` 首落/确定性重试/二次盲退前,`_stale_ids` 按「最近同网脚归属」prim-delete 本脚残枚——严格更近、平距不动:双管 FET 两脚同网相邻 140 拆得开,共享旗两脚正中不误删;误删由 net-presence+修复通道兜底)+终态去重门禁 `_dedupe_pin_markers`(freeze 画框前+生产 `_apply` 尾轮 reseat 后全页扫,同 pin 同网 ≥2 载体→留带内>不压体>离脚最近一枚删余枚,删后复列核验,平台删不动/无 id → 计 wire_breaks 交阈值门/目检)。③测试 +3(归属拆分/盲退两回不累积/终态去重含删不动与共享旗不触发);fake 补 `delete_primitives` 真删覆写(父类空实现吞调用)+`disconnect_keeps_marks` 拆不净夹具(真机 C9 形态,默认关零扰动)。**教训**:a) 目检协议第一跑就抓到 P0 且给出精确坐标——「无对应 audit 事件=门禁盲区」的登记口径有效;b) fake 的「全删」disconnect 语义比真机干净,掩盖了拆不净累积缺陷(同 2026-08-25 #5 fake-reality 分歧族),真机缺陷形态必须以夹具开关进 fake;c) 修复器自身也会制造重复(盲退重落只添不减)——幂等性(落前先清)与终态核验(扫后删余)要成对出现,单靠任何一半都留缝 |
 | 2026-09-02 | v0.6.17 | **目检审计批 req-08 复跑两修(用户目检定案;362 测绿)**:①**标记侧位慢性病**(run-e89808c395b8:PROTDW01:2 CSI 终态钉 DW01A 右侧、:5 VDD_S 压本体;用户规范「引脚在哪侧,网标记就放哪侧」连续三轮未愈)——根因链四层同证:a) 引线型符号 bbox 含引线(DW01A bbox 40..275、本体核仅 145..225),「贴本体边 ≤20」侧位判定对全员失效,左脚退「离带边最远」序先试右侧;b) `_connect_stub` 的 avoid 含自件框,同侧候选全判压叠永不严格,退全局最小压叠=原位压体;c) `_reseat_escape_marks` 判据②(压体)把救援落位再收走,重落→再收走,页内三趟 reseat 原地打转(审计 dir left/auto/right 振荡);d) `_fix_wrong_side_marks` 中心分半口径漏「脚与件中心之间」的压体锚(旧判据 _side(-15)=left 与左脚同侧)。**四层同修**:`_pin_side` 同件脚端点列/行聚类侧位判定(x 轴 60 间隙分簇,最左簇=left/最右簇=right,x 单簇再按 y;**聚类必须含目标脚**——DW01A 中排脚 x=155 恰在左簇尾 95 与右簇头 230 的间隙,滤掉再聚类就成了「中心脚」;判不出退贴边判定再退带边序,误判比漏判糟)+`_connect_stub` **同侧救援档**(严格档→同侧救援档(压叠只在自件框=引线、方向在本侧/顺边、他件全净)→全局最小压叠档,对侧垫底)+reseat 判据② own-body 豁免(owner 的 `_pin_side`+`_mark_beyond_pin` 判锚越过脚端点朝外=至多擦引线,自件框不算压体)+同侧扫尾改引脚相对口径(`_mark_toward_body`:锚朝本体方向偏过脚端点=压体/对侧/斜蹭统一违规,顺边垂直出线合法)。②**place-only 计划摊 3 页**(5 个 SOT23 小件、每页空白率 >80%)——freeform/标准件计划无 block-apply,`_repack_actions` 旧门槛 `no-upstream-blocks` 把它们整个拦在装箱外退 compile 流式初值(`_PageFlow` 行-货架流逐个小件摊页);放行 place 通道(两通道都空才回退 no-blocks,`missing` 同判),试放-量测-装箱-重放链路对 place 块本就完备;freeform `decompose` 补 `module=模式 id` 装箱亲和同页。③测试 +4(引线型聚类侧位含右侧封锁/引脚相对扫尾含「脚与中心之间」锚/own-body 豁免含朝体对照/place-only 两钮单页)+test_freeform module 断言;fake 夹具沿用零改动。**教训**:a) 「贴边」类几何判据隐含假设 bbox=本体,引线型符号(分立器件主流画法)不满足——侧位/朝向要从**数据**(脚端点簇位)推,不要从**框**(bbox 边距)推;b) 修复器与门禁判据必须共享同一几何口径(越过脚端点=外侧合法),否则 A 修好 B 收走,迭代空转;c) 装箱入口的通道门槛要按「可装之物」判,不按「上游块有无」判——place-only 也是一等公民 |
 | 2026-09-02 | v0.6.18-doc | **L0 取证状态校准**:当前离线回归为 `uv run pytest -q` **476 passed**;包元数据、模块和 `edaloop --version` 均为 **0.7.0**。`runs/run-fb97781513ec` 只有 49 行 audit,末事件为 `mark-side-guard`,缺少终态结果和 delivery,按 `INCOMPLETE_RUN` 处理,不计入真机 PASS；L0 仍需在全新工程完成 req-08、req-07、block-only 的逐页 snapshot/audit/网表 hash 取证。 |
+| 2026-09-06 | v0.6.19-doc | **外部环境扫描与发展策略批(§5.4.6,用户指示;纯调研文档,零代码)**:①信源=GitHub API/HN Algolia/OpenRouter/OpenAI·ARC·CNBC 一手抓取(采集日 09-06);②四大发现:GPT-6 Astra 发布(09-03,ARC-AGI-3 动作效率超人类基线、1.05M ctx 上 OpenRouter;「官方原理图→PCB 演示」未找到一手证据按传闻处理)/上游 easyeda-agent 1.2.10→v1.4.1(#196 UUID 防连接器挂死=疑似 L0 中断病根候选、#195 Gerber/ZIP base64 保真利好 M9、autorouter 原生 shell=M8 前置)/KiCad 侧竞品密发(copperhead·fragua·kicad-mcp-pro·hwe,gate+loop 成标配趋势,嘉立创生态位仍空,R8 已更新)/M0n0 速度跑实证 843 器件全链一次点亮;③提案(不改 L0 断点与 09-15 墙钟):1.4.1 探测性验证(钉扎不破,阳性才立升级批)+ v1.0 后三主线(模型升级批量化收敛率与成本/M8 PCB 编排提前/evals 打磨社区资产)+竞品监测清单月度扫;④插入批核算:纯文档零挤占。 |
+| 2026-09-06 | v0.6.20 | **布局门禁降维+1.4.1 全链钉扎批(§5.4.7,用户指示;509 测绿)**:①`check_gauge` 硬/软两级——硬集=本体/引脚几何相交(overlap/pin-coincidence)+电气真错(fatal/error、wire-bridge、drc fatal)+证据完整性 fail-closed;已知 WARN 级(check 族 10 规则/bridge 孤儿桩三/lint spacing·off-grid·out-of-sheet/DRC 全 warning/clusters marker·ink·wing·flag·orphan 词元)降 GATE_ADVISORY 弱观察,不驱动 RELAYOUT、不阻断 PASS;**未知规则名 fail-closed 保持阻塞**;layout 出带墨迹/图签遮挡(`check_ink_bounds`/`check_titleblock_occlusion`)同步降弱。②钉扎 1.2.10→1.4.1 三处归一(adapter=pyproject=README;上游 #196 拒非法 UUID=run-fb97781513ec 中断病根候选;§5.4.6 探测升级为正式钉扎,**v1.0 按 1.4.1 收口**);本机 CLI 实测过门。③测试 509(+2 分级锁测;既有断言随口径更新:版本门 1.4.1/出带墨迹弱化/apply 契约 fake)。④欠账:ADR-0002 真机全量回归(清 w3-loop state)搭载 L0 首跑,旧 state 汇总(3/6 PASS)不得引用为 1.4.1 基线;另一台 w3-last-error 的次生 `NameError: AdapterError` 确认已修在库。**教训**:门禁「严格」要花在真错上,--strict 全升阻塞=五个批次墙钟耗在墨迹级缺陷;降维必须留 fail-closed 硬尾;探测提案被决策超越要显式记录避免双口径。**插入批核算**:动因=用户指示(降维+钉扎);挤占=零额外批(钉扎本就是 L0 前置);恢复=下一步 L0 首跑顺带升级批回归,墙钟 09-15 不变。 |

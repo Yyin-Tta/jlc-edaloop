@@ -1874,7 +1874,7 @@ def check_ink_bounds(
     for ref, net, pin, kind, rect in _ink_items(snapshot, include_body=include_body):
         if not rect.outside(snapshot.usable_band, max(0.0, float(tolerance))):
             continue
-        findings.append(_finding(
+        findings.append(_weak_finding(
             LAYOUT_INK_OUT_OF_BAND,
             ref=ref,
             net=net,
@@ -1895,7 +1895,7 @@ def check_titleblock_occlusion(snapshot: LayoutSnapshot | None, *, tolerance: fl
     for ref, net, pin, kind, rect in _ink_items(snapshot):
         if not rect.intersects(snapshot.titleblock_keepout, max(0.0, float(tolerance))):
             continue
-        findings.append(_finding(
+        findings.append(_weak_finding(
             LAYOUT_TITLEBLOCK_OCCLUDE,
             ref=ref,
             net=net,

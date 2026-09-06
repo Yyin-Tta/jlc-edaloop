@@ -111,7 +111,8 @@ def test_pin_net_mismatch_uses_expected_map_and_actual_pin_map() -> None:
     assert findings[0].where.net == "VCC"
 
 
-def test_out_of_band_marker_and_wire_ink_are_blocking() -> None:
+def test_out_of_band_marker_and_wire_ink_are_weak_advisories() -> None:
+    """2026-09-06 降维(§10 修订):出带墨迹是记账软指标,弱观察不阻断。"""
     snap = _snapshot(
         _component("R1", (100, 100, 180, 160)),
         markers=(
@@ -129,7 +130,7 @@ def test_out_of_band_marker_and_wire_ink_are_blocking() -> None:
     findings = check_ink_bounds(snap)
 
     assert [f.code for f in findings] == [LAYOUT_INK_OUT_OF_BAND, LAYOUT_INK_OUT_OF_BAND]
-    assert all(f.severity == "error" and not f.weak for f in findings)
+    assert all(f.weak and f.severity != "error" for f in findings)
 
 
 def test_readback_failure_and_empty_components_never_pass() -> None:

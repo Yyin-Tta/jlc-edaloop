@@ -3,7 +3,7 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
-_PINNED_VERSION = "1.2.10"  # ADR-0002→ADR-0011→1.2.10:0.25.1→1.1.1→1.2.8→1.2.10(2026-08-28 连接器平台侧自动升级,CLI 同步跟升;双机轮换开发,另一台同步升级后同过此门)
+_PINNED_VERSION = "1.4.1"  # ADR-0002→ADR-0011→1.4.1:0.25.1→1.1.1→1.2.8→1.2.10→1.4.1(2026-09-06 连接器平台侧自动升级 1.3.0 后用户手导 1.4.1 .eext 并指示全链钉 1.4.1;双机轮换开发,另一台同步升级后同过此门)
 _FALLBACK_BIN = r"C:\Users\admin\.local\bin\easyeda.exe"
 
 

@@ -263,6 +263,73 @@ def test_check_gate_blocked_env() -> None:
     assert any(f.suggested_fix_class == "RETRY_ENV" for f in findings)
 
 
+def test_check_gate_strict_warn_rules_are_weak_advisories() -> None:
+    """2026-09-06 布局降维(用户指示,§10 修订):--strict 升上来的 WARN 级规则
+    (marker-overlap/孤儿桩/floating-pin/dangling-wire/非 fatal DRC/out-of-sheet…)
+    降为弱观察 GATE_ADVISORY,不驱动 RELAYOUT 轮次、不阻断 PASS。"""
+    report = {
+        "verdict": "fail",
+        "stages": [
+            {"stage": "check", "verdict": "fail", "findings": [
+                {"type": "marker-overlap", "a": "R8", "b": "J2.A6"},
+                {"type": "floating-pin", "ref": "U1", "pin": "3"},
+                {"type": "dangling-wire", "ref": "W1"},
+            ]},
+            {"stage": "bridge-check", "verdict": "fail", "findings": [
+                {"type": "orphan-stub", "ref": "W2"},
+                {"type": "orphan-flag", "net": "GND"},
+            ]},
+            {"stage": "drc", "verdict": "fail", "findings": [
+                {"type": "drc-warning", "message": "Net R8-2 has no driving source"},
+            ]},
+            {"stage": "layout-lint", "verdict": "fail", "findings": [
+                {"type": "out-of-sheet", "a": "DCIN1"},
+                {"type": "off-grid", "a": "C3"},
+            ]},
+        ],
+    }
+    fs = check_gauge(report)
+    assert fs and all(f.weak and f.code == "GATE_ADVISORY" for f in fs), (
+        [f"{f.code}:{f.weak}:{f.evidence}" for f in fs]
+    )
+
+
+def test_check_gate_hard_set_not_weakened() -> None:
+    """降维不放松硬集:本体/引脚几何 + wire-bridge 真短路 + drc fatal
+    + 未知规则名 fail-closed。"""
+    report = {
+        "verdict": "fail",
+        "stages": [
+            {"stage": "layout-lint", "verdict": "fail", "findings": [
+                {"type": "overlap", "a": "R1", "b": "R2"},
+            ]},
+            {"stage": "clusters", "verdict": "fail", "findings": [
+                {"type": "pin-coincidence", "a": "U1.1", "b": "U2.4"},
+                {"type": "marker-overlap", "a": "M1", "b": "R3"},
+            ]},
+            {"stage": "bridge-check", "verdict": "fail", "findings": [
+                {"type": "wire-bridge", "net": "12V"},
+            ]},
+            {"stage": "check", "verdict": "fail", "findings": [
+                {"type": "some-new-unknown-rule", "message": "unknown"},
+                {"type": "multi-net-wire", "ref": "W3"},
+            ]},
+            {"stage": "drc", "verdict": "fail", "findings": [
+                {"type": "drc-fatal", "level": "fatal"},
+            ]},
+        ],
+    }
+    fs = check_gauge(report)
+    hard = [f for f in fs if not f.weak]
+    assert {f.code for f in hard} == {"GATE_FAIL"}
+    hard_ev = " | ".join(f.evidence for f in hard)
+    for token in ("overlap", "pin-coincidence", "wire-bridge", "drc-fatal", "some-new-unknown-rule"):
+        assert token in hard_ev, token
+    # clusters 的 marker-overlap 与 check 的 multi-net-wire 照旧降弱
+    weak_ev = " | ".join(f.evidence for f in fs if f.weak)
+    assert "marker-overlap" in weak_ev and "multi-net-wire" in weak_ev
+
+
 def test_attribute_directed_feedback() -> None:
     fb = attribute(
         [

@@ -776,6 +776,80 @@ def check_param_off_spec(plan: BlockPlan, sizing_advices, catalog: dict | None =
     return findings
 
 
+# ---- 布局门禁降维(2026-09-06 用户指示,§10 修订;详 §5.4.7)----
+# 布局打磨长期阻塞交付,收口判据降为「器件本体不重叠 + 电气真错 + 证据 fail-closed」。
+# 上游 `sch gate --strict` 会把大量 WARN 级规则升为阻塞;本项目口径下这些全部降为
+# 弱观察(GATE_ADVISORY,随交付报告/评审队列走,不驱动 RELAYOUT 轮次、不阻断 PASS)。
+# 不放松的部分:本体/引脚几何相交、check 的 error/fatal、bridge-check 的 wire-bridge
+# (真短路)、drc fatal、证据完整性(unavailable/几何缺失);未知规则名 fail-closed 保持阻塞。
+_GATE_HARD_GEOMETRY_RULES = frozenset({"overlap", "pin-coincidence"})
+_GATE_INTEGRITY_TOKENS = ("unavailable", "missing", "malformed", "no-sheet", "nosheet")
+_GATE_SOFT_LINT_RULES = frozenset({"spacing", "tight-spacing", "off-grid", "out-of-sheet"})
+_GATE_SOFT_CHECK_RULES = frozenset({
+    "floating-pin", "geom-net-mismatch", "net-marker-mismatch", "multi-net-wire",
+    "wire-crossing", "wire-over-pin", "zero-length-wire", "dangling-wire",
+    "polarity-convention-outlier", "duplicate-net-marker", "titleblock-overlap",
+    "marker-overlap",
+})
+_GATE_SOFT_BRIDGE_RULES = frozenset({"orphan-stub", "orphan-flag", "orphan-tree"})
+_GATE_SOFT_CLUSTER_TOKENS = ("marker", "ink", "wing", "flag", "orphan")
+
+
+def _gate_item_token(f: object) -> str:
+    if isinstance(f, dict):
+        for key in ("type", "code", "rule", "kind"):
+            value = f.get(key)
+            if isinstance(value, str) and value.strip():
+                return value.strip().lower()
+    return ""
+
+
+def _gate_item_level(f: object) -> str:
+    if isinstance(f, dict):
+        for key in ("level", "severity"):
+            value = f.get(key)
+            if isinstance(value, str) and value.strip():
+                return value.strip().lower()
+    return ""
+
+
+def _gate_item_blocks(stage: str, f: object) -> bool:
+    """判定上游 gate finding 是否仍阻断交付(2026-09-06 降维后的硬集)。
+
+    硬集=本体/引脚几何相交 + 电气真错(error/fatal、wire-bridge、drc fatal)
+    + 证据完整性;其余已知 WARN 规则(marker-overlap/孤儿桩/间距/off-grid/
+    out-of-sheet/floating-pin/dangling-wire/非 fatal DRC…)降弱观察。未知规则名
+    (布局/check/桥族)fail-closed 保持阻塞——新规则先按硬处理,确认无害再入软表。
+    """
+    token = _gate_item_token(f)
+    level = _gate_item_level(f)
+    text = f"{token} {str(f).lower()}"
+    if level in ("fatal", "error"):
+        return True
+    if stage in ("layout-lint", "clusters"):
+        if any(tok in text for tok in _GATE_INTEGRITY_TOKENS):
+            return True
+        if token in _GATE_HARD_GEOMETRY_RULES:
+            return True
+        if token in _GATE_SOFT_LINT_RULES:
+            return False
+        if stage == "clusters" and any(k in token for k in _GATE_SOFT_CLUSTER_TOKENS):
+            return False
+        return True
+    if stage == "check":
+        # 上游 check 电气规则全部 WARN 级(marker 几何规则同);真错(error/fatal)
+        # 已在上面判硬,已知 WARN 规则名降弱,未知规则名 fail-closed 保持阻塞。
+        return token not in _GATE_SOFT_CHECK_RULES
+    if stage == "bridge-check":
+        if token in ("wire-bridge", "bridge"):
+            return True
+        return token not in _GATE_SOFT_BRIDGE_RULES
+    if stage == "drc":
+        # 用户口径:DRC warning 不挡;fatal/error 已在上面判硬。
+        return False
+    return True
+
+
 def check_gauge(gate_report: dict, oversize_pages: set[str] | None = None) -> list[Finding]:
     findings: list[Finding] = []
     oversize_pages = oversize_pages or set()
@@ -831,6 +905,20 @@ def check_gauge(gate_report: dict, oversize_pages: set[str] | None = None) -> li
                         evidence=f"[oversize 页 {stage.get('page')}] {evidence}",
                         severity="warning",
                         suggested_fix_class="REPLAN",
+                        weak=True,
+                    )
+                )
+                continue
+            if not _gate_item_blocks(name, f):
+                # 2026-09-06 降维:--strict 升上来的 WARN 级规则 → 弱观察,
+                # 随交付报告/评审队列走,不驱动 RELAYOUT 轮次、不阻断 PASS。
+                findings.append(
+                    Finding(
+                        code="GATE_ADVISORY",
+                        where=Where(ref=name),
+                        evidence=evidence,
+                        severity="warning",
+                        suggested_fix_class=_fix_class(name, f),
                         weak=True,
                     )
                 )
