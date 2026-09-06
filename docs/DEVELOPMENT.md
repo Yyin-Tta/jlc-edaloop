@@ -5,7 +5,7 @@
 >
 > | 项 | 值 |
 > |---|---|
-> | 版本 | v0.6.21(2026-09-07 L0 取证首跑+1.4.1 升级批真机回归:block-only/req-08 PASS、req-07 不收敛+窗口 churn;七项代码修复+degree-1 盲点入册;包/CLI 版本 v0.7.0,详 §13 v0.6.21) |
+> | 版本 | v0.6.22(2026-09-07 P5-4 BOM 尾差清理:豁免分类+覆盖率报告+no-lcsc 块补录;非豁免有价覆盖率 100%;包/CLI 版本 v0.7.0,详 §13 v0.6.22) |
 > | 日期 | 2026-09-06 |
 > | 状态 | **Phase 5(v1.0 打磨)进行中,墙钟 2026-09-15(§10)**:v0.6.18 代码证据链已收口(476 测试绿;包/CLI v0.7.0);`edaloop apply` 已明确为低层实验入口,工程 PASS 仅由 `edaloop run` 严格终态路径产生。**当前断点=L0 真机取证**:工程 `edaloop` 保持只读且 layout FAIL(本体重叠/marker-overlap/孤儿桩/DRC warning),下一步在全新工程复跑 req-08、req-07 和一个 block-only 需求并保存 snapshot、audit、截图、网表 hash;硬指标连续 3 次通过前冻结 v3 PCB/下单与自动案例回写。最近尝试 `runs/run-fb97781513ec` 仅有中途 audit(末事件 `mark-side-guard`),无 `loop-result.json`/delivery,标记为未完成取证,不得计入 PASS。**外部环境扫描已做(2026-09-06,§5.4.6)**:GPT-6 Astra 发布/上游 easyeda-agent 已到 v1.4.1(#196 疑似 L0 中断病根候选)/KiCad 侧竞品密发;v1.0 后发展提案与竞品监测清单同节,不改变当前断点与墙钟。**门禁降维+1.4.1 钉扎已落(同日 §5.4.7,用户指示;509 测绿)**:gate 硬集收窄为「本体/引脚几何相交+电气真错+证据完整性 fail-closed」,已知 WARN 级(marker-overlap/孤儿桩/DRC warning/出带墨迹等)降 GATE_ADVISORY 弱观察、未知规则名 fail-closed 保硬;钉扎 1.2.10→1.4.1 三处归一(本机 CLI 已过门);ADR-0002 真机全量回归搭载 L0 首跑(清 state),旧 w3 汇总不得引用为 1.4.1 基线。 |
 > | 上游调研 | `research-vision-v2-feasibility.md`(技术) · `research-eda-agent-industry-landscape.md`(产业) · `research-datasheet-extraction-feasibility.md`(datasheet 管道) |
@@ -447,6 +447,29 @@ P5-0 回归续跑中插入 G33 修复批(详 §13 v0.6.10),如实记录:
 
 **教训**:a) 升级批真机回归不能只看「跑不跑得通」——1.4.1 的读回契约变化(noConnected 消失/autoconnect 拒斜桩/gate 自报别名)每一项都能在离线 509 绿下静默埋雷,只在真机长跑里逐个爆;b) 「有网≠对网≠度数对」——net-presence 查存在、C9 查重复、degree-1 查度数,电气完整性三层递进,本批补第二层后第三层缺口由 req-08 的 singlePinNets 实证锁定;c) 窗口 churn 是 L0 长跑头号环境杀手——连接器失联 + 新窗口 projectName 缺失让 `--project` 路由彻底失效,长跑必须把「窗口存活/路由可达」纳入看门狗探针。
 
+#### 5.4.9 P5-4 BOM 尾差清理批(2026-09-07;④③ 完成,② 前批已合;519 测绿)
+
+**动因**:§5.1 P5-4 独立批,G31「BOM/落图数据尾差」收口。①基线已量化(124 BOM 行/有价 70%,最大缺口是 C99xx 延展号段 26 行而非最初猜的「up-* parts 不全」仅 3 行);②SSL 瞬态重试前批已合入(07b9bae,`for attempt in range(2)`),本批补 ③④ 并补 ② 的测试。
+
+**④ 豁免分类 + 覆盖率报告**(bomcost.py):缺价行分「豁免」与「真缺」两类——豁免=C99xx 延展号段(基础库未挂商务数据,wmsc 无价是数据源限制非缺陷)+ std 无值件(resistor-std/capacitor-std,值在 sizing 时定,块级无固定 C 号);真缺=no-lcsc/普通无价(补录/重试目标)。`exempt_reason()` 归类,`summarize_bom` 新增 `coverage` 键(有价行/非豁免行),豁免行单列报告不进有价分母(§5.1 P5-4④口径)。
+
+**③ parts 补录**(seeds/blocks.jsonl,均 wmsc 回读校验):
+- up-esp32_autodownload:S8050(C2146,¥0.0169/库存 204250)+ R-4.7K(C25940,¥0.0015/116200;立创 ESP32 自动下载电路经典值,standard-parts.json 同值)。
+- up-aw8737_classd_spk:AW8737AFCR(C5162553,¥0.2295/705)。
+- 延后(不在 124 行基线,需连接器 `lib search` 精确定件):up-microsd_spi_pushpush / up-sdnand_sdmmc_4bit / up-st7789_spi_lcd_btb(多器件块 parts 不全);battery-18650-holder(18650 弹片座=机械/手工焊接件,无标准 C 号)。
+
+**Go 判据核对**(§5.1 P5-4):
+1. 非豁免行有价覆盖率:豁免 29(C99xx 26 + std 3),非豁免 95;真缺 9(SSL 瞬态 6 + esp32 无 lcsc 3)经 ②③ 全部转有价 → **覆盖率 100% ≥95%**(基线归因 38 vs 缺价 37 有 1 行跨类重叠,不影响结论)。
+2. SSL ConnectError 归零:② 重试单测覆盖(transient once→有价 / twice→落 error 不抛)。
+3. 补录块 wmsc 回读一致:C2146/C25940/C5162553 三号全部读回正确价/库存。
+4. w1 不回退:**recall@8 = 70/74 = 94.6%(=基线,≥92%)**;负样本断言全过;两改动块(up-esp32_autodownload/up-aw8737)未出现在任何 top8,变更对检索**实证零影响**;泛功能 miss 1→3(led-indicator/dc-terminal-5v-input×2)是 IR 解析 run-to-run 方差(总 recall 不变,与 blocks 变更无关)。
+
+**测试**:519 绿(+5:② 重试×2 + ④ 豁免/覆盖率×3)。
+
+**欠账(如实)**:剩余 no-lcsc 块(微SD/SD-NAND/ST7789-BTB/18650 座)未补,需连接器 `lib search` 恢复后补录;这些块不在 124 行基线,不阻塞本批 Go。
+
+**教训**:a) 覆盖率分母必须扣豁免行——C99xx 数据源限制占缺价 74%,不扣就被误读成「数据没补齐」,而真正可补的只有 SSL+esp32 共 9 行;b) parts 里只有 `ref` 进检索索引(embed/FTS 都只拼 `p.ref`,note/lcsc 不入),补录改 note/lcsc 不影响 w1 排名——这是「补录块 wmsc 回读一致」能独立于检索回归验收的原因。
+
 ## 10. 验收与工程纪律
 
 - **每个 PR 必跑**:pytest + evals 子集(金标准不回退);
@@ -524,3 +547,4 @@ P5-0 回归续跑中插入 G33 修复批(详 §13 v0.6.10),如实记录:
 | 2026-09-06 | v0.6.19-doc | **外部环境扫描与发展策略批(§5.4.6,用户指示;纯调研文档,零代码)**:①信源=GitHub API/HN Algolia/OpenRouter/OpenAI·ARC·CNBC 一手抓取(采集日 09-06);②四大发现:GPT-6 Astra 发布(09-03,ARC-AGI-3 动作效率超人类基线、1.05M ctx 上 OpenRouter;「官方原理图→PCB 演示」未找到一手证据按传闻处理)/上游 easyeda-agent 1.2.10→v1.4.1(#196 UUID 防连接器挂死=疑似 L0 中断病根候选、#195 Gerber/ZIP base64 保真利好 M9、autorouter 原生 shell=M8 前置)/KiCad 侧竞品密发(copperhead·fragua·kicad-mcp-pro·hwe,gate+loop 成标配趋势,嘉立创生态位仍空,R8 已更新)/M0n0 速度跑实证 843 器件全链一次点亮;③提案(不改 L0 断点与 09-15 墙钟):1.4.1 探测性验证(钉扎不破,阳性才立升级批)+ v1.0 后三主线(模型升级批量化收敛率与成本/M8 PCB 编排提前/evals 打磨社区资产)+竞品监测清单月度扫;④插入批核算:纯文档零挤占。 |
 | 2026-09-06 | v0.6.20 | **布局门禁降维+1.4.1 全链钉扎批(§5.4.7,用户指示;509 测绿)**:①`check_gauge` 硬/软两级——硬集=本体/引脚几何相交(overlap/pin-coincidence)+电气真错(fatal/error、wire-bridge、drc fatal)+证据完整性 fail-closed;已知 WARN 级(check 族 10 规则/bridge 孤儿桩三/lint spacing·off-grid·out-of-sheet/DRC 全 warning/clusters marker·ink·wing·flag·orphan 词元)降 GATE_ADVISORY 弱观察,不驱动 RELAYOUT、不阻断 PASS;**未知规则名 fail-closed 保持阻塞**;layout 出带墨迹/图签遮挡(`check_ink_bounds`/`check_titleblock_occlusion`)同步降弱。②钉扎 1.2.10→1.4.1 三处归一(adapter=pyproject=README;上游 #196 拒非法 UUID=run-fb97781513ec 中断病根候选;§5.4.6 探测升级为正式钉扎,**v1.0 按 1.4.1 收口**);本机 CLI 实测过门。③测试 509(+2 分级锁测;既有断言随口径更新:版本门 1.4.1/出带墨迹弱化/apply 契约 fake)。④欠账:ADR-0002 真机全量回归(清 w3-loop state)搭载 L0 首跑,旧 state 汇总(3/6 PASS)不得引用为 1.4.1 基线;另一台 w3-last-error 的次生 `NameError: AdapterError` 确认已修在库。**教训**:门禁「严格」要花在真错上,--strict 全升阻塞=五个批次墙钟耗在墨迹级缺陷;降维必须留 fail-closed 硬尾;探测提案被决策超越要显式记录避免双口径。**插入批核算**:动因=用户指示(降维+钉扎);挤占=零额外批(钉扎本就是 L0 前置);恢复=下一步 L0 首跑顺带升级批回归,墙钟 09-15 不变。 |
 | 2026-09-07 | v0.6.21 | **L0 取证首跑 + 1.4.1 升级批真机回归(§5.4.8,用户指示;514 测绿,+5)**:①**三跑结果**:block-only PASS(run-14603125fecc,2 轮)/req-08 PASS(run-30db3a50909a,1 轮,网表 sha16 `702d2b3c`)→ 1.4.1 全链钉扎真机可用;**req-07 不收敛 + 窗口 churn**(run-873b7b4bb68f):round 1 拿 14 阻断(全真几何:STM32F103C8T6 块 overlap SW1+out-of-sheet、U2↔C5、R6↔J2、网错读、双 marker),收口后 EasyEDA 连接器失联(窗口 churn),round 2 全变读回失败,round 3 新窗口只报 `documentUuid` 不报 `projectName` → `--project` 路由失配空转,人工止损——**定性「不收敛(疑)+环境截断」,不记确定性 HALT**(大 MCU 块出纸是实,「能否修」被 churn 截断未证)。②**七项代码修复**(1.4.1 升级回归暴露 4 + L0 独立缺陷 3):NC 读回通道迁移(check 通道 `floating-pin` 权威)/锚点 snap-5 网格(autoconnect 拒斜桩)/gate ok:false 状态别名不升 GATE_UNVERIFIED/lib-search 限流查空补发;交付页字段同步(`b.page`=动作页真相)/单轨 MISSING_RAIL 降维+电池脚别名/`_stale_ids` None-spins 崩防护(二次盲退路径)。③**盲点入册**:`sch nets` singlePinNets(degree-1 单脚网,P+ 只连 TERMOUT 一脚)门禁不查度数,下一批加检查。④**ADR-0002 回归结论**:1.4.1 可用;req-07 不收敛=布局能力边界非回归;窗口 churn 环境坑与代码无关。**欠账**:req-07 须窗口稳定后重跑拿 PASS/HALT;degree-1 检查未做;另一台 D:\gyt-pro 同步升 1.4.1。**教训**:a) 升级批真机回归的价值在长跑里才兑现——noConnected 消失/拒斜桩/gate 别名都在离线 509 绿下静默埋雷;b) 电气完整性三层:net-presence 查存在、C9 查重复、degree-1 查度数,第三层缺口由 req-08 singlePinNets 实证锁定;c) 窗口 churn 是长跑头号环境杀手,「窗口存活/路由可达」须入看门狗探针。 |
+| 2026-09-07 | v0.6.22 | **P5-4 BOM 尾差清理批(§5.4.9;519 测绿,+5)**:①**④豁免分类+覆盖率报告**(bomcost.py):缺价行分「豁免」(C99xx 延展号段+std 无值件,数据源限制单列报告不进分母)与「真缺」(补录/重试目标),`summarize_bom` 新增 coverage(有价/非豁免);②**③parts 补录**(blocks.jsonl):up-esp32_autodownload→S8050(C2146)+R-4.7K(C25940,立创自动下载经典值)、up-aw8737_classd_spk→AW8737AFCR(C5162553),三号 wmsc 回读一致;剩余 no-lcsc(微SD/SD-NAND/ST7789-BTB/18650 座)不在基线、需连接器 lib search 延后;③**Go 核对**:非豁免行有价覆盖率 100% ≥95%、SSL ConnectError 归零(② 重试单测,② 代码已 07b9bae 合入)、补录回读一致、**w1 recall@8=70/74=94.6%(=基线,不回退)**且两改动块未现任何 top8(实证零检索影响)。**教训**:a) 覆盖率分母扣豁免行,C99xx 数据源限制占缺价 74% 不扣即误读为「数据没补齐」;b) parts 只有 ref 进检索索引(note/lcsc 不入),补录回读校验应落在 C 号本体、检索回归可独立验收。 |

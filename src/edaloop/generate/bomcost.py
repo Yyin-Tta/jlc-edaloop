@@ -22,6 +22,13 @@ _HEADERS = {
     "Accept": "application/json",
 }
 
+# P5-4④ 豁免口径(§5.1):缺价行分「豁免」(数据源限制,单列报告不进有价分母)与
+# 「真缺」(补录/重试目标,进分母)。豁免两类:
+#   - C99xx 延展号段:基础库未挂商务数据,wmsc 无价是数据源限制而非缺陷;
+#   - std 无值件(resistor-std/capacitor-std):值在 sizing 时定,块级无固定 C 号。
+_C99_PREFIX = "C99"
+_STD_VALUE_BLOCKS = frozenset({"resistor-std", "capacitor-std"})
+
 
 @dataclass
 class PartCost:
@@ -80,6 +87,19 @@ def fetch_costs(lcscs: list[str]) -> dict[str, PartCost]:
     return {c: fetch_cost(c) for c in lcscs}
 
 
+def exempt_reason(lcsc: str, block_id: str = "") -> str:
+    """缺价行豁免归类(§5.1 P5-4④)。
+
+    返回豁免原因('exempt-c99xx'/'exempt-std'),或 '' 表示真缺(no-lcsc/no-price,
+    是补录或重试目标,进有价分母)。仅对「无价」行调用;有价行不进此判。
+    """
+    if not lcsc or not lcsc.upper().startswith("C"):
+        return "exempt-std" if block_id in _STD_VALUE_BLOCKS else ""
+    if lcsc.upper().startswith(_C99_PREFIX):
+        return "exempt-c99xx"
+    return ""
+
+
 def summarize_bom(
     blocks: list[dict],
     *,
@@ -88,27 +108,42 @@ def summarize_bom(
     """BlockPlan.blocks(或同构 dict)→ BOM 成本汇总。
 
     blocks 元素需含:instance, block_id;可选 lcsc(缺则计 unknown)。
-    返回:总成本(有价件求和)/缺价清单/缺货清单/明细。
+    返回:总成本(有价件求和)/缺价清单/缺货清单/明细 + coverage(非豁免行有价覆盖率,
+    豁免口径见 exempt_reason)。
     """
     details: list[dict] = []
     total = 0.0
     priced = 0
     no_price: list[str] = []
     no_stock: list[str] = []
-    seen: dict[str, int] = {}
+    seen: dict[str, dict] = {}
     for b in blocks:
         lcsc = b.get("lcsc") or ""
         key = lcsc or b.get("block_id", "?")
-        seen[key] = seen.get(key, 0) + per_part_qty
-    for key, qty in seen.items():
+        if key in seen:
+            seen[key]["qty"] += per_part_qty
+        else:
+            seen[key] = {"qty": per_part_qty, "block_id": b.get("block_id", "?")}
+    exempt = {"exempt-c99xx": 0, "exempt-std": 0}
+    for key, item in seen.items():
+        qty = item["qty"]
+        block_id = item["block_id"]
         if not key.startswith("C"):
-            no_price.append(f"{key}(无 C 号)")
-            details.append({"ref": key, "qty": qty, "price": None, "note": "no-lcsc"})
+            reason = exempt_reason("", block_id)
+            note = "std 无值件(值在 sizing 定,块级无固定 C 号)" if reason else "no-lcsc"
+            if reason:
+                exempt[reason] += 1
+            no_price.append(f"{key}({note})")
+            details.append({"ref": key, "qty": qty, "price": None, "note": note})
             continue
         pc = fetch_costs([key])[key]
         if pc.error or pc.price is None:
-            no_price.append(f"{key}({pc.error or 'no price'})")
-            details.append({"ref": key, "qty": qty, "price": None, "note": pc.error})
+            reason = exempt_reason(key)
+            note = pc.error or ("C99xx 延展号段无商务数据(数据源限制)" if reason else "no price")
+            if reason:
+                exempt[reason] += 1
+            no_price.append(f"{key}({note})")
+            details.append({"ref": key, "qty": qty, "price": None, "note": note})
             continue
         line = pc.price * qty
         total += line
@@ -116,12 +151,24 @@ def summarize_bom(
         if (pc.stock or 0) < qty:
             no_stock.append(f"{key}(stock={pc.stock})")
         details.append({"ref": key, "qty": qty, "unit": pc.price, "line": round(line, 4), "stock": pc.stock})
+    total_lines = len(seen)
+    exempt_lines = sum(exempt.values())
+    non_exempt = total_lines - exempt_lines
     return {
         "total": round(total, 4),
         "priced_lines": priced,
         "no_price": no_price,
         "no_stock": no_stock,
         "details": details,
+        "coverage": {
+            "total_lines": total_lines,
+            "exempt_lines": exempt_lines,
+            "exempt_c99xx": exempt["exempt-c99xx"],
+            "exempt_std": exempt["exempt-std"],
+            "non_exempt_lines": non_exempt,
+            "priced_lines": priced,
+            "coverage": round(priced / non_exempt, 4) if non_exempt else 1.0,
+        },
     }
 
 
