@@ -80,8 +80,56 @@
  "clean_total": 6,
  "false_kills": 0,
  "critic": {
-  "skipped": true,
-  "reason": "--offline (critic 需真 LLM)"
+  "skipped": false,
+  "rows": [
+   {
+    "name": "K1 MCU 模组无去耦",
+    "expect": "CRITIC_DECOUPLING",
+    "caught": true,
+    "codes": [
+     "CRITIC_DECOUPLING",
+     "CRITIC_PULL_RESISTORS"
+    ]
+   },
+   {
+    "name": "K2 I2C SDA/SCL 无上拉",
+    "expect": "CRITIC_PULL_RESISTORS",
+    "caught": true,
+    "codes": [
+     "CRITIC_PULL_RESISTORS",
+     "CRITIC_DECOUPLING"
+    ]
+   },
+   {
+    "name": "K3 RS-485 端子无 ESD/TVS",
+    "expect": "CRITIC_INTERFACE_PROTECTION",
+    "caught": true,
+    "codes": [
+     "CRITIC_INTERFACE_PROTECTION",
+     "CRITIC_DECOUPLING"
+    ]
+   },
+   {
+    "name": "K4 12V 继电器感性负载无续流二极管",
+    "expect": "CRITIC_INTERFACE_PROTECTION",
+    "caught": true,
+    "codes": [
+     "CRITIC_INTERFACE_PROTECTION"
+    ]
+   },
+   {
+    "name": "K5 LDO 5V→3V3 带 800mA 负载无散热",
+    "expect": "CRITIC_THERMAL",
+    "caught": true,
+    "codes": [
+     "CRITIC_POWER_INTEGRITY",
+     "CRITIC_THERMAL",
+     "CRITIC_DECOUPLING"
+    ]
+   }
+  ],
+  "total": 5,
+  "caught": 5
  },
  "power_coverage": {
   "power_total": 22,
