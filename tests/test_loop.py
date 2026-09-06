@@ -14,7 +14,7 @@ from edaloop.intent.ir import DesignIR
 from edaloop.knowledge.models import BlockRecord, RetrievedBlock, UpstreamRef
 from edaloop.llm.fake import FakeChat
 from edaloop.loop.attribution import attribute
-from edaloop.loop.controller import LoopController, _classify_failure, _finding_hash
+from edaloop.loop.controller import LoopController, _classify_failure, _finding_hash, _snap5
 from edaloop.validate.checks import (
     check_gauge,
     check_net_existence,
@@ -285,6 +285,17 @@ def test_check_gate_strict_warn_rules_are_weak_advisories() -> None:
             {"stage": "layout-lint", "verdict": "fail", "findings": [
                 {"type": "out-of-sheet", "a": "DCIN1"},
                 {"type": "off-grid", "a": "C3"},
+            ]},
+            {"stage": "clusters", "verdict": "fail", "findings": [
+                # run-39d5b7b90ba7 真机证据后首批转正的软规则:
+                # tight=贴近非本体交;missing-*=交付文档三族(词元撞完整性
+                # 裸词元 missing,须显式除名先行)
+                {"type": "tight", "a": "COUT100N", "b": "C3"},
+            ]},
+            {"stage": "layout-lint", "verdict": "fail", "findings": [
+                {"type": "missing-partition", "message": "7 部件页未分区"},
+                {"type": "missing-note", "message": "页无电路说明注释"},
+                {"type": "missing-titleblock", "message": "图签未填"},
             ]},
         ],
     }
@@ -569,6 +580,37 @@ def test_controller_applies_and_verifies_no_connect(tmp_path) -> None:
     lc = _loop(FakeChat(json.dumps(_PLAN_OK, ensure_ascii=False)), adapter, tmp=str(tmp_path))
     assert lc._verify_no_connect(1, "PROTDW01", ["4"], "P1") is True
     assert any(a.kind == "sch-no-connect" for a in actions)
+
+
+def test_verify_no_connect_141_check_channel(tmp_path) -> None:
+    """1.4.1 sch read 引脚无 noConnected 属性,NC 态经 check 通道证实。
+
+    真机实证(run-26d43b893173 r1/2/4 假失败→HALT):置位后 check 无该脚
+    floating-pin finding;--clear 后 finding type=floating-pin pins=["4"]。
+    属性通道拿不到(全 None)→ 走 check 通道;带网脚不得判 NC 过。
+    """
+    catalog = _catalog()
+    adapter = _FakeAdapter("pass")
+
+    def read_with(check_findings, pin_net=None):
+        def run_json(args):
+            adapter.calls.append(args)
+            if len(args) > 1 and args[1] == "read":
+                return {"result": {
+                    "components": [{"designator": "PROTDW01", "pins": [
+                        {"number": "4", "name": "NC", "net": pin_net}]}],
+                    "check": {"passed": not check_findings, "findings": check_findings},
+                }}
+            return {"ok": "applied"}
+        adapter.run_json = run_json
+        lc = _loop(FakeChat("{}"), adapter, tmp=str(tmp_path))
+        return lc._verify_no_connect(1, "PROTDW01", ["4"], "P1")
+
+    floating = [{"type": "floating-pin", "designator": "PROTDW01",
+                 "pins": ["4"], "level": "warn", "message": "1 个引脚悬空"}]
+    assert read_with([]) is True            # 置位态:无 finding 覆盖 → NC 证实
+    assert read_with(floating) is False     # 清除态:floating-pin 覆盖 → 未证实
+    assert read_with([], pin_net="B_PLUS") is False  # 带网脚非 NC
 
 
 # ---- P4-1②:功能分区编排(zones set/zone-plan/zone-draw/note,EDALOOP_ZONES 门控) ----
@@ -1489,6 +1531,11 @@ class _RepackFakeAdapter(_ZoneFakeAdapter):
         # 导线+netport」,线端点不落在脚上的同网标记拆不掉——列入此集的网,
         # disconnect 后标记仍留页上(默认空=fake 原语义全删)
         self.disconnect_keeps_marks: set[str] = set()
+        # sch list 第 N 次(0 基)返回 rc=1 空 stdout(真机瞬断/截断 → _list_components
+        # 抛 ValueError → _geom 全 None 降级;run4 req-07 二次盲退路径实锤
+        # _stale_ids(None spins) 崩 —— 练「几何读不到也不崩」的护栏退避)
+        self.fail_list_at: set[int] = set()
+        self.list_seq = 0
         self.active_page = "P1"
         # disconnect 拆 D:P 时连带清掉其它脚的网(真机:共享 netflag/连线被删,
         # 同网邻脚孤儿化——run-86f0ec3ab850 P2:C11 modify 回退拆 C10:2 的 GND)
@@ -1617,6 +1664,10 @@ class _RepackFakeAdapter(_ZoneFakeAdapter):
             self.wires = [w for w in self.wires if w[0] != pg]
             return 0, "{}", ""
         if args[:2] == ["sch", "list"]:
+            if self.list_seq in self.fail_list_at:
+                self.list_seq += 1
+                return 1, "", "fake: list boom"
+            self.list_seq += 1
             # 紧凑化数据面:parts(含 pins/bbox)+ netport 标记(--page 钉扎)
             pg = args[args.index("--page") + 1] if "--page" in args else self.active_page
             comps = []
@@ -1909,6 +1960,12 @@ def test_repack_orchestration(tmp_path) -> None:
     # 5) 试放墨迹被清:P1 在逐页 clear 名单
     clears = [c for c in flat if c[:3] == ["sch", "clear", "--doc"]]
     assert "P1" in [c[c.index("--doc") + 1] for c in clears]
+    # 6) 锚点 snap-5(1.4.1 网格门):正式 --at 两轴均 5 整倍数——装箱坐标带
+    # 2-4 残差时上游 autoconnect 拒桩(run-7028da9a9619 8×PIN_NET_MISMATCH
+    # 病根),块内引脚偏移均为 5 倍数,锚对齐=脚对齐
+    for at in final_ats:
+        ax, ay = (float(v) for v in at.split(","))
+        assert ax % 5 == 0 and ay % 5 == 0
 
 
 def test_repack_fallback_on_trial_failure(tmp_path) -> None:
@@ -2089,6 +2146,13 @@ def test_repack_place_channel_trial_measured(tmp_path) -> None:
                 if c[:2] == ["sch", "autoconnect"] and tp_i < i < next_read]
     assert len(trial_ac) == 2
     assert all(c[c.index("--doc") + 1] == "P1" for c in trial_ac)
+    # 生产 place 坐标 snap-5(1.4.1 网格门,同 block-apply 锚点口径):
+    # 脚偏移为 5 倍数的标准件,锚对齐=脚对齐,后续 autoconnect 不拒桩
+    prod_place = [c for c in adapter.calls if c[:2] == ["sch", "place"]
+                  and float(c[c.index("--x") + 1]) < 1500]
+    assert len(prod_place) == 1
+    for flag in ("--x", "--y"):
+        assert float(prod_place[0][prod_place[0].index(flag) + 1]) % 5 == 0
 
 
 def test_repack_place_adapter_error_degrades(tmp_path, monkeypatch) -> None:
@@ -2218,10 +2282,10 @@ def test_repack_freeze_pack_replays_page1_to_p2(tmp_path, monkeypatch) -> None:
         at = c[c.index("--at") + 1]
         px, py = (float(v) for v in at.split(","))
         assert 30 <= px and px + 650 <= 1140 and 30 <= py and py + 250 <= 795  # 落 A4 装箱带内
-    placements = pack_ev["placements"]
-    for inst, c in (("dcin1", p2[0]), ("dcin2", p2[1])):
-        _pg, x, y = placements[inst]
-        assert c[c.index("--at") + 1] == f"{x},{y}"
+        # 1.4.1 网格门:重放锚(装箱位−试放偏移再吸附)两轴均 5 整倍数——
+        # 上游 autoconnect 拒绝离 5 网格引脚的桩;审计 placements 记装箱意图
+        # 位,与落纸锚允许相差 offsets(volume 翼),不在此做等值断言
+        assert px % 5 == 0 and py % 5 == 0
     # 画框一次:P1 两块(KEEP_P1 对交付页无效——P1 是生产页,试放标注层
     # 永不画;无 BAND 参考框——旧目检实验已撤)
     codes = [c[c.index("--code") + 1] for c in adapter.calls if c[:2] == ["debug", "exec"]]
@@ -3114,6 +3178,12 @@ def test_repack_place_only_plan_packs_single_page(tmp_path) -> None:
     assert all(float(c[c.index("--x") + 1]) <= 1140 for c in prod)
     assert {c[c.index("--designator") + 1] for c in prod} == {"BTN1", "BTN2"}
     assert set(adapter.model.get("P1", {})) == {"BTN1", "BTN2"}
+    # run-a3880ce8d001 DELIVERY_FAIL 回归锁:compile 流式先写 b.page(小件
+    # 摊页),装箱只改写 act.page 漏改计划块 → deliver 按 final_plan 页集导
+    # SVG,项目里这些页从未创建 → export rc=1 整单 DELIVERY_FAIL。装箱成功
+    # 后计划块页必须与装箱 placements 一致(流式残页不得留在 final_plan)。
+    flow_pages = {b.page for b in result.final_plan.blocks}
+    assert flow_pages == {"P1"}
 
 
 def test_reseat_blind_guard_audits_bad_fallback(tmp_path) -> None:
@@ -3258,6 +3328,22 @@ def test_unguarded_redrop_does_not_accumulate_marks(tmp_path) -> None:
     g = next(e for e in _audit_events(str(tmp_path))
              if e.get("kind") == "reseat-blind-guard" and e.get("outcome") != "preclean")
     assert g["outcome"] == "unguarded"
+
+
+def test_guarded_autoconnect_degrades_when_list_unreadable(tmp_path) -> None:
+    """几何读不到不崩(run4 req-07 真机实锤):二次盲退路径 sch list 瞬断 →
+    _geom 全 None → _stale_ids(None spins) 抛 TypeError。护栏首读即失败时,
+    _stale_ids 按「无 peers」安全降级(空结果),退 anchors0 is None 的 "blind"
+    盲退——缺几何本就不该做归属预清,终态 _dedupe_pin_markers 收口。"""
+    chat = FakeChat("{}")
+    adapter = _RepackFakeAdapter("pass", [])
+    adapter.fail_list_at = {0}  # 第一次 sch list 即失败(几何不可读)
+    lc = LoopController(_ir_with_rails(("12V", 12.0)), _catalog(), _candidates,
+                        chat, adapter, AuditLog(str(tmp_path)))
+    st = lc._guarded_autoconnect("P1", 1, "U1:1", "netport", "NETX",
+                                 500, 530, [], (505, 500, 600, 560), [], [],
+                                 tag="t-guard")
+    assert st == "blind"
 
 
 def test_marker_dedupe_on_pin_keeps_one(tmp_path) -> None:

@@ -596,6 +596,40 @@ def test_gate_all_pages_normalizes_and_fail_closes_malformed_response(tmp_path: 
     assert controller._check_gate_contract(report, actions, 1)[0].code == "GATE_UNVERIFIED"
 
 
+def test_gate_fail_with_ok_false_alias_is_not_unverified(tmp_path: Path) -> None:
+    """1.4.1 实测(run-39d5b7b90ba7):sch gate 判负时外层 ok=false 与
+    verdict=fail 同体——命令自报状态别名,不是传输错误。显式 fail 判据
+    在场时不得升 GATE_UNVERIFIED(RETRY_ENV 误分类会盖掉 check_gauge 的
+    真分级);别名记账进 command_errors 供取证,verdict=pass 矛盾时照旧
+    fail-closed。"""
+
+    class GateAdapter(_SnapshotAdapter):
+        def run(self, args):
+            if args[1] == "gate":
+                return 0, json.dumps({
+                    "verdict": "fail", "ok": False,
+                    "stages": [{
+                        "stage": "layout-lint", "verdict": "fail", "page": "P1",
+                        "findings": [{"type": "overlap", "a": "R1", "b": "R2"}],
+                    }],
+                }), ""
+            return super().run(args)
+
+        def run_json(self, args):
+            _rc, out, _err = self.run(args)
+            return json.loads(out)
+
+    controller = _controller(tmp_path, GateAdapter([]))
+    actions = [Action(kind="block-apply", block_instance="i1", page="P1")]
+
+    report = controller._gate_all_pages(["sch", "gate"], actions, 1)
+
+    assert report["verdict"] == "fail"
+    assert not report.get("contract_errors")
+    assert report.get("command_errors")
+    assert controller._check_gate_contract(report, actions, 1) == []
+
+
 def _gate_stage_report(*names: str, page: str = "P1", status: str = "pass") -> list[dict]:
     return [{"name": name, "status": status, "page": page} for name in names]
 

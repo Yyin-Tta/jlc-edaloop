@@ -27,6 +27,13 @@ _RAIL_ALIASES = {
     "bat+": "VBAT",
     "b-": "GND",
     "bat-": "GND",
+    # 下划线长形(run-26d43b893173 四轮 planner 词汇:B_PLUS/B_MINUS/BAT_NEG,
+    # 家族归一追不上即 MISSING_RAIL 假阳性;P_MINUS/P_NEG 是开关节点,不并入)
+    "b_plus": "VBAT",
+    "bat_plus": "VBAT",
+    "p_plus": "VBAT",
+    "b_minus": "GND",
+    "bat_neg": "GND",
 }
 
 
@@ -321,6 +328,11 @@ def check_rails(ir: DesignIR, plan: BlockPlan) -> list[Finding]:
     findings: list[Finding] = []
     bound_families = {_rail_family(net) for b in plan.blocks for net in b.ports_binding.values()}
     bound_families |= {_rail_family(net) for b in plan.blocks for net in b.pins_binding.values()}
+    # 单轨板 MISSING_RAIL 降维(§10 证据定级;run-26d43b893173 r1/2/4 同错
+    # →HALT 实证):自由拓扑 planner 对电池轨惯用本地名(B_PLUS/BAT_NEG…),
+    # 家族归一追不上 LLM 词汇;单轨板的轨不可能"被别的轨顶替",命名不匹配是
+    # 唯一失败形态——无证据定为电错,降弱告警;多轨板家族比对有判别力,保持硬错。
+    single_rail = len(ir.power.rails) == 1
     for rail in ir.power.rails:
         name = rail.name or rail.v_text()
         want_family = _rail_family(name)
@@ -331,9 +343,11 @@ def check_rails(ir: DesignIR, plan: BlockPlan) -> list[Finding]:
                 Finding(
                     code="MISSING_RAIL",
                     where=Where(net=name),
-                    evidence=f"DesignIR 电源轨 {name}({rail.v_text()}) 在 BlockPlan 任何端口绑定中都未出现(按轨家族 {_rail_family(name)} 归一比对)",
-                    severity="error",
+                    evidence=f"DesignIR 电源轨 {name}({rail.v_text()}) 在 BlockPlan 任何端口绑定中都未出现(按轨家族 {_rail_family(name)} 归一比对"
+                             + (";单轨板本地命名不匹配,弱告警不阻断" if single_rail else "") + ")",
+                    severity="warn" if single_rail else "error",
                     suggested_fix_class="REBIND_NET",
+                    weak=single_rail,
                 )
             )
     # 反向(P4-3③):plan 里呈轨特征的网(家族可解析出电压)但 IR 未声明 → 弱告警,
@@ -784,7 +798,13 @@ def check_param_off_spec(plan: BlockPlan, sizing_advices, catalog: dict | None =
 # (真短路)、drc fatal、证据完整性(unavailable/几何缺失);未知规则名 fail-closed 保持阻塞。
 _GATE_HARD_GEOMETRY_RULES = frozenset({"overlap", "pin-coincidence"})
 _GATE_INTEGRITY_TOKENS = ("unavailable", "missing", "malformed", "no-sheet", "nosheet")
-_GATE_SOFT_LINT_RULES = frozenset({"spacing", "tight-spacing", "off-grid", "out-of-sheet"})
+# 交付文档类 WARN(分区/注释/图签未填)——§10 降维口径属弱观察;词元以
+# missing- 开头,必须在证据完整性裸词元之前显式除名(run-39d5b7b90ba7 实证
+# 三连硬阻断,其 message 本身就是补画指引而非真错)。
+_GATE_SOFT_DOC_RULES = frozenset({"missing-partition", "missing-note", "missing-titleblock"})
+_GATE_SOFT_LINT_RULES = frozenset({
+    "spacing", "tight-spacing", "tight", "off-grid", "out-of-sheet",
+})
 _GATE_SOFT_CHECK_RULES = frozenset({
     "floating-pin", "geom-net-mismatch", "net-marker-mismatch", "multi-net-wire",
     "wire-crossing", "wire-over-pin", "zero-length-wire", "dangling-wire",
@@ -817,15 +837,19 @@ def _gate_item_blocks(stage: str, f: object) -> bool:
     """判定上游 gate finding 是否仍阻断交付(2026-09-06 降维后的硬集)。
 
     硬集=本体/引脚几何相交 + 电气真错(error/fatal、wire-bridge、drc fatal)
-    + 证据完整性;其余已知 WARN 规则(marker-overlap/孤儿桩/间距/off-grid/
-    out-of-sheet/floating-pin/dangling-wire/非 fatal DRC…)降弱观察。未知规则名
-    (布局/check/桥族)fail-closed 保持阻塞——新规则先按硬处理,确认无害再入软表。
+    + 证据完整性;其余已知 WARN 规则(marker-overlap/孤儿桩/间距/tight/
+    off-grid/out-of-sheet/floating-pin/dangling-wire/交付文档三族/非 fatal
+    DRC…)降弱观察。未知规则名(布局/check/桥族)fail-closed 保持阻塞——
+    新规则先按硬处理,确认无害再入软表(tight/missing-partition/missing-note/
+    missing-titleblock 即 run-39d5b7b90ba7 真机证据后首批转正)。
     """
     token = _gate_item_token(f)
     level = _gate_item_level(f)
     text = f"{token} {str(f).lower()}"
     if level in ("fatal", "error"):
         return True
+    if token in _GATE_SOFT_DOC_RULES:
+        return False
     if stage in ("layout-lint", "clusters"):
         if any(tok in text for tok in _GATE_INTEGRITY_TOKENS):
             return True

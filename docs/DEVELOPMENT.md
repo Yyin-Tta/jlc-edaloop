@@ -5,7 +5,7 @@
 >
 > | 项 | 值 |
 > |---|---|
-> | 版本 | v0.6.20(2026-09-06 布局门禁降维+1.4.1 全链钉扎:硬集=本体/引脚几何+电气真错+证据 fail-closed,WARN 级降弱观察;包/CLI 版本 v0.7.0,详 §13 v0.6.20) |
+> | 版本 | v0.6.21(2026-09-07 L0 取证首跑+1.4.1 升级批真机回归:block-only/req-08 PASS、req-07 不收敛+窗口 churn;七项代码修复+degree-1 盲点入册;包/CLI 版本 v0.7.0,详 §13 v0.6.21) |
 > | 日期 | 2026-09-06 |
 > | 状态 | **Phase 5(v1.0 打磨)进行中,墙钟 2026-09-15(§10)**:v0.6.18 代码证据链已收口(476 测试绿;包/CLI v0.7.0);`edaloop apply` 已明确为低层实验入口,工程 PASS 仅由 `edaloop run` 严格终态路径产生。**当前断点=L0 真机取证**:工程 `edaloop` 保持只读且 layout FAIL(本体重叠/marker-overlap/孤儿桩/DRC warning),下一步在全新工程复跑 req-08、req-07 和一个 block-only 需求并保存 snapshot、audit、截图、网表 hash;硬指标连续 3 次通过前冻结 v3 PCB/下单与自动案例回写。最近尝试 `runs/run-fb97781513ec` 仅有中途 audit(末事件 `mark-side-guard`),无 `loop-result.json`/delivery,标记为未完成取证,不得计入 PASS。**外部环境扫描已做(2026-09-06,§5.4.6)**:GPT-6 Astra 发布/上游 easyeda-agent 已到 v1.4.1(#196 疑似 L0 中断病根候选)/KiCad 侧竞品密发;v1.0 后发展提案与竞品监测清单同节,不改变当前断点与墙钟。**门禁降维+1.4.1 钉扎已落(同日 §5.4.7,用户指示;509 测绿)**:gate 硬集收窄为「本体/引脚几何相交+电气真错+证据完整性 fail-closed」,已知 WARN 级(marker-overlap/孤儿桩/DRC warning/出带墨迹等)降 GATE_ADVISORY 弱观察、未知规则名 fail-closed 保硬;钉扎 1.2.10→1.4.1 三处归一(本机 CLI 已过门);ADR-0002 真机全量回归搭载 L0 首跑(清 state),旧 w3 汇总不得引用为 1.4.1 基线。 |
 > | 上游调研 | `research-vision-v2-feasibility.md`(技术) · `research-eda-agent-industry-landscape.md`(产业) · `research-datasheet-extraction-feasibility.md`(datasheet 管道) |
@@ -421,6 +421,32 @@ P5-0 回归续跑中插入 G33 修复批(详 §13 v0.6.10),如实记录:
 
 **插入批核算(§10 纪律)**:动因=用户指示(降维+钉扎);挤占=零额外批(钉扎本就是 L0 取证前置,即 §5.4.6 探测路径的直接执行);恢复=下一步即 L0 取证首跑(顺带完成升级批真机回归),墙钟 09-15 不变。
 
+#### 5.4.8 L0 取证首跑 + 1.4.1 升级批真机回归批(2026-09-07,用户指示;514 测绿)
+
+**动因**:§5.4.7 钉 1.4.1 时欠的「升级批真机全量回归」按计划搭载 L0 取证首跑执行——三个全新 baseline 工程天然清 w3-loop state,同一真机口径验两件事:①1.4.1 全链钉扎能否真跑通;②新门禁口径(降维后硬/软两级)下 block-only / req-08 / req-07 的逐页 snapshot/audit/网表 hash 取证。
+
+**三跑结果**:
+1. **block-only PASS**(run-14603125fecc,2 轮):LDO 单块,evidence 15 探针全绿。
+2. **req-08 PASS**(run-30db3a50909a,1 轮,网表 sha16 `702d2b3c`):15 探针全绿;唯一软观察=`sch nets` 报 `singlePinNets: [{net:"P+", pins:1, parts:["TERMOUT"]}]`——degree-1 单脚网,门禁当前不查(见下「盲点」)。
+3. **req-07 不收敛 + 窗口 churn**(run-873b7b4bb68f,无干净终态):round 1 拿到 14 阻断(全真几何:STM32F103C8T6 块 overlap SW1 + out-of-sheet(`REPLAN`)、U2↔C5、R6↔J2、CMCUVDD1:2 脚网 GND 读回 `$12N1234`、C2:2→GND 双 marker);round 1 收口后 **EasyEDA 连接器失联**(窗口 churn),round 2 gate 全变 `no EasyEDA connector is available`(20 阻断全是读回失败,非布局),round 3 新窗口 `cadaf489` 连回但 context 只报 `documentUuid` 不报 `projectName` → `--project` 路由失配 → `no connected window` 空转,人工止损停跑。**定性:req-07 的 MCU 块(48 脚 LQFP)超出当前 A4 行-货架 packer 能力(round 1 出纸+连片重叠是实),但「round 2 能否修」被窗口 churn 截断未证——记「不收敛(疑)+环境截断」,不记「确定性 HALT」**。
+
+**本批修复(514 测绿,+5;含 1.4.1 升级回归暴露项)**:
+1. **NC 读回通道迁移**(run-26d43b893173 r1/2/4 连续假失败→HALT):1.4.1 `sch read` 引脚只剩 {name,net,number},`noConnected` 属性不再暴露 → 属性扫描恒 None;NC 态唯一权威读点改为 `check` 通道 `floating-pin` finding(置位→无 finding,clear→pins:[...])。
+2. **锚点 snap-5 网格对齐**(run-7028da9a9619 8×PIN_NET_MISMATCH 根因):1.4.1 autoconnect 拒离 5 网格引脚的接线桩(斜桩),装箱坐标常带 2-4 残差;装箱/重放/流式初值/repack-fallback 全路径锚点公式 snap-5,块内引脚偏移均为 5 倍数故锚对齐=脚对齐。
+3. **gate ok:false 状态别名**(run-39d5b7b90ba7):1.4.1 `sch gate` 判负时外层 `ok=false` 与 `verdict=fail` 同体——命令自报状态别名不是传输错误,显式 fail 判据在场时不该升 `GATE_UNVERIFIED`(会盖掉 check_gauge 的真分级误判 RATE_LIMIT/RETRY_ENV)。
+4. **lib-search 限流查空补发**(run-39d5b7b90ba7 r1 整轮烧在 c_in_100n 无结果):限流型合法空集(C1525 等已知好件间歇返空)单发重试;`_run_json_retry` 只重试 AdapterError、不重试合法空集。
+5. **交付页字段同步**(run-a3880ce8d001 DELIVERY_FAIL 根因):compile 流式先写 `b.page`(小件摊页),装箱重写只覆盖 `act.page` → final_plan 残留流式页(P2-P4),deliver 按它逐页导 SVG 而这些页从未在项目里创建 → export rc=1 整单失败;计划与动作必须同一页真相。
+6. **单轨 MISSING_RAIL 降维 + 电池脚别名**(run-26d43b893173):单电源轨板本地命名不匹配(电池焊盘 B_PLUS/B_MINUS 等下划线长形)弱告警不阻断(`weak=True` 端到端);`_RAIL_ALIASES` 补 `b_plus/bat_plus/p_plus/b_minus/bat_neg`。
+7. **`_stale_ids` None-spins 崩防护**(run-873b7b4bb68f req-07 二次盲退路径):`sch list` 瞬断时 `_geom()` 返回全 None,残枚归属判据 `for (qx,qy,pn) in spins` 崩 TypeError;读不到几何就按「无同网脚 peers」安全降级(跳过预清,终态 `_dedupe_pin_markers` 收口)。
+
+**盲点(如实登记,§10 纪律下一批处理)**:`sch nets` 的 `singlePinNets`(degree-1 单脚网,req-08 实证 P+ 只连 TERMOUT 一脚)是真实电气拓扑信号,门禁当前只查「网存在/重复」不查「度数」——单脚网=悬空嫌疑,下一批加 degree-1 检查。
+
+**ADR-0002 回归结论**:1.4.1 全链钉扎**可用**(block-only + req-08 两真机 PASS 即升级批真机回归达标);req-07 不收敛是**布局能力边界**(大 MCU 块出纸+连片重叠),非 1.4.1 回归;窗口 churn(`--project` 路由依赖 `projectName`,新窗口 context 只报 `documentUuid`)是**环境坑**,与本批代码无关,登记为已知环境缺陷。
+
+**欠账(如实)**:req-07 未拿到干净终态(窗口 churn 截断),须在下一批窗口稳定后重跑拿 PASS/HALT 判定;degree-1 单脚网检查未做;另一台(D:\gyt-pro)需同步升级 1.4.1。
+
+**教训**:a) 升级批真机回归不能只看「跑不跑得通」——1.4.1 的读回契约变化(noConnected 消失/autoconnect 拒斜桩/gate 自报别名)每一项都能在离线 509 绿下静默埋雷,只在真机长跑里逐个爆;b) 「有网≠对网≠度数对」——net-presence 查存在、C9 查重复、degree-1 查度数,电气完整性三层递进,本批补第二层后第三层缺口由 req-08 的 singlePinNets 实证锁定;c) 窗口 churn 是 L0 长跑头号环境杀手——连接器失联 + 新窗口 projectName 缺失让 `--project` 路由彻底失效,长跑必须把「窗口存活/路由可达」纳入看门狗探针。
+
 ## 10. 验收与工程纪律
 
 - **每个 PR 必跑**:pytest + evals 子集(金标准不回退);
@@ -465,7 +491,7 @@ P5-0 回归续跑中插入 G33 修复批(详 §13 v0.6.10),如实记录:
 | # | 日期 | 决策 | 状态 |
 |---|---|---|---|
 | ADR-0001 | 2026-08-17 | 愿景冻结为 v2 五段闭环链路 | ✅ |
-| ADR-0002 | 2026-08-17 | easyeda-agent 依赖钉死 v0.25.1;升级=独立 PR+全量 evals 回归 | ✅(钉扎值链:ADR-0011 修订为 1.1.1→2026-08-28 连接器平台侧自动升级跟随至 1.2.10(2026-09-01 产品梳理批三处归一)→**2026-09-06 用户指示全链钉 1.4.1(现值,adapter=pyproject=README 同批归一,§5.4.7;真机全量回归搭载 L0 首跑)**;升级纪律不变;另 P5-0 补洞:版本门前移到 run 主链,此前仅 apply 查) |
+| ADR-0002 | 2026-08-17 | easyeda-agent 依赖钉死 v0.25.1;升级=独立 PR+全量 evals 回归 | ✅(钉扎值链:ADR-0011 修订为 1.1.1→2026-08-28 连接器平台侧自动升级跟随至 1.2.10(2026-09-01 产品梳理批三处归一)→**2026-09-06 用户指示全链钉 1.4.1(现值,adapter=pyproject=README 同批归一,§5.4.7)→2026-09-07 L0 首跑完成真机全量回归:block-only+req-08 两 PASS、req-07 不收敛=布局能力边界(大 MCU 块,非 1.4.1 回归)+窗口 churn 环境坑,§5.4.8**;升级纪律不变;另 P5-0 补洞:版本门前移到 run 主链,此前仅 apply 查) |
 | ADR-0003 | 待定 | 多模态模型选型 | ⏳ W1 |
 | ADR-0004 | 2026-08-17 | LCSC 数据通道:PoC 复用 easyeda CLI(`resolve-lcsc`),留 `LcscProvider` 切换位;直连 API 备选,爬虫否决 | 📝 草案,W0 验证 |
 | ADR-0005 | 2026-08-17 | 项目定名 `jlc-edaloop`;仓库 https://github.com/Yyin-Tta/jlc-edaloop.git | ✅ |
@@ -497,3 +523,4 @@ P5-0 回归续跑中插入 G33 修复批(详 §13 v0.6.10),如实记录:
 | 2026-09-02 | v0.6.18-doc | **L0 取证状态校准**:当前离线回归为 `uv run pytest -q` **476 passed**;包元数据、模块和 `edaloop --version` 均为 **0.7.0**。`runs/run-fb97781513ec` 只有 49 行 audit,末事件为 `mark-side-guard`,缺少终态结果和 delivery,按 `INCOMPLETE_RUN` 处理,不计入真机 PASS；L0 仍需在全新工程完成 req-08、req-07、block-only 的逐页 snapshot/audit/网表 hash 取证。 |
 | 2026-09-06 | v0.6.19-doc | **外部环境扫描与发展策略批(§5.4.6,用户指示;纯调研文档,零代码)**:①信源=GitHub API/HN Algolia/OpenRouter/OpenAI·ARC·CNBC 一手抓取(采集日 09-06);②四大发现:GPT-6 Astra 发布(09-03,ARC-AGI-3 动作效率超人类基线、1.05M ctx 上 OpenRouter;「官方原理图→PCB 演示」未找到一手证据按传闻处理)/上游 easyeda-agent 1.2.10→v1.4.1(#196 UUID 防连接器挂死=疑似 L0 中断病根候选、#195 Gerber/ZIP base64 保真利好 M9、autorouter 原生 shell=M8 前置)/KiCad 侧竞品密发(copperhead·fragua·kicad-mcp-pro·hwe,gate+loop 成标配趋势,嘉立创生态位仍空,R8 已更新)/M0n0 速度跑实证 843 器件全链一次点亮;③提案(不改 L0 断点与 09-15 墙钟):1.4.1 探测性验证(钉扎不破,阳性才立升级批)+ v1.0 后三主线(模型升级批量化收敛率与成本/M8 PCB 编排提前/evals 打磨社区资产)+竞品监测清单月度扫;④插入批核算:纯文档零挤占。 |
 | 2026-09-06 | v0.6.20 | **布局门禁降维+1.4.1 全链钉扎批(§5.4.7,用户指示;509 测绿)**:①`check_gauge` 硬/软两级——硬集=本体/引脚几何相交(overlap/pin-coincidence)+电气真错(fatal/error、wire-bridge、drc fatal)+证据完整性 fail-closed;已知 WARN 级(check 族 10 规则/bridge 孤儿桩三/lint spacing·off-grid·out-of-sheet/DRC 全 warning/clusters marker·ink·wing·flag·orphan 词元)降 GATE_ADVISORY 弱观察,不驱动 RELAYOUT、不阻断 PASS;**未知规则名 fail-closed 保持阻塞**;layout 出带墨迹/图签遮挡(`check_ink_bounds`/`check_titleblock_occlusion`)同步降弱。②钉扎 1.2.10→1.4.1 三处归一(adapter=pyproject=README;上游 #196 拒非法 UUID=run-fb97781513ec 中断病根候选;§5.4.6 探测升级为正式钉扎,**v1.0 按 1.4.1 收口**);本机 CLI 实测过门。③测试 509(+2 分级锁测;既有断言随口径更新:版本门 1.4.1/出带墨迹弱化/apply 契约 fake)。④欠账:ADR-0002 真机全量回归(清 w3-loop state)搭载 L0 首跑,旧 state 汇总(3/6 PASS)不得引用为 1.4.1 基线;另一台 w3-last-error 的次生 `NameError: AdapterError` 确认已修在库。**教训**:门禁「严格」要花在真错上,--strict 全升阻塞=五个批次墙钟耗在墨迹级缺陷;降维必须留 fail-closed 硬尾;探测提案被决策超越要显式记录避免双口径。**插入批核算**:动因=用户指示(降维+钉扎);挤占=零额外批(钉扎本就是 L0 前置);恢复=下一步 L0 首跑顺带升级批回归,墙钟 09-15 不变。 |
+| 2026-09-07 | v0.6.21 | **L0 取证首跑 + 1.4.1 升级批真机回归(§5.4.8,用户指示;514 测绿,+5)**:①**三跑结果**:block-only PASS(run-14603125fecc,2 轮)/req-08 PASS(run-30db3a50909a,1 轮,网表 sha16 `702d2b3c`)→ 1.4.1 全链钉扎真机可用;**req-07 不收敛 + 窗口 churn**(run-873b7b4bb68f):round 1 拿 14 阻断(全真几何:STM32F103C8T6 块 overlap SW1+out-of-sheet、U2↔C5、R6↔J2、网错读、双 marker),收口后 EasyEDA 连接器失联(窗口 churn),round 2 全变读回失败,round 3 新窗口只报 `documentUuid` 不报 `projectName` → `--project` 路由失配空转,人工止损——**定性「不收敛(疑)+环境截断」,不记确定性 HALT**(大 MCU 块出纸是实,「能否修」被 churn 截断未证)。②**七项代码修复**(1.4.1 升级回归暴露 4 + L0 独立缺陷 3):NC 读回通道迁移(check 通道 `floating-pin` 权威)/锚点 snap-5 网格(autoconnect 拒斜桩)/gate ok:false 状态别名不升 GATE_UNVERIFIED/lib-search 限流查空补发;交付页字段同步(`b.page`=动作页真相)/单轨 MISSING_RAIL 降维+电池脚别名/`_stale_ids` None-spins 崩防护(二次盲退路径)。③**盲点入册**:`sch nets` singlePinNets(degree-1 单脚网,P+ 只连 TERMOUT 一脚)门禁不查度数,下一批加检查。④**ADR-0002 回归结论**:1.4.1 可用;req-07 不收敛=布局能力边界非回归;窗口 churn 环境坑与代码无关。**欠账**:req-07 须窗口稳定后重跑拿 PASS/HALT;degree-1 检查未做;另一台 D:\gyt-pro 同步升 1.4.1。**教训**:a) 升级批真机回归的价值在长跑里才兑现——noConnected 消失/拒斜桩/gate 别名都在离线 509 绿下静默埋雷;b) 电气完整性三层:net-presence 查存在、C9 查重复、degree-1 查度数,第三层缺口由 req-08 singlePinNets 实证锁定;c) 窗口 churn 是长跑头号环境杀手,「窗口存活/路由可达」须入看门狗探针。 |

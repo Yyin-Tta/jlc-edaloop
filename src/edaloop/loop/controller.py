@@ -1603,8 +1603,33 @@ class LoopController:
                 else:
                     observed[number] = None
         ok = all(observed.get(pin) is True for pin in wanted)
+        channel = "attr"
+        if not ok and any(observed.get(pin) is None for pin in wanted):
+            # 1.4.1 读回通道变化(ADR-0002 升级回归;run-26d43b893173 r1/2/4
+            # 连续假失败→HALT):sch read 引脚只剩 {name, net, number},
+            # noConnected 属性不再暴露,属性扫描恒 None。NC 态唯一权威读点
+            # 是 check 通道——带 NC 标记的脚不计入 floating-pin(真机实测:
+            # --clear→finding type=floating-pin pins:["4"];置位→passed 无
+            # finding)。判据:目标脚不被 floating-pin finding 覆盖 且 无网。
+            nets: dict[str, object] = {}
+            if isinstance(placed, dict):
+                for pin in placed.get("pins", []) or []:
+                    if isinstance(pin, dict):
+                        nets[str(pin.get("number") or pin.get("pinNumber") or "").strip()] = pin.get("net")
+            floating: set[str] = set()
+            check = (read.get("result", {}) or {}).get("check") or {}
+            check_findings = check.get("findings") or [] if isinstance(check, dict) else []
+            for f in check_findings:
+                if (not isinstance(f, dict)
+                        or str(f.get("type", "")) != "floating-pin"
+                        or str(f.get("designator") or "") != designator):
+                    continue
+                floating.update(str(p) for p in (f.get("pins") or []) if str(p).strip())
+            observed = {pin: bool(pin not in floating and not nets.get(pin)) for pin in wanted}
+            ok = all(observed.values())
+            channel = "check"
         self.audit.event("no-connect-verify", round_no=round_no, designator=designator,
-                         pins=sorted(wanted), observed=observed, ok=ok)
+                         pins=sorted(wanted), observed=observed, ok=ok, channel=channel)
         return ok
 
     @staticmethod
@@ -1980,6 +2005,23 @@ class LoopController:
                 payload_failure = _explicit_failure_reason(
                     rep, include_status=True, include_verdict=False
                 )
+                if payload_failure and verdict_page == "fail":
+                    # 1.4.1 实测(run-39d5b7b90ba7):sch gate 判负时外层
+                    # ok=false 与 verdict=fail 同体——这是命令自报状态别名,
+                    # 不是传输错误;显式 fail 判据在场时升 GATE_UNVERIFIED 会
+                    # 盖掉 check_gauge 的真分级(RATE_LIMIT/RETRY_ENV 误分类)。
+                    # 记账供取证,不进契约错;error/failure 单数键(真传输错)
+                    # 仍走下方 fail-closed。
+                    _alias_only = payload_failure in {
+                        f"{k}={rep.get(k)!r}"
+                        for k in ("ok", "success", "passed", "status")
+                        if k in rep and _status_token(rep.get(k)) == "fail"
+                    }
+                    if _alias_only:
+                        merged.setdefault("command_errors", []).append(
+                            {"page": p, "detail": f"gate 响应报告失败: {payload_failure}"}
+                        )
+                        payload_failure = ""
                 if payload_failure:
                     merged["contract_errors"].append(
                         f"{p}: gate 响应报告失败: {payload_failure}"
@@ -3163,6 +3205,21 @@ class LoopController:
         for act in actions:
             try:
                 args = self._doc_args(act)  # P4-b2:非 P1 页追加 --doc 钉扎
+                if act.kind in ("sch-place", "block-apply"):
+                    # 1.4.1 网格门执行器层兜底:上游 autoconnect 拒绝离 5 网格
+                    # 引脚的接线桩,装箱/重放路径已在锚点公式 snap,流式初值与
+                    # 任何未改写路径(repack-fallback 等)在此统一兜住(幂等,
+                    # 已 snap 值原样通过;run-39d5b7b90ba7 r2 实证 fallback 路
+                    # 径 3/4 电容 autoconnect 失败即此缺)。
+                    if act.kind == "sch-place":
+                        for _f in ("--x", "--y"):
+                            if _f in args:
+                                _i = args.index(_f) + 1
+                                args[_i] = f"{_snap5(float(args[_i]))}"
+                    elif "--at" in args:
+                        _i = args.index("--at") + 1
+                        _ax, _ay = args[_i].split(",")[:2]
+                        args[_i] = f"{_snap5(float(_ax))},{_snap5(float(_ay))}"
                 if act.kind == "sch-gate":
                     # P4-b3 收口次序(v0.6.11 对抗评审后与 freeze=pack 同序):
                     # 网基线快照 → 脚旋转 → 越带桩重落 → 拆组重排 → 逐页紧凑化
@@ -3223,6 +3280,18 @@ class LoopController:
                 if act.kind == "lib-search":
                     resp = self._run_json_retry(act.args)
                     lib, uuid = self._first_uuid(resp)
+                    if not lib:
+                        # 限流型查空单发重试(§5.4 雷3:C1525 等已知好件间歇返
+                        # 空;run-39d5b7b90ba7 r1 整轮烧在 c_in_100n 无结果上,
+                        # _run_json_retry 只重试 AdapterError,不重试合法空集)
+                        time.sleep(self._LIB_RETRY_PACE)
+                        resp = self._run_json_retry(act.args)
+                        lib, uuid = self._first_uuid(resp)
+                        if lib:
+                            self.audit.event(
+                                "lib-search-retry-hit", round_no=round_no,
+                                instance=act.block_instance, lcsc=act.lcsc,
+                            )
                     if not lib and act.mpn and act.mpn.upper() != act.lcsc.upper():
                         resp = self._run_json_retry(
                             ["lib", "search", "--query", act.mpn, "--limit", "3"]
@@ -3884,7 +3953,7 @@ class LoopController:
             _gp, gx, gy = grid.placements[act.block_instance]
             # 网格 cell 含 _PAD 净空,试放锚点回移半个 pad,让净空均匀落四边
             args = list(act.args)
-            at = f"{gx + _PAD:.0f},{gy + _PAD:.0f}"
+            at = f"{_snap5(gx + _PAD)},{_snap5(gy + _PAD)}"
             had_at = "--at" in args
             if had_at:
                 args[args.index("--at") + 1] = at
@@ -4208,7 +4277,10 @@ class LoopController:
                 _pg, px, py = res.placements[inst]
                 dx, dy = offsets.get(inst, (0.0, 0.0))
                 args = list(act.args)
-                at = f"{px - dx:.0f},{py - dy:.0f}"
+                # 锚点 snap-5(1.4.1 网格对齐):上游 autoconnect 拒绝离 5 网格
+                # 引脚的接线桩(斜桩),装箱坐标常带 2-4 残差(run-7028da9a9619
+                # 8×PIN_NET_MISMATCH 根因);块内引脚偏移均为 5 倍数,锚对齐=脚对齐。
+                at = f"{_snap5(px - dx)},{_snap5(py - dy)}"
                 if "--at" in args:
                     args[args.index("--at") + 1] = at
                 else:
@@ -4268,7 +4340,7 @@ class LoopController:
                 dx, dy = offsets.get(inst, (0.0, 0.0))
                 holes = iter((lib, uuid))
                 args = [next(holes) if x == "" else x for x in act.args]
-                for flag, val in (("--x", px - dx), ("--y", py - dy)):
+                for flag, val in (("--x", _snap5(px - dx)), ("--y", _snap5(py - dy))):
                     if flag in args:
                         args[args.index(flag) + 1] = f"{val:.0f}"
                 args += ["--doc", inst_page[inst]]
@@ -4504,6 +4576,8 @@ class LoopController:
             "repack-pack", round_no=round_no, pages=res.pages, oversize=res.oversize,
             waste=res.waste, note=res.note,
             placements={
+                # 装箱意图位(cell 锚);实际落纸锚=意图位−试放偏移(volume 翼)
+                # 再 snap-5,见重放事件 args 里的 --at/--x(取证以彼为准)
                 name: [f"P{p + 1}", round(x), round(y)]
                 for name, (p, x, y) in res.placements.items()
             },
@@ -4514,23 +4588,31 @@ class LoopController:
         }
         # 改写:锚/页名;锚 = 装箱位 − offsets(试放实测 origin 到 body 最小角的
         # 偏移)——裸写 (x,y) 会把体积翼展整体平移错位、侵入邻格(与 freeze=pack
-        # 重放同一条公式)。place 通道的 --x/--y 同样要改写,否则墨迹留在试放
+        # 重放同一条公式)。锚点一律 snap-5(1.4.1 autoconnect 拒离网格引脚桩,
+        # 同 freeze 分支注释)。place 通道的 --x/--y 同样要改写,否则墨迹留在试放
         # 虚空坐标。lib-search 无页字段,按其块实例的新页参与排序。
         inst_page = {inst: f"P{p + 1}" for inst, (p, _x, _y) in res.placements.items()}
+        # 计划块页字段同步(run-a3880ce8d001 DELIVERY_FAIL 根因):compile 流式
+        # 先写 b.page(小件摊页),装箱重写只覆盖 act.page——final_plan 里残留
+        # 流式页(P2-P4),deliver 按它逐页导 SVG,而这些页从未在项目里创建
+        # → export rc=1 整单 DELIVERY_FAIL。计划与动作必须同一页真相。
+        for b in plan.blocks:
+            if b.instance in inst_page:
+                b.page = inst_page[b.instance]
         for act in actions:
             if act.block_instance in res.placements:
                 p, x, y = res.placements[act.block_instance]
                 act.page = f"P{p + 1}"
                 dx, dy = offsets.get(act.block_instance, (0.0, 0.0))
                 if act.kind == "block-apply" and "--at" in act.args:
-                    act.args[act.args.index("--at") + 1] = f"{x - dx:.0f},{y - dy:.0f}"
+                    act.args[act.args.index("--at") + 1] = f"{_snap5(x - dx)},{_snap5(y - dy)}"
                     if act.block_instance in res.oversize and "--max-attempts" not in act.args:
                         # 同 freeze 分支(fitter 拒放=rc=0 空回静默死):oversize
                         # 块独占页锚点直放,--max-attempts 0 才肯落;生产重放漏补
                         # = oversize 块整页缺失烧 GATE_FAIL(对抗评审)
                         act.args += ["--max-attempts", "0"]
                 elif act.kind == "sch-place":
-                    for flag, val in (("--x", x - dx), ("--y", y - dy)):
+                    for flag, val in (("--x", _snap5(x - dx)), ("--y", _snap5(y - dy))):
                         if flag in act.args:
                             act.args[act.args.index(flag) + 1] = f"{val:.0f}"
         page_rank = {f"P{p + 1}": p for p in range(res.pages)}
@@ -5289,13 +5371,17 @@ class LoopController:
                                       "--doc", page])
                 except AdapterError:
                     pass  # 桩已不在此脚:残留交后续轮/bridge-check
+        # 落点 snap-5(同锚点口径):改位后引脚须回 5 网格,后续 autoconnect/
+        # 重落桩才不被上游拒;实际位移随吸附重算,回填桩坐标用同一位移。
+        nx, ny = _snap5(float(ox) + dx), _snap5(float(oy) + dy)
         rc, _o, _e = self.adapter.run(
             ["sch", "modify", "--id", str(pid),
-             "--x", f"{float(ox) + dx:.5g}", "--y", f"{float(oy) + dy:.5g}",
+             "--x", f"{nx:.5g}", "--y", f"{ny:.5g}",
              "--doc", page])
         # 改位成功按新几何重落桩;失败按原位重落(回滚)——disconnect 连 net
         # 一起清(平台真行为),不回填则紧凑化看不见这些网,孤儿脚成永久断网
-        moved = [(r, x + dx, y + dy, n) for r, x, y, n in stubs] if rc == 0 else stubs
+        ndx, ndy = nx - float(ox), ny - float(oy)
+        moved = [(r, x + ndx, y + ndy, n) for r, x, y, n in stubs] if rc == 0 else stubs
         self._restub_net_pins(page, round_no, designator, comp, moved,
                               avoid_pts=avoid_pts)
         if rc == 0 and stubs:
@@ -6030,6 +6116,10 @@ class LoopController:
             =最近同网脚是**目标脚**(peers=其它同网脚;不比它更近/平距的
             归它)——双管 FET 两脚同网相邻(140)也拆得开:各枚归各脚,
             共享旗(两脚正中)归平距=不动。距离窗 (2, 340] 同 reseat 配对量级。"""
+            # _geom() 读不到几何时返回全 None(见 _list_components 抛错路径);
+            # 残枚归属判据需要同网脚集合,缺了就按「无 peers」安全降级(跳过
+            # 预清,下游 _dedupe_pin_markers 终态收口)——不可崩。
+            spins = spins or []
             peers = [(qx, qy) for (qx, qy, pn) in spins
                      if pn == net and abs(qx - px) + abs(qy - py) > 2]
             out: list[str] = []
@@ -7295,6 +7385,8 @@ class LoopController:
     _WEDGE_MARKERS = ("DEGRADED", "did not respond", "no connected window")
     # 落-量-清 的块间歇(秒):给上游 webview 保存/重绘风暴留排水口,单测置 0
     _MEASURE_PACE = 2.0
+    # lib-search 限流型查空的补发间隔(秒),单测置 0(同 _MEASURE_PACE 惯例)
+    _LIB_RETRY_PACE = 1.5
 
     def _connector_wedged(self, err: Exception | str) -> bool:
         return any(m in str(err) for m in self._WEDGE_MARKERS)

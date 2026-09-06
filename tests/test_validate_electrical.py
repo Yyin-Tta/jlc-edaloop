@@ -328,3 +328,29 @@ def test_battery_pad_aliases_family_match() -> None:
     ir = _ir([{"name": "VBAT", "v_min": 3.0, "v_max": 4.2}])
     plan = _plan([_blk("prot1", "battery-dw01-protection", {"VDD": "B+", "VSS": "B-"})])
     assert check_rails(ir, plan) == []
+
+
+def test_battery_pad_underscore_aliases_family_match() -> None:
+    """下划线长形(run-26d43b893173 planner 词汇)同并入:MISSING_RAIL 假阳性根因之一。"""
+    ir = _ir([{"name": "VBAT", "v_min": 3.0, "v_max": 4.2}])
+    plan = _plan([_blk("t1", "terminal-kf301-2p", {"1": "B_PLUS", "2": "BAT_NEG"}),
+                  _blk("t2", "terminal-kf301-2p", {"1": "P_PLUS", "2": "P_MINUS"})])
+    assert check_rails(ir, plan) == []
+
+
+def test_missing_rail_single_rail_demotes_weak() -> None:
+    """单轨板轨名不匹配 → 弱告警不阻断(命名是唯一失败形态);多轨板保持硬错。
+
+    run-26d43b893173 r1/2/4 同错 MISSING_RAIL→HALT 实证:自由拓扑 planner 本地
+    命名追不上家族归一,单轨板无"被别的轨顶替"形态,降维走 §10 证据定级。
+    """
+    ir1 = _ir([{"name": "VBAT", "v_min": 3.0, "v_max": 4.2}])
+    plan1 = _plan([_blk("t1", "terminal-kf301-2p", {"1": "CELL_POS", "2": "CELL_NEG"})])
+    f1 = check_rails(ir1, plan1)
+    m1 = next(x for x in f1 if x.code == "MISSING_RAIL")
+    assert m1.weak and not is_blocking(m1) and m1.severity == "warn"
+
+    ir2 = _ir([{"name": "3V3", "voltage": 3.3}, {"name": "5V", "voltage": 5.0}])
+    plan2 = _plan([_blk("u1", "mcu-x", {"VDD": "3V3", "GND": "GND"})])
+    m2 = next(x for x in check_rails(ir2, plan2) if x.code == "MISSING_RAIL")
+    assert not m2.weak and is_blocking(m2) and m2.severity == "error"
