@@ -1,1 +1,0 @@
-sch check: 15 blocking finding(s) (--strict; info 级不计入)
