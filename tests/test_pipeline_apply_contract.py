@@ -14,7 +14,7 @@ class _ApplyAdapter:
         self.calls: list[list[str]] = []
 
     def check_version(self) -> str:
-        return "1.4.1"
+        return "1.4.2"
 
     def daemon_health(self) -> dict:
         return {"status": "found"}

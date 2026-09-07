@@ -24,7 +24,7 @@
 
 ## 安装
 
-前置:Python 3.12+、[uv](https://docs.astral.sh/uv/)、Windows + EasyEDA Pro(开启「设置 → 系统 → 允许外部交互」)、[easyeda-agent](https://github.com/zhoushoujianwork/easyeda-agent) 四件套(本项目钉 **v1.4.1**,见 `pyproject.toml [tool.edaloop]`)。
+前置:Python 3.12+、[uv](https://docs.astral.sh/uv/)、Windows + EasyEDA Pro(开启「设置 → 系统 → 允许外部交互」)、[easyeda-agent](https://github.com/zhoushoujianwork/easyeda-agent) 四件套(本项目钉 **v1.4.2**,见 `pyproject.toml [tool.edaloop]`)。
 
 ```powershell
 uv sync

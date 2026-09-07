@@ -29,8 +29,8 @@ def test_explicit_window_route_wins_over_project_and_environment(monkeypatch) ->
 
 
 def test_check_version_ok() -> None:
-    a = _adapter(lambda args: (0, "easyeda-agent v1.4.1\n", ""))
-    assert a.check_version() == "1.4.1"
+    a = _adapter(lambda args: (0, "easyeda-agent v1.4.2\n", ""))
+    assert a.check_version() == "1.4.2"
 
 
 def test_check_version_mismatch_raises() -> None:

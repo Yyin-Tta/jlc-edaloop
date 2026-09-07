@@ -32,6 +32,7 @@ docs/
 .files/
 chainlit.md
 
-# 真机跑批的重定向日志与会话暂存(不入库)
-log-*.log
+# 真机跑批的重定向日志与会话暂存(不入库);日志一律归档 logs/,禁止散落根目录
+logs/
+/*.log
 .claude/tmp/
