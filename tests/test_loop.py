@@ -4475,6 +4475,34 @@ def test_repair_off_by_default(tmp_path) -> None:
     assert not any(e.get("kind") == "repair-round" for e in _audit_events(str(tmp_path)))
 
 
+class _NoP1FakeAdapter(_ZoneFakeAdapter):
+    """首页被历史 run 改名(P1 不在 sch pages)——1.4.8 清页硬报错的形态。"""
+
+    def run_json(self, args):
+        if args[1] == "pages":
+            self.calls.append(args)
+            return {"result": {"pages": [
+                {"name": "LIION_PROTECTION", "uuid": "u0", "parentSchematicUuid": "s1"},
+                {"name": "P2", "uuid": "u2", "parentSchematicUuid": "s1"},
+            ]}}
+        return super().run_json(args)
+
+
+def test_ensure_pages_creates_missing_p1(tmp_path) -> None:
+    """P1 缺失(首页被改名)时 _ensure_pages 显式补建,不再依赖「工程首页免建」
+    假设——1.4.8 对不存在的页 `sch clear --doc P1` 硬报错,验证式清页两趟判负
+    → PAGE_CLEAR_FAILED → 整轮 HALT(run-da1558c45c92 三需求同 hash 停机)。"""
+    adapter = _NoP1FakeAdapter("pass")
+    lc = _loop(FakeChat("{}"), adapter, tmp=str(tmp_path))
+    existing = lc._ensure_pages(["P2"], 1)
+    assert "P1" in existing
+    created = [e for e in _audit_events(str(tmp_path)) if e.get("kind") == "page-create"]
+    assert any(e.get("name") == "P1" for e in created)  # 建页+改名走通
+    renames = [c for c in adapter.calls if c[:2] == ["sch", "page-rename"]
+               and c[c.index("--name") + 1] == "P1"]
+    assert renames
+
+
 # ── 增量修复轮(REPAIR):判定层单测(2026-09-15)──────────────────────
 # 直调方法不走 run():stash 状态手工准备,聚焦 G1-G7 闸与归因规则表。
 

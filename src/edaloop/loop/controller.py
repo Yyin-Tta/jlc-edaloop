@@ -2239,7 +2239,13 @@ class LoopController:
         if doomed:
             self.audit.event("page-prune", round_no=round_no, deleted=deleted, failed=prune_failed)
             have -= set(deleted)
-        for name in want:
+        # P1 缺失时同样建页(1.4.8 回归实证,2026-09-15):「P1=工程首页免建」
+        # 是全新工程的假设——首页被历史 run 改名/删除后,`sch clear --doc P1`
+        # 在 1.4.8 对不存在的页硬报错(旧版静默),验证式清页两趟判负 →
+        # PAGE_CLEAR_FAILED → 整轮 HALT(run-da1558c45c92 三需求同 hash 停机)。
+        # P1 不在 want 里(调用方按免建剔除),此处并入建页流;dict.fromkeys
+        # 去重防 want 已含 P1 时双建。
+        for name in dict.fromkeys([*want, "P1"]):
             if name in have:
                 continue
             try:
