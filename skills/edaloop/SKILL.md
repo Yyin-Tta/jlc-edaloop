@@ -10,7 +10,7 @@ description: 嘉立创 EDA 专业版智能原理图设计 agent。当用户需�
 ## 前置条件
 
 - 本仓库已安装(`uv sync`)+ `.env` 配置(`EDALOOP_LLM_KEY`/`EDALOOP_EMBED_KEY`/`EDALOOP_PROJECT`)
-- easyeda-agent 四件套就绪(本项目钉 **v1.4.2**),EasyEDA Pro 开启「允许外部交互」,目标工程已打开
+- easyeda-agent 四件套就绪(本项目钉 **v1.4.8**),EasyEDA Pro 开启「允许外部交互」,目标工程已打开
 
 ## 命令速查
 
@@ -47,5 +47,5 @@ uv run edaloop eval --subset w3-loop       # 真机,断点续跑
 ## 纪律(违反会破坏项目根基)
 
 - LLM/embedding 全走 provider 抽象层,禁止业务代码直连 SDK
-- easyeda-agent 版本钉死 v1.4.2,升级须独立验证
+- easyeda-agent 版本钉死 v1.4.8,升级须独立验证
 - 金标准(evals/)不回退:每次变更必跑 pytest + evals 子集

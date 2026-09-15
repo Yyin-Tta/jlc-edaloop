@@ -35,4 +35,4 @@ testpaths = ["tests"]
 
 # 外部依赖钉死(ADR-0002):easyeda-agent CLI/daemon/连接器、skill,升级须独立 PR + 全量 evals 回归
 [tool.edaloop]
-easyeda-agent = "1.4.2"
+easyeda-agent = "1.4.8"

@@ -29,12 +29,12 @@ def test_explicit_window_route_wins_over_project_and_environment(monkeypatch) ->
 
 
 def test_check_version_ok() -> None:
-    a = _adapter(lambda args: (0, "easyeda-agent v1.4.2\n", ""))
-    assert a.check_version() == "1.4.2"
+    a = _adapter(lambda args: (0, "easyeda-agent v1.4.8\n", ""))
+    assert a.check_version() == "1.4.8"
 
 
 def test_check_version_mismatch_raises() -> None:
-    a = _adapter(lambda args: (0, "easyeda-agent v1.2.10\n", ""))  # 旧钉扎=升级前实装(漂移形态)
+    a = _adapter(lambda args: (0, "easyeda-agent v1.4.2\n", ""))  # 旧钉扎=升级前实装(漂移形态)
     with pytest.raises(AdapterError, match="ADR-0002"):
         a.check_version()
 
