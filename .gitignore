@@ -36,3 +36,9 @@ chainlit.md
 logs/
 /*.log
 .claude/tmp/
+
+# 一次性探针/量测产物(磁盘留档供 DEVELOPMENT 引用,永不入库;同 .easyeda/)
+.claude/*.json
+.claude/*.err
+.claude/*.svg
+.claude/*.jsonl
