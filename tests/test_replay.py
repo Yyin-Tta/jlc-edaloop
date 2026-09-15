@@ -79,3 +79,50 @@ def test_replay_with_adapter(tmp_path) -> None:
     assert result["replayed"] == 5
     assert any("block-apply" not in r for r in adapter.ran)
     assert "clear-all" in adapter.ran
+
+
+def test_replay_full_plus_repair_rounds(tmp_path) -> None:
+    """修复轮重放=最后全量轮(r2)动作 + 其后修复轮(r3)脏页动作拼接。
+
+    - r2 全量:page-clear(无 mode,整档清)+ 两块;
+    - r3 修复:page-clear(mode=repair, dirty=[P2])+ 一块。
+    断言:base_round=2、两轮动作都重放、整档清恰一次、P2 按页清。"""
+    events = [
+        {"kind": "ir", "round_no": None},
+        {"kind": "page-clear", "round_no": 2},
+        {"kind": "block-apply", "round_no": 2, "args": ["sch", "block-apply", "b1"],
+         "page": "P1", "instance": "u1"},
+        {"kind": "block-apply", "round_no": 2, "args": ["sch", "block-apply", "b2"],
+         "page": "P2", "instance": "u2"},
+        {"kind": "gate", "round_no": 2, "args": ["sch", "gate", "--json"]},
+        {"kind": "round-plan", "round_no": 3, "source": "repair-stash"},
+        {"kind": "repair-round", "round_no": 3, "dirty": ["P2"], "frozen": ["P1"]},
+        {"kind": "page-clear", "round_no": 3, "mode": "repair", "dirty": ["P2"]},
+        {"kind": "block-apply", "round_no": 3, "args": ["sch", "block-apply", "b2"],
+         "page": "P2", "instance": "u2"},
+        {"kind": "gate", "round_no": 3, "args": ["sch", "gate", "--json"]},
+    ]
+    d = _write_audit(tmp_path, events)
+    adapter = _ReplayAdapter()
+    result = replay_run(str(d), run_json=adapter)
+    assert result["final_round"] == 3 and result["base_round"] == 2
+    assert result["replayed"] == 7  # r2:clear+两块+gate=4;r3:clear+一块+gate=3
+    assert adapter.ran.count("clear-all") == 1  # 全量轮整档清恰一次
+    assert "sch clear --doc P2" in adapter.ran  # 修复轮按页清
+    assert adapter.ran.count("sch block-apply b1") == 1  # 冻结页块只来自 r2
+    assert adapter.ran.count("sch block-apply b2") == 2  # r2+r3 各一次
+
+
+def test_replay_repair_only_tail_aborted_degrades_to_full(tmp_path) -> None:
+    """末轮是 aborted 修复轮(无可重放动作)→ 拼接退化为最后全量轮,不空转。"""
+    events = [
+        {"kind": "page-clear", "round_no": 1},
+        {"kind": "block-apply", "round_no": 1, "args": ["sch", "block-apply", "b1"]},
+        {"kind": "gate", "round_no": 1, "args": ["sch", "gate", "--json"]},
+        {"kind": "repair-round", "round_no": 2, "dirty": ["P2"], "frozen": ["P1"]},
+        {"kind": "repair-trial-abort", "round_no": 2, "reason": "canvas-uncleared:P2"},
+    ]
+    d = _write_audit(tmp_path, events)
+    result = replay_run(str(d), dry_run=True)
+    assert result["base_round"] == 1 and result["final_round"] == 2
+    assert result["replayed"] == 3  # r1 的 clear+block-apply+gate

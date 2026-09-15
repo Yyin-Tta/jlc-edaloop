@@ -773,6 +773,10 @@ class RoundRecord:
     feedback: str = ""
     halted: str = ""
     failure_class: str = ""
+    # 轮型(增量修复轮,2026-09-15):full=全清全放(现状);repair=只清脏页重放
+    # 脏页块。默认 full 保证既有 loop-result.json 消费方(replay/refine/evals)
+    # 的向后兼容——它们不读该字段,新消费方按它区分轮型语义。
+    mode: str = "full"
 
 
 class TrialFreezeSignal(RuntimeError):
@@ -817,6 +821,7 @@ class LoopController:
         strict_layout: bool | None = None,
         require_layout_readback: bool | None = None,
         fixed_plan: BlockPlan | None = None,
+        incremental: bool | None = None,
     ) -> None:
         self.ir = ir
         self.catalog = catalog
@@ -887,6 +892,44 @@ class LoopController:
         # block instance: two instances can legitimately request the same
         # template reference and must never overwrite one another's mapping.
         self._designator_map_by_instance: dict[str, tuple[str, str]] = {}
+        # ── 增量修复轮(REPAIR,2026-09-15)──
+        # 开关构造期一次性合成(与 zones_enabled/frames_enabled 同惯例,避免
+        # 轮中途翻转):默认关=存量行为逐行等价;w3 eval 入口 setdefault 开。
+        # param 优先于 env,便于测试直接构造。
+        if incremental is None:
+            incremental = os.environ.get("EDALOOP_INCREMENTAL", "").strip().lower() in ("1", "true", "yes")
+        self.incremental_enabled = bool(incremental)
+        # stash=「页面上现存墨迹对应的最后一次成功 apply」的跨轮快照(修复轮
+        # 的原料)。任何 apply_ok=False 的轮整体失效(墨迹不可信);全量轮成功
+        # 全量覆写,修复轮成功合并更新。字段语义:
+        #   _stash_valid            失效闸;False 时 _should_repair 直接不触发
+        #   _stash_plan             augment 后的 plan(repack 已同步 b.page)
+        #   _stash_actions          repack 改写+排序后的动作列表(页面真相)
+        #   _stash_meas/_meas_vol   实例→实测 body/volume 框(试放缓存)
+        #   _stash_offsets          实例→锚→volume 左下偏移(est 退化=(-450,-450))
+        #   _stash_est              实例→(w,h,band,kind) 估算(est 块修复轮仍走 est cell)
+        #   _stash_placed_by_page   页→实例→落图位号(manifest 回读口径)
+        #   _stash_page_designators 页→排序位号表(漂移检测/taken_seed/期望表的数据源)
+        #   _stash_oversize         oversize 页集(validate 豁免语义跨轮保持)
+        self._stash_valid = False
+        self._stash_plan = None
+        self._stash_actions: list = []
+        self._stash_meas: dict = {}
+        self._stash_meas_vol: dict = {}
+        self._stash_offsets: dict = {}
+        self._stash_est: dict = {}
+        self._stash_placed_by_page: dict = {}
+        self._stash_page_designators: dict = {}
+        self._stash_oversize: set = set()
+        # 修复失败(轮末仍有 blocking)→ True:下一轮必走全量 LLM 轮,剥夺即
+        # 修复即 HALT 的路径;全量轮开头消费后复位。
+        self._force_full = False
+        # finding 签名册(sha256 前 16 位):每签名一生只修一次,撞册即全量。
+        self._repair_attempted: set[str] = set()
+        # 全量轮的 stash 原料暴露口(_apply/_repack_actions 写,run() 轮尾取):
+        # 纯记账,对既有路径零行为影响。
+        self._last_placed_by_page: dict = {}
+        self._last_repack_geometry: dict | None = None
 
     def _cost_hint(self, candidates) -> str:
         """同功能可互换块的价格对比(实时查询,弱信号;仅 IR 有 cost_target 时生成,无诉求不查)。"""
@@ -957,6 +1000,431 @@ class LoopController:
         self.audit.event("freeform-augment", round_no=round_no, pattern=pat["id"], added=[b.instance for b in blocks])
         return plan
 
+    # ── 增量修复轮:判定层(2026-09-15)──────────────────────────────
+    # 设计不变式:**归因失败即全量轮**——任何 blocking finding 无法自信地落到
+    # stash 页集的一个真子集上时,修复轮不触发,行为退回现状(全清全放)。
+    # 这是把「增量」做成「全量的严格特例」的安全底座。
+
+    # gate 项里点名器件的键(位号→实例反查用;与 checks._compact 的取键面一致)
+    _DESIG_KEYS = ("a", "b", "designator", "ref")
+
+    def _repair_signatures(self, blocking: list[Finding]) -> set[str]:
+        """逐 finding 单元素签名册。与 streak 的整组 _finding_hash 区分:册按
+        缺陷粒度记账,同签名一生只修一次——修复失败的事实意味着确定性通道
+        (重放+closeout+spacing 升档)治不了它,再排队同签名修复只会烧轮次。"""
+        return {_finding_hash([f]) for f in blocking}
+
+    def _desig_index(self) -> dict[str, tuple[str, str]]:
+        """位号 → (页, 实例) 反查表(stash 口径:冻结页+脏页的 manifest 回读)。"""
+        idx: dict[str, tuple[str, str]] = {}
+        for pg, insts in self._stash_placed_by_page.items():
+            for inst, desigs in insts.items():
+                for d in desigs:
+                    idx.setdefault(d, (pg, inst))
+        return idx
+
+    def _dirty_gate_pages(self, gate_report: dict | None):
+        """合并 gate 报告 → 脏 stage 表。
+
+        返回 (name_to_pages: {stage名: set[页]}, desigs: 点名位号集);任一脏
+        stage 缺 page 字段返回 None(连接器违约形态,不可归因→fail-closed 全
+        量轮)。脏 stage 判据与 check_gauge 同源(非 pass/skip + error 或
+        blocking 项),保证「validate 判出来的 GATE_FAIL 必有对应脏 stage 页」。
+        """
+        from edaloop.validate.checks import _gate_item_blocks
+
+        name_to_pages: dict[str, set[str]] = {}
+        desigs: set[str] = set()
+        for stage in (gate_report or {}).get("stages", []):
+            name = stage.get("stage") or stage.get("name") or "?"
+            sv = stage.get("verdict") or stage.get("status") or ""
+            if sv in ("pass", "skipped"):
+                continue
+            detail = stage.get("detail") if isinstance(stage.get("detail"), dict) else {}
+            items = (stage.get("findings") or stage.get("blockers")
+                     or detail.get("findings") or detail.get("blockers")
+                     or detail.get("overlaps") or detail.get("items") or [])
+            blocking_items = [f for f in items[:20] if _gate_item_blocks(name, f)]
+            if not (stage.get("error") or blocking_items):
+                continue
+            pg = stage.get("page") or ""
+            if not pg:
+                return None
+            name_to_pages.setdefault(name, set()).add(pg)
+            for f in blocking_items:
+                if isinstance(f, dict):
+                    for k in self._DESIG_KEYS:
+                        v = f.get(k)
+                        if v:
+                            desigs.add(str(v))
+        return name_to_pages, desigs
+
+    def _finding_repair_scope(self, f: Finding, *,
+                              name_to_pages: dict[str, set[str]],
+                              gate_desigs: set[str],
+                              desig_idx: dict[str, tuple[str, str]]):
+        """单条 blocking finding → (脏页集, 建议升档实例集);None=不可归因/不可修。
+
+        页级归因不追求逐项精确——修复轮以页为重放单位,页内谁坏交给 closeout
+        修复通道;升档(spacing +100)只对几何族点名块,把嫌疑间隔拉开。"""
+        code, ev = f.code, (f.evidence or "").lower()
+        if code == "GATE_FAIL":
+            pgs = name_to_pages.get(f.where.ref)
+            if not pgs:
+                # 合成 GATE_FAIL(verdict=fail 无分项明细 / apply_ok=False 伪造)
+                # 没有脏 stage 页可指认 → 不可归因
+                return None
+            bumps: set[str] = set()
+            if f.where.ref in ("clusters", "layout-lint") or any(
+                    t in ev for t in ("overlap", "tight")):
+                # 几何族:gate 点名位号(stash 反查实例)升档;floating/dangling
+                # 类不升档——重放+closeout 的 compact/重落通道治,间距无关
+                for d in gate_desigs:
+                    hit = desig_idx.get(d)
+                    if hit and hit[0] in pgs:
+                        bumps.add(hit[1])
+            return pgs, bumps
+        if code == "NET_MISSING":
+            return ({m["page"] for m in self._net_missing if m.get("missing")}, set())
+        if code == "WIRE_RESTORE_BROKEN":
+            # _wire_breaks 全部 append 点均带 "{page}:" 前缀(含无 pin 的 4 段式),
+            # 结构化列表直取,不解析 evidence
+            return ({w.split(":", 1)[0] for w in self._wire_breaks if w}, set())
+        if code in ("LAYOUT_BODY_OVERLAP", "LAYOUT_PIN_COINCIDENCE",
+                    "LAYOUT_INK_OUT_OF_BAND"):
+            hit = desig_idx.get(f.where.ref)
+            return ({hit[0]}, {hit[1]}) if hit else None
+        if code == "LAYOUT_COMPONENT_MISSING":
+            m = re.search(r"terminal page (P\d+)", f.evidence or "")
+            if m:
+                return {m.group(1)}, set()
+            hit = desig_idx.get(f.where.ref)
+            return ({hit[0]}, set()) if hit else None
+        # MISSING_RAIL/PIN_MISMATCH/VOLTAGE_*/GATE_BLOCKED/证据完整性 fail-closed
+        # /未知 code:语义级或环境级,确定性重放治不了 → 全量轮(LLM 重计划)
+        return None
+
+    def _should_repair(self, blocking: list[Finding], gate_report: dict | None) -> dict | None:
+        """修复轮触发总闸(G1-G7)。返回
+        {"dirty": set, "frozen": set, "bumps": set, "sigs": set} 或 None(全量轮)。"""
+        if not (self.incremental_enabled and self._stash_valid):
+            return None  # G1:开关关/无 stash(首轮、失败轮后)
+        if self._force_full or self.dry_run or not blocking:
+            return None  # G2/G3:修复失败后必给 LLM 一次全量;dry_run 不落图
+        sigs = self._repair_signatures(blocking)
+        if sigs & self._repair_attempted:
+            return None  # G6:签名撞册
+        all_pages = set(self._plan_pages(self._stash_actions))
+        gate = self._dirty_gate_pages(gate_report)
+        if gate is None:
+            return None  # G4 前置:连接器违约(stage 无页),fail-closed
+        name_to_pages, gate_desigs = gate
+        desig_idx = self._desig_index()
+        dirty: set[str] = set()
+        bumps: set[str] = set()
+        for f in blocking:  # G4:每条 blocking 都要可归因,缺一即全量
+            scope = self._finding_repair_scope(
+                f, name_to_pages=name_to_pages, gate_desigs=gate_desigs, desig_idx=desig_idx)
+            if scope is None:
+                return None
+            pgs, insts = scope
+            if not pgs or not pgs <= all_pages:
+                return None  # 归因到 stash 外的页=stash 与页面真相脱节,全量
+            dirty |= pgs
+            bumps |= insts
+        if not dirty or dirty >= all_pages:
+            return None  # G5:全脏=全量轮(丢 LLM 重计划不划算)
+        return {"dirty": dirty, "frozen": all_pages - dirty, "bumps": bumps, "sigs": sigs}
+
+    def _frozen_page_drift(self, frozen: set[str]) -> set[str]:
+        """冻结页读回漂移检测:位号**集合级**比对。
+
+        为什么集合而非计数:同数换名(平台静默改号)同样会断 netport 引用,
+        计数相等不代表未漂移。读失败按漂移处理(fail-closed:不可核验≠未漂移
+        ——后续步骤要信任冻结态)。每冻结页 1 次 clusters 读,秒级,对比全量
+        重放(37 块×每块 3+ 真机调用)可忽略。"""
+        drifted: set[str] = set()
+        for pg in sorted(frozen):
+            rep = self._clusters_report(pg)
+            current = {c.get("designator") for c in rep.get("clusters") or []
+                       if c.get("designator") and c.get("componentType") != "sheet"}
+            if current != set(self._stash_page_designators.get(pg) or ()):
+                drifted.add(pg)
+        return drifted
+
+    def _write_stash(self, plan, actions) -> None:
+        """全量轮成功后的 stash 覆写(增量修复轮)。
+
+        只在 apply_ok 且 repack 有试放几何(_last_repack_geometry 非 None)时
+        被调用;流式回退轮没有可缓存的量框,调用方直接置 _stash_valid=False。"""
+        geo = self._last_repack_geometry or {}
+        self._stash_plan = plan
+        self._stash_actions = list(actions)
+        self._stash_meas = dict(geo.get("meas", {}))
+        self._stash_meas_vol = dict(geo.get("meas_vol", {}))
+        self._stash_offsets = dict(geo.get("offsets", {}))
+        self._stash_est = {k: tuple(v) for k, v in (geo.get("est") or {}).items()}
+        self._stash_placed_by_page = {
+            pg: dict(insts) for pg, insts in self._last_placed_by_page.items()}
+        self._stash_page_designators = {
+            pg: sorted({d for ds in insts.values() for d in ds})
+            for pg, insts in self._stash_placed_by_page.items()}
+        self._stash_oversize = set(getattr(self, "_repack_oversize_pages", None) or ())
+        self._stash_valid = True
+
+    def _repair_remeasure(self, canvas: str, act, round_no: int, meas: dict, meas_vol: dict):
+        """修复轮升档块重测:canvas 上落-量-清一次,返回锚点(实际生效原点)。
+
+        None=失败(清画布后保持 stash 旧框,该块退「只重放不升档」)。--at 写
+        虚空位即可:量的是尺寸与相对翼展,上游钳制不改 volume 框相对锚的偏移。"""
+        from edaloop.generate.adapter import AdapterError
+
+        args = list(act.args)
+        if "--at" in args:
+            args[args.index("--at") + 1] = "1500,30"
+        try:
+            manifest = self._run_manifest_once(args + ["--doc", canvas])
+        except AdapterError:
+            self._trial_measure(canvas, act.block_instance, [], round_no,
+                                meas, meas_vol, {}, {})
+            return None
+        status = manifest.get("ok") or manifest.get("status") or "unknown"
+        want = [p["designator"] for p in manifest.get("placed", []) or [] if p.get("designator")]
+        org = manifest.get("origin") or {}
+        try:
+            ax, ay = float(org.get("x", 1500.0)), float(org.get("y", 30.0))
+        except (TypeError, ValueError):
+            ax, ay = 1500.0, 30.0
+        if not str(status).startswith("applied") or not want:
+            self._trial_measure(canvas, act.block_instance, [], round_no,
+                                meas, meas_vol, {}, {})
+            return None
+        if not self._trial_measure(canvas, act.block_instance, want, round_no,
+                                   meas, meas_vol, {}, {}):
+            return None
+        return ax, ay
+
+    def _repack_repair(self, ctx, round_no: int, actions_scope, plan):
+        """修复轮专用 repack:升档块重测(仅点名块,canvas=首个脏页)+ 脏页
+        离线装箱 + 就地改写动作/计划页。返回 (ok, target_pages, inst_page);
+        ok=False → 调用方 apply_ok=False(repair-trial-abort),canvas 残迹由
+        下一轮全量轮的 clear_all_pages+验证式清页收拾(宁退勿错)。"""
+        from edaloop.generate import packer
+
+        dirty: set[str] = set(ctx["dirty"])
+        bumps: set[str] = set(ctx["bumps"])
+        all_pages = self._plan_pages(self._stash_actions)  # 页名序(页号升序,P1 恒首)
+        dirty_insts = {a.block_instance for a in self._stash_actions
+                       if (a.page or "P1") in dirty
+                       and a.kind in ("block-apply", "sch-place")}
+        # 试放画布=首个脏页:canvas 本就是待清页,先清无损失;P1 脏则与全量轮
+        # 同款,P1 干净(冻结)时绝不能在 P1 量测——那会清掉冻结内容。
+        canvas = self._page_order(dirty)[0]
+        if not self._clear_page_verified(canvas, round_no):
+            self.audit.event("repair-trial-abort", round_no=round_no,
+                             reason=f"canvas-uncleared:{canvas}")
+            return False, set(), {}
+        # spacing 升档(+100 小步):仅 block-apply 有 --spacing 旗标;place 通道
+        # 无 spacing 语义,升档=重放+closeout。升档块在 canvas 重测框,其余块
+        # 零真机调用(试放缓存)。
+        meas = dict(self._stash_meas)
+        meas_vol = dict(self._stash_meas_vol)
+        offsets = dict(self._stash_offsets)
+        bumped: set[str] = set()
+        for a in actions_scope:
+            inst = a.block_instance
+            if (inst not in bumps or inst not in dirty_insts
+                    or a.kind != "block-apply" or "--spacing" not in a.args):
+                continue
+            i = a.args.index("--spacing") + 1
+            try:
+                a.args[i] = str(int(float(a.args[i])) + 100)
+            except ValueError:
+                continue
+            anchor = self._repair_remeasure(canvas, a, round_no, meas, meas_vol)
+            if anchor is None:
+                continue  # 重测失败:保持 stash 旧框,该块退「只重放」
+            bumped.add(inst)
+            v = meas_vol.get(inst)
+            if v is not None:
+                offsets[inst] = (v[0] - anchor[0], v[1] - anchor[1])
+        self.audit.event(
+            "trial-cache-hit", round_no=round_no,
+            instances=sorted(dirty_insts - bumped),
+            canvas=canvas, bumped=sorted(bumped),
+        )
+        # cells:脏页实例实测优先,est 退化同全量公式(_EST_PAD=450 四周垫)
+        mod = {b.instance: b.module for b in (plan.blocks if plan else []) if b.module}
+        cells: list = []
+        for inst in sorted(dirty_insts):
+            e = self._stash_est.get(inst)
+            if e is None:
+                self.audit.event("repair-trial-abort", round_no=round_no,
+                                 reason=f"est-missing:{inst}")
+                return False, set(), {}
+            mv = meas_vol.get(inst)
+            if mv is not None:
+                cells.append(packer.Cell(inst, mv[2] - mv[0], mv[3] - mv[1],
+                                         e[2], e[3], group=mod.get(inst, "")))
+            else:
+                cells.append(packer.Cell(inst, e[0] + 2 * 450, e[1] + 2 * 450,
+                                         e[2], e[3], group=mod.get(inst, "")))
+                offsets.setdefault(inst, (-450.0, -450.0))
+        try:
+            res = packer.pack(cells)
+        except Exception as e:  # noqa: BLE001 —— 装箱异常同全量 fallback 哲学:宁退勿错
+            self.audit.event("repair-trial-abort", round_no=round_no,
+                             reason=f"pack:{type(e).__name__}:{str(e)[:80]}")
+            return False, set(), {}
+        # 页映射:packer 页序 → 既有脏页序顺排(冻结页号不重排);溢出开新页
+        # (号=当前最大页号顺延);缩水的富余脏页无块分派,由 _ensure_pages 剪枝。
+        ordered_dirty = self._page_order(dirty)
+        max_no = 0
+        for p in all_pages:
+            m = re.fullmatch(r"P(\d+)", p)
+            if m:
+                max_no = max(max_no, int(m.group(1)))
+
+        def _target(p_idx: int) -> str:
+            if p_idx < len(ordered_dirty):
+                return ordered_dirty[p_idx]
+            return f"P{max_no + 1 + (p_idx - len(ordered_dirty))}"
+
+        inst_page = {inst: _target(p) for inst, (p, _x, _y) in res.placements.items()}
+        target_pages = set(inst_page.values())
+        self.audit.event(
+            "repair-pack", round_no=round_no, pages=sorted(target_pages),
+            oversize=sorted(res.oversize), waste=res.waste,
+            placements={name: [inst_page[name]] for name in inst_page},
+        )
+        # 改写脏实例动作:锚=装箱位−offsets(升档块新 offsets,其余 stash 值),
+        # snap5 与全量同公式;plan 块页同步(deliver 按它导 SVG)。冻结实例对象
+        # 一字不动。动作不重排序:每动作自带 --doc,页序只影响前台切换效率。
+        for a in actions_scope:
+            inst = a.block_instance
+            hit = res.placements.get(inst)
+            if hit is None:
+                continue
+            p, x, y = hit
+            dx, dy = offsets.get(inst, (0.0, 0.0))
+            if a.kind == "block-apply" and "--at" in a.args:
+                a.args[a.args.index("--at") + 1] = f"{_snap5(x - dx)},{_snap5(y - dy)}"
+                if inst in res.oversize and "--max-attempts" not in a.args:
+                    a.args += ["--max-attempts", "0"]
+            elif a.kind == "sch-place":
+                for flag, val in (("--x", _snap5(x - dx)), ("--y", _snap5(y - dy))):
+                    if flag in a.args:
+                        a.args[a.args.index(flag) + 1] = f"{val:.0f}"
+            if a.kind in ("block-apply", "sch-place", "sch-autoconnect", "sch-no-connect"):
+                a.page = inst_page[inst]
+        for b in plan.blocks:
+            if b.instance in inst_page:
+                b.page = inst_page[b.instance]
+        # oversize 集 = stash 冻结基线 ∪ 新脏页(check_gauge 豁免语义跨轮保持)
+        self._repack_oversize_pages = set(self._stash_oversize) | {
+            inst_page[n] for n in res.oversize if n in inst_page}
+        # 升档后的量框/锚偏移就地入 stash(成功路径;失败路径 stash 整体失效)
+        self._stash_meas = meas
+        self._stash_meas_vol = meas_vol
+        self._stash_offsets = offsets
+        return True, target_pages, inst_page
+
+    def _repair_round(self, ctx, round_no: int):
+        """修复轮执行体(R1-R12,增量修复轮 2026-09-15)。
+
+        返回 (plan, actions, apply_ok, gate_report);任何一步失败 → 双闸
+        (_stash_valid=False + _force_full=True),下一轮必全量。"""
+        self._repair_attempted |= set(ctx["sigs"])  # 进入即记账:中途 abort 也不给同签名第二次
+        plan = self._stash_plan
+        # 深拷贝:stash 是跨轮唯一事实源,改写落在副本上,试放/装箱失败不污染
+        actions = [a.model_copy(deep=True) for a in self._stash_actions]
+        all_pages = set(self._plan_pages(self._stash_actions))
+        dirty, frozen = set(ctx["dirty"]), set(ctx["frozen"])
+        self.audit.event("repair-round", round_no=round_no,
+                         dirty=sorted(dirty), frozen=sorted(frozen),
+                         bumps=sorted(ctx["bumps"]))
+        # oversize 基线先落 stash 冻结集(_repack_repair 再并入新脏;validate 豁免
+        # 语义不因修复轮丢失)
+        self._repack_oversize_pages = set(self._stash_oversize)
+        # R2 冻结页漂移检测:漂移页解冻并入脏集(集合级比对,读失败即漂移)
+        drifted = self._frozen_page_drift(frozen)
+        if drifted:
+            self.audit.event("repair-drift", round_no=round_no, pages=sorted(drifted))
+            dirty |= drifted
+            frozen -= drifted
+        if dirty >= all_pages:
+            # 全脏:修复轮退化成「清全档重放」还丢 LLM 重计划,不如直接全量轮
+            # (apply_ok=False → 合成 GATE_FAIL → feedback 全量重试)。
+            self.audit.event("repair-abort", round_no=round_no, reason="repair-drift-full")
+            self._force_full = True
+            self._stash_valid = False
+            return plan, actions, False, None
+        # R3-R5 升档块重测 + 脏页装箱 + 动作改写(试放缓存:未升档块零真机调用)
+        ok, target_pages, _inst_page = self._repack_repair(
+            {**ctx, "dirty": dirty}, round_no, actions, plan)
+        if not ok:
+            self._force_full = True
+            self._stash_valid = False
+            return plan, actions, False, None
+        # R6 建页/剪枝(冻结页恒在 keep;缩水脏页被 _ensure_pages 孤儿剪枝回收)
+        self._ensure_pages(
+            [p for p in self._page_order(frozen | target_pages) if p != "P1"], round_no)
+        # R7 只清脏页(目标页;冻结页一字不碰)。mode/dirty 字段供 replay 按页清。
+        clear_targets = self._page_order(target_pages)
+        clear_failed = [p for p in clear_targets if not self._clear_page_verified(p, round_no)]
+        self.audit.event("page-clear", round_no=round_no,
+                         pages=sorted(frozen | target_pages), failures=clear_failed,
+                         mode="repair", dirty=clear_targets)
+        if clear_failed:
+            self._layout_warnings.append({
+                "code": "PAGE_CLEAR_FAILED",
+                "evidence": f"清页两趟仍有残件:{','.join(clear_failed)};修复轮跳过落图防叠残件",
+            })
+            self._force_full = True
+            self._stash_valid = False
+            return plan, actions, False, None
+        # R8 执行集过滤:脏页动作 + 终端 gate 恒留(lib-search 按脏实例)
+        dirty_insts = {a.block_instance for a in actions
+                       if a.kind in ("block-apply", "sch-place")
+                       and (a.page or "P1") in target_pages}
+        exec_actions = [
+            a for a in actions
+            if a.kind == "sch-gate"
+            or (a.kind == "lib-search" and a.block_instance in dirty_insts)
+            or (a.kind in ("block-apply", "sch-place", "sch-autoconnect", "sch-no-connect")
+                and (a.page or "P1") in target_pages)
+        ]
+        # R9 位号防撞预填(冻结页位号入册,place 撞号走既有抢先改名通道)+
+        # terminal audit 冻结页期望表
+        taken_seed = {d for pg in frozen for d in self._stash_page_designators.get(pg, ())}
+        frozen_expected = {pg: list(self._stash_page_designators.get(pg, ()))
+                           for pg in frozen}
+        # R10 执行:actions(全量副本)定 gate/契约/terminal/zones/titleblock
+        # 作用域(不变式);exec_actions(脏页)进执行循环,closeout 的
+        # placed_by_page 只含脏页 → 修复通道天然单页作用域。
+        apply_ok, gate_report = self._apply(
+            actions, round_no, exec_actions=exec_actions,
+            taken_seed=taken_seed, frozen_expected=frozen_expected)
+        # R11 net 终检:全量作用域(planned 通道覆盖冻结页——冻结页网载体
+        # 若真丢了,这里按页报 NET_MISSING,下一轮把它归因为脏页再修)
+        self._net_missing = self._net_presence(actions, round_no)
+        # R12 re-stash:冻结页保留旧值,脏页并入新 manifest 回读
+        if apply_ok:
+            merged = {pg: dict(insts) for pg, insts in self._stash_placed_by_page.items()
+                      if pg in frozen}
+            for pg, insts in self._last_placed_by_page.items():
+                merged[pg] = dict(insts)
+            self._stash_placed_by_page = merged
+            self._stash_page_designators = {
+                pg: sorted({d for ds in insts.values() for d in ds})
+                for pg, insts in merged.items()}
+            self._stash_plan = plan
+            self._stash_actions = actions
+            self._stash_valid = True
+        else:
+            self._stash_valid = False
+        return plan, actions, apply_ok, gate_report
+
     def run(self) -> LoopResult:
         result = LoopResult(status="FAIL", audit_dir=str(self.audit.dir))
         feedback = ""
@@ -969,8 +1437,15 @@ class LoopController:
             _check = getattr(self.adapter, "check_version", None)
             if callable(_check):
                 _check()
+        next_repair_ctx: dict | None = None  # 修复轮上下文:轮尾决策,轮首消费(与 feedback 同生命周期)
         for round_no in range(1, self.max_rounds + 1):
-            rec = RoundRecord(round_no=round_no)
+            repair_ctx, next_repair_ctx = next_repair_ctx, None
+            repair_round = repair_ctx is not None
+            if repair_round:
+                rec = RoundRecord(round_no=round_no, mode="repair")
+            else:
+                rec = RoundRecord(round_no=round_no)
+                self._force_full = False  # 全量轮开头消费修复失败闸(定案:闸只挡一次)
             self._layout_warnings = []
             self._wire_breaks = []  # P0:紧凑化/重落的恢复失败计数(阈值门见 validate 段)
             self._wire_boxes = {}  # P1:各页自画直连线 bbox(画框口径=volume ∪ 自画线)
@@ -981,100 +1456,127 @@ class LoopController:
             self._terminal_layout_findings = []
             self._gate_contract_findings = []
             self._designator_map_by_instance = {}
-            query = self.ir.query_text()
-            digest = self.ir.decisions_digest()
-            if digest:
-                query = query + "\n" + digest
-            candidates = list(self.retrieve(query))
-            if self.retry_queries and round_no == 1:
-                seen = {c.block_id for c in candidates}
-                for rq in self.retry_queries:
-                    for c in self.retrieve(rq):
-                        if c.block_id not in seen:
-                            candidates.append(c)
-                            seen.add(c.block_id)
-                self.audit.event("refine-retry", round_no=1, queries=self.retry_queries, candidates=len(candidates))
-            # P4-4②:std R/C 通道常驻(提示词宣传的通道,检索没召回也要可用,否则目录外校验必杀)
-            candidates = ensure_std_candidates(candidates, self.catalog)
-            if self.fixed_plan is not None and round_no == 1:
-                plan = self.fixed_plan.model_copy(deep=True)
-                plan.design_ir_id = self.ir.id
-                plan.source = self.ir.source
-                self.audit.event("plan-replay", round_no=round_no, plan_id=plan.id,
-                                 blocks=[b.instance for b in plan.blocks])
-            else:
-                plan = make_plan(
-                    self.ir,
-                    candidates,
-                    self.llm,
-                    feedback=feedback,
-                    cost_hint=self._cost_hint(candidates),
-                    answer_context=self.answer_context,
+            if repair_round:
+                # 修复轮跳过检索/LLM/模式增补(增量修复轮):计划与页面真相就是
+                # stash——修复的本质是确定性重试,任何计划层面的变更都属全量轮
+                # 职责。round-plan 照发(source 标记来源),replay/refine 链不断。
+                plan = self._stash_plan
+                rec.plan_id = plan.id
+                self.audit.event(
+                    "round-plan", round_no=round_no, plan_id=plan.id,
+                    blocks=[b.instance for b in plan.blocks],
+                    plan=json.loads(plan.model_dump_json()),
+                    uncovered=plan.uncovered, feedback=feedback,
+                    source="repair-stash",
                 )
-            plan = self._augment_freeform(plan, candidates, round_no)
-            rec.plan_id = plan.id
-            self.audit.event(
-                "round-plan",
-                round_no=round_no,
-                plan_id=plan.id,
-                blocks=[b.instance for b in plan.blocks],
-                # 全量计划入审计(2026-08-31):此前只记块名,LLM 配额断供
-                # (bigmodel 7 日上限)后想"不调 LLM 按原计划重跑落图"无从取
-                # 计划——replay 只认原始动作事件,freeze-pack 审计没有。plan
-                # 是纯 LLM 产物,不落盘就只能等配额。
-                plan=json.loads(plan.model_dump_json()),
-                uncovered=plan.uncovered,
-                feedback=feedback,
-            )
-            gate_report = None
-            apply_ok = True
-            if not self.dry_run:
-                # A4 标定(2026-08 真机):250 为实测可整块入图的格距;旧 600+150×(r-1)
-                # 爬坡阶梯废弃——页流下放大 spacing 直接破页容量,重试走 per-block at/params.spacing
-                actions = compile_actions(plan, self.catalog, spacing_default="250")
-                self.adapter.clear_all_pages()
-                # 两阶段布局(repack):试放定框→离线装箱→改写 at/page;失败自动
-                # 回退流式(旧行为)。EDALOOP_LAYOUT=flow 一键关停。
-                self._repack_oversize_pages: set[str] = set()
-                if os.environ.get("EDALOOP_LAYOUT", "repack") == "repack":
-                    try:
-                        self._repack_actions(actions, plan, round_no)
-                    except TrialFreezeSignal:
-                        # 调试冻结:试放页已画框,跳过装箱/清页/重放/gate,立即收束
-                        return LoopResult(status="FREEZE", audit_dir=str(self.audit.dir))
-                pages = self._plan_pages(actions)
-                # sch clear 只清各窗口当前活动页;上轮逐页 gate 会把前台留在末页,
-                # 故每轮显式清文档全部既有页(含 P1 与超出本轮计划的孤儿页),
-                # 否则 r≥2 叠上轮墨迹 → 文档级位号冲突(C8 类)确定性复发。
-                existing = self._ensure_pages([p for p in pages if p != "P1"], round_no)
-                # 清页保真(2026-08-21 决定性实验结论):sch clear --doc 本身不说谎
-                # (连发六页全部真清空,remaining=0 如实),但其结果是三态——幸存时只往
-                # result 塞 warning 仍 rc=0;且 r≥2 的清页紧跟上轮 apply,上游实证
-                # 「block-apply 后立即 clear 可复现留 ~20 幸存者,数秒后手跑才能清空」。
-                # rc 不可信:clear 后回读数器件才算数,幸存 → 重清一次(settle 电阻),
-                # 两趟仍不清 → clear-fidelity 失败进审计(不静默;后续 apply 失败自会
-                # 经 GATE_FAIL 归因,此处只负责把证据钉死)。
-                clear_failed = [
-                    p for p in self._page_order(existing | set(pages))
-                    if not self._clear_page_verified(p, round_no)
-                ]
-                self.audit.event("page-clear", round_no=round_no, pages=pages, failures=clear_failed)
-                if clear_failed:
-                    # P0-3 门禁(2026-08-26):未清空的页上照常落图 = 残件+位号静默
-                    # 改号+叠放的确定源(P1 184 件 freeze 残骸定性)。清页两趟失败
-                    # 即跳过本轮落图,apply_ok=False 走既有 GATE_FAIL→RELAYOUT 反馈
-                    # 重试路径;连败两轮由既有 code_streak→HALT 升级兜住。
-                    self._layout_warnings.append({
-                        "code": "PAGE_CLEAR_FAILED",
-                        "evidence": f"清页两趟仍有残件:{','.join(clear_failed)};本轮跳过落图防叠残件",
-                    })
-                    apply_ok, gate_report = False, None
-                else:
-                    apply_ok, gate_report = self._apply(actions, round_no)
-                    # P0 net 存在性终检:gate 判"接得合不合法",这里判"规划里的网
-                    # 在不在页上"(req-07 P2 全页零 GND 形态 gate 漏报的补口)
-                    self._net_missing = self._net_presence(actions, round_no)
+                gate_report = None
+                apply_ok = True
+                if not self.dry_run:  # G3 已拦,防御性保留
+                    plan, _actions_scope, apply_ok, gate_report = self._repair_round(
+                        repair_ctx, round_no)
                 rec.gate_verdict = gate_report.get("verdict", "unknown") if gate_report else "not-run"
+            else:
+                query = self.ir.query_text()
+                digest = self.ir.decisions_digest()
+                if digest:
+                    query = query + "\n" + digest
+                candidates = list(self.retrieve(query))
+                if self.retry_queries and round_no == 1:
+                    seen = {c.block_id for c in candidates}
+                    for rq in self.retry_queries:
+                        for c in self.retrieve(rq):
+                            if c.block_id not in seen:
+                                candidates.append(c)
+                                seen.add(c.block_id)
+                    self.audit.event("refine-retry", round_no=1, queries=self.retry_queries, candidates=len(candidates))
+                # P4-4②:std R/C 通道常驻(提示词宣传的通道,检索没召回也要可用,否则目录外校验必杀)
+                candidates = ensure_std_candidates(candidates, self.catalog)
+                if self.fixed_plan is not None and round_no == 1:
+                    plan = self.fixed_plan.model_copy(deep=True)
+                    plan.design_ir_id = self.ir.id
+                    plan.source = self.ir.source
+                    self.audit.event("plan-replay", round_no=round_no, plan_id=plan.id,
+                                     blocks=[b.instance for b in plan.blocks])
+                else:
+                    plan = make_plan(
+                        self.ir,
+                        candidates,
+                        self.llm,
+                        feedback=feedback,
+                        cost_hint=self._cost_hint(candidates),
+                        answer_context=self.answer_context,
+                    )
+                plan = self._augment_freeform(plan, candidates, round_no)
+                rec.plan_id = plan.id
+                self.audit.event(
+                    "round-plan",
+                    round_no=round_no,
+                    plan_id=plan.id,
+                    blocks=[b.instance for b in plan.blocks],
+                    # 全量计划入审计(2026-08-31):此前只记块名,LLM 配额断供
+                    # (bigmodel 7 日上限)后想"不调 LLM 按原计划重跑落图"无从取
+                    # 计划——replay 只认原始动作事件,freeze-pack 审计没有。plan
+                    # 是纯 LLM 产物,不落盘就只能等配额。
+                    plan=json.loads(plan.model_dump_json()),
+                    uncovered=plan.uncovered,
+                    feedback=feedback,
+                )
+                gate_report = None
+                apply_ok = True
+                if not self.dry_run:
+                    # A4 标定(2026-08 真机):250 为实测可整块入图的格距;旧 600+150×(r-1)
+                    # 爬坡阶梯废弃——页流下放大 spacing 直接破页容量,重试走 per-block at/params.spacing
+                    actions = compile_actions(plan, self.catalog, spacing_default="250")
+                    self.adapter.clear_all_pages()
+                    # 两阶段布局(repack):试放定框→离线装箱→改写 at/page;失败自动
+                    # 回退流式(旧行为)。EDALOOP_LAYOUT=flow 一键关停。
+                    self._repack_oversize_pages: set[str] = set()
+                    if os.environ.get("EDALOOP_LAYOUT", "repack") == "repack":
+                        try:
+                            self._repack_actions(actions, plan, round_no)
+                        except TrialFreezeSignal:
+                            # 调试冻结:试放页已画框,跳过装箱/清页/重放/gate,立即收束
+                            return LoopResult(status="FREEZE", audit_dir=str(self.audit.dir))
+                    pages = self._plan_pages(actions)
+                    # sch clear 只清各窗口当前活动页;上轮逐页 gate 会把前台留在末页,
+                    # 故每轮显式清文档全部既有页(含 P1 与超出本轮计划的孤儿页),
+                    # 否则 r≥2 叠上轮墨迹 → 文档级位号冲突(C8 类)确定性复发。
+                    existing = self._ensure_pages([p for p in pages if p != "P1"], round_no)
+                    # 清页保真(2026-08-21 决定性实验结论):sch clear --doc 本身不说谎
+                    # (连发六页全部真清空,remaining=0 如实),但其结果是三态——幸存时只往
+                    # result 塞 warning 仍 rc=0;且 r≥2 的清页紧跟上轮 apply,上游实证
+                    # 「block-apply 后立即 clear 可复现留 ~20 幸存者,数秒后手跑才能清空」。
+                    # rc 不可信:clear 后回读数器件才算数,幸存 → 重清一次(settle 电阻),
+                    # 两趟仍不清 → clear-fidelity 失败进审计(不静默;后续 apply 失败自会
+                    # 经 GATE_FAIL 归因,此处只负责把证据钉死)。
+                    clear_failed = [
+                        p for p in self._page_order(existing | set(pages))
+                        if not self._clear_page_verified(p, round_no)
+                    ]
+                    self.audit.event("page-clear", round_no=round_no, pages=pages, failures=clear_failed)
+                    if clear_failed:
+                        # P0-3 门禁(2026-08-26):未清空的页上照常落图 = 残件+位号静默
+                        # 改号+叠放的确定源(P1 184 件 freeze 残骸定性)。清页两趟失败
+                        # 即跳过本轮落图,apply_ok=False 走既有 GATE_FAIL→RELAYOUT 反馈
+                        # 重试路径;连败两轮由既有 code_streak→HALT 升级兜住。
+                        self._layout_warnings.append({
+                            "code": "PAGE_CLEAR_FAILED",
+                            "evidence": f"清页两趟仍有残件:{','.join(clear_failed)};本轮跳过落图防叠残件",
+                        })
+                        apply_ok, gate_report = False, None
+                    else:
+                        apply_ok, gate_report = self._apply(actions, round_no)
+                        # P0 net 存在性终检:gate 判"接得合不合法",这里判"规划里的网
+                        # 在不在页上"(req-07 P2 全页零 GND 形态 gate 漏报的补口)
+                        self._net_missing = self._net_presence(actions, round_no)
+                    # 插入点 C(增量修复轮):全量轮成功 → 写 stash(修复轮的原料);
+                    # apply 失败或 repack 回退流式(_last_repack_geometry=None,无可
+                    # 缓存试放几何)→ stash 失效,下一轮照旧全量。
+                    if apply_ok and self._last_repack_geometry is not None:
+                        self._write_stash(plan, actions)
+                    else:
+                        self._stash_valid = False
+                    rec.gate_verdict = gate_report.get("verdict", "unknown") if gate_report else "not-run"
             # P4-4① sizing 轮内化:make_plan 后 validate 段计算(轨输入走 IR,出处随建议入审计),
             # PARAM_OFF_SPEC 弱观察与 feedback 注入都消费它;PASS 后 deliver 复用末轮结果。
             sizing_advices = self._size_round(plan, round_no)
@@ -1194,30 +1696,43 @@ class LoopController:
                     failure_class=result.failure_class,
                 )
                 return result
-            streak_key = "|".join(sorted({f.code for f in blocking}))
-            code_streak[streak_key] = code_streak.get(streak_key, 0) + 1
-            current_finding_hash = _finding_hash(blocking)
-            finding_hash_streak[current_finding_hash] = finding_hash_streak.get(current_finding_hash, 0) + 1
-            self.audit.event(
-                "finding-convergence",
-                round_no=round_no,
-                finding_hash=current_finding_hash,
-                hash_streak=finding_hash_streak[current_finding_hash],
-                code_streak=code_streak[streak_key],
-                blocking_count=len(blocking),
-            )
-            # A stable semantic finding is stronger evidence of a non-moving
-            # layout than a code-only match.  Halt on the second identical
-            # snapshot to prevent reverse-clamp/group-arrange oscillation.
-            if (finding_hash_streak[current_finding_hash] >= SAME_CODE_HALT
-                    or code_streak[streak_key] >= SAME_CODE_HALT):
-                result.status = "HALT"
-                rec.halted = (
-                    f"同错 {SAME_CODE_HALT} 轮:{streak_key},"
-                    f"finding_hash={current_finding_hash},升级人工"
+            if not repair_round:
+                streak_key = "|".join(sorted({f.code for f in blocking}))
+                code_streak[streak_key] = code_streak.get(streak_key, 0) + 1
+                current_finding_hash = _finding_hash(blocking)
+                finding_hash_streak[current_finding_hash] = finding_hash_streak.get(current_finding_hash, 0) + 1
+                self.audit.event(
+                    "finding-convergence",
+                    round_no=round_no,
+                    finding_hash=current_finding_hash,
+                    hash_streak=finding_hash_streak[current_finding_hash],
+                    code_streak=code_streak[streak_key],
+                    blocking_count=len(blocking),
                 )
-                self.audit.event("loop-halt", round_no=round_no, reason=rec.halted)
-                return result
+                # A stable semantic finding is stronger evidence of a non-moving
+                # layout than a code-only match.  Halt on the second identical
+                # snapshot to prevent reverse-clamp/group-arrange oscillation.
+                if (finding_hash_streak[current_finding_hash] >= SAME_CODE_HALT
+                        or code_streak[streak_key] >= SAME_CODE_HALT):
+                    result.status = "HALT"
+                    rec.halted = (
+                        f"同错 {SAME_CODE_HALT} 轮:{streak_key},"
+                        f"finding_hash={current_finding_hash},升级人工"
+                    )
+                    self.audit.event("loop-halt", round_no=round_no, reason=rec.halted)
+                    return result
+            else:
+                # 修复轮不参与 streak 记账与 HALT(增量修复轮定案,2026-09-15):
+                # streak 语义是「LLM 反复产出同一不动缺陷」,修复轮无 LLM/无计划
+                # 变更,是确定性重试——若计入,序列 full₁(fail)→repair(同码
+                # fail)会在修复轮当场 HALT,恰好剥夺它要保护的「LLM 带 feedback
+                # 的全量重试」。可观测性经事件字段保留;_force_full 确保下轮必全量
+                # (同签名另被 _repair_attempted 封死,无死循环)。
+                self.audit.event(
+                    "finding-convergence", round_no=round_no, repair=True,
+                    finding_hash=_finding_hash(blocking), blocking_count=len(blocking),
+                )
+                self._force_full = True
             feedback = attribute(blocking)
             # P4-4① sizing 输出经 feedback 注入下轮(值类建议带表内可用值提示,planner 采纳时
             # 用 resistor-std/capacitor-std 落图;只在还有下一轮时有意义,PASS 轮不经过此处)
@@ -1225,6 +1740,13 @@ class LoopController:
             if siz_fb:
                 feedback = feedback + "\n" + siz_fb
             rec.feedback = feedback
+            # 插入点 E(增量修复轮):为下一轮做修复决策。仅全量轮末算——修复轮
+            # 刚失败(_force_full 已置),再排队修复无意义;最后一轮不排队(修
+            # 了也轮不到验收)。_should_repair 内部 G1-G7 任一不满足即 None,
+            # 行为退回全量轮。
+            if not self.dry_run and round_no < self.max_rounds:
+                next_repair_ctx = None if repair_round else self._should_repair(
+                    blocking, gate_report)
         self.audit.event("loop-done", status="FAIL", rounds=self.max_rounds)
         return result
 
@@ -2694,7 +3216,9 @@ class LoopController:
         return snapshot, findings
 
     def _terminal_layout_audit(self, actions, round_no: int,
-                               placed_by_page: dict[str, dict[str, list[str]]]) -> list[Finding]:
+                               placed_by_page: dict[str, dict[str, list[str]]],
+                               extra_expected: dict[str, list[str]] | None = None,
+                               ) -> list[Finding]:
         """Run one final, strict per-page audit immediately before gate."""
         findings: list[Finding] = []
         self._layout_snapshots = {}
@@ -2711,6 +3235,12 @@ class LoopController:
             ))
             for page in pages
         }
+        # 修复轮冻结页不在本轮 placed_by_page(未重放),期望表由 stash 补
+        # (增量修复轮,2026-09-15):缺补=冻结页所有件被判 LAYOUT_COMPONENT_
+        # MISSING 假阳,触发不必要的全量重放——正是冻结语义要避免的浪费。
+        for page, designators in (extra_expected or {}).items():
+            if page in expected_by_page and not expected_by_page[page]:
+                expected_by_page[page] = list(dict.fromkeys(designators))
         for page in pages:
             expected = expected_by_page[page]
             snapshot, page_findings = self._read_layout_snapshot(
@@ -3178,7 +3708,18 @@ class LoopController:
             except AdapterError as e:
                 self.audit.event("titleblock-error", round_no=round_no, page=page, error=str(e)[:500])
 
-    def _apply(self, actions, round_no: int) -> tuple[bool, dict | None]:
+    def _apply(self, actions, round_no: int, *,
+               exec_actions: list | None = None,
+               taken_seed: set[str] | None = None,
+               frozen_expected: dict[str, list[str]] | None = None,
+               ) -> tuple[bool, dict | None]:
+        """执行动作流并收口。actions 恒为**全量动作列表**(gate/契约/terminal/
+        zones/titleblock 的作用域来源,四处调用点不因修复轮缩小);修复轮经
+        exec_actions 只过滤**执行循环**的子集(脏页动作),closeout 的
+        placed_by_page 因此只含脏页→修复通道天然单页作用域。taken_seed 预填
+        冻结页位号防文档级撞号;frozen_expected 给 terminal audit 补冻结页
+        期望器件表(缺补=LAYOUT_COMPONENT_MISSING 假阳)。三参默认 None 时
+        与既有全量路径逐行等价(增量修复轮,2026-09-15)。"""
         from edaloop.generate.adapter import AdapterError
 
         self._warmup()
@@ -3193,7 +3734,7 @@ class LoopController:
         # → pin-verify 假过)→ autoconnect 按请求名找不到件 rc≠0。先到先得:
         # 本轮已引入位号登记在册,place 撞号换同前缀下一空号,并同步改写该件
         # 全部 autoconnect 引用。
-        taken_desig: set[str] = set()
+        taken_desig: set[str] = set(taken_seed or ())  # 修复轮预填冻结页位号:文档级唯一,冻结名必让行
         # Keep the translation keyed by action/instance, not by requested
         # designator.  Distinct instances often share a template reference
         # (for example two ``C1`` blocks); a requested-name keyed map would
@@ -3202,7 +3743,7 @@ class LoopController:
         self._designator_map_by_instance = {}
         zone_designators: dict[str, dict[str, list[str]]] = {}  # P4-1②/P4-b2:页 → claim → 本轮落图位号
         placed_by_page: dict[str, dict[str, list[str]]] = {}  # P4-b3:页 → 实例 → 落图位号(拆组重排用)
-        for act in actions:
+        for act in (exec_actions if exec_actions is not None else actions):
             try:
                 args = self._doc_args(act)  # P4-b2:非 P1 页追加 --doc 钉扎
                 if act.kind in ("sch-place", "block-apply"):
@@ -3270,7 +3811,8 @@ class LoopController:
                             # accepted, so a stale/empty read cannot become a
                             # nominal PASS.
                             self._terminal_layout_findings = self._terminal_layout_audit(
-                                actions, round_no, placed_by_page
+                                actions, round_no, placed_by_page,
+                                extra_expected=frozen_expected,
                             )
                     gate_report = self._gate_all_pages(act.args, actions, round_no)
                     self._gate_contract_findings = self._check_gate_contract(
@@ -3525,6 +4067,9 @@ class LoopController:
                 )
         if not ok_all and gate_report and gate_report.get("verdict") == "pass":
             ok_all = self._verify_substance(actions, round_no)
+        # 纯记账(增量修复轮):本轮 placed_by_page 暴露给 run() 轮尾建 stash;
+        # 全量轮即全量页表,修复轮只含被执行的脏页——调用方按轮型合并。
+        self._last_placed_by_page = placed_by_page
         return ok_all, gate_report
 
     def _verify_substance(self, actions, round_no: int) -> bool:
@@ -3805,6 +4350,54 @@ class LoopController:
         res = read.get("result", {}) or {}
         return sum(1 for c in res.get("components", []) if c.get("componentType") != "sheet")
 
+    def _trial_measure(self, canvas: str, inst: str, want: list[str], round_no: int,
+                       meas: dict, meas_vol: dict,
+                       comp_boxes: dict, vol_boxes: dict) -> bool:
+        """单块量测 + 清场(2026-08-27 定案;2026-09-15 参数化画布页):
+        上游把 block-apply --at 硬钳进图纸可用区,多块同页必被钳到同片纸内
+        互叠(run-aa2412891d84:13/15 块堆 (640,760) 一带,9 对框重叠全因此
+        来)。逐块独占让钳制落点无关紧要——尺寸是平移不变量;清页保证下一块
+        独占画布。want 空(试放失败)也走清页:failed-partial 有残件,不清会
+        污染下一块量测。清不动返回 False(宁退勿错,框量错=装箱全错)。
+        canvas 参数(增量修复轮):全量轮恒 P1;修复轮=首个脏页——P1 干净
+        冻结时在 P1 量测会清掉冻结内容,量测原语必须与画布解耦。"""
+        if want:
+            self._compact_internal_nets(canvas, round_no, {inst: want})
+            _rc, out, _err = self.adapter.run(
+                ["sch", "clusters", "--json", "--doc", canvas])
+            try:
+                rep = json.loads(out) if (out or "").strip() else {}
+            except ValueError:
+                rep = {}
+            cb = {c.get("designator"): (c.get("body") or c.get("box"))
+                  for c in rep.get("clusters") or []
+                  if c.get("designator") and (c.get("body") or c.get("box"))}
+            vb = {c.get("designator"): c.get("box")
+                  for c in rep.get("clusters") or []
+                  if c.get("designator") and c.get("box")}
+            comp_boxes.update(cb)
+            vol_boxes.update(vb)
+            mb = [cb[d] for d in want if d in cb]
+            if len(mb) == len(want):
+                meas[inst] = (min(b["minX"] for b in mb),
+                              min(b["minY"] for b in mb),
+                              max(b["maxX"] for b in mb),
+                              max(b["maxY"] for b in mb))
+            mv = [vb[d] for d in want if d in vb]
+            if len(mv) == len(want):
+                meas_vol[inst] = (
+                    min(b["minX"] for b in mv), min(b["minY"] for b in mv),
+                    max(b["maxX"] for b in mv), max(b["maxY"] for b in mv))
+        if not self._clear_page_verified(canvas, round_no):
+            self.audit.event("trial-measure-clear-failed", round_no=round_no,
+                             instance=inst)
+            return False
+        # 落-量-清把单位时间的画布变更率拉高了一个量级(每实例 apply+拉拢
+        # +clear),正是上游 webview 主线程饿死向量(run-039f5a95e576 连接
+        # 器 wedge 实证):块间歇给保存/重绘风暴留排水口(单测置 0)。
+        time.sleep(self._MEASURE_PACE)
+        return True
+
     def _repack_actions(self, actions, plan, round_no: int) -> bool:
         """两阶段布局(repack):真机试放定框 → 离线装箱 → 就地改写 actions 的 at/page。
 
@@ -3904,50 +4497,15 @@ class LoopController:
         meas_vol: dict[str, tuple[float, float, float, float]] = {}
         trial_anchor: dict[str, tuple[float, float]] = {}  # 实例 → 实际生效原点(钳制感知)
         trial_failed: list[str] = []
+        # 试放几何跨轮暴露口(增量修复轮):本轮起始先失效——fallback 路径不
+        # 记录,旧轮几何绝不能冒充本轮真相;成功路径在 return True 前覆写。
+        self._last_repack_geometry = None
 
         def _measure_module(inst: str, want: list[str]) -> bool:
-            """单块量测 + 清场(2026-08-27 定案):上游把 block-apply --at 硬钳
-            进图纸可用区,多块同页必被钳到同片纸内互叠(run-aa2412891d84:
-            13/15 块堆 (640,760) 一带,9 对框重叠全因此来)。逐块独占让钳制
-            落点无关紧要——尺寸是平移不变量;清页保证下一块独占画布。
-            want 空(试放失败)也走清页:failed-partial 有残件,不清会污染
-            下一块量测。清不动返回 False(宁退勿错,框量错=装箱全错)。"""
-            if want:
-                self._compact_internal_nets("P1", round_no, {inst: want})
-                _rc, out, _err = self.adapter.run(
-                    ["sch", "clusters", "--json", "--doc", "P1"])
-                try:
-                    rep = json.loads(out) if (out or "").strip() else {}
-                except ValueError:
-                    rep = {}
-                cb = {c.get("designator"): (c.get("body") or c.get("box"))
-                      for c in rep.get("clusters") or []
-                      if c.get("designator") and (c.get("body") or c.get("box"))}
-                vb = {c.get("designator"): c.get("box")
-                      for c in rep.get("clusters") or []
-                      if c.get("designator") and c.get("box")}
-                comp_boxes.update(cb)
-                vol_boxes.update(vb)
-                mb = [cb[d] for d in want if d in cb]
-                if len(mb) == len(want):
-                    meas[inst] = (min(b["minX"] for b in mb),
-                                  min(b["minY"] for b in mb),
-                                  max(b["maxX"] for b in mb),
-                                  max(b["maxY"] for b in mb))
-                mv = [vb[d] for d in want if d in vb]
-                if len(mv) == len(want):
-                    meas_vol[inst] = (
-                        min(b["minX"] for b in mv), min(b["minY"] for b in mv),
-                        max(b["maxX"] for b in mv), max(b["maxY"] for b in mv))
-            if not self._clear_page_verified("P1", round_no):
-                self.audit.event("trial-measure-clear-failed", round_no=round_no,
-                                 instance=inst)
-                return False
-            # 落-量-清把单位时间的画布变更率拉高了一个量级(每实例 apply+拉拢
-            # +clear),正是上游 webview 主线程饿死向量(run-039f5a95e576 连接
-            # 器 wedge 实证):块间歇给保存/重绘风暴留排水口(单测置 0)。
-            time.sleep(self._MEASURE_PACE)
-            return True
+            # 薄封装(增量修复轮):全量轮画布恒 P1;量测原语已抽成 _trial_measure
+            # 参数化画布页——修复轮试放画布=首个脏页(P1 可能冻结,绝不能碰)。
+            return self._trial_measure("P1", inst, want, round_no,
+                                       meas, meas_vol, comp_boxes, vol_boxes)
 
         for act in trial_blocks:
             _gp, gx, gy = grid.placements[act.block_instance]
@@ -4626,6 +5184,15 @@ class LoopController:
         # 试放相位(P1 落-量-清)的紧凑化恢复失败只污染随即清弃的试放画布,
         # 不计入生产判据:重放前清零,validate 的 WIRE_RESTORE 门只看生产页
         self._wire_breaks = []
+        # 试放几何跨轮暴露(增量修复轮,纯记账):meas/meas_vol/offsets 本是
+        # 局部变量随轮丢弃——修复轮的试放缓存(未升档块零真机调用)与锚位
+        # 公式(stash offsets)都依赖它们;est 退化块的 offsets=(-450,-450)
+        # 也必须留痕,否则修复轮重装箱时 est 块的锚公式错位。
+        self._last_repack_geometry = {
+            "meas": dict(meas), "meas_vol": dict(meas_vol),
+            "offsets": dict(offsets),
+            "est": {k: list(v) for k, v in est.items()},
+        }
         return True
 
     def _list_components(self, page: str, *, strict: bool = False) -> tuple[list[dict], str]:

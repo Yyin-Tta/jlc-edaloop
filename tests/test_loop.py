@@ -4229,3 +4229,380 @@ def test_repack_oversize_gets_own_page(tmp_path) -> None:
     applies = [c for c in adapter.calls if c[:2] == ["sch", "block-apply"]]
     final = applies[len(adapter.instances):]  # 试放轮之后
     assert any("--doc" in c and c[c.index("--doc") + 1] == "P2" for c in final)
+
+
+# ── 增量修复轮(REPAIR):集成用例(2026-09-15)──────────────────────
+# 场景底座:dcin1=巨块(独占 P2),dcin2=常块(P1)——r1 全量轮后
+# P1/P2 分页,r2 按 gate_by_page 制造「P2 脏、P1 净」的修复触发形态。
+
+
+class _RepairFakeAdapter(_RepackFakeAdapter):
+    """修复轮集成 fake:gate 按页出 verdict+stage findings。
+
+    脏页 verdict「服务一次即愈」:该页此后被 clear --doc(=修复轮重放)则撤销
+    覆盖,回退全局 verdict——「确定性重放治好缺陷」的真机形态建模。persist_
+    gate_pages 里的页永不愈合(练修复失败→全量→HALT 边界);fail_clear_budget
+    让指定页的前 N 次 clear --doc 失败(练 repair-trial-abort→全量)。"""
+
+    def __init__(self, gate_verdict: str, instances: list[str], members=None, **kw) -> None:
+        super().__init__(gate_verdict, instances, members=members, **kw)
+        self.gate_by_page: dict[str, dict] = {}
+        self._gate_served: set[str] = set()
+        self.persist_gate_pages: set[str] = set()
+        self.fail_clear_budget: dict[str, int] = {}
+
+    def run(self, args):
+        if args[:3] == ["sch", "clear", "--doc"]:
+            pg = args[args.index("--doc") + 1]
+            # 清页失败只在修复相位生效(_gate_served 非空=r1 gate 已过):
+            # r1 的建页清页必须照常成功,否则 stash 都建不起来。
+            if pg in self._gate_served and self.fail_clear_budget.get(pg, 0) > 0:
+                self.fail_clear_budget[pg] -= 1
+                self.calls.append(args)
+                return 1, "", "fake: clear wedged"
+            if pg in self._gate_served and pg not in self.persist_gate_pages:
+                self.gate_by_page.pop(pg, None)  # 脏页重放后愈合
+        return super().run(args)
+
+    def run_json(self, args):
+        if args[:2] == ["sch", "gate"] and "--doc" in args:
+            page = args[args.index("--doc") + 1]
+            spec = self.gate_by_page.get(page)
+            if spec is not None:
+                self.calls.append(args)
+                self._gate_served.add(page)
+                findings = spec.get("findings")
+                if findings == "DYNAMIC":  # 用当轮实际落图位号点名(升档归因用)
+                    findings = [{"a": (self.placed.get("dcin2") or ["U9"])[0],
+                                 "b": "GHOST", "type": "overlap", "level": "error"}]
+                return {"verdict": spec.get("verdict", "fail"), "stages": [
+                    {"stage": "clusters", "verdict": spec.get("verdict", "fail"),
+                     "findings": findings or []}]}
+        return super().run_json(args)
+
+
+def _repair_setup(tmp_path, **adapter_kw):
+    # 两块 660×300(双成员横排):每块进图签上方条带(非 oversize),两块
+    # 1320 宽超条带 → 分两页(dcin1→P1,dcin2→P2,实测落页序)。勿用 oversize
+    # 巨块夹具——oversize 页的 clusters 几何 fail 会被 check_gauge 降弱观察
+    # (§5.4.7),blocking 为空,修复轮永不触发。
+    two_page = [(0, 0, 320, 300), (340, 0, 320, 300)]
+    adapter = _RepairFakeAdapter(
+        "pass", ["dcin1", "dcin2"],
+        members={"dcin1": two_page, "dcin2": two_page}, **adapter_kw)
+    # blocking item 位号不在 stash(纯页归因,不升档):findings 为空会走
+    # check_gauge 的「verdict=fail 无分项」合成 GATE_FAIL——那是不可归因
+    # 形态,恰好不触发修复轮(fail-closed 设计,勿改)。
+    adapter.gate_by_page["P2"] = {"verdict": "fail", "findings": [
+        {"a": "A9", "b": "B9", "type": "overlap", "level": "error"}]}
+    chat = FakeChat(json.dumps(_PLAN_2WIDE, ensure_ascii=False))
+    lc = _loop(chat, adapter, ir=_ir_with_rails(("12V", 12.0)), tmp=str(tmp_path))
+    return lc, chat, adapter
+
+
+def test_repair_round_only_touches_dirty_pages(tmp_path) -> None:
+    """P2 gate fail → r2 修复:不清 P1、不调 LLM(chat 1 次)、P2 重放、全页 gate 照跑。"""
+    lc, chat, adapter = _repair_setup(tmp_path)
+    lc.incremental_enabled = True
+    result = lc.run()
+    assert result.status == "PASS" and result.converged_round == 2
+    assert len(chat.messages) == 1  # LLM 只服务 r1;修复轮零 LLM
+    # 清全档只发生在 r1(修复轮跳过 clear_all_pages)
+    assert sum(1 for c in adapter.calls if c == ["sch", "clear", "--all-windows"]) == 1
+    # r1 首次 gate 之后的全部调用里:P1 零清页(冻结),P2 至少一次清页(脏)
+    first_gate = next(i for i, c in enumerate(adapter.calls) if c[:2] == ["sch", "gate"])
+    post = adapter.calls[first_gate:]
+    assert not any(c[:3] == ["sch", "clear", "--doc"] and c[c.index("--doc") + 1] == "P1"
+                   for c in post)
+    assert any(c[:3] == ["sch", "clear", "--doc"] and c[c.index("--doc") + 1] == "P2"
+               for c in post)
+    # 修复轮 gate 全页照跑(冻结页复验安全网):P1/P2 各两轮各一次
+    for pg in ("P1", "P2"):
+        assert sum(1 for c in adapter.calls if c[:2] == ["sch", "gate"]
+                   and c[c.index("--doc") + 1] == pg) == 2
+    evs = _audit_events(str(tmp_path))
+    repair_ev = next(e for e in evs if e.get("kind") == "repair-round")
+    assert repair_ev["dirty"] == ["P2"] and repair_ev["frozen"] == ["P1"]
+    plan_ev_r2 = next(e for e in evs if e.get("kind") == "round-plan" and e.get("round_no") == 2)
+    assert plan_ev_r2.get("source") == "repair-stash"
+    pc = next(e for e in evs if e.get("kind") == "page-clear" and e.get("mode") == "repair")
+    assert pc["dirty"] == ["P2"] and "P1" not in pc["dirty"]
+
+
+def test_repair_skipped_when_all_pages_dirty(tmp_path) -> None:
+    """全页脏 → 修复轮不触发(全脏=全量轮),r2 走全清全放(chat 第 2 次)。"""
+    lc, chat, adapter = _repair_setup(tmp_path)
+    lc.incremental_enabled = True
+    adapter.gate_by_page["P1"] = {"verdict": "fail", "findings": [
+        {"a": "A8", "b": "B8", "type": "overlap", "level": "error"}]}
+    result = lc.run()
+    assert result.status == "PASS" and result.converged_round == 2
+    assert len(chat.messages) == 2  # r2 是 LLM 全量轮
+    assert sum(1 for c in adapter.calls if c == ["sch", "clear", "--all-windows"]) == 2
+    assert not any(e.get("kind") == "repair-round" for e in _audit_events(str(tmp_path)))
+
+
+def test_repair_failure_escalates_to_full_then_halt(tmp_path) -> None:
+    """修不动(持久缺陷)→ r2 修复不 HALT 不计 streak → r3 全量同错 → HALT@3。
+
+    覆盖两个计划用例:签名册(同签名只修一次,修复失败后必全量)与 HALT 边界
+    (full→repair→full 同 hash=streak 2,LLM 恰好多得一次全量重试)。"""
+    lc, chat, adapter = _repair_setup(tmp_path)
+    lc.incremental_enabled = True
+    adapter.persist_gate_pages = {"P2"}  # P2 重放不愈:修复轮注定失败
+    result = lc.run()
+    assert result.status == "HALT" and len(result.rounds) == 3
+    assert len(chat.messages) == 2  # r1+r3 两次 LLM;修复轮零 LLM
+    assert result.rounds[1].mode == "repair" and not result.rounds[1].halted
+    assert "同错" in (result.rounds[2].halted or "")
+    evs = _audit_events(str(tmp_path))
+    conv_r2 = next(e for e in evs if e.get("kind") == "finding-convergence"
+                   and e.get("round_no") == 2)
+    assert conv_r2.get("repair") is True  # 修复轮记账带标记、不进 streak
+    assert not any(e.get("kind") == "loop-halt" and e.get("round_no") == 2 for e in evs)
+    assert sum(1 for e in evs if e.get("kind") == "repair-round") == 1  # 同签名只修一次
+
+
+def test_repair_taken_seed_avoids_frozen_designators(tmp_path) -> None:
+    """位号防撞:taken_seed 预填冻结页位号 → 脏页 std-place 撞号走既有抢先
+    改名通道(同前缀下一空号),autoconnect 引用同步改写。"""
+    catalog = _catalog()
+    catalog["cap-100n"] = BlockRecord(
+        block_id="cap-100n", name="cap", desc="x", lcsc="C123", pinout={"1": "A", "2": "B"}
+    )
+    plan = BlockPlan.model_validate({
+        "design_ir_id": "x", "source": "req.md",
+        "blocks": [{"block_id": "cap-100n", "upstream_id": "", "instance": "c1",
+                    "pins_binding": {"1": "5V", "2": "GND"}}],
+    })
+    actions = compile_actions(plan, catalog)
+    adapter = _DesigFakeAdapter("pass")
+    lc = _loop(FakeChat("{}"), adapter, ir=_ir_loop(), tmp=str(tmp_path))
+    ok, _gate = lc._apply(actions, 1, taken_seed={"C1"})  # 冻结页占 C1
+    assert ok
+    places = [c for c in adapter.calls if c[:2] == ["sch", "place"]]
+    assert places and places[0][places[0].index("--designator") + 1] == "C2"
+    ac = [c for c in adapter.calls if c[:2] == ["sch", "autoconnect"]]
+    assert sorted(c[c.index("--pin") + 1] for c in ac) == ["C2:1", "C2:2"]
+
+
+def test_repair_frozen_drift_unfreezes_to_full(tmp_path) -> None:
+    """冻结页漂移(读回多出幽灵位号)→ 解冻并入脏集 → 全脏放弃修复,走全量。"""
+    lc, chat, adapter = _repair_setup(tmp_path)
+
+    _orig_run = adapter.run
+
+    def run_with_drift(args):
+        if args[:3] == ["sch", "clusters", "--json"] and "--doc" in args \
+                and args[args.index("--doc") + 1] == "P1" \
+                and adapter._gate_served:  # r1 gate 之后=修复轮漂移检测相位
+            adapter.calls.append(args)
+            return 0, json.dumps({"clusters": [
+                {"designator": d, "box": b} for d, b in adapter.model.get("P1", {}).items()
+            ] + [{"designator": "GHOST1", "box": {"minX": 0, "minY": 0, "maxX": 9, "maxY": 9}}],
+                "findings": []}), ""
+        return _orig_run(args)
+
+    adapter.run = run_with_drift
+    lc.incremental_enabled = True
+    result = lc.run()
+    evs = _audit_events(str(tmp_path))
+    assert any(e.get("kind") == "repair-drift" and e.get("pages") == ["P1"] for e in evs)
+    assert any(e.get("kind") == "repair-abort" and e.get("reason") == "repair-drift-full"
+               for e in evs)
+    # r2 修复轮 abort(GATE_FAIL 阻断但 repair=True 不计 streak)→ r3 全量 PASS
+    assert result.status == "PASS" and result.converged_round == 3
+    assert len(chat.messages) == 2
+    assert result.rounds[1].mode == "repair" and not result.rounds[1].halted
+
+
+def test_repair_bump_uses_dirty_canvas_and_trial_cache(tmp_path) -> None:
+    """升档块(gate 点名 P2 块位号)→ 试放画布=脏页 P2(P1 冻结绝不在 P1 量测),
+    spacing+100,未升档块零真机调用(trial-cache-hit)。"""
+    lc, chat, adapter = _repair_setup(tmp_path)
+    lc.incremental_enabled = True
+    adapter.gate_by_page["P2"] = {"verdict": "fail", "findings": "DYNAMIC"}
+    result = lc.run()
+    assert result.status == "PASS" and result.converged_round == 2
+    evs = _audit_events(str(tmp_path))
+    repair_ev = next(e for e in evs if e.get("kind") == "repair-round")
+    assert "dcin2" in repair_ev["bumps"]  # 点名位号反查到 P2 块实例
+    cache_ev = next(e for e in evs if e.get("kind") == "trial-cache-hit")
+    assert cache_ev["canvas"] == "P2" and cache_ev["bumped"] == ["dcin2"]
+    assert cache_ev["instances"] == []  # 脏页唯一块已升档;冻结块根本不进试放
+    # 升档生效:_PLAN_2WIDE 块自带 params.spacing=100 → r2 试放与正式重放均带
+    # --spacing 200(100+100;升档是相对原值小步,不锚定全局默认 250)
+    reapplies = [c for c in adapter.calls if c[:2] == ["sch", "block-apply"]
+                 and "--doc" in c and c[c.index("--doc") + 1] == "P2"
+                 and "--spacing" in c
+                 and c[c.index("--spacing") + 1] == "200"]
+    assert reapplies
+    # 修复相位(首个 gate 之后)P1 恰一次 clusters 读回(漂移检测)且零试放/
+    # 零落图/零清页——冻结页的全部真机开销就这一次读
+    first_gate = next(i for i, c in enumerate(adapter.calls) if c[:2] == ["sch", "gate"])
+    post = adapter.calls[first_gate:]
+    p1_clusters = [c for c in post if c[:3] == ["sch", "clusters", "--json"]
+                   and "--doc" in c and c[c.index("--doc") + 1] == "P1"]
+    assert len(p1_clusters) == 1  # 漂移检测;多一次即试放误上 P1
+    assert not any(c[:3] == ["sch", "clear", "--doc"] and c[c.index("--doc") + 1] == "P1"
+                   for c in post)
+    assert not any(c[:2] in (["sch", "block-apply"], ["sch", "place"])
+                   and "--doc" in c and c[c.index("--doc") + 1] == "P1" for c in post)
+
+
+def test_repair_page_clear_failure_forces_full(tmp_path) -> None:
+    """脏页清不动(修复轮画布两趟不清)→ repair-trial-abort → r3 全量不 HALT。"""
+    lc, chat, adapter = _repair_setup(tmp_path)
+    lc.incremental_enabled = True
+    adapter.fail_clear_budget["P2"] = 2  # r2 画布清页两趟失败(仅修复相位)
+    result = lc.run()
+    evs = _audit_events(str(tmp_path))
+    assert any(e.get("kind") == "repair-trial-abort" for e in evs)
+    assert result.rounds[1].mode == "repair" and not result.rounds[1].halted
+    assert any(f.code == "GATE_FAIL" for f in result.rounds[1].findings)  # r2 阻断
+    assert result.status == "PASS" and result.converged_round == 3
+    assert len(chat.messages) == 2  # r3 全量 LLM 重试
+
+
+def test_repair_off_by_default(tmp_path) -> None:
+    """默认关:同场景不设开关 → r2 全量轮(chat 两次、clear-all 两次)。"""
+    lc, chat, adapter = _repair_setup(tmp_path)
+    # 不设 incremental_enabled(默认 False,钉死向后兼容契约)
+    result = lc.run()
+    assert result.status == "PASS" and result.converged_round == 2
+    assert len(chat.messages) == 2
+    assert sum(1 for c in adapter.calls if c == ["sch", "clear", "--all-windows"]) == 2
+    assert not any(e.get("kind") == "repair-round" for e in _audit_events(str(tmp_path)))
+
+
+# ── 增量修复轮(REPAIR):判定层单测(2026-09-15)──────────────────────
+# 直调方法不走 run():stash 状态手工准备,聚焦 G1-G7 闸与归因规则表。
+
+
+class _ClusterReadAdapter(_FakeAdapter):
+    """clusters 读回可编程(stub 冻结页漂移检测)。"""
+
+    def __init__(self, gate_verdict: str, clusters_by_page: dict | None = None) -> None:
+        super().__init__(gate_verdict)
+        self.clusters_by_page = clusters_by_page or {}
+
+    def run(self, args):
+        self.calls.append(args)
+        if args[:3] == ["sch", "clusters", "--json"]:
+            page = args[args.index("--doc") + 1] if "--doc" in args else "P1"
+            if page in self.clusters_by_page:
+                return 0, json.dumps(self.clusters_by_page[page]), ""
+        return super().run(args)
+
+
+def _repair_lc(tmp_path, adapter=None) -> LoopController:
+    lc = _loop(FakeChat("{}"), adapter or _FakeAdapter("fail"), tmp=str(tmp_path))
+    lc.incremental_enabled = True
+    lc._stash_valid = True
+    # 双页 stash:P1=ldo(U1),P2=dc(U2);动作对象只需 kind/page(_plan_pages 口径)
+    lc._stash_actions = [
+        Action(kind="block-apply", block_instance="u1", args=["sch", "block-apply", "x"], page="P1"),
+        Action(kind="block-apply", block_instance="u2", args=["sch", "block-apply", "y"], page="P2"),
+    ]
+    lc._stash_placed_by_page = {"P1": {"u1": ["U1"]}, "P2": {"u2": ["U2"]}}
+    lc._stash_page_designators = {"P1": ["U1"], "P2": ["U2"]}
+    return lc
+
+
+def _gate_report_dirty_p2() -> dict:
+    return {"verdict": "fail", "stages": [
+        {"stage": "clusters", "verdict": "fail", "page": "P2",
+         "findings": [{"a": "U2", "b": "U3", "type": "overlap"}]},
+        {"stage": "clusters", "verdict": "pass", "page": "P1", "findings": []},
+    ]}
+
+
+def test_repair_scope_gate_fail_attributable(tmp_path) -> None:
+    lc = _repair_lc(tmp_path)
+    blocking = [Finding(code="GATE_FAIL", where=Where(ref="clusters"),
+                        evidence="U2 overlap U3", suggested_fix_class="RELAYOUT")]
+    ctx = lc._should_repair(blocking, _gate_report_dirty_p2())
+    assert ctx is not None
+    assert ctx["dirty"] == {"P2"} and ctx["frozen"] == {"P1"}
+    assert "u2" in ctx["bumps"]  # gate 点名 U2 → stash 反查实例升档
+
+
+def test_repair_scope_synthetic_gate_fail_forces_full(tmp_path) -> None:
+    lc = _repair_lc(tmp_path)
+    # apply_ok=False 伪造/无分项明细形态:ref 不在任何脏 stage → 不可归因
+    blocking = [Finding(code="GATE_FAIL", where=Where(ref=""),
+                        evidence="verdict=fail 但未给出分项明细")]
+    assert lc._should_repair(blocking, _gate_report_dirty_p2()) is None
+
+
+def test_repair_scope_semantic_finding_forces_full(tmp_path) -> None:
+    lc = _repair_lc(tmp_path)
+    blocking = [
+        Finding(code="GATE_FAIL", where=Where(ref="clusters"), evidence="U2 overlap U3"),
+        Finding(code="MISSING_RAIL", where=Where(ref="5V"), evidence="缺 5V 轨"),
+    ]
+    assert lc._should_repair(blocking, _gate_report_dirty_p2()) is None
+
+
+def test_repair_scope_all_pages_dirty_forces_full(tmp_path) -> None:
+    lc = _repair_lc(tmp_path)
+    rep = {"verdict": "fail", "stages": [
+        {"stage": "clusters", "verdict": "fail", "page": pg,
+         "findings": [{"a": "U1", "b": "U2", "type": "overlap"}]} for pg in ("P1", "P2")
+    ]}
+    blocking = [Finding(code="GATE_FAIL", where=Where(ref="clusters"), evidence="overlap")]
+    assert lc._should_repair(blocking, rep) is None  # 全脏=全量轮
+
+
+def test_repair_scope_signature_registry_blocks_retry(tmp_path) -> None:
+    lc = _repair_lc(tmp_path)
+    blocking = [Finding(code="GATE_FAIL", where=Where(ref="clusters"), evidence="U2 overlap U3")]
+    sigs = lc._repair_signatures(blocking)
+    lc._repair_attempted |= sigs
+    assert lc._should_repair(blocking, _gate_report_dirty_p2()) is None  # 撞册
+
+
+def test_repair_scope_switch_and_stash_gates(tmp_path) -> None:
+    lc = _repair_lc(tmp_path)
+    blocking = [Finding(code="GATE_FAIL", where=Where(ref="clusters"), evidence="U2 overlap U3")]
+    lc.incremental_enabled = False
+    assert lc._should_repair(blocking, _gate_report_dirty_p2()) is None
+    lc.incremental_enabled = True
+    lc._stash_valid = False
+    assert lc._should_repair(blocking, _gate_report_dirty_p2()) is None
+    lc._force_full = True
+    lc._stash_valid = True
+    assert lc._should_repair(blocking, _gate_report_dirty_p2()) is None
+
+
+def test_repair_scope_net_missing_and_wire_breaks(tmp_path) -> None:
+    lc = _repair_lc(tmp_path)
+    lc._net_missing = [{"page": "P2", "missing": ["GND"]}]
+    blocking = [Finding(code="NET_MISSING", where=Where(net="GND"), evidence="P2 页缺规划网 GND")]
+    ctx = lc._should_repair(blocking, {"verdict": "fail", "stages": []})
+    assert ctx is not None and ctx["dirty"] == {"P2"} and not ctx["bumps"]
+    lc2 = _repair_lc(tmp_path)
+    lc2._wire_breaks = ["P1:GND:U1:1:marker-dup"]
+    blocking2 = [Finding(code="WIRE_RESTORE_BROKEN", where=Where(),
+                         evidence="恢复失败 4 处超过阈值")]
+    ctx2 = lc2._should_repair(blocking2, {"verdict": "fail", "stages": []})
+    assert ctx2 is not None and ctx2["dirty"] == {"P1"}
+
+
+def test_repair_frozen_drift_set_level_comparison(tmp_path) -> None:
+    # 集合级比对:同数换名=漂移(计数相等不代表未漂移)
+    adapter = _ClusterReadAdapter("fail", clusters_by_page={
+        "P1": {"clusters": [{"designator": "U1"}, {"designator": "C5"}]},
+    })
+    lc = _repair_lc(tmp_path, adapter)
+    assert lc._frozen_page_drift({"P1"}) == {"P1"}  # stash={U1},读回={U1,C5} → 漂移
+    lc._stash_page_designators = {"P1": ["U1", "C5"]}
+    assert lc._frozen_page_drift({"P1"}) == set()
+    lc._stash_page_designators = {"P1": ["U1", "C9"]}  # 同数换名
+    assert lc._frozen_page_drift({"P1"}) == {"P1"}
+
+
+def test_repair_frozen_drift_read_failure_is_drift(tmp_path) -> None:
+    # 读失败(空回包)按漂移处理:fail-closed,不可核验≠未漂移
+    lc = _repair_lc(tmp_path, _FakeAdapter("fail"))
+    assert lc._frozen_page_drift({"P1"}) == {"P1"}

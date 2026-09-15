@@ -61,3 +61,32 @@ def test_resume_reruns_error_rows(tmp_path: Path, monkeypatch):
     run_w3_loop_eval(tier="smoke", dry_run=True, resume=True)
 
     assert called == ["a.md", "b.md"]  # ERROR 行重跑;b.md 无历史行,正常执行
+
+
+def test_incremental_env_setdown_and_no_leak(tmp_path: Path, monkeypatch):
+    """增量修复轮 env 注入:eval 期间生效、结束后不泄漏、显式 0 不被覆盖。"""
+    import os
+    from edaloop.loop.controller import LoopController
+
+    for name in ("EDALOOP_INCREMENTAL",):
+        monkeypatch.delenv(name, raising=False)
+    probe: list[bool] = []
+
+    def fake_stage_run(body, source, max_rounds, dry_run):
+        probe.append(LoopController.__new__(LoopController))  # 不走真构造
+        import edaloop.loop.controller as C
+        # 直接读构造期同款判据:env=1 应被 LoopController 视为开
+        probe.append(os.environ.get("EDALOOP_INCREMENTAL", "") in ("1", "true", "yes"))
+        return None, _fake_result()
+
+    _setup(tmp_path, monkeypatch, {})
+    monkeypatch.setattr(w3, "stage_run", fake_stage_run)
+
+    run_w3_loop_eval(tier="smoke", dry_run=True, resume=True)
+    assert probe[-1] is True  # eval 期间 env 已注入
+    assert os.environ.get("EDALOOP_INCREMENTAL") is None  # 结束后不泄漏
+
+    # 操作者显式 0:A/B 对照时不被 setdefault 覆盖
+    monkeypatch.setenv("EDALOOP_INCREMENTAL", "0")
+    run_w3_loop_eval(tier="smoke", dry_run=True, resume=True)
+    assert os.environ.get("EDALOOP_INCREMENTAL") == "0"

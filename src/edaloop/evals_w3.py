@@ -117,6 +117,22 @@ def _save_state(state: dict, path: Path) -> None:
 
 
 def run_w3_loop_eval(max_rounds: int = 5, dry_run: bool = False, resume: bool = True, tier: str | None = None) -> dict:
+    # 增量修复轮默认开(2026-09-15):w3 是本特性的主受益方(14 需求×多轮全量
+    # 重放极耗时)。为什么走 env 而非 stage_run 加参:①LoopController 构造期
+    # 合成 env 是既有惯例(EDALOOP_ZONES/FRAMES 同款);②stage_run 的调用方
+    # 签名被 test_evals_w3 按位置 monkeypatch,加参即破存量测试;setdefault
+    # 保留操作者显式 EDALOOP_INCREMENTAL=0 做 A/B 对照;finally pop 不泄漏。
+    import os as _os
+    _added = "EDALOOP_INCREMENTAL" not in _os.environ
+    _os.environ.setdefault("EDALOOP_INCREMENTAL", "1")
+    try:
+        return _run_w3_loop_eval(max_rounds, dry_run, resume, tier)
+    finally:
+        if _added:
+            _os.environ.pop("EDALOOP_INCREMENTAL", None)
+
+
+def _run_w3_loop_eval(max_rounds: int = 5, dry_run: bool = False, resume: bool = True, tier: str | None = None) -> dict:
     reqs = _pick(tier)
     if tier not in (None, "all"):
         state_path = Path(f"runs/w3-loop-state-{tier}.json")
