@@ -4634,3 +4634,50 @@ def test_repair_frozen_drift_read_failure_is_drift(tmp_path) -> None:
     # 读失败(空回包)按漂移处理:fail-closed,不可核验≠未漂移
     lc = _repair_lc(tmp_path, _FakeAdapter("fail"))
     assert lc._frozen_page_drift({"P1"}) == {"P1"}
+
+
+class _PlaceStarveFakeAdapter(_ZoneFakeAdapter):
+    """1.4.8 批量饿死形态:指定块首发 failed-rolled-back(connector did not
+    respond),settle 重试即愈(真机实证同批后续块 30-60s 后照常落稳)。"""
+
+    def __init__(self, gate_verdict: str, starve_upstream: str) -> None:
+        super().__init__(gate_verdict)
+        self.starve_upstream = starve_upstream
+        self.served = False
+
+    def run(self, args):
+        if (args[:2] == ["sch", "block-apply"] and not self.served
+                and self.starve_upstream in args):
+            self.calls.append(args)
+            self.served = True
+            return 0, json.dumps({
+                "ok": "failed-rolled-back",
+                "failure": "place U1: schematic.component.place failed: "
+                           "connector did not respond",
+            }), ""
+        return super().run(args)  # 父类已记 calls,勿双重 append
+
+
+def test_apply_settle_retry_recovers_transient_place_starve(tmp_path) -> None:
+    """did-not-respond 回滚(failed-rolled-back)此前不进任何重试分支;现在
+    settle 退避两档重试,暂时性饿死自愈,块最终 applied(§5.4.13 坑3 对症)。"""
+    plan = BlockPlan.model_validate({
+        "design_ir_id": "x", "source": "req.md",
+        "blocks": [{
+            "block_id": "ldo-ams1117-3v3",
+            "upstream_id": "block.ams1117_ldo_3v3",
+            "instance": "u1",
+            "ports_binding": {"VIN_5V": "5V", "3V3": "3V3", "GND": "GND"},
+        }],
+    })
+    actions = compile_actions(plan, _catalog())
+    adapter = _PlaceStarveFakeAdapter("pass", starve_upstream="block.ams1117_ldo_3v3")
+    lc = _loop(FakeChat("{}"), adapter, tmp=str(tmp_path))
+    lc._PLACE_SETTLE_PACES = (0.0, 0.0)  # 单测关退避等待
+    ok, _gate = lc._apply(actions, 1)
+    assert ok
+    applies = [c for c in adapter.calls if c[:2] == ["sch", "block-apply"]]
+    assert len(applies) == 2  # 首发饿死回滚 + settle 重试一次即愈
+    retry_ev = [e for e in _audit_events(str(tmp_path))
+                if e.get("kind") == "block-apply" and e.get("retry")]
+    assert retry_ev and retry_ev[0]["status"] == "applied" and retry_ev[0]["settle"] == 0.0

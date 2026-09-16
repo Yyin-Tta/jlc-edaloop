@@ -3714,6 +3714,9 @@ class LoopController:
             except AdapterError as e:
                 self.audit.event("titleblock-error", round_no=round_no, page=page, error=str(e)[:500])
 
+    # place 超时退避档(秒):单测置空防拖慢;真机两档 10s→20s(§5.4.13 坑3)
+    _PLACE_SETTLE_PACES = (10.0, 20.0)
+
     def _apply(self, actions, round_no: int, *,
                exec_actions: list | None = None,
                taken_seed: set[str] | None = None,
@@ -4054,6 +4057,33 @@ class LoopController:
                                 instance=act.block_instance,
                                 error=str(e)[:1500],
                             )
+                    if status != "applied" and act.kind == "block-apply" and \
+                            "did not respond" in str(manifest.get("failure", "") or ""):
+                        # 1.4.8 连接器批量饿死形态(2026-09-16 真机,§5.4.13 坑3):
+                        # place 超时 "connector did not respond" → 块整体回滚
+                        # (failed-rolled-back,**不进上面 failed-partial 的 jitter
+                        # 重试**)。实证同一批后续块 30-60s 后照常落稳=暂时性
+                        # webview 饥饿(save/重绘风暴排干即愈)。立即重试只会迎
+                        # 头再撞,退避两档(10s→20s)给风暴留排水口;再败则照
+                        # 旧走 ok_all=False→GATE_FAIL 反馈路径,不静默。
+                        for settle in self._PLACE_SETTLE_PACES:
+                            time.sleep(settle)
+                            try:
+                                manifest = self._run_manifest_once(list(args))
+                                status = manifest.get("ok") or manifest.get("status") or "unknown"
+                            except AdapterError as e:
+                                self.audit.event(
+                                    "apply-fatal", round_no=round_no,
+                                    instance=act.block_instance, error=str(e)[:1500],
+                                )
+                                break
+                            self.audit.event(
+                                act.kind, round_no=round_no, instance=act.block_instance,
+                                status=status, retry=True, settle=settle,
+                                page=act.page or "P1",
+                            )
+                            if status == "applied":
+                                break
                 if status == "applied":
                     des = [p["designator"] for p in manifest.get("placed", []) or [] if p.get("designator")]
                     if des:
