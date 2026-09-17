@@ -4084,6 +4084,26 @@ class LoopController:
                             )
                             if status == "applied":
                                 break
+                        if status != "applied":
+                            # refresh_window 后手(2026-09-17,第八跑前):settle 两档
+                            # 皆败=窗口级持续坏态(第七跑 req-01 18 超时 settle 仅救回
+                            # 5——风暴排干解释不了的部分)。refresh_window 重置连接器
+                            # session(历史实证「重开窗口」可救 wedge 类坏态),再补
+                            # 一发;仍败走既有 ok_all=False 路径,不静默。
+                            try:
+                                self.adapter.refresh_window()
+                                manifest = self._run_manifest_once(list(args))
+                                status = manifest.get("ok") or manifest.get("status") or "unknown"
+                                self.audit.event(
+                                    act.kind, round_no=round_no,
+                                    instance=act.block_instance, status=status,
+                                    retry=True, refresh=True, page=act.page or "P1",
+                                )
+                            except AdapterError as e:
+                                self.audit.event(
+                                    "apply-fatal", round_no=round_no,
+                                    instance=act.block_instance, error=str(e)[:1500],
+                                )
                 if status == "applied":
                     des = [p["designator"] for p in manifest.get("placed", []) or [] if p.get("designator")]
                     if des:

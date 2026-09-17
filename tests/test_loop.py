@@ -4681,3 +4681,52 @@ def test_apply_settle_retry_recovers_transient_place_starve(tmp_path) -> None:
     retry_ev = [e for e in _audit_events(str(tmp_path))
                 if e.get("kind") == "block-apply" and e.get("retry")]
     assert retry_ev and retry_ev[0]["status"] == "applied" and retry_ev[0]["settle"] == 0.0
+
+
+class _PlaceWedgeFakeAdapter(_ZoneFakeAdapter):
+    """窗口级持续坏态:settle 两档皆败,refresh_window 重置 session 后才恢复
+    (第七跑 req-01 形态:18 超时 settle 仅救回 5,风暴排干解释不了的部分)。"""
+
+    def __init__(self, gate_verdict: str, starve_upstream: str) -> None:
+        super().__init__(gate_verdict)
+        self.starve_upstream = starve_upstream
+        self.refreshed = False
+
+    def refresh_window(self):
+        self.refreshed = True  # 重置后连接器恢复(_FakeAdapter 默认 pass)
+
+    def run(self, args):
+        if (args[:2] == ["sch", "block-apply"] and not self.refreshed
+                and self.starve_upstream in args):
+            self.calls.append(args)
+            return 0, json.dumps({
+                "ok": "failed-rolled-back",
+                "failure": "place U1: schematic.component.place failed: "
+                           "connector did not respond",
+            }), ""
+        return super().run(args)  # 父类已记 calls
+
+
+def test_apply_refresh_window_recovers_persistent_wedge(tmp_path) -> None:
+    """settle 两档皆败的持续坏态 → refresh_window 重置 session 后补一发即愈
+    (§5.4.13 坑3 的窗口级后手)。"""
+    plan = BlockPlan.model_validate({
+        "design_ir_id": "x", "source": "req.md",
+        "blocks": [{
+            "block_id": "ldo-ams1117-3v3",
+            "upstream_id": "block.ams1117_ldo_3v3",
+            "instance": "u1",
+            "ports_binding": {"VIN_5V": "5V", "3V3": "3V3", "GND": "GND"},
+        }],
+    })
+    actions = compile_actions(plan, _catalog())
+    adapter = _PlaceWedgeFakeAdapter("pass", starve_upstream="block.ams1117_ldo_3v3")
+    lc = _loop(FakeChat("{}"), adapter, tmp=str(tmp_path))
+    lc._PLACE_SETTLE_PACES = (0.0, 0.0)
+    ok, _gate = lc._apply(actions, 1)
+    assert ok and adapter.refreshed
+    applies = [c for c in adapter.calls if c[:2] == ["sch", "block-apply"]]
+    assert len(applies) == 4  # 首发 + settle×2(皆败) + refresh 补发
+    ref_ev = [e for e in _audit_events(str(tmp_path))
+              if e.get("kind") == "block-apply" and e.get("refresh")]
+    assert ref_ev and ref_ev[0]["status"] == "applied"
