@@ -21,6 +21,12 @@ schema:
 - 合并单元格(TI 风格:1B..7B 共享一句描述)要展开到每个引脚
 - 多封装共存页(如 SOT-223 3 脚表 + SOIC 8 脚图):只提取**一个**封装的引脚表,
   取正文表格先出现的主体封装;严禁把多封装引脚合并进一张表(同引脚号不得出现两次)
+- 一个表含**多列引脚号**(如 SSOP20/SOP16/ESSOP10/SOP8 四列并排):只取**主体封装那一列**
+  (优先 SOP16/DIP/SO/SOT 这类最常用封装),pin number 用该列数值,引脚数=该封装实际脚数
+  (如 SOP16 列=16 脚);严禁混并多列(否则同号重复或缺号)
+- 族级 datasheet(同一 PDF 覆盖多型号,如 MAX481/MAX483/MAX485/MAX487/MAX1487、
+  CH340B/C/E/G/N/R/T):part 取正文出现频率最高或表名首位的**单型号**(MAX485、CH340C),
+  不要取「A/B/C」族名或斜杠连写;引脚表只对应这一个型号的封装
 - 不要发明引脚;原文有多少个引脚就提取多少个"""
 
 
@@ -48,10 +54,13 @@ def llm_extract(text: str, pdf_name: str, llm: LLMProvider, page_no: int, *, att
         raw = _strip_fences(reply)
         try:
             data = json.loads(raw)
-            pins = [
-                PinInfo.model_validate({**p, "page": page_no, "channel": "llm"})
-                for p in data.get("pins", [])
-            ]
+            pins = []
+            for p in data.get("pins", []):
+                # io_type 归一:Espressif 风格 "I/O/T"(T=触摸能力,非方向)照抄会被门禁判非法;
+                # 剥 "/T" 尾缀后("I/O"/"O"/"I")才是方向语义。
+                if isinstance(p.get("io_type"), str) and p["io_type"].endswith("/T"):
+                    p = {**p, "io_type": p["io_type"][:-2]}
+                pins.append(PinInfo.model_validate({**p, "page": page_no, "channel": "llm"}))
             return PinTable(
                 part=data.get("part", pdf_name),
                 source_pdf=pdf_name,

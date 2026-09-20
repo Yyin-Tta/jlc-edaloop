@@ -14,6 +14,7 @@ _PIN_PAGE_MARKERS = (
     "terminal functions",
     "pin configuration",
     "internal connection",  # Sharp/Renesas 光耦等:「Internal Connection Diagram」即引脚定义页(PC817 首跑漏页)
+    "pin overview",  # Espressif SoC(esp32-s3)「Table 2-1 Pin Overview」56 脚总览表(旧漏页→误取 IO MUX 子表)
 )
 
 # P4-6②/G16:电气参数表页定位标记(数值表通道)。
@@ -60,10 +61,17 @@ def page_text(pdf_path: str, page_no: int) -> str:
 
 _NAME_RE = re.compile(r"^([0-9A-Za-z][0-9A-Za-z_/\-+]*)$")
 _NO_RE = re.compile(r"^(\d{1,3})$")
+# io_type 词元(如 "I1/O/T"、"I0/O/T"、"O/T"、"I/O"):datasheet 里是电气类型列,永远不是引脚名。
+_IO_TYPE_RE = re.compile(r"^[IOPSTD][0-9]*(?:/[IOPSTD0-9]+)+$")
+# 规则通道:单一脚名映射超过此数的脚号 = 列值误当脚名(多列表),整页放弃。
+_NAME_MAX_PINS = 4
 
 
 def _is_name(token: str) -> bool:
-    if token in _NAME_NOISE or len(token) > 6:
+    up = token.upper()
+    if up in _NAME_NOISE or len(token) > 6:
+        return False
+    if _IO_TYPE_RE.match(up):
         return False
     return any(c.isalpha() for c in token)
 
@@ -97,7 +105,25 @@ def _adjacent_pairs(text: str) -> list[tuple[str, str]]:
 
 
 def rule_extract(text: str, page_no: int) -> list[dict]:
-    """规则通道:相邻行对提取 (name, no)。比对通道只需 number→name。"""
+    """规则通道:相邻行对提取 (name, no)。比对通道只需 number→name。
+
+    同一脚号出现两个**不同**名字 = 相邻行解析错位(多列/多封装不同脚位),真实引脚表
+    不会如此,整页放弃规则通道(MAX485 页7 实测 1→{B,D}、7→{Rt,A})→ 上游 low-confidence。
+    同名冗余(ULN2003A DIP/SOIC 双列,1→{1B,1B})保留:映射仍唯一可靠。
+    同一名字对应过多脚号 = 列值误当脚名(esp32-s3 多列总览表「Analog/Power」列值紧邻
+    下一个脚号被误对,Analog→28 脚、Power→20 脚),同样整页放弃——单封装里真脚名(GND/VCC)
+    至多映射 4 脚,列值映射半个表,阈值 _NAME_MAX_PINS 干净切开。
+    """
+    pairs = _adjacent_pairs(text)
+    by_num: dict[str, set[str]] = {}
+    by_name: dict[str, set[str]] = {}
+    for name, no in pairs:
+        by_num.setdefault(no, set()).add(name)
+        by_name.setdefault(name, set()).add(no)
+    if any(len(names) > 1 for names in by_num.values()):
+        return []
+    if any(len(nos) > _NAME_MAX_PINS for nos in by_name.values()):
+        return []
     return [
         {
             "number": no,
@@ -107,7 +133,7 @@ def rule_extract(text: str, page_no: int) -> list[dict]:
             "page": page_no,
             "channel": "rule",
         }
-        for name, no in _adjacent_pairs(text)
+        for name, no in pairs
     ]
 
 
