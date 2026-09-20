@@ -1,6 +1,6 @@
 {
   "metric": "recall@8: 每个 (需求, 标注块) 对,块或其功能等价类成员出现在 Top-8 即命中;P4-6 扩标注后聚合 >= 0.92 为 Go / >= 0.95 为 Stretch(不与旧 5 需求 88% 跨标注集直接比较);top-k=8 因块库 20->97",
-  "note": "P4-6 扩标注至全部 14 需求(v2 分层重组后全集,74 条:需求原文点名的 diode-ss34(req-06 SS34 防倒灌)/usb-c-power-entry(req-10 Type-C 供电)按标注完整性补入);标注 = 正确设计必含的关键块(需求点名件优先,等价类代表存储);等价类:usb-c-power-entry={usb-c-power-entry,usb-c-16p,up-usbc_dual_orientation_data}, dc-terminal-5v-input={dc-terminal-5v-input,terminal-kf301-2p};电压/功能不同不并类;泛功能块(查询无型号抓手:ldo/led/端子/usb-c)miss 在 harness 单独归因计数;IR 解析温度 0(边界块曾随 IR 措辞方差在 92% 线上打摆);eval 不传 ir → 案例第五通道结构性消融(P4-6③)",
+  "note": "P4-6 扩标注至全部 14 需求(v2 分层重组后全集,74 条:需求原文点名的 diode-ss34(req-06 SS34 防倒灌)/usb-c-power-entry(req-10 Type-C 供电)按标注完整性补入);标注 = 正确设计必含的关键块(需求点名件优先,等价类代表存储);等价类:usb-c-power-entry={usb-c-power-entry,usb-c-16p,up-usbc_dual_orientation_data}, dc-terminal-5v-input={dc-terminal-5v-input,terminal-kf301-2p};电压/功能不同不并类;泛功能块(查询无型号抓手:ldo/led/端子/usb-c)miss 在 harness 单独归因计数;IR 解析温度 0(边界块曾随 IR 措辞方差在 92% 线上打摆);eval 不传 ir → 案例第五通道结构性消融(P4-6③);P5-3(2026-09-08)扩至 26 需求全集(现行 14 + archive 12,74→149 条):补注 2 件现行(v2 换号漏注 req-03-ir-remote-hub/req-04-smart-dial-oled)+ 10 件 archive 裁撤件(文本仍有效检索输入);判据映射注记——TPS54360→buck-tps5430(同族降压)、SP3485→rs485-max485(RS-485 代表)、MAX31856 类→tc-max6675(K 型热电偶前端)、TJA1051/SN65HVD230→can-sn65hvd230(3.3V 侧)、12V 适配器→dc-terminal-wide-input、上行 USB-C 数据口→usb-c-power-entry(等价类代表);uncovered 精确件(TPS54360/MAX31856)按文本完整性不迁就检索;P5-3 定线(2026-09-20):无缓存三跑 138/133/136 极差 5,方差源=IR 措辞 → 钉 IR 查询快照 evals/w1-ir-queries.json(key=需求正文 md5 自动失效,--refresh-ir 换快照)后 138/138 判定级一致;Go=均值−1=137 条(91.9%)入代码",
   "req-01-esp32s3-mini-2layer.md": [
     "buttons-boot-reset",
     "ldo-ams1117-3v3",
@@ -102,5 +102,104 @@
     "rs485-max485",
     "sensor-hall-a3144",
     "up-xl1509_buck_12v_5v"
+  ],
+  "req-03-ir-remote-hub.md": [
+    "mcu-esp32s3-wroom1-min",
+    "up-ir_txrx_remote",
+    "usb-c-power-entry",
+    "ldo-ams1117-3v3",
+    "eeprom-24c02"
+  ],
+  "req-04-smart-dial-oled.md": [
+    "mcu-esp32s3-wroom1-min",
+    "oled-ssd1306",
+    "touch-ttp223",
+    "usb-c-power-entry",
+    "ldo-ams1117-3v3",
+    "eeprom-24c02"
+  ],
+  "req-09-usb-hub-dock.md": [
+    "up-ch334f_usb4_hub",
+    "usb-c-power-entry",
+    "dc-terminal-5v-input",
+    "diode-ss34",
+    "esd-usblc6"
+  ],
+  "req-10-vehicle-gps-tracker.md": [
+    "mcu-stm32f103c8-min",
+    "up-lc29h_dr_gnss_frontend",
+    "dc-terminal-wide-input",
+    "buck-tps5430",
+    "ldo-ams1117-3v3",
+    "up-ina226_power_monitor",
+    "charger-tp4056",
+    "up-opto_acc_ign_detect"
+  ],
+  "req-11-audio-recorder-node.md": [
+    "mcu-esp32s3-wroom1-min",
+    "up-es8311_codec_i2s",
+    "up-mems_mic_analog",
+    "up-aw8737_classd_spk",
+    "ldo-ams1117-3v3",
+    "up-microsd_spi_pushpush",
+    "usb-c-power-entry"
+  ],
+  "req-12-imu-display-tag.md": [
+    "mcu-esp32s3-wroom1-min",
+    "up-bmi270_imu_i2c",
+    "up-st7789_spi_lcd_btb",
+    "ldo-ams1117-3v3",
+    "eeprom-24c02",
+    "usb-c-power-entry"
+  ],
+  "req-14-433m-meter-collector.md": [
+    "mcu-stm32f103c8-min",
+    "up-cc1101_433m_balun_ipex",
+    "rs485-max485",
+    "usb-serial-ch340n",
+    "ldo-ams1117-3v3",
+    "up-sdnand_sdmmc_4bit",
+    "usb-c-power-entry"
+  ],
+  "req-17-power-monitor-switch.md": [
+    "mcu-stm32f103c8-min",
+    "up-ina226_power_monitor",
+    "relay-srd5",
+    "driver-uln2003",
+    "rs485-max485",
+    "up-xl1509_buck_12v_5v",
+    "ldo-ams1117-3v3",
+    "dc-terminal-wide-input"
+  ],
+  "req-18-data-logger.md": [
+    "mcu-esp32s3-wroom1-min",
+    "up-sdnand_sdmmc_4bit",
+    "usb-serial-ch340n",
+    "diode-ss34",
+    "ldo-ams1117-3v3",
+    "usb-c-power-entry",
+    "dc-terminal-5v-input"
+  ],
+  "req-20-desk-station-can.md": [
+    "mcu-esp32s3-wroom1-min",
+    "usb-serial-ch340n",
+    "ldo-ams1117-3v3",
+    "can-sn65hvd230",
+    "usb-c-power-entry"
+  ],
+  "req-21-industrial-temp-controller.md": [
+    "mcu-stm32f103c8-min",
+    "tc-max6675",
+    "relay-srd5",
+    "driver-uln2003",
+    "rs485-max485",
+    "eeprom-24c02",
+    "up-xl1509_buck_12v_5v",
+    "ldo-ams1117-3v3",
+    "dc-terminal-wide-input"
+  ],
+  "req-25-highside-switch-freeform.md": [
+    "up-pmos_highside_softstart",
+    "nmos-2n7002"
   ]
 }

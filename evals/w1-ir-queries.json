@@ -1,0 +1,106 @@
+{
+ "req-01-esp32s3-mini-2layer.md": {
+  "md5": "a27958fdf398a32d153abf187e00b35e",
+  "query": "主控 ESP32-S3-WROOM-1 模组（N8R2 或 N16R8 均可）作为主控，天线区下方禁铺铜\nUSB转串口下载调试 板载 CH340N USB 转串口，插 USB 即可烧录固件并查看串口日志；TX/RX 交叉连接，波特率自适应\n按键 BOOT 按键（进下载模式）与 RESET 按键（复位），按键旁丝印标注名称\n电源指示LED 电源入口处红色 LED 电源指示灯\n用户LED 蓝色用户 LED 接 GPIO，驱动电平待定（低电平或高电平驱动均可，需明确）\n测试点 预留 4 个测试点：3V3、5V、GND、EN\nusb-c USB-C 供电 + 数据（经 CH340N），USB 差分对 90Ω 阻抗控制\n接线端子 5V 接线端子，与 USB 5V 共用同一路，需防倒灌\nUSB-C 5V\n5V 接线端子\n3.3V 3V3\n5V 输入防倒灌处理（USB 与端子共用一路）"
+ },
+ "req-02-rs485-sensor-hub.md": {
+  "md5": "8ee4ff9a77c48c5455db387a5ac42666",
+  "query": "主控 STM32F103C8T6 主控 MCU\nRS-485 通信 一路 RS-485,采用 SP3485 收发器,DE/RE 复用控制\n节点地址存储 板载 24C02 EEPROM 存储节点地址\n串口烧录 CH340N USB 转串口用于程序烧录\nSWD 调试 SWD 4-pin 排针调试接口\nLED 指示 电源(红)/心跳(绿)/总线活动(黄)3 个 LED\n按键 BOOT + RESET 按键\n测试点 3V3/GND 测试点\nrs485 SP3485,A/B 差分总线,DE/RE 复用\nusb-c USB-C 5V 供电 + CH340N 串口烧录\ni2c SDA/SCL,挂载 24C02 EEPROM\nuart CH340N 与 STM32 的 TX/RX,引至网络\ngpio DE_RE 控制信号引至网络\nUSB-C 5V\n5V\n3.3V 3V3"
+ },
+ "req-03-ir-remote-hub.md": {
+  "md5": "dcc9c5ccf2a77cdee2aee2e4cd1c8e84",
+  "query": "主控 ESP32-S3-WROOM-1 模组作为主控\n红外接收 VSOP38338 红外接收头,5V 供电\n红外发射 IR928 红外发射管\n红外码库存储 24C02 EEPROM 存储红外码库,经 I2C 连接\nLED 指示 学习模式/发射活动/电源 LED ×3\n按键 BOOT/RESET 按键\nusb-c USB-C 5V 供电\ni2c SDA/SCL,连接 24C02\ngpio IR_RX / IR_TX,引出 3V3/5V/GND/IR_RX/IR_TX/SDA/SCL 排针\nUSB-C 5V\n5V\n3.3V 3V3"
+ },
+ "req-03-power-board.md": {
+  "md5": "08a9cf1287bf94d5706c97ab44cf87fb",
+  "query": "多路输出电源 DC 12–24V 宽压输入，输出 5V/1A 与 3.3V/500mA，2 层板，电源电流路径铺铜加厚\n18650 锂电池充电管理 一节 18650（3.7V）充电管理，采用 TP4056，充电电流 ≤1A，充电输入来自 USB-C 5V，带充电状态 LED（充电中红 / 满电绿）\n防反接保护 输入防反接二极管或 P-MOS 方案，需写明选型理由\n5V/1A 输出 用 MT3608 从锂电池升压到 5V，或从 12V 输入降压（二选一），原理图上要能看出来源\n3.3V 输出 从 5V 用 AMS1117-3.3 降压至 3.3V\n电源正常指示 每路输出 1 个电源正常 LED，共 3 个\n电池低压告警 电池低压时红色 LED 告警；本板无 MCU，采用 TL431 比较器方案（比较器或分压+MCU 方案自选）\n输出限流指示 每路输出 100mA 限流指示（可选功能）\npower-terminal DC 12–24V 输入端子，XH2.54 或 5.08 间距（二选一未定）\nusb-c USB-C 5V，仅作为 18650 充电输入\npower-terminal 5V OUT 独立输出端子，1A\npower-terminal 3V3 OUT 独立输出端子，500mA\nbattery-holder 18650 弹片式电池座，居中放置\nDC 12-24V 端子\nUSB-C 5V（充电输入）\n3-4.2V VBAT\n5V 1A\n3.3V 0.5A 3V3\n输入 TVS + 自恢复保险丝 + 防反接（二极管或 P-MOS，方案待定）"
+ },
+ "req-04-interface-board.md": {
+  "md5": "ff3c8d83aef4e8778748ea457bd50dae",
+  "query": "RS-485 隔离通信 一路 RS-485，收发器可选 MAX485（5V 侧）或 SP3485（3.3V 侧）；DE/RE 复用自动方向（自收发电路或跳线，需写明方案）；A/B 端子 + 120Ω 终端电阻（跳线使能）+ 10K 上拉下拉偏置；A/B 差分对等长平行走线\n电气隔离 逻辑侧与总线侧隔离，方案二选一：PC817 光耦 ×3（TXD/RXD/DE）或隔离型收发器；总线侧由 B0505S 隔离 DC-DC 模块（或预留焊盘）供电；隔离带下方 ≥3mm 无走线跨越（必要隔离器件除外），隔离带两侧有清晰分隔丝印\n达林顿驱动输出 ULN2003 达林顿阵列驱动 4 路继电器/负载焊盘，集电极开路输出端子引出；每路续流二极管由 ULN2003 内置（仅说明即可）\n指示灯 绿色 LED：电源；黄色 LED：RS-485 通信活动（TX/RX 任一）；每路 ULN2003 输出一路一个红色 LED；所有 LED 附近丝印 +/−\n扩展排针 2×8 排针（2.54mm）引出 5V/3V3/GND/TXD/RXD/DE/RE/4×OUT，丝印逐脚标注\nrs485 一路 RS-485，A/B 端子，120Ω 终端电阻跳线使能，10K 上拉下拉偏置，差分对等长平行走线，端子电流按 2A 设计\ngpio 2×8 排针 2.54mm：5V/3V3/GND/TXD/RXD/DE/RE/4×OUT，逐脚丝印标注\ngpio 4 路集电极开路输出端子（继电器/负载），2A\n5V 端子或排针输入\n3.3V 3V3\n5V 5V_ISO"
+ },
+ "req-04-smart-dial-oled.md": {
+  "md5": "3dd6a2fd3ef53c23f9ccf9edc5574fcd",
+  "query": "主控 采用 ESP32-S3-WROOM-1 模组作为主控\nOLED 显示 0.96 英寸 I2C OLED 显示,SSD1306 类驱动\n电容触摸按键 TTP223 类电容触摸按键 ×2\n配置存储 24C02 EEPROM 存储界面配置\n指示 LED 背光/触摸反馈/电源 LED ×3\n按键 BOOT 与 RESET 按键各一\ni2c SDA/SCL,挂载 SSD1306 OLED 与 24C02 EEPROM\nusb-c USB-C 5V 供电\ngpio OLED_RST、TP1、TP2 引出;3V3/5V/GND/SDA/SCL/OLED_RST/TP1/TP2 齐全,OLED/触摸可不覆盖(uncovered)\nUSB-C 5V\n3.3V 3V3"
+ },
+ "req-05-battery-ble-telemetry.md": {
+  "md5": "d470fb7b3e5b5ec79c71a72923ed91e6",
+  "query": "主控 ESP32-S3-WROOM-1 模组作为主控,负责 BLE 遥测\n锂电充电 TP4056 充电管理,USB-C 5V 输入,充电状态双 LED 指示(充电中/充满)\n5V 升压输出 MT3608 升压至 5V 供外部传感器\n3V3 LDO AMS1117 从 5V 降至 3.3V 供 ESP32-S3 模组\n低压告警 TL431 检测锂电池低压,触发红色告警 LED\n电池座 18650 电池座\n用户指示 蓝色用户 LED ×1,BOOT/RESET 按键\ni2c 2x4 排针扩展:3V3/GND/SDA/SCL/INT/备用×2\nusb-c 5V 输入,用于 TP4056 充电\nUSB-C 5V\n18650 锂电池\n3-4.2V VBAT\n5V\n3.3V 3V3"
+ },
+ "req-06-pico-native-usb-gateway.md": {
+  "md5": "f3d6d76f8be32a881c99dd577c500d18",
+  "query": "主控 ESP32-S3-PICO-1-N8R8,原生 USB 下载,无 CH340\nUSB 双角色 USB-C 数据+供电双角色(DRD)\nmicroSD 存储 microSD 卡座,SPI 模式存数据\n电源监测 INA226 监测 USB 电流(I2C)\n备用供电 5V 端子备用输入,SS34 肖特基防倒灌,AMS1117 出 3V3\n指示与控制 电源/USB活动/存储 LED ×3,BOOT/RESET 按键\nusb-c 数据+供电双角色,DP/DM 直连 ESP32-S3 原生 USB\nspi microSD 卡座(SD_* 信号)\ni2c SDA/SCL,接 INA226\ngpio LED ×3、BOOT/RESET 按键\npower-terminal 5V 端子备用输入,SS34 防倒灌\nUSB-C 5V\n5V 端子(SS34 防倒灌)\n3.3V 3V3\nSS34 防倒灌"
+ },
+ "req-07-motor-driver-board.md": {
+  "md5": "112160e8b44ecbe5e45cf28a1b8e5d72",
+  "query": "主控 STM32F103C8T6 主控 MCU\n步进电机驱动 ULN2003 驱动 2 路步进电机通道，每路 4 线，共用 COM 续流\n输出指示 每路步进输出红色 LED 指示 ×4，共 8 个\n状态指示 使能/故障/电源 LED ×3\n烧录调试 CH340N USB 转串口烧录 + SWD 排针\n按键 BOOT / RESET 按键\nusb-c CH340N 串口烧录\ngpio SWD 排针\ngpio 步进电机接口 ×2（STEP1_A-D / STEP2_A-D）\ngpio BOOT / RESET 按键\nDC 12-24V 宽压输入（防反接 + TVS）\n12-24V VIN\n5V\n3.3V 3V3\n防反接 + TVS"
+ },
+ "req-08-liion-protection-freeform.md": {
+  "md5": "1b1c9b0ddb00184f644b10f7e2523e53",
+  "query": "单节锂电池过充/过放/过流保护 采用 DW01A 保护 IC + FS8205A 双 NMOS 对管组成标准单节 18650 锂电池保护电路(无 MCU),输出端子 B+/B-(含 P 焊盘)\npad B+/B- 电芯输入焊盘\npad P+/P- 保护后输出焊盘(含 P 焊盘)\n单节 18650 锂电池 B+/B-\n3-4.2V VBAT"
+ },
+ "req-09-ambiguous-sensor-node.md": {
+  "md5": "c1e61fee709a85b135d273aec66fb799",
+  "query": "主控 STM32F103C8T6 主控,采集一路模拟传感器(NTC 或电压输出待定)\n模拟采集 一路模拟传感器采集,传感器形式待定:NTC(需分压/偏置)或电压输出(需 ADC 前端调理)\n数据回传 数据回传,形式待定:RS-485 有线或 433MHz 无线\n调试与指示 SWD 调试排针;电源/活动 LED ×2\nswd SWD 调试排针(SWCLK/SWDIO/3V3/GND)\ngpio LED ×2:电源指示、活动指示\n3.3V 3V3"
+ },
+ "req-09-usb-hub-dock.md": {
+  "md5": "76cf4d99c4c108908b36faeda77af863",
+  "query": "USB2.0 四口 Hub 采用 CH334F 实现 USB2.0 四口 hub,自供电模式,配 12MHz 晶振\n上行口防倒灌保护 各下行 USB-C 口 VBUS 经 SS34 肖特基二极管防倒灌,并带电源指示 LED\n上行口 ESD 保护 上行 USB-C 口采用 USBLC6-2SC6 ESD 保护\n过流指示 过流指示 LED ×1,预留\nusb-c 上行口,双取向数据(CC1/CC2 轮换 D+/D-)\nusb-c 下行口 ×4,带电源 LED\n外部 5V/2A 端子\n5V 2A\n各下行口 SS34 防倒灌 + USBLC6-2SC6 ESD(上行口)"
+ },
+ "req-10-esp32s3-industrial-4layer.md": {
+  "md5": "61108344e9828d8c564f668c5cd6f467",
+  "query": "主控 ESP32-S3-WROOM-1 模组作为主控，工业控制应用\n电源指示灯 绿色 LED，上电常亮\n心跳指示灯 红色 LED，接一个 GPIO 作用户心跳灯\nUSB 转串口下载调试 板载 CH340N USB 转串口，支持现场笔记本烧录与日志查看\nBOOT/RESET 按键 BOOT 和 RESET 两个 6×6 轻触按键，需承受工业面板按压力度\nRS-485 预留 预留一路 RS-485（MAX485 或 SP3485）焊盘位置，本版可不贴片，但网络和封装须保留\n结构固定 四角 M3 螺丝孔 ×4，板边可选 1 个 φ3.2 安装槽\nusb-c Type-C，供电源输入兼 CH340N 串口下载/日志\nrs485 预留焊盘（MAX485 或 SP3485），本版可不贴\nDC 5V 接线端子（≥2A）\nUSB-C 5V（与端子共用一路 5V）\n5V 2A\n3.3V 3V3\n输入端 TVS + 自恢复保险丝（可选，需写明位号）"
+ },
+ "req-10-vehicle-gps-tracker.md": {
+  "md5": "a8640aa8621b0208ea045f2abcaf06f8",
+  "query": "主控 STM32F103C8T6 主控 MCU\nGNSS定位 LC29H 双频 GNSS 模组,通过 UART 通信并输出 PPS 信号\nACC点火检测 ACC 点火信号检测,光耦隔离输入\n电池电流监测 INA226 电流/电压监测芯片,I2C 接口\n备用锂电充电管理 TP4056 充电管理 + 理想二极管电源切换\n指示与控制 GPS/网络/电源 LED ×3,BOOT+RESET 按键\nuart LC29H GNSS UART (GNSS_TX/GNSS_RX)\ngpio PPS 秒脉冲信号\ni2c INA226 电流监测 (SDA/SCL)\ngpio ACC 点火检测,光耦隔离输入 (IGN)\ngpio GPS/网络/电源 LED ×3\ngpio BOOT + RESET 按键\ngpio 调试/扩展网络接口:3V3/5V/VBAT/IGN/GND/GNSS_TX/GNSS_RX/PPS/SDA/SCL\n车载 DC 12-24V 宽压输入(防反接+TVS+保险丝)\n12-24V VIN_12_24V\n5V\n3.3V 3V3\n3-4.2V VBAT\n防反接 + TVS + 保险丝"
+ },
+ "req-11-audio-recorder-node.md": {
+  "md5": "9e05add6938129f969a1da833806ec57",
+  "query": "主控 ESP32-S3-WROOM-1 模组作为主控,处理 I2S 音频\n音频采集 ES8311 codec(I2C 控制 + I2S 数据),接 MEMS 模拟麦克风\n音频播放 AW8737 功放驱动 4Ω 喇叭,可选 DNP 不贴\n存储 microSD 卡座存储录音,SPI 接口\n指示与控制 3 个 LED(录音状态/存储活动/电源),BOOT 与 RESET 按键\nusb-c 5V 供电\ni2c SDA/SCL,控制 ES8311\ni2s MCLK/BCLK/LRCK/DIN/DOUT\nspi microSD\ngpio 3V3/5V/GND/SD_* 等扩展引出\nUSB-C 5V\n3.3V 3V3"
+ },
+ "req-11-isolated-dido-module.md": {
+  "md5": "7adec5ef3f93e885f1183309f967a8e8",
+  "query": "主控逻辑 逻辑侧 STM32F103C8T6 主控,3V3 由 AMS1117 从 5V 端子输入产生\n隔离电源 B0505S 隔离 DC-DC 产生隔离侧电源 5V_ISO\n数字输入隔离 4 路数字输入,24V 现场侧,经 PC817 光耦隔离,含限流电阻\n数字输出驱动 4 路数字输出经 ULN2003 驱动继电器/负载,COM 接隔离侧电源\n状态指示 电源/输入活动/输出活动 LED ×3\ngpio 4 路数字输入 DI1-4,24V 现场侧,PC817 光耦隔离\ngpio 4 路数字输出 DO1-4,ULN2003 驱动,COM 接 5V_ISO\n端子 现场侧端子:24V in / DI×4 / DO×4 / GND_ISO\n5V 端子输入\n5V\n3.3V 3V3\n5V 5V_ISO"
+ },
+ "req-12-hybrid-dual-mcu-gateway.md": {
+  "md5": "56d30a22b6abd611e0f5c955497c92f5",
+  "query": "实时采集控制 STM32F103C8T6（LQFP-48）负责实时采集和控制\nWi-Fi/BLE 联网上报 ESP32-S3-WROOM-1 负责 Wi-Fi/BLE 上报\n双MCU UART 互联 STM32 与 ESP32 UART 交叉互联，默认 115200，另加 2 根握手线（BOOT 互控/复位互控）\nUSB 转串口下载 板载 CH340N USB 转串口，通过跳线/模拟开关选择接 STM32 或 ESP32 烧录口\nSWD 调试 STM32 预留 SWD 4-pin 排针（3V3/SWDIO/SWCLK/GND），丝印逐脚标注\n参数存储 24C02 EEPROM，I2C 挂在 STM32，写写保护接地\nSD 卡（可选） 预留 SD 卡焊盘，本版可不贴\n按键 复位按键×2（各自 MCU 一个）+ BOOT 按键×1（ESP32）\n指示灯 红色=电源、绿色=STM32 心跳（GPIO）、蓝色=ESP32 状态（GPIO），LED 附近丝印 +/−\nusb-c USB-C 5V 输入，USB 差分对 90Ω，兼作 CH340N 通信口\nuart STM32↔ESP32 交叉连接，115200 默认，含 2 根握手线（BOOT/复位互控）\ni2c 24C02 EEPROM 挂 STM32，写保护接地\ngpio 握手线 2 根、LED ×2、按键 ×3\nspi 预留 SD 卡焊盘（可选不贴）\nUSB-C 5V\n5V 端子（备用，与 USB-C 共用一路，防倒灌）\n5V\n3.3V 3V3\n5V 双输入防倒灌"
+ },
+ "req-12-imu-display-tag.md": {
+  "md5": "88ff1b239080ab2b0484e53267ee0d8c",
+  "query": "主控 ESP32-S3-WROOM-1 模组作为主控\n姿态采集 BMI270 六轴 IMU,I2C 接口,INT 中断输出\n显示 SPI TFT 屏接口(ST7789),BTB 连接器,显示姿态\n参数存储 24C02 EEPROM 存校准参数,I2C\n状态指示 状态 LED ×2(电源指示/运动检测指示)\n按键 BOOT 与 RESET 按键\ni2c SDA/SCL,挂接 BMI270 与 24C02,BMI270 带 INT 中断\nspi TFT 屏接口(ST7789),BTB 连接器,含 LCD_CS/SCK/MOSI/DC/RST/BL\nusb-c USB-C 5V 供电\ngpio 状态 LED ×2、BOOT/RESET 按键、BMI270 INT\nUSB-C 5V\n3.3V 3V3"
+ },
+ "req-13-env-sensor-motherboard.md": {
+  "md5": "ac969c6e87d69be6177b4192d33c986f",
+  "query": "主控 中央主控 STM32F103C8T6\n子节点插槽 4 个子节点插槽,2x8 排针,每个插槽引脚:3V3/GND/SDA/SCL/INT1/INT2/AIN/GPIO\nI2C 总线隔离 I2C 总线热插拔隔离保护,使用 2N7002DW 双 NMOS\nRS-485 外联 RS-485 通信,采用 SP3485 收发器\n在位检测 每个插槽在位检测 LED ×4\n状态指示 电源/总线指示 LED ×2\n调试与启动 BOOT/RESET 按键,SWD 调试排针\nusb-c 5V 供电\ni2c 主控侧 SDA_A/SCL_A 经 2N7002DW 隔离至子节点侧 SDA_B/SCL_B,支持热插拔,4 插槽共享\nrs485 SP3485 收发器,A/B 差分线,外联接口\ngpio 2x8 排针插槽 ×4:3V3/GND/SDA/SCL/INT1/INT2/AIN/GPIO\ngpio SWD 调试排针(SWDIO/SWCLK)\nUSB-C 5V\n5V\n3.3V 3V3\nUSB 入口 TVS + 保险丝"
+ },
+ "req-14-433m-meter-collector.md": {
+  "md5": "12f243951560769bb573026e460fd7a7",
+  "query": "主控 STM32F103C8T6 主控，SPI 接口\n433MHz 无线收发 CC1101 433MHz 收发前端，IPEX 天线\nRS-485 下联电表 SP3485 收发器下联电表\nUSB 转串口烧录 CH340N USB 转串口用于烧录\n存储 SD-NAND 贴片存储，SDMMC 4-bit 接口\n指示与控制 RF/总线/电源 LED ×3，BOOT/RESET 按键，SWD 调试排针\nusb-c 5V 供电 + CH340N 烧录\nspi SPI：CSN/SCK/MOSI/MISO/GDO0/GDO2，连接 CC1101\nrs485 SP3485，A/B/DE_RE 引出\nsdmmc SDMMC 4-bit 连接 SD-NAND\ngpio 3V3/5V/GND/SPI_*/A/B/DE_RE 引脚齐全\nipec IPEX 天线座，433MHz\nswd SWD 调试排针\nUSB-C 5V\n3.3V 3V3"
+ },
+ "req-14-door-sensor-e2e.md": {
+  "md5": "b19a469e351f1a12936abaad2c0caf3f",
+  "query": "主控 STM32F103C8T6,深睡轮询,门开唤醒中断\n门磁检测 A3144 霍尔传感器,门开触发中断唤醒主控\nRS-485 上报 SP3485 收发器,上报楼栋网关\n设备 ID 存储 24C02 EEPROM 存设备 ID\n状态指示 状态 LED ×2:电源绿 / 通信黄\nBOOT+RESET 按键 BOOT 与 RESET 按键\nrs485 SP3485,A/B 总线,DE_RE 控制,上报楼栋网关\ni2c SDA/SCL 连接 24C02 EEPROM\ngpio HALL_INT 霍尔中断输入、LED×2、BOOT/RESET 按键\nDC 12V 端子\n12V VIN\n5V\n3.3V 3V3\n防反接 + TVS"
+ },
+ "req-17-power-monitor-switch.md": {
+  "md5": "13ac45a99cd02c6402266a81b49a3a5f",
+  "query": "主控 STM32F103C8T6 主控,含 SWD 调试排针、BOOT/RESET 按键\n电流监测 INA226 高侧电流监测 ×1,监测总电流,I2C 接口\n继电器控制 2 路 SRD-05VDC 继电器,ULN2003 驱动,线圈带续流二极管\nRS-485 通信 SP3485 RS-485 上报通道\n指示灯 继电器状态 LED ×2 + 电源/通信 LED ×2\n电源管理 12V 适配器输入防反接,XL1509 降压至 5V,AMS1117 输出 3.3V\ni2c SDA/SCL,连接 INA226\nrs485 SP3485,A/B 差分线,上报通道\ngpio LED ×4(继电器状态 ×2、电源、通信);继电器驱动 ×2(经 ULN2003)\nswd SWD 调试排针\nDC 12V 适配器(防反接)\n12V VIN\n5V\n3.3V 3V3\n输入防反接;继电器线圈续流二极管"
+ },
+ "req-18-data-logger.md": {
+  "md5": "6833c0c6548843a6cbcf434f6014b74c",
+  "query": "主控 ESP32-S3-WROOM-1 模组作为主控\n数据存储 SD-NAND 贴片存储,SDMMC 4-bit 接口,焊死抗震\n烧录调试 CH340N USB 转串口用于烧录与调试\n指示与调试 存储/心跳/电源 LED ×3;BOOT/RESET 按键;测试点 3V3/GND/EN\nusb-c USB-C 5V 供电,兼 CH340N 烧录调试数据口\nuart TX/RX,经 CH340N 连接 USB\ngpio SDMMC(CLK/CMD/D0-D3)、EN(测试点)、LED×3、BOOT/RESET 按键\n其他 5V 供电端子,与 USB-C 5V 双输入并联(SS34 防倒灌)\nUSB-C 5V\n5V 端子\n5V\n3.3V 3V3\nSS34 防倒灌"
+ },
+ "req-20-desk-station-can.md": {
+  "md5": "128f3823a8889f533eaa352ab1b6a620",
+  "query": "主控 核心 ESP32-S3-WROOM-1 模组\n烧录 CH340N USB 转串口烧录电路\nCAN 通信 一路 CAN 2.0,收发器如 TJA1051/SN65HVD230(知识库若无则如实登记 uncovered)\n指示灯 电源/用户 LED ×2\n按键 BOOT/RESET 按键\n测试点 测试点 3V3/GND/EN\nusb-c USB-C 5V 供电 + CH340N 烧录\ncan 一路 CAN 2.0,CAN_H/CAN_L(若知识库无 CAN 收发器则 uncovered)\nUSB-C 5V\n3.3V 3V3"
+ },
+ "req-21-industrial-temp-controller.md": {
+  "md5": "59d84cd2c12bab4b229fb5cc7058d0fe",
+  "query": "主控 STM32F103C8T6 主控\n温度采集 K 型热电偶输入,前端放大与冷端补偿;需求提及 MAX31856 类专用芯片\n继电器输出 SRD-05VDC 继电器 ×1,ULN2003 驱动\nRS-485通信 SP3485 组网\n参数存储 24C02 存储 PID 参数\n指示与调试 加热/报警/电源 LED ×3;BOOT/RESET 按键;SWD 排针\nrs485 SP3485,A/B 端子组网\ni2c 24C02,SDA/SCL\ngpio 继电器驱动(ULN2003)、LED ×3、按键、SWD 排针\nDC 24V 工业输入(宽压保护)\n18-30V VIN\n5V\n3.3V 3V3\n24V 宽压输入保护(TVS+保险丝,具体待定)"
+ },
+ "req-25-highside-switch-freeform.md": {
+  "md5": "1178bc07a99b87c7cad12c55d36939be",
+  "query": "高边P-MOS负载开关 3V3主轨经高边P-MOS负载开关给GNSS/传感器域供电(3V3_SW),GPIO高电平使能\n使能驱动 GPIO→N-MOS(2N7002)拉低P-MOS栅极;栅极100k上拉到VIN保证默认关断\n电源正常LED 电源正常LED指示,位于3V3侧\n端子 3V3输入端子\n排针 使能排针 1x2 (EN)\n端子 3V3_SW输出端子\n3V3端子\n3.3V 3V3\n3.3V 3V3_SW"
+ }
+}

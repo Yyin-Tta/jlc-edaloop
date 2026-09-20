@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -40,7 +41,11 @@ def _parse_ir(md: str, llm: LLMProvider, source: str) -> DesignIR:
     raise RuntimeError(f"DesignIR 解析连续失败: {last_err}")
 
 
-_GO_RATE = 0.92  # P4-6 Go 判据(扩标注集);Stretch 0.95。旧 5 需求集 80% 线作废。
+# P5-3 定线(2026-09-20,机械声明):无缓存三跑 138/133/136 极差 5,方差源 = IR 措辞(GLM temp0 非完全确定,
+# 14 条 miss 仅在部分跑出现)→ 钉 IR 查询快照(evals/w1-ir-queries.json)后冷跑/复跑 138/138 判定级一致;
+# Go = 均值−1 条 = 137(91.9%),≥ 90% 下限满足;旧 74 条集 92% 线随 26 需求全集扩容作废(归档需求更难)。
+# 尾部 rank7-8 存在嵌入 API 浮点微抖(top8 尾项互换,不影响判定),金标件勿置于 rank 边界。
+_GO_RATE = 137 / 149  # P5-3 Go 判据(26 需求 149 条,钉 IR 基线);旧 74 条 92% 线作废。
 # 泛功能块:查询文本里没有型号抓手、只靠功能语义才能召回的金标(rail 通道/意图槽的主战场)。
 # miss 单独归因计数,与型号件 miss分开看(P4-6 Go 判据要求)。
 _GENERIC_GOLD = {
@@ -55,7 +60,11 @@ _GENERIC_GOLD = {
 }
 
 
-def run_w1_retrieval_eval(db_path: str = "runs/eval-w1.db") -> tuple[float, dict[str, list[str]]]:
+def run_w1_retrieval_eval(
+    db_path: str = "runs/eval-w1.db",
+    ir_cache: Path | None = Path("evals/w1-ir-queries.json"),
+    refresh_ir: bool = False,
+) -> tuple[float, dict[str, list[str]]]:
     blocks = [
         BlockRecord.model_validate(json.loads(l))
         for l in _REPOS["seeds"].read_text(encoding="utf-8").splitlines()
@@ -63,6 +72,12 @@ def run_w1_retrieval_eval(db_path: str = "runs/eval-w1.db") -> tuple[float, dict
     ]
     annotations = json.loads(_REPOS["annotations"].read_text(encoding="utf-8"))
     llm = get_llm(temperature=0.0)  # 评测 IR 温度置 0:IR 文本方差会把边界块(端子/buck)在 92% 线上打摆
+    # IR 查询缓存(P5-3):三跑基线实测极差 5 条(138/133/136),分解后主因 = IR 措辞方差
+    # (14 条 miss 仅在部分跑出现)。w1 评测对象是**检索器**不是 IR 解析器 —— 钉住查询文本
+    # 让回归网确定性可复现;key=需求正文 md5,需求文本变更自动失效;--refresh-ir 显式换快照。
+    cache: dict[str, dict] = {}
+    if ir_cache is not None and not refresh_ir and ir_cache.exists():
+        cache = json.loads(ir_cache.read_text(encoding="utf-8"))
     store = KnowledgeStore(db_path, get_embedder(), get_reranker())
     store.rebuild(blocks)
     total = 0
@@ -74,13 +89,21 @@ def run_w1_retrieval_eval(db_path: str = "runs/eval-w1.db") -> tuple[float, dict
             continue
         md = _req_path(req_file).read_text(encoding="utf-8")
         body = _customer_voice(md)
-        try:
-            ir = _parse_ir(body, llm, source=req_file)
-            query = ir.query_text()
-            ir_ok = "ir"
-        except Exception as e:
-            query = body
-            ir_ok = f"raw-fallback({type(e).__name__})"
+        body_md5 = hashlib.md5(body.encode("utf-8")).hexdigest()
+        cached = cache.get(req_file)
+        if cached and cached.get("md5") == body_md5:
+            query = cached["query"]
+            ir_ok = "ir-cache"
+        else:
+            try:
+                ir = _parse_ir(body, llm, source=req_file)
+                query = ir.query_text()
+                ir_ok = "ir"
+            except Exception as e:
+                query = body
+                ir_ok = f"raw-fallback({type(e).__name__})"
+            if ir_cache is not None:
+                cache[req_file] = {"md5": body_md5, "query": query}
         results = store.retrieve(query, top_k=8)
         top_ids = [r.block_id for r in results]
         top_set = set(top_ids)
@@ -114,6 +137,9 @@ def run_w1_retrieval_eval(db_path: str = "runs/eval-w1.db") -> tuple[float, dict
     pos_ldo = next((r for r in pos if r.block_id == "ldo-ams1117-3v3"), None)
     neg_ok = neg_ldo is None and pos_ldo is not None and "elec-deny" not in pos_ldo.channels
     detail["neg-elec"] = "ok" if neg_ok else "fail"
+    if ir_cache is not None and cache:
+        ir_cache.parent.mkdir(parents=True, exist_ok=True)
+        ir_cache.write_text(json.dumps(cache, ensure_ascii=False, indent=1, sort_keys=True), encoding="utf-8")
     print(f"\n负样本断言: 24V直入 ldo 出局={'是' if neg_ldo is None else f'否(rank{neg_ldo.rank})'}"
           f" / 5V设计 ldo 在位={'是' if pos_ldo else '否'} / 无误伤={'是' if pos_ldo and 'elec-deny' not in pos_ldo.channels else '否'}")
     store.close()

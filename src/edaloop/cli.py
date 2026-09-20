@@ -40,6 +40,8 @@ def build_parser() -> argparse.ArgumentParser:
         help="离线评测:跳过需要外部 LLM 的子项,保留 skipped 证据",
     )
     p_eval.add_argument("--tier", default=None, help="w3-loop 层级:easy(4)/medium(5)/hard(5) 难度层,smoke(3~12min)/daily(8)/rest(全量减 daily,发版增量) 回归级,all(真全量重跑);electrical(P4-3 注入式电气缺陷样本);params(P4-4 参数核对闭环:错值拦截+电源块覆盖+critic 捕获);refine(P4-5 验收规格+功能覆盖+refine 转化);都不走 E2E")
+    p_eval.add_argument("--db", default=None, help="w1-retrieval 知识库路径(默认 runs/eval-w1.db;传 runs/knowledge.db 可带 datasheets 表真测 JOIN 回填)")
+    p_eval.add_argument("--refresh-ir", action="store_true", help="w1-retrieval 忽略 IR 查询缓存重新解析(P5-3 后默认钉缓存,换快照用此开关)")
 
     p_evidence = sub.add_parser(
         "evidence",
@@ -169,7 +171,9 @@ def _cmd_eval(args: argparse.Namespace) -> int:
     if args.subset in (None, "w1-retrieval"):
         from edaloop.evals_w1 import _GO_RATE, run_w1_retrieval_eval
 
-        rate, detail = run_w1_retrieval_eval()
+        rate, detail = run_w1_retrieval_eval(
+            db_path=args.db or "runs/eval-w1.db", refresh_ir=getattr(args, "refresh_ir", False)
+        )
         # Go = recall 达线 且 负样本机械断言通过(24V 直入 ldo 出局 + 5V 正控不误伤)
         return 0 if rate >= _GO_RATE and detail.get("neg-elec") == "ok" else 1
     if args.subset == "w3-loop":

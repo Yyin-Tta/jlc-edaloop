@@ -20,6 +20,7 @@ def test_subcommands_parse() -> None:
     assert routed.project == "demo" and routed.window == "window-1"
     assert parser.parse_args(["ingest", "a.pdf", "b.pdf"]).pdf == ["a.pdf", "b.pdf"]
     assert parser.parse_args(["eval", "--subset", "w1-retrieval"]).subset == "w1-retrieval"
+    assert parser.parse_args(["eval", "--db", "runs/knowledge.db"]).db == "runs/knowledge.db"
     assert parser.parse_args(["eval", "--offline"]).offline is True
     assert parser.parse_args(["replay", "runs/run-x"]).audit_dir == "runs/run-x"
     assert parser.parse_args(["seed", "--db", "x.db"]).db == "x.db"
