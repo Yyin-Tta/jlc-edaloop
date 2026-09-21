@@ -63,6 +63,24 @@ def test_resume_reruns_error_rows(tmp_path: Path, monkeypatch):
     assert called == ["a.md", "b.md"]  # ERROR 行重跑;b.md 无历史行,正常执行
 
 
+def test_skip_done_jumps_all_terminal_rows(tmp_path: Path, monkeypatch):
+    """环境死亡后批量续跑档:一切已终态行(FAIL/HALT/ERROR)都跳,只补没跑过的。
+
+    背景(2026-09-20 v1.0 基线真跑):EasyEDA 假死 → eval 在需求间健康检查处退出,
+    重发默认档会把刚 FAIL@5 的重型需求(3h)再磨一遍——批量基线要的是每需求一次尝试。
+    """
+    rows = {
+        "a.md": {"req": "a.md", "status": "FAIL", "rounds": None, "n_rounds": 5},
+    }
+    called = _setup(tmp_path, monkeypatch, rows)
+
+    run_w3_loop_eval(tier="smoke", dry_run=True, resume=True, skip_done=True)
+
+    assert called == ["b.md"]  # FAIL@5 不重磨,只补 b.md
+    saved = json.loads((tmp_path / "runs" / "w3-loop-state-smoke.json").read_text(encoding="utf-8"))
+    assert saved["rows"]["a.md"]["status"] == "FAIL"  # 终态行原样保留,不被新结果覆盖
+
+
 def test_incremental_env_setdown_and_no_leak(tmp_path: Path, monkeypatch):
     """增量修复轮 env 注入:eval 期间生效、结束后不泄漏、显式 0 不被覆盖。"""
     import os

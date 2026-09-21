@@ -116,7 +116,10 @@ def _save_state(state: dict, path: Path) -> None:
     path.write_text(json.dumps(state, ensure_ascii=False, indent=1), encoding="utf-8")
 
 
-def run_w3_loop_eval(max_rounds: int = 5, dry_run: bool = False, resume: bool = True, tier: str | None = None) -> dict:
+def run_w3_loop_eval(
+    max_rounds: int = 5, dry_run: bool = False, resume: bool = True, tier: str | None = None,
+    skip_done: bool = False,
+) -> dict:
     # 增量修复轮默认开(2026-09-15):w3 是本特性的主受益方(14 需求×多轮全量
     # 重放极耗时)。为什么走 env 而非 stage_run 加参:①LoopController 构造期
     # 合成 env 是既有惯例(EDALOOP_ZONES/FRAMES 同款);②stage_run 的调用方
@@ -126,13 +129,16 @@ def run_w3_loop_eval(max_rounds: int = 5, dry_run: bool = False, resume: bool = 
     _added = "EDALOOP_INCREMENTAL" not in _os.environ
     _os.environ.setdefault("EDALOOP_INCREMENTAL", "1")
     try:
-        return _run_w3_loop_eval(max_rounds, dry_run, resume, tier)
+        return _run_w3_loop_eval(max_rounds, dry_run, resume, tier, skip_done)
     finally:
         if _added:
             _os.environ.pop("EDALOOP_INCREMENTAL", None)
 
 
-def _run_w3_loop_eval(max_rounds: int = 5, dry_run: bool = False, resume: bool = True, tier: str | None = None) -> dict:
+def _run_w3_loop_eval(
+    max_rounds: int = 5, dry_run: bool = False, resume: bool = True, tier: str | None = None,
+    skip_done: bool = False,
+) -> dict:
     reqs = _pick(tier)
     if tier not in (None, "all"):
         state_path = Path(f"runs/w3-loop-state-{tier}.json")
@@ -143,8 +149,11 @@ def _run_w3_loop_eval(max_rounds: int = 5, dry_run: bool = False, resume: bool =
         # P5-0: 只跳 PASS;HALT/ERROR 重跑——resume 曾把环境崩溃遗留的 HALT 行当
         # 已完成跳过,smoke 变 2/3 而不自知(2026-08-23 实证)。HALT=同错 2 轮需
         # 人工介入,操作者重发 eval 即代表要新尝试,旧行已留在上一 run 的 audit 里。
-        if state["rows"].get(name, {}).get("status") == "PASS":
-            print(f"skip(done) {name}: {state['rows'][name]}", flush=True)
+        # skip_done(2026-09-20):环境死亡后的批量续跑档——一切已终态行(PASS/FAIL/
+        # HALT/ERROR/LAYOUT_REVIEW_REQUIRED)都跳,只补没跑过的;单需求重试用默认档。
+        prev = state["rows"].get(name, {}).get("status")
+        if prev == "PASS" or (skip_done and prev):
+            print(f"skip({'done' if prev != 'PASS' else 'pass'}) {name}: {state['rows'][name]}", flush=True)
             continue
         md = (_REQ_DIR / name).read_text(encoding="utf-8")
         body = md.split("## 期望指标")[0]
