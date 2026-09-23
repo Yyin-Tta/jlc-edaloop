@@ -3787,8 +3787,13 @@ class LoopController:
                             self._rotate_outward_pins(pg, round_no)
                             self._reseat_escape_marks(pg, round_no)
                         self._arrange_closeout(round_no, placed_by_page, zone_designators)
+                        # 网快照哨(生产相位探针,同 freeze 口径):收口后/紧凑后/
+                        # 终三关后各记一快照——v1.0 基线 8/8 需求 LAYOUT_PIN_NET_MISMATCH
+                        # 同族 HALT 的死亡相位定位靠它(netport 在哪个环节丢的)。
+                        self._probe_nets("post-closeout", round_no, sorted(placed_by_page))
                         for pg in sorted(placed_by_page):
                             self._compact_internal_nets(pg, round_no, placed_by_page[pg])
+                        self._probe_nets("post-compact", round_no, sorted(placed_by_page))
                         # 紧凑化后复探(2026-08-31):compact 的拉近在 closeout 之后
                         # 仍移动器件,收口探针看不见末端几何;终态重叠/出纸在此
                         # 分离,分离后再补一轮压体/斜甩标记重落;随后末轮 reseat
@@ -3808,6 +3813,23 @@ class LoopController:
                             # rotate/wrong-side 盲落不经盲退护栏,终态在此收口,
                             # gate 的网表口径看到的也是去重后的页
                             self._dedupe_pin_markers(pg, round_no)
+                        self._probe_nets("post-final", round_no, sorted(placed_by_page))
+                        # 生产缺网修复(v1.0 阻塞批,2026-09-23):closeout/compact
+                        # 嫌疑损网(拉移不保网+紧凑化改写)后、终态审计与 gate 之前
+                        # 修复——修复通道此前只挂 freeze 实验分支,生产路径只检不修,
+                        # 8/8 需求同指纹 HALT 的直接原因;inst_page 从本轮落图反演,
+                        # renamed_desig 用本轮改名表(与 freeze 路径同源);异常必审计
+                        # (freeze 路径裸 except 吞异常的教训,不重隧)。
+                        _inst_page = {inst: pg
+                                      for pg, insts in placed_by_page.items() for inst in insts}
+                        try:
+                            _miss = self._net_presence(actions, round_no)
+                            if _miss:
+                                self._repair_missing_nets(
+                                    actions, round_no, _inst_page, renamed_desig, _miss)
+                        except Exception as e:  # noqa: BLE001
+                            self.audit.event("net-repair-error", round_no=round_no,
+                                             error=str(e)[:300])
                         if self.zones_enabled and zone_designators:
                             self._apply_zone_frames(round_no, zone_designators, actions)
                         self._apply_titleblocks(round_no, actions)

@@ -3485,6 +3485,75 @@ def test_freeze_net_repair_reroutes_rail_swallowed_pins(tmp_path) -> None:
     assert remaining == []
 
 
+class _NetSwallowFakeAdapter(_RepackFakeAdapter):
+    """生产 closeout 吞网形态(v1.0 基线 8/8 同指纹):autoconnect applied 后,
+    收口期(首个 sch list = 网基线快照)命名轨整网消失、规划脚并进邻轨——
+    真机「期望 3V3/GND、读回 $159N39 匿名网」的简化形态。"""
+
+    def __init__(self, gate_verdict: str, instances: list[str],
+                 swallow_net: str, wrong_net: str) -> None:
+        super().__init__(gate_verdict, instances)
+        self.swallow_net, self.wrong_net = swallow_net, wrong_net
+        self.swallowed = False
+
+    def run(self, args):
+        if args[:2] == ["sch", "list"] and not self.swallowed:
+            self.swallowed = True
+            for pg in list(self.nets):
+                self.nets[pg].pop(self.swallow_net, None)
+            for pins_map in self.pins_by_page.values():
+                for pins in pins_map.values():
+                    for p in pins:
+                        if p.get("net") == self.swallow_net:
+                            p["net"] = self.wrong_net
+            self.netports = {pg: [f for f in fs if f.get("net") != self.swallow_net]
+                             for pg, fs in self.netports.items()}
+        return super().run(args)
+
+
+def test_production_net_repair_fires_in_apply_before_gate(tmp_path) -> None:
+    """v1.0 阻塞批回归:生产路径(closeout 之后、终态审计/gate 之前)缺网修复。
+
+    修复通道此前只挂 freeze 实验分支,生产只检不修——8/8 需求同指纹 HALT
+    (GATE_FAIL|LAYOUT_PIN_NET_MISMATCH|NET_MISSING)的直接原因。断言:
+    ①三相位网快照哨(post-closeout/compact/final)入审计;②吞网后
+    net-repair 在 gate 之前出手(disconnect 错网脚+按计划网重落);③修后
+    复检余缺清零。"""
+    chat = FakeChat("{}")
+    adapter = _NetSwallowFakeAdapter("pass", ["dcin1"], swallow_net="3V3", wrong_net="GND")
+    lc = _loop(chat, adapter, ir=_ir_with_rails(("12V", 12.0)), tmp=str(tmp_path))
+    actions = [
+        Action(kind="block-apply", block_instance="dcin1", page="P1",
+               args=["sch", "block-apply", "--upstream", "block.vehicle_input_tps54360_5v",
+                     "--at", "100,100", "--bind", "VBAT_RAW=12V"]),
+        Action(kind="sch-autoconnect", block_instance="dcin1", page="P1",
+               args=["sch", "autoconnect", "--pin", "DCI0_1:1",
+                     "--kind", "netport", "--net", "3V3"]),
+        Action(kind="sch-gate", block_instance="", page="P1",
+               args=["sch", "gate", "--doc", "P1"]),
+    ]
+    lc._apply(actions, 1)
+    evs = _audit_events(str(tmp_path))
+    kinds = [e.get("kind") for e in evs]
+    # ① 生产相位探针入审计(死亡时间线定位工具)
+    for tag in ("post-closeout", "post-compact", "post-final"):
+        snap = [e for e in evs if e.get("kind") == "net-snapshot" and e.get("tag") == tag]
+        assert snap, f"缺生产网快照哨 {tag}"
+    # ② 修复在 gate 之前出手:错网脚被拆、按计划网重落
+    rep = next(e for e in evs if e.get("kind") == "net-repair")
+    assert rep["repaired"] == ["DCI0_1:1->3V3"]
+    assert any(c[:3] == ["sch", "disconnect", "--pin"] and "DCI0_1:1" in c
+               for c in adapter.calls)
+    gate_idx = next(i for i, e in enumerate(evs) if e.get("kind") == "gate")
+    assert next(i for i, e in enumerate(evs)
+                if e.get("kind") == "net-repair") < gate_idx
+    # ③ 修后复检:3V3 回到页网表,余缺清零
+    pin = next(p for p in adapter.pins_by_page["P1"]["DCI0_1"]
+               if p["pinNumber"] == "1")
+    assert pin["net"] == "3V3"
+    assert rep  # (余缺经复检入 remaining;repaired 非空即修复闭环)
+
+
 def test_repack_compacts_internal_nets(tmp_path) -> None:
     """块内网紧凑化(先拆后画):disconnect --pin 删桩+netport → wire --net
     直连;跨块网/几何不通的网保留 netport 不动。"""
