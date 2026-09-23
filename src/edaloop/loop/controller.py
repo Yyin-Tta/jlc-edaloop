@@ -3824,6 +3824,21 @@ class LoopController:
                                       for pg, insts in placed_by_page.items() for inst in insts}
                         try:
                             _miss = self._net_presence(actions, round_no)
+                            # pin 级错配预检并入修复面:net-presence 只查网存在,
+                            # 「命名网在页上别处活、这只脚挂 $ 匿名网」查不出;
+                            # 错网脚的计划网并入 missing,同一 disconnect+restub
+                            # 通道修复(对网脚不动,幂等)。
+                            _wrong = self._pin_mismatch_nets(actions, round_no, _inst_page)
+                            if _wrong:
+                                self.audit.event(
+                                    "pin-mismatch-precheck", round_no=round_no,
+                                    wrong={pg: sorted(n) for pg, n in _wrong.items()})
+                                _merged = {str(m.get("page")): set(m.get("missing") or [])
+                                           for m in (_miss or [])}
+                                for pg, nets in _wrong.items():
+                                    _merged.setdefault(pg, set()).update(nets)
+                                _miss = [{"page": pg, "missing": sorted(nets)}
+                                         for pg, nets in sorted(_merged.items())]
                             if _miss:
                                 self._repair_missing_nets(
                                     actions, round_no, _inst_page, renamed_desig, _miss)
@@ -4301,6 +4316,48 @@ class LoopController:
                 for n in (res.get("nets") or []) if n.get("net") or n.get("name")
             })
         self.audit.event("net-snapshot", round_no=round_no, tag=tag, nets=snap)
+
+    def _pin_mismatch_nets(self, actions, round_no: int, inst_page: dict) -> dict[str, set[str]]:
+        """页 → {计划网}:autoconnect 计划脚实测网≠计划网(pin 挂 $ 匿名网/邻轨)。
+
+        net-presence 只查「网在页上存在」,查不出「命名网在别处活着、这只脚
+        挂错」——终态快照 pin 级检查(LAYOUT_PIN_NET_MISMATCH)的病灶在此预检
+        并入修复面(req-08 金丝雀实测:PROTFS82:2 期望 B- 读回 $192N153,
+        net-presence 绿、pin 检查红,修复通道零触发)。改名翻译与终态审计
+        同源(_designator_map_by_instance)。"""
+        planned: dict[str, list[tuple[str, str]]] = {}
+        for act in actions:
+            if act.kind != "sch-autoconnect" or act.block_instance not in inst_page:
+                continue
+            args = act.args
+            if "--pin" not in args or "--net" not in args:
+                continue
+            ref = args[args.index("--pin") + 1]
+            hit = self._designator_map_by_instance.get(act.block_instance)
+            if hit and ref.partition(":")[0] == hit[0]:
+                ref = f"{hit[1]}:{ref.partition(':')[2]}"
+            planned.setdefault(inst_page[act.block_instance], []).append(
+                (ref, args[args.index("--net") + 1]))
+        wrong: dict[str, set[str]] = {}
+        for pg, refs in sorted(planned.items()):
+            try:
+                comps, _deg = self._list_components(pg)
+            except Exception as e:  # noqa: BLE001
+                self.audit.event("pin-mismatch-precheck-error", round_no=round_no,
+                                 page=pg, error=str(e)[:120])
+                continue
+            parts = {c.get("designator"): c for c in comps
+                     if c.get("componentType") == "part" and c.get("designator")}
+            for ref, net in refs:
+                desig, _, pn = ref.partition(":")
+                comp = parts.get(desig)
+                pin = next((p for p in (comp.get("pins") or [])
+                            if str(p.get("pinNumber")) == pn), None) if comp else None
+                if pin is None:
+                    continue
+                if str(pin.get("net") or "") != net:
+                    wrong.setdefault(pg, set()).add(net)
+        return wrong
 
     def _repair_missing_nets(self, actions, round_no: int, inst_page: dict,
                              renamed_r: dict, missing: list[dict],

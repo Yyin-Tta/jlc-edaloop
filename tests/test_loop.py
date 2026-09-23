@@ -3491,23 +3491,27 @@ class _NetSwallowFakeAdapter(_RepackFakeAdapter):
     真机「期望 3V3/GND、读回 $159N39 匿名网」的简化形态。"""
 
     def __init__(self, gate_verdict: str, instances: list[str],
-                 swallow_net: str, wrong_net: str) -> None:
+                 swallow_net: str, wrong_net: str, *, wrong_only: bool = False) -> None:
         super().__init__(gate_verdict, instances)
         self.swallow_net, self.wrong_net = swallow_net, wrong_net
+        self.wrong_only = wrong_only  # True=req-08 形态:网留在页表(pin 外载体),
+        # 只把脚改挂 $ 匿名网——net-presence 绿、pin 级预检红
         self.swallowed = False
 
     def run(self, args):
         if args[:2] == ["sch", "list"] and not self.swallowed:
             self.swallowed = True
-            for pg in list(self.nets):
-                self.nets[pg].pop(self.swallow_net, None)
+            if not self.wrong_only:
+                for pg in list(self.nets):
+                    self.nets[pg].pop(self.swallow_net, None)
             for pins_map in self.pins_by_page.values():
                 for pins in pins_map.values():
                     for p in pins:
                         if p.get("net") == self.swallow_net:
                             p["net"] = self.wrong_net
-            self.netports = {pg: [f for f in fs if f.get("net") != self.swallow_net]
-                             for pg, fs in self.netports.items()}
+            if not self.wrong_only:
+                self.netports = {pg: [f for f in fs if f.get("net") != self.swallow_net]
+                                 for pg, fs in self.netports.items()}
         return super().run(args)
 
 
@@ -3552,6 +3556,36 @@ def test_production_net_repair_fires_in_apply_before_gate(tmp_path) -> None:
                if p["pinNumber"] == "1")
     assert pin["net"] == "3V3"
     assert rep  # (余缺经复检入 remaining;repaired 非空即修复闭环)
+
+
+def test_production_net_repair_fires_on_pin_mismatch_with_net_alive(tmp_path) -> None:
+    """req-08 金丝雀形态(2026-09-23 真机):pin 挂 $ 匿名网而命名网在页上
+    别处活着——net-presence 绿、终态 pin 级检查红,旧触发面零修复。预检
+    (_pin_mismatch_nets)把错网脚的计划网并入修复面,同一通道修复。"""
+    chat = FakeChat("{}")
+    adapter = _NetSwallowFakeAdapter("pass", ["dcin1"], swallow_net="3V3",
+                                     wrong_net="$192N153", wrong_only=True)
+    lc = _loop(chat, adapter, ir=_ir_with_rails(("12V", 12.0)), tmp=str(tmp_path))
+    actions = [
+        Action(kind="block-apply", block_instance="dcin1", page="P1",
+               args=["sch", "block-apply", "--upstream", "block.vehicle_input_tps54360_5v",
+                     "--at", "100,100", "--bind", "VBAT_RAW=12V"]),
+        Action(kind="sch-autoconnect", block_instance="dcin1", page="P1",
+               args=["sch", "autoconnect", "--pin", "DCI0_1:1",
+                     "--kind", "netport", "--net", "3V3"]),
+        Action(kind="sch-gate", block_instance="", page="P1",
+               args=["sch", "gate", "--doc", "P1"]),
+    ]
+    lc._apply(actions, 1)
+    evs = _audit_events(str(tmp_path))
+    # 预检抓到错网脚(net-presence 本身绿:3V3 留在页表)
+    pre = next(e for e in evs if e.get("kind") == "pin-mismatch-precheck")
+    assert pre["wrong"] == {"P1": ["3V3"]}
+    rep = next(e for e in evs if e.get("kind") == "net-repair")
+    assert rep["repaired"] == ["DCI0_1:1->3V3"]
+    pin = next(p for p in adapter.pins_by_page["P1"]["DCI0_1"]
+               if p["pinNumber"] == "1")
+    assert pin["net"] == "3V3"  # 错网脚按计划网重落
 
 
 def test_repack_compacts_internal_nets(tmp_path) -> None:
