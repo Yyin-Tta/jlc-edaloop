@@ -7,6 +7,7 @@ import re
 import pytest
 from pathlib import Path
 
+from edaloop.generate.adapter import AdapterError
 from edaloop.generate.audit import AuditLog
 from edaloop.generate.compile import compile_actions
 from edaloop.generate.models import Action, BlockPlan
@@ -303,6 +304,30 @@ def test_check_gate_strict_warn_rules_are_weak_advisories() -> None:
     assert fs and all(f.weak and f.code == "GATE_ADVISORY" for f in fs), (
         [f"{f.code}:{f.weak}:{f.evidence}" for f in fs]
     )
+
+
+def test_check_gate_190_text_ink_rules_stay_weak() -> None:
+    """1.9.0 新增文字墨迹族(text-overlap/designator-overlap)带 error 级
+    (smoke 2026-10-09 req-01/08:netport 文字翼擦 9-13 处/轮全被升格阻断
+    →HALT 放大)。§10 降维口径=布局打磨弱观察,与 marker-overlap 同族,
+    上游升格不改变其非电气本质;真·error 级电气规则不受此条庇护。"""
+    report = {
+        "verdict": "fail",
+        "stages": [
+            {"stage": "check", "verdict": "fail", "findings": [
+                {"type": "text-overlap", "level": "error",
+                 "message": "text 00b9e21b overlaps part a4752a1 by 11.00×14.00 raw (marker text)"},
+                {"type": "designator-overlap", "level": "error",
+                 "message": "designator TERMOUT text overlaps part FOUT"},
+                {"type": "geom-net-mismatch", "level": "error", "ref": "U1"},
+            ]},
+        ],
+    }
+    fs = check_gauge(report)
+    weak_ev = " | ".join(f.evidence for f in fs if f.weak)
+    assert "text-overlap" in weak_ev and "designator-overlap" in weak_ev
+    # error 级电气规则照旧硬阻断
+    assert any("geom-net-mismatch" in f.evidence for f in fs if not f.weak)
 
 
 def test_check_gate_hard_set_not_weakened() -> None:
@@ -1285,6 +1310,35 @@ def test_run_no_check_version_method_skips_gate(tmp_path) -> None:
     assert lc.run().status == "PASS"
 
 
+def test_run_plan_compile_error_degrades_to_feedback(tmp_path, monkeypatch) -> None:
+    """计划编译失败降级为轮内阻断反馈(smoke 2026-10-09 req-01 实证):
+    LLM 给 upstream 块挂 no_connect 过了 make_plan 却死在 _fill_bindings,
+    CompileError 曾直接炸穿需求成 ERROR:CompileError。现在:不 raise、
+    零真机变更、PLAN_COMPILE_FAILED 错误文本进 feedback,同形两轮 HALT 兜底。"""
+    import edaloop.loop.controller as ctrl_mod
+    from edaloop.generate.compile import CompileError
+
+    def _boom(plan, catalog, spacing_default="250"):
+        raise CompileError("块 usb-serial-ch340n 的 upstream 通道不支持 no_connect")
+
+    monkeypatch.setattr(ctrl_mod, "compile_actions", _boom)
+    chat = FakeChat(json.dumps(_PLAN_OK, ensure_ascii=False))
+    adapter = _FakeAdapter("pass")
+    lc = _loop(chat, adapter, tmp=str(tmp_path))
+    result = lc.run()  # 旧形态:此处 raise CompileError → 需求 ERROR
+    assert result.status == "HALT"  # 同形 2 轮,code_streak→HALT
+    # 编译失败轮零真机变更:不 clear 不 block-apply
+    mutating = [
+        c for c in adapter.calls
+        if c[:2] == ["sch", "clear"] or (len(c) > 1 and c[1] == "block-apply")
+    ]
+    assert mutating == []
+    codes = [f.code for r in result.rounds for f in (r.findings or [])]
+    assert "PLAN_COMPILE_FAILED" in codes
+    # HALT 轮在 feedback 合成前收束,错误文本在上一轮(喂给重试轮)的 feedback 里
+    assert "不支持 no_connect" in (result.rounds[-2].feedback or "")
+
+
 # ---- P5-0 页修剪:计划外 P\d+ 孤儿页删除(netlist 导出页数超载的根因修复) ----
 
 
@@ -1476,6 +1530,136 @@ def test_apply_tracks_connector_readback_designator_rename(tmp_path) -> None:
     ac = [c for c in adapter.calls if c[:2] == ["sch", "autoconnect"]]
     assert ac and ac[-1][ac[-1].index("--pin") + 1] == "C9:1"
     assert lc._designator_map_by_instance["cap_a"] == ("C1", "C9")
+
+
+# ---- 1.9.0 autoconnect planner 硬拒:确定性落桩兜底 + 不毒化整轮 ----
+# smoke 2026-10-09 复现:全新件左脚在密集行,前件右桩占了唯一合法朝外走廊
+# → no safe candidate(1e9 硬拒无旗标可放宽);req-11 69 处/run,req-08
+# PASS@1→HALT@3 的放大链=autoconnect 失败→ok_all=False→每轮 15+ 合成
+# GATE_FAIL 把电气已对/可修的轮打成 RELAYOUT 空转。
+
+
+class _HardRejectAdapter(_FakeAdapter):
+    """autoconnect 一律 rc=1(planner 硬拒);页上 C1 两脚几何在带内,
+    disconnect/sch connect(显式方向+桩长)确定性通道照常可用。"""
+
+    def run(self, args):
+        if len(args) > 1 and args[1] == "autoconnect":
+            self.calls.append(args)
+            return 1, "", "autoconnect: 1 connection(s) failed"
+        if len(args) > 1 and args[1] == "pages":
+            self.calls.append(args)
+            return 0, json.dumps(
+                {"result": {"pages": [{"name": "P1", "uuid": "u1"}]}}), ""
+        if len(args) > 1 and args[1] == "list":
+            self.calls.append(args)
+            return 0, json.dumps({"result": {"components": [
+                {"componentType": "part", "designator": "C1",
+                 "pins": [{"pinNumber": "1", "x": 300, "y": 400},
+                          {"pinNumber": "2", "x": 340, "y": 400}],
+                 "bbox": {"minX": 290, "minY": 380, "maxX": 350, "maxY": 420}},
+            ]}}), ""
+        return super().run(args)
+
+
+def test_autoconnect_hard_reject_falls_back_to_stub(tmp_path) -> None:
+    adapter = _HardRejectAdapter("pass")
+    lc = _loop(FakeChat("{}"), adapter, ir=_ir_loop(), tmp=str(tmp_path))
+    actions = [
+        Action(kind="sch-autoconnect", block_instance="cap_a", page="P1",
+               args=["sch", "autoconnect", "--pin", "C1:1", "--kind", "netport",
+                     "--net", "N_A"]),
+    ]
+    ok, _gate = lc._apply(actions, 1)
+    assert ok  # 落桩兜住即 applied,不毒化整轮
+    disc = [c for c in adapter.calls if c[:2] == ["sch", "disconnect"]]
+    assert disc  # 先拆残桩(conflict 门禁形态同通道覆盖)
+    conn = [c for c in adapter.calls if c[:2] == ["sch", "connect"]]
+    assert conn and conn[-1][conn[-1].index("--pin") + 1] == "C1:1"
+    assert conn[-1][conn[-1].index("--direction") + 1] in ("left", "right", "up", "down")
+    events = [json.loads(line) for line in
+              Path(str(tmp_path), "audit.jsonl").read_text(encoding="utf-8").splitlines()]
+    fb = [e for e in events if e.get("kind") == "autoconnect-stub-fb"]
+    assert fb and fb[-1]["ok"] is True and fb[-1]["pin"] == "C1:1"
+
+
+def test_autoconnect_double_reject_degrades_to_warning(tmp_path) -> None:
+    """planner+落桩双拒(planner 拒后页面读不到目标脚)→ 不再判负整轮:
+    电气对错交 gate 网检(MISSING_RAIL/LAYOUT_NET_MISSING)与 closeout
+    net-repair 终裁,只记弱告警留痕。"""
+
+    class _BlindAdapter(_HardRejectAdapter):
+        def run(self, args):
+            if len(args) > 1 and args[1] == "list":
+                self.calls.append(args)
+                return 0, json.dumps({"result": {"components": []}}), ""
+            return super().run(args)
+
+    adapter = _BlindAdapter("pass")
+    lc = _loop(FakeChat("{}"), adapter, ir=_ir_loop(), tmp=str(tmp_path))
+    actions = [
+        Action(kind="sch-autoconnect", block_instance="cap_a", page="P1",
+               args=["sch", "autoconnect", "--pin", "C1:1", "--kind", "netport",
+                     "--net", "N_A"]),
+    ]
+    ok, _gate = lc._apply(actions, 1)
+    assert ok  # autoconnect 双拒不毒化:place/block-apply 失败才判负
+    assert any(w["code"] == "AUTOCONNECT_FALLBACK_FAILED"
+               for w in lc._layout_warnings)
+
+
+# ---- 1.9.0 静默死取证:block-apply 空回与 sch-place 抛错必须留痕 ----
+# smoke 2026-10-09 req-01/08 重跑实证:usbc1/mcu1/ch340n1/buttons1 两轮
+# stdout 全空(unknown)、dw01/fs8205/f_out 两轮零落物,rc/stderr/错误文本
+# 全被吞,无法定性——可观测性先于治疗。
+
+
+class _SilentDeathAdapter(_DesigFakeAdapter):
+    """block-apply stdout 全空 rc=1;sch place 回包通道抛 AdapterError;
+    页面认领读回零件(静默死形态)。"""
+
+    def run(self, args):
+        if len(args) > 1 and args[1] == "block-apply":
+            self.calls.append(args)
+            return 1, "", "Error: device has 2 symbol variants; refusing to guess"
+        if len(args) > 1 and args[1] == "list":
+            self.calls.append(args)
+            return 0, json.dumps({"result": {"components": []}}), ""
+        return super().run(args)
+
+    def run_json(self, args):
+        if len(args) > 1 and args[1] == "place":
+            self.calls.append(args)
+            raise AdapterError("place failed: variant selector fail-closed")
+        return super().run_json(args)
+
+
+def test_silent_death_failures_keep_forensics(tmp_path) -> None:
+    adapter = _SilentDeathAdapter("pass")
+    lc = _loop(FakeChat("{}"), adapter, ir=_ir_loop(), tmp=str(tmp_path))
+    actions = [
+        Action(kind="lib-search", block_instance="cap_a", lcsc="C123",
+               args=["lib", "search", "--query", "C123", "--limit", "3"]),
+        Action(kind="sch-place", block_instance="cap_a", page="P1",
+               args=["sch", "place", "--lib", "", "--uuid", "", "--x", "100",
+                     "--y", "300", "--designator", "C1"]),
+        Action(kind="block-apply", block_instance="blk_a", page="P1",
+               args=["sch", "block-apply", "block.led_indicator_gpio",
+                     "--at", "150,370", "--bind", "CTRL=LED"]),
+    ]
+    ok, _gate = lc._apply(actions, 1)
+    assert not ok  # 真失败仍判负(语义不变)
+    events = [json.loads(line) for line in
+              Path(str(tmp_path), "audit.jsonl").read_text(encoding="utf-8").splitlines()]
+    ba = [e for e in events if e.get("kind") == "block-apply"]
+    assert ba and ba[-1]["status"] == "unknown"
+    assert ba[-1]["meta"]["rc"] == 1
+    assert "variant" in ba[-1]["meta"]["stderr_tail"]
+    errs = [e for e in events if e.get("kind") == "sch-place-error"]
+    assert [e["attempt"] for e in errs] == [1, 2]
+    assert "fail-closed" in errs[-1]["error"]
+    sp = [e for e in events if e.get("kind") == "sch-place"]
+    assert sp and sp[-1]["ok"] is False and "fail-closed" in sp[-1]["err_tail"]
 
 
 # ---- repack:两阶段布局(试放定框 → 离线装箱 → 逐页重放)----

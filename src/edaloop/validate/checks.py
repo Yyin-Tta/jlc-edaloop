@@ -798,6 +798,12 @@ def check_param_off_spec(plan: BlockPlan, sizing_advices, catalog: dict | None =
 # (真短路)、drc fatal、证据完整性(unavailable/几何缺失);未知规则名 fail-closed 保持阻塞。
 _GATE_HARD_GEOMETRY_RULES = frozenset({"overlap", "pin-coincidence"})
 _GATE_INTEGRITY_TOKENS = ("unavailable", "missing", "malformed", "no-sheet", "nosheet")
+# 文字墨迹族(标记/位号文字翼擦):1.9.0 新增 text-overlap/designator-overlap
+# 且带 error 级(smoke 2026-10-09 req-01/08 实证每轮 9-13 处,全是 netport 文字
+# 翼展蹭邻件/蹭他标记,11-42 raw 小面积)——与既有 marker-overlap 同族。§10
+# 降维口径下这是布局打磨弱观察;上游升格 error 不改变其非电气本质,在
+# level 硬判之前先除名。本体相交(overlap/pin-coincidence)不受此条。
+_GATE_TEXT_INK_RULES = frozenset({"text-overlap", "designator-overlap", "marker-overlap"})
 # 交付文档类 WARN(分区/注释/图签未填)——§10 降维口径属弱观察;词元以
 # missing- 开头,必须在证据完整性裸词元之前显式除名(run-39d5b7b90ba7 实证
 # 三连硬阻断,其 message 本身就是补画指引而非真错)。
@@ -809,7 +815,7 @@ _GATE_SOFT_CHECK_RULES = frozenset({
     "floating-pin", "geom-net-mismatch", "net-marker-mismatch", "multi-net-wire",
     "wire-crossing", "wire-over-pin", "zero-length-wire", "dangling-wire",
     "polarity-convention-outlier", "duplicate-net-marker", "titleblock-overlap",
-    "marker-overlap",
+    "marker-overlap", "text-overlap", "designator-overlap",
 })
 _GATE_SOFT_BRIDGE_RULES = frozenset({"orphan-stub", "orphan-flag", "orphan-tree"})
 _GATE_SOFT_CLUSTER_TOKENS = ("marker", "ink", "wing", "flag", "orphan")
@@ -846,6 +852,8 @@ def _gate_item_blocks(stage: str, f: object) -> bool:
     token = _gate_item_token(f)
     level = _gate_item_level(f)
     text = f"{token} {str(f).lower()}"
+    if token in _GATE_TEXT_INK_RULES:
+        return False
     if level in ("fatal", "error"):
         return True
     if token in _GATE_SOFT_DOC_RULES:

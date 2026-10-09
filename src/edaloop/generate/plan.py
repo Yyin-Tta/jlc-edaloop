@@ -168,6 +168,21 @@ def make_plan(
         if mismatched:
             last = PlanError(f"upstream_id 与目录不一致(照抄目录,不要截断): {mismatched[:3]}", raw=raw)
             continue
+        # upstream-NC 预检(smoke 2026-10-09 req-01 实证):LLM 给 upstream 块挂
+        # no_connect(DTR/RTS 弃自动下载)过了本清单却在 _fill_bindings 被拒,
+        # CompileError 炸穿需求。此处带原因重问,LLM 改绑端口或换 place 通道。
+        nc_upstream = [
+            b.block_id for b in plan.blocks
+            if b.no_connect and valid_ids.get(b.block_id)
+        ]
+        if nc_upstream:
+            last = PlanError(
+                f"块 {nc_upstream[:3]} 的 upstream 通道不支持 no_connect:"
+                "upstream 块是整体接线的固定电路,不能对个别端口 NC;"
+                "要么绑定全部端口(如保留配套块),要么改选带 pinout 的 place 器件表达 NC",
+                raw=raw,
+            )
+            continue
         lcsc_pinouts = {
             b.block_id: (b.lcsc, b.pinout or {})
             for b in candidates

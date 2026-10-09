@@ -3,7 +3,7 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
-_PINNED_VERSION = "1.4.8"  # ADR-0002 版本链 0.25.1→1.1.1→1.2.8→1.2.10→1.4.1→1.4.2→1.4.8(2026-09-15 用户指示钉 1.4.8:本机 CLI 1.4.2→1.4.8,connector .eext 同版 1.4.8;升级批纪律=全量 evals 回归+清 w3-loop resume state)
+_PINNED_VERSION = "1.9.0"  # ADR-0002 版本链 0.25.1→1.1.1→1.2.8→1.2.10→1.4.1→1.4.2→1.4.8→1.9.0(2026-10-09 用户指示钉 1.9.0:本机 CLI 1.4.8→1.9.0,connector .eext 同版 1.9.0,宿主 EasyEDA Pro 3.2.175→4.1.71;升级批纪律=全量 evals 回归+清 w3-loop resume state)
 _FALLBACK_BIN = r"C:\Users\admin\.local\bin\easyeda.exe"
 
 

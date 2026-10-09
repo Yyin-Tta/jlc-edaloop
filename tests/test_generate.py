@@ -119,6 +119,41 @@ def test_make_plan_rejects_unknown_block() -> None:
         make_plan(_ir(), _candidates(), chat)
 
 
+def test_make_plan_rejects_no_connect_on_upstream() -> None:
+    """upstream-NC 预检(smoke 2026-10-09 req-01 实证):LLM 给 upstream 块挂
+    no_connect(req-01 的 DTR/RTS 弃自动下载形态)要带原因重问;attempts 内
+    不收敛则 PlanError,不得漏到 compile_actions 才把需求炸成 ERROR。"""
+    bad = _plan_json()
+    bad["blocks"][1]["no_connect"] = ["EN"]
+    calls = {"n": 0}
+
+    class _StubChat:
+        def chat(self, messages, *, model=None):
+            calls["n"] += 1
+            return json.dumps(bad, ensure_ascii=False)
+
+    with pytest.raises(PlanError, match="不支持 no_connect"):
+        make_plan(_ir(), _candidates(), _StubChat())
+    assert calls["n"] == 3  # 每次都带拒绝原因重问,不是同提示词空转
+
+
+def test_make_plan_reask_then_accepts_fixed_plan() -> None:
+    """重问后 LLM 修正(去掉 upstream 块上的 NC)→ 计划被接受,重问通道收敛。"""
+    bad = _plan_json()
+    bad["blocks"][1]["no_connect"] = ["EN"]
+    seq = [
+        json.dumps(bad, ensure_ascii=False),
+        json.dumps(_plan_json(), ensure_ascii=False),
+    ]
+
+    class _SeqChat:
+        def chat(self, messages, *, model=None):
+            return seq.pop(0)
+
+    plan = make_plan(_ir(), _candidates(), _SeqChat())
+    assert not plan.blocks[1].no_connect
+
+
 def test_compile_actions_binds_all_ports() -> None:
     plan = BlockPlan.model_validate({"design_ir_id": "x", **_plan_json()})
     actions = compile_actions(plan, _catalog())

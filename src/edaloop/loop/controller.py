@@ -12,7 +12,7 @@ from pathlib import Path
 
 from edaloop.generate.adapter import EasyedaAdapter
 from edaloop.generate.audit import AuditLog
-from edaloop.generate.compile import CLAIM_ZONE, compile_actions
+from edaloop.generate.compile import CLAIM_ZONE, CompileError, compile_actions
 from edaloop.generate.models import BlockPlan
 from edaloop.generate.plan import ensure_std_candidates, make_plan
 from edaloop.intent.ir import DesignIR
@@ -1523,10 +1523,25 @@ class LoopController:
                 )
                 gate_report = None
                 apply_ok = True
+                compile_error = ""
+                actions: list = []
                 if not self.dry_run:
-                    # A4 标定(2026-08 真机):250 为实测可整块入图的格距;旧 600+150×(r-1)
-                    # 爬坡阶梯废弃——页流下放大 spacing 直接破页容量,重试走 per-block at/params.spacing
-                    actions = compile_actions(plan, self.catalog, spacing_default="250")
+                    # 计划编译失败降级为轮内阻断反馈(smoke 2026-10-09 req-01 实证:
+                    # LLM 给 upstream 块挂 no_connect 的形态过了 make_plan 校验清单
+                    # 却死在 _fill_bindings,CompileError 直接炸穿需求成 ERROR:Compile
+                    # Error)。对齐既有「轮失败→反馈重试」结构:跳过本轮全部真机动作,
+                    # 错误文本经阻断 finding 进下轮 prompt,同形重发由 code_streak→HALT
+                    # 兜底。make_plan 已加同规预检(秒级 LLM 重问),此处只兜残余。
+                    try:
+                        # A4 标定(2026-08 真机):250 为实测可整块入图的格距;旧 600+150×(r-1)
+                        # 爬坡阶梯废弃——页流下放大 spacing 直接破页容量,重试走 per-block at/params.spacing
+                        actions = compile_actions(plan, self.catalog, spacing_default="250")
+                    except CompileError as e:
+                        compile_error = str(e)
+                        apply_ok = False  # 本轮判负走阻断反馈(否则 validate 放行成假 PASS)
+                        self.audit.event("plan-compile-failed", round_no=round_no,
+                                         error=compile_error[:300])
+                if not self.dry_run and not compile_error:
                     self.adapter.clear_all_pages()
                     # 两阶段布局(repack):试放定框→离线装箱→改写 at/page;失败自动
                     # 回退流式(旧行为)。EDALOOP_LAYOUT=flow 一键关停。
@@ -1647,14 +1662,26 @@ class LoopController:
                         suggested_fix_class="REWIRE",
                     ))
             if not apply_ok:
-                findings = [
-                    Finding(
-                        code="GATE_FAIL",
-                        evidence=f"round {round_no}: block-apply 存在失败(autoconnect 连线失败或环境错误或清页失败跳过落图,详见 apply-error/page-clear 审计);本轮 spacing=250(A4 页流;RELAYOUT 反馈请给 at/params.spacing)",
-                        severity="error",
-                        suggested_fix_class="RELAYOUT",
-                    )
-                ] + findings
+                if compile_error:
+                    # 计划编译失败专属口径(区别于落图失败的 RELAYOUT):错在 plan 块
+                    # 结构(端口/NC/引脚),反馈要求 LLM 修正 plan 而非挪布局。
+                    findings = [
+                        Finding(
+                            code="PLAN_COMPILE_FAILED",
+                            evidence=f"round {round_no}: 计划编译失败:{compile_error};按错误修正 plan 块结构(端口绑定/NC/引脚)后重新输出完整 plan",
+                            severity="error",
+                            suggested_fix_class="REPLAN",
+                        )
+                    ] + findings
+                else:
+                    findings = [
+                        Finding(
+                            code="GATE_FAIL",
+                            evidence=f"round {round_no}: block-apply 存在失败(autoconnect 连线失败或环境错误或清页失败跳过落图,详见 apply-error/page-clear 审计);本轮 spacing=250(A4 页流;RELAYOUT 反馈请给 at/params.spacing)",
+                            severity="error",
+                            suggested_fix_class="RELAYOUT",
+                        )
+                    ] + findings
             rec.findings = findings
             blocking = [f for f in findings if not f.weak]
             codes = {f.code for f in findings}
@@ -3949,9 +3976,17 @@ class LoopController:
                     # rc=0 但 stdout 空/截断时 run_json 抛 AdapterError,盲重试
                     # (_run_json_retry)会在已落物上原参重发=孪生件;空回的补发
                     # 只走下方"认领坐实零落物"例外(同 block-apply 空回补发)。
+                    place_err = ""
                     try:
                         resp = self.adapter.run_json(place_args)
-                    except AdapterError:
+                    except AdapterError as e:
+                        # 吞错不吞证(1.9.0 静默死取证,req-08 重跑 dw01/fs8205/
+                        # f_out 两轮零落物且无任何错误痕迹):原因进审计,流程
+                        # 语义不变(空回→认领→重发一次)。
+                        place_err = str(e)[-300:]
+                        self.audit.event("sch-place-error", round_no=round_no,
+                                         instance=act.block_instance, attempt=1,
+                                         error=place_err)
                         resp = {}
                     comp = (resp.get("result", {}) or {}).get("component", {}) or {}
                     desig = comp.get("designator", "")
@@ -3973,7 +4008,11 @@ class LoopController:
                         else:
                             try:
                                 resp = self.adapter.run_json(place_args)
-                            except AdapterError:
+                            except AdapterError as e:
+                                place_err = str(e)[-300:]
+                                self.audit.event("sch-place-error", round_no=round_no,
+                                                 instance=act.block_instance, attempt=2,
+                                                 error=place_err)
                                 resp = {}
                             comp = (resp.get("result", {}) or {}).get("component", {}) or {}
                             desig = comp.get("designator", "")
@@ -4024,6 +4063,11 @@ class LoopController:
                         designator=desig or "?",
                         page=act.page or "P1",
                         ok=ok,
+                        # 失败原因随事件(ok=false 且件没落时,AdapterError 文本或
+                        # rc=0 拒绝体是唯一定性证据;成功不记防膨胀)
+                        err_tail=(place_err
+                                  or str(resp.get("error", "") or "")[:200])
+                        if not ok and not desig else "",
                     )
                     continue
                 manifest: dict = {}
@@ -4067,6 +4111,10 @@ class LoopController:
                     window=getattr(self.adapter, "window_id", ""),
                     page=act.page or "P1",
                     args=args if act.kind in ("block-apply", "sch-place", "sch-autoconnect", "sch-no-connect") else [],
+                    # 空回 stdout(unknown)时 rc/stderr 是唯一定性证据(1.9.0
+                    # 静默死,req-01 重跑实证);applied 不记防审计膨胀。
+                    meta=getattr(self, "_last_manifest_meta", {})
+                    if act.kind == "block-apply" and not str(status).startswith("applied") else {},
                 )
                 if status != "applied":
                     if str(status).startswith("failed-partial"):
@@ -4141,6 +4189,25 @@ class LoopController:
                                     "apply-fatal", round_no=round_no,
                                     instance=act.block_instance, error=str(e)[:1500],
                                 )
+                if status != "applied" and act.kind == "sch-autoconnect" and "--pin" in args:
+                    # 1.9.0 planner 硬拒(smoke 2026-10-09 req-08/req-11 实证,
+                    # 69 处/run):硬拒=几何卫生非电气事实,毒化 ok_all 会让每轮
+                    # 15+ 合成 GATE_FAIL 把电气已对/可修的轮打成 RELAYOUT 空转
+                    # (req-08 PASS@1→HALT@3)。先确定性落桩兜底;仍败交 gate
+                    # 网检(MISSING_RAIL/LAYOUT_NET_MISSING)+closeout net-repair
+                    # 终裁,只记弱告警不记阻断。
+                    if self._autoconnect_stub_fallback(args, act.page or "P1", round_no):
+                        status = "applied"
+                    else:
+                        self._layout_warnings.append({
+                            "code": "AUTOCONNECT_FALLBACK_FAILED",
+                            "evidence": (
+                                f"round {round_no}: "
+                                f"{args[args.index('--pin') + 1]} -> "
+                                f"{args[args.index('--net') + 1] if '--net' in args else '?'} "
+                                "planner+落桩双拒,电气终态以 gate 网检为准"
+                            ),
+                        })
                 if status == "applied":
                     des = [p["designator"] for p in manifest.get("placed", []) or [] if p.get("designator")]
                     if des:
@@ -4148,7 +4215,8 @@ class LoopController:
                         taken_desig.update(des)  # 子件自动排号入册,后续 place 避撞
                     if act.zone:
                         zone_designators.setdefault(act.page or "P1", {}).setdefault(act.zone, []).extend(des)
-                if status != "applied":
+                if status != "applied" and act.kind != "sch-autoconnect":
+                    # autoconnect 失败已由落桩兜底/gate 网检接管,不再毒化整轮
                     ok_all = False
             except AdapterError as e:
                 ok_all = False
@@ -4459,6 +4527,70 @@ class LoopController:
         except Exception:  # noqa: BLE001
             return missing
 
+    def _autoconnect_stub_fallback(self, args: list, page: str, round_no: int) -> bool:
+        """apply 相 autoconnect 失败的确定性落桩兜底(1.9.0 planner 硬拒形态)。
+
+        1.9.0 评分器把「引出方向不沿脚朝外」「桩触他网导线」定为 1e9 硬拒且
+        无旗标可放宽(smoke 2026-10-09 复现:全新件左脚在密集行,前件右桩占了
+        本脚唯一合法走廊 → no safe candidate;req-11 69 处/run,req-08 PASS@1
+        →HALT@3)。planner 拒的是几何卫生,不是电气事实;此处走 net-repair
+        同款通道:disconnect 清残桩(conflict 门禁形态)→ _connect_stub 按
+        脚侧方向+避本体+避电气端点确定性落桩。True=桩已落,电气对错仍由
+        gate 网检终裁。"""
+        from edaloop.generate.adapter import AdapterError
+
+        try:
+            ref = args[args.index("--pin") + 1]
+            net = args[args.index("--net") + 1]
+        except ValueError:
+            return False
+        kind = args[args.index("--kind") + 1] if "--kind" in args else "netport"
+        if not self._open_page_for_edit(page, "acstub-fb-open", round_no):
+            return False
+        try:
+            self.adapter.run(["sch", "disconnect", "--pin", ref, "--doc", page])
+        except AdapterError:
+            pass  # 桩可能本就不在(planner 拒在落桩前),conflict 残桩才需要拆
+        try:
+            comps, _deg = self._list_components(page)
+        except Exception:  # noqa: BLE001
+            return False
+        desig, _, pn = ref.partition(":")
+        comp = next((c for c in comps
+                     if c.get("componentType") == "part"
+                     and c.get("designator") == desig), None)
+        pin = next((p for p in ((comp or {}).get("pins") or [])
+                    if str(p.get("pinNumber")) == pn), None)
+        if pin is None or pin.get("x") is None:
+            self.audit.event("acstub-fb-miss", round_no=round_no, page=page, pin=ref)
+            return False
+        x, y = float(pin["x"]), float(pin["y"])
+        pp = [(float(p["x"]), float(p["y"])) for p in comp.get("pins") or []
+              if p.get("x") is not None]
+        # 电气端点避让(net-repair 同口径):他件脚端点+他标记锚点,重合=并网
+        avoid_pts = [
+            (float(p["x"]), float(p["y"]))
+            for c in comps for p in (c.get("pins") or []) if p.get("x") is not None
+        ] + [
+            (float(f["x"]), float(f["y"]))
+            for f in comps
+            if f.get("componentType") in ("netport", "netflag", "netlabel")
+            and f.get("x") is not None
+        ]
+        ob = comp.get("bbox")
+        own = None
+        if isinstance(ob, dict) and "minX" in ob:
+            own = (float(ob["minX"]), float(ob["minY"]),
+                   float(ob["maxX"]), float(ob["maxY"]))
+        r = self._connect_stub(ref, kind, net, x, y, pp,
+                               body_rects=[own] if own else None,
+                               own_body=own, avoid_pts=avoid_pts)
+        ok = r is not None
+        self.audit.event("autoconnect-stub-fb", round_no=round_no, page=page,
+                         pin=ref, net=net, ok=ok,
+                         dir=r[0] if r else "", off=r[1] if r else 0)
+        return ok
+
     def _page_component_count(self, page: str) -> int:
         """sch read --page 回读非 sheet 器件数;读失败返回 -1(未知 ≠ 已清空)。
 
@@ -4665,7 +4797,8 @@ class LoopController:
                 self.audit.event(
                     "trial-manifest-unknown", round_no=round_no,
                     instance=act.block_instance,
-                    keys=sorted(manifest)[:20], raw=str(manifest)[:300])
+                    keys=sorted(manifest)[:20], raw=str(manifest)[:300],
+                    meta=getattr(self, "_last_manifest_meta", {}))
             # manifest.origin = 实际生效原点(上游钳制时 relocated=True 且
             # x/y 是钳后位)——trial_anchor 记它,pack 重放偏移校正才不自欺
             org = manifest.get("origin") or {}
@@ -8075,6 +8208,10 @@ class LoopController:
         from edaloop.generate.adapter import AdapterError
 
         rc, out, err = self.adapter.run(args)
+        # 1.9.0 静默死取证(smoke 2026-10-09 req-01 重跑:usbc1/mcu1/ch340n1/
+        # buttons1 生产+试放两轮 stdout 全空,rc/stderr 双吞,unknown 无法定性):
+        # rc 与 stderr 尾部挂实例态,unknown 审计事件随取随记。
+        self._last_manifest_meta = {"rc": rc, "stderr_tail": (err or "")[-240:]}
         try:
             return json.loads(out) if out.strip() else {}
         except ValueError as e:
