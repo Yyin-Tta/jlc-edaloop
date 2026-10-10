@@ -803,7 +803,12 @@ _GATE_INTEGRITY_TOKENS = ("unavailable", "missing", "malformed", "no-sheet", "no
 # 翼展蹭邻件/蹭他标记,11-42 raw 小面积)——与既有 marker-overlap 同族。§10
 # 降维口径下这是布局打磨弱观察;上游升格 error 不改变其非电气本质,在
 # level 硬判之前先除名。本体相交(overlap/pin-coincidence)不受此条。
-_GATE_TEXT_INK_RULES = frozenset({"text-overlap", "designator-overlap", "marker-overlap"})
+_GATE_TEXT_INK_RULES = frozenset({
+    "text-overlap", "designator-overlap", "marker-overlap",
+    # 导线压位号/标记文字框(smoke#3 2026-10-10 req-01 r1 实证:designator-wire-
+    # overlap error 级 fail-closed 阻断;墨迹蹭线与蹭件同族,§10 降维口径)
+    "designator-wire-overlap", "text-wire-overlap", "wire-text-overlap",
+})
 # 交付文档类 WARN(分区/注释/图签未填)——§10 降维口径属弱观察;词元以
 # missing- 开头,必须在证据完整性裸词元之前显式除名(run-39d5b7b90ba7 实证
 # 三连硬阻断,其 message 本身就是补画指引而非真错)。
@@ -816,6 +821,7 @@ _GATE_SOFT_CHECK_RULES = frozenset({
     "wire-crossing", "wire-over-pin", "zero-length-wire", "dangling-wire",
     "polarity-convention-outlier", "duplicate-net-marker", "titleblock-overlap",
     "marker-overlap", "text-overlap", "designator-overlap",
+    "designator-wire-overlap", "text-wire-overlap", "wire-text-overlap",
 })
 _GATE_SOFT_BRIDGE_RULES = frozenset({"orphan-stub", "orphan-flag", "orphan-tree"})
 _GATE_SOFT_CLUSTER_TOKENS = ("marker", "ink", "wing", "flag", "orphan")

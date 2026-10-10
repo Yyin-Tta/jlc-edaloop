@@ -319,6 +319,8 @@ def test_check_gate_190_text_ink_rules_stay_weak() -> None:
                  "message": "text 00b9e21b overlaps part a4752a1 by 11.00×14.00 raw (marker text)"},
                 {"type": "designator-overlap", "level": "error",
                  "message": "designator TERMOUT text overlaps part FOUT"},
+                {"type": "designator-wire-overlap", "level": "error",
+                 "message": "wire crosses Designator text bbox designator=R1"},
                 {"type": "geom-net-mismatch", "level": "error", "ref": "U1"},
             ]},
         ],
@@ -326,6 +328,7 @@ def test_check_gate_190_text_ink_rules_stay_weak() -> None:
     fs = check_gauge(report)
     weak_ev = " | ".join(f.evidence for f in fs if f.weak)
     assert "text-overlap" in weak_ev and "designator-overlap" in weak_ev
+    assert "designator-wire-overlap" in weak_ev  # 导线压位号文字=墨迹族
     # error 级电气规则照旧硬阻断
     assert any("geom-net-mismatch" in f.evidence for f in fs if not f.weak)
 
@@ -1660,6 +1663,34 @@ def test_silent_death_failures_keep_forensics(tmp_path) -> None:
     assert "fail-closed" in errs[-1]["error"]
     sp = [e for e in events if e.get("kind") == "sch-place"]
     assert sp and sp[-1]["ok"] is False and "fail-closed" in sp[-1]["err_tail"]
+
+
+def test_blockapply_applied_mismatch_lands_without_poison(tmp_path) -> None:
+    """1.9.0 applied-mismatch(器件已落地、个别绑定有差)不毒化整轮:
+    差异记 APPLY_STATUS_MISMATCH 弱告警交 gate 终裁,子件位号照常入册。
+    smoke#3(2026-10-10) req-01 r1 实证:mismatch→ok_all=False→合成
+    GATE_FAIL 带 spacing 提示→RELAYOUT 把 9 块计划炸成 20 块散件→
+    13 重叠→同 hash 收敛 HALT。"""
+    class _MismatchAdapter(_DesigFakeAdapter):
+        def run(self, args):
+            if len(args) > 1 and args[1] == "block-apply":
+                self.calls.append(args)
+                return 0, json.dumps({
+                    "ok": "applied-mismatch",
+                    "placed": [{"designator": "U9"}],
+                }), ""
+            return super().run(args)
+
+    adapter = _MismatchAdapter("pass")
+    lc = _loop(FakeChat("{}"), adapter, ir=_ir_loop(), tmp=str(tmp_path))
+    actions = [
+        Action(kind="block-apply", block_instance="blk_a", page="P1",
+               args=["sch", "block-apply", "block.ch340c_usb_serial",
+                     "--at", "150,240", "--json"]),
+    ]
+    ok, _gate = lc._apply(actions, 1)
+    assert ok  # 器件已落地,不毒化整轮
+    assert any(w["code"] == "APPLY_STATUS_MISMATCH" for w in lc._layout_warnings)
 
 
 # ---- repack:两阶段布局(试放定框 → 离线装箱 → 逐页重放)----

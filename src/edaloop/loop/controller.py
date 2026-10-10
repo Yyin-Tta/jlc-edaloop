@@ -4208,15 +4208,28 @@ class LoopController:
                                 "planner+落桩双拒,电气终态以 gate 网检为准"
                             ),
                         })
-                if status == "applied":
+                if str(status).startswith("applied"):
+                    # applied-mismatch/-partial 的器件已落地(试放相位同口径),
+                    # 子件位号照常入册;status 细节记弱告警留评审痕迹
+                    if status != "applied":
+                        self._layout_warnings.append({
+                            "code": "APPLY_STATUS_MISMATCH",
+                            "evidence": (
+                                f"round {round_no}: {act.block_instance} "
+                                f"block-apply status={status},器件已落地,"
+                                "绑定差异交 gate 网检终裁"
+                            ),
+                        })
                     des = [p["designator"] for p in manifest.get("placed", []) or [] if p.get("designator")]
                     if des:
                         placed_by_page.setdefault(act.page or "P1", {})[act.block_instance] = des
                         taken_desig.update(des)  # 子件自动排号入册,后续 place 避撞
                     if act.zone:
                         zone_designators.setdefault(act.page or "P1", {}).setdefault(act.zone, []).extend(des)
-                if status != "applied" and act.kind != "sch-autoconnect":
-                    # autoconnect 失败已由落桩兜底/gate 网检接管,不再毒化整轮
+                if not str(status).startswith("applied") and act.kind != "sch-autoconnect":
+                    # autoconnect 失败已由落桩兜底/gate 网检接管,不再毒化整轮;
+                    # block-apply 的 applied-mismatch/-partial 同理(器件在页上,
+                    # 电气对错交 gate)——毒化只留给真没落地的 failed-*/unknown
                     ok_all = False
             except AdapterError as e:
                 ok_all = False
