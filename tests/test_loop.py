@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import time
 
 import pytest
 from pathlib import Path
@@ -493,6 +494,10 @@ _PLAN_OK = {
 
 # 真机给上游画布风暴留的块间歇排水口,单测关掉(否则 35 实例×2s 拖慢全量)
 LoopController._MEASURE_PACE = 0.0
+# 楔死长等/探活间歇同惯例关掉(环境死亡测试只验证状态机,不吃真机节奏)
+LoopController._WEDGE_RETRY_SLEEP = 0.0
+LoopController._WEDGE_LONG_SLEEP = 0.0
+LoopController._ENV_PROBE_SLEEP = 0.0
 
 
 def _loop(chat, adapter, ir=None, tmp="runs/test-loop") -> LoopController:
@@ -1691,6 +1696,94 @@ def test_blockapply_applied_mismatch_lands_without_poison(tmp_path) -> None:
     ok, _gate = lc._apply(actions, 1)
     assert ok  # 器件已落地,不毒化整轮
     assert any(w["code"] == "APPLY_STATUS_MISMATCH" for w in lc._layout_warnings)
+
+
+# ---- 环境死亡:探活等待 → 同计划重执行(smoke#4 2026-10-10 req-11 楔死)----
+
+
+class _EnvDeathAdapter(_FakeAdapter):
+    """楔死复现 fake:第 1 次 clear_all_pages(=执行块开头)进入死窗;死窗内
+    一切调用 rc=1 + no connected window(manifest 形态:stdout 空不抛,靠
+    嗅探标记)。复活按墙钟(revive_after_s 秒后,模拟操作员重启耗时——不能
+    按调用次数:exec 内 sch pages 重试也会吃计数,复活会落在 exec 中段);
+    revive=False 表示永不复活(超时口径)。"""
+
+    def __init__(self, gate_verdict: str, revive_after_s: float = 0.0,
+                 revive: bool = True) -> None:
+        super().__init__(gate_verdict)
+        self.dead = False
+        self.dead_until = None
+        self.clears = 0
+        self.revive_after_s = revive_after_s
+        self.revive = revive
+
+    def clear_all_pages(self) -> None:
+        self.clears += 1
+        if self.clears == 1:
+            self.dead = True  # 死亡始于首轮执行块开头(warmup/检索/LLM 期健康)
+            self.dead_until = (time.time() + self.revive_after_s) if self.revive else None
+        super().clear_all_pages()
+
+    def run(self, args):
+        if self.dead:
+            if self.dead_until is not None and time.time() >= self.dead_until:
+                self.dead = False  # 操作员重启完成,连接器回来
+            else:
+                return 1, "", "Error: no connected window for project 6fda"
+        return super().run(args)
+
+    def run_json(self, args):
+        # 真适配器口径:rc!=0 时异常文本带 stderr 尾部(今天 108 条 apply-error
+        # 实证)——否则 _run_json_retry 走非楔死 8s 退避,死亡 exec 被拖到复活后
+        if self.dead:
+            if self.dead_until is not None and time.time() >= self.dead_until:
+                self.dead = False
+            else:
+                raise AdapterError(
+                    "JSON 解析失败(rc=1): Expecting value: line 1 column 1\n"
+                    "stdout(len=0)=\nstderr(len=72)=no connected window for project 6fda"
+                )
+        return super().run_json(args)
+
+
+def test_env_dead_waits_revival_and_reexecutes_same_plan(tmp_path, monkeypatch) -> None:
+    """smoke#4(2026-10-10)req-11 定性:重负载风暴后连接器楔死,执行块不再
+    烧轮成合成 GATE_FAIL 同 hash HALT——探活等待操作员重启,复活后同计划
+    重执行(页首清页幂等),轮号不进位、需求照常收敛 PASS。"""
+    monkeypatch.setenv("EDALOOP_ENV_WAIT_POLL", "0.25")
+    monkeypatch.setenv("EDALOOP_ENV_WAIT_MAX", "30")
+    monkeypatch.setattr(LoopController, "_LIB_RETRY_PACE", 0.0)
+    # warmup 的 5s×N 预热等待会把死亡 exec 拖过复活墙钟(复活落 exec 中段
+    # → 连接器自愈 → 重执行环不触发);fake 不需要真机预热,本测试跳过
+    monkeypatch.setattr(LoopController, "_warmup", lambda *a, **k: None)
+    adapter = _EnvDeathAdapter("pass", revive_after_s=3.0)
+    lc = _loop(FakeChat(json.dumps(_PLAN_OK, ensure_ascii=False)), adapter,
+               tmp=str(tmp_path))
+    result = lc.run()
+    assert result.status == "PASS"
+    assert result.converged_round == 1  # 复活重执行,轮号不进位
+    kinds = [e.get("kind") for e in _audit_events(str(tmp_path))]
+    assert "env-dead-wait" in kinds
+    assert "env-revived" in kinds
+    assert "env-wait-timeout" not in kinds
+
+
+def test_env_dead_wait_timeout_keeps_breakpoint_path(tmp_path, monkeypatch) -> None:
+    """等不到复活(操作员不在):等待超时如实入审计,走旧口径烧轮——合成
+    GATE_FAIL 同 hash 收敛 HALT,断点语义不变。"""
+    monkeypatch.setenv("EDALOOP_ENV_WAIT_POLL", "0.05")
+    monkeypatch.setenv("EDALOOP_ENV_WAIT_MAX", "0.2")
+    monkeypatch.setattr(LoopController, "_LIB_RETRY_PACE", 0.0)
+    monkeypatch.setattr(LoopController, "_warmup", lambda *a, **k: None)
+    adapter = _EnvDeathAdapter("pass", revive=False)
+    lc = _loop(FakeChat(json.dumps(_PLAN_OK, ensure_ascii=False)), adapter,
+               tmp=str(tmp_path))
+    result = lc.run()
+    assert result.status == "HALT"
+    kinds = [e.get("kind") for e in _audit_events(str(tmp_path))]
+    assert "env-dead-wait" in kinds
+    assert "env-wait-timeout" in kinds
+    assert "env-revived" not in kinds
 
 
 # ---- repack:两阶段布局(试放定框 → 离线装箱 → 逐页重放)----

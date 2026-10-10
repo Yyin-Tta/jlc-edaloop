@@ -31,6 +31,14 @@ from edaloop.validate.layout import (
 from edaloop.validate.models import Finding
 
 MAX_ROUNDS = 5
+
+
+def _env_num(name: str, default: float) -> float:
+    """环境变量读数(操作员调参用);缺省/非法回落默认值。"""
+    try:
+        return float(os.environ.get(name, "") or default)
+    except ValueError:
+        return default
 SAME_CODE_HALT = 2
 
 
@@ -852,6 +860,13 @@ class LoopController:
         self._net_missing: list[dict] = []
         # P0 收口前网基线(_apply 收口序开头 _snapshot_page_nets 写;终检第三通道)
         self._pre_closeout_nets: dict[str, set[str]] = {}
+        # 连接器环境死亡(smoke#4 2026-10-10 req-11 定性:重负载动作风暴 1.5-2.5h
+        # 后连接器楔死,108 次 no connected window 烧穿 r3/r4 → 合成 GATE_FAIL
+        # 同 hash 收敛 HALT,数小时真机进度全弃):轮执行层加「探活等待→同计划
+        # 重执行」。此处挂状态+嗅探器;判定/等待/重执行在 run() 轮执行块。
+        self._env_wedge_seen = False
+        self._env_revivals_left = int(_env_num("EDALOOP_ENV_REVIVALS", self._ENV_REVIVALS))
+        self._install_env_sniffer()
         # Terminal layout audit is enabled by default for the real EasyEDA
         # adapter.  Older unit-test fakes intentionally expose only a small
         # command surface; they remain compatible unless they opt in via the
@@ -1542,56 +1557,104 @@ class LoopController:
                         self.audit.event("plan-compile-failed", round_no=round_no,
                                          error=compile_error[:300])
                 if not self.dry_run and not compile_error:
-                    self.adapter.clear_all_pages()
-                    # 两阶段布局(repack):试放定框→离线装箱→改写 at/page;失败自动
-                    # 回退流式(旧行为)。EDALOOP_LAYOUT=flow 一键关停。
-                    self._repack_oversize_pages: set[str] = set()
-                    if os.environ.get("EDALOOP_LAYOUT", "repack") == "repack":
+                    # 环境死亡重执行环(smoke#4 2026-10-10 req-11 第 4 次楔死定性):
+                    # 嗅探(适配器 rc!=0/异常文本命中 _WEDGE_MARKERS)且探活确认连接
+                    # 器死 → 原地轮询等待重启(审计 env-dead-wait,操作员重启 EasyEDA
+                    # 即可),复活后**同计划重进执行块**——页首 clear_all_pages+逐页
+                    # 清保真使执行幂等,数小时真机进度不再因楔死全弃。等待超时/复活
+                    # 次数用尽 → 旧口径(apply_ok=False→合成 GATE_FAIL→同 hash HALT,
+                    # 断点机制在)。
+                    while True:
+                        # 执行域状态每趟复位(轮顶初始化的同一组):死亡趟的劣化记录
+                        # (告警/断网/快照/楔死旗)不得带进重执行趟
+                        self._env_wedge_seen = False
+                        self._layout_warnings = []
+                        self._wire_breaks = []
+                        self._wire_boxes = {}
+                        self._net_missing = []
+                        self._pre_closeout_nets = {}
+                        self._layout_snapshots = {}
+                        self._terminal_page_uuids = {}
+                        self._terminal_layout_findings = []
+                        self._gate_contract_findings = []
+                        self._designator_map_by_instance = {}
                         try:
-                            self._repack_actions(actions, plan, round_no)
+                            self.adapter.clear_all_pages()
+                            # 两阶段布局(repack):试放定框→离线装箱→改写 at/page;失败自动
+                            # 回退流式(旧行为)。EDALOOP_LAYOUT=flow 一键关停。
+                            self._repack_oversize_pages: set[str] = set()
+                            if os.environ.get("EDALOOP_LAYOUT", "repack") == "repack":
+                                try:
+                                    self._repack_actions(actions, plan, round_no)
+                                except TrialFreezeSignal:
+                                    # 调试冻结:试放页已画框,跳过装箱/清页/重放/gate,立即收束
+                                    return LoopResult(status="FREEZE", audit_dir=str(self.audit.dir))
+                            pages = self._plan_pages(actions)
+                            # sch clear 只清各窗口当前活动页;上轮逐页 gate 会把前台留在末页,
+                            # 故每轮显式清文档全部既有页(含 P1 与超出本轮计划的孤儿页),
+                            # 否则 r≥2 叠上轮墨迹 → 文档级位号冲突(C8 类)确定性复发。
+                            existing = self._ensure_pages([p for p in pages if p != "P1"], round_no)
+                            # 清页保真(2026-08-21 决定性实验结论):sch clear --doc 本身不说谎
+                            # (连发六页全部真清空,remaining=0 如实),但其结果是三态——幸存时只往
+                            # result 塞 warning 仍 rc=0;且 r≥2 的清页紧跟上轮 apply,上游实证
+                            # 「block-apply 后立即 clear 可复现留 ~20 幸存者,数秒后手跑才能清空」。
+                            # rc 不可信:clear 后回读数器件才算数,幸存 → 重清一次(settle 电阻),
+                            # 两趟仍不清 → clear-fidelity 失败进审计(不静默;后续 apply 失败自会
+                            # 经 GATE_FAIL 归因,此处只负责把证据钉死)。
+                            clear_failed = [
+                                p for p in self._page_order(existing | set(pages))
+                                if not self._clear_page_verified(p, round_no)
+                            ]
+                            self.audit.event("page-clear", round_no=round_no, pages=pages, failures=clear_failed)
+                            if clear_failed:
+                                # P0-3 门禁(2026-08-26):未清空的页上照常落图 = 残件+位号静默
+                                # 改号+叠放的确定源(P1 184 件 freeze 残骸定性)。清页两趟失败
+                                # 即跳过本轮落图,apply_ok=False 走既有 GATE_FAIL→RELAYOUT 反馈
+                                # 重试路径;连败两轮由既有 code_streak→HALT 升级兜住。
+                                self._layout_warnings.append({
+                                    "code": "PAGE_CLEAR_FAILED",
+                                    "evidence": f"清页两趟仍有残件:{','.join(clear_failed)};本轮跳过落图防叠残件",
+                                })
+                                apply_ok, gate_report = False, None
+                            else:
+                                apply_ok, gate_report = self._apply(actions, round_no)
+                                # P0 net 存在性终检:gate 判"接得合不合法",这里判"规划里的网
+                                # 在不在页上"(req-07 P2 全页零 GND 形态 gate 漏报的补口)
+                                self._net_missing = self._net_presence(actions, round_no)
+                            # 插入点 C(增量修复轮):全量轮成功 → 写 stash(修复轮的原料);
+                            # apply 失败或 repack 回退流式(_last_repack_geometry=None,无可
+                            # 缓存试放几何)→ stash 失效,下一轮照旧全量。
+                            if apply_ok and self._last_repack_geometry is not None:
+                                self._write_stash(plan, actions)
+                            else:
+                                self._stash_valid = False
+                            rec.gate_verdict = gate_report.get("verdict", "unknown") if gate_report else "not-run"
                         except TrialFreezeSignal:
-                            # 调试冻结:试放页已画框,跳过装箱/清页/重放/gate,立即收束
-                            return LoopResult(status="FREEZE", audit_dir=str(self.audit.dir))
-                    pages = self._plan_pages(actions)
-                    # sch clear 只清各窗口当前活动页;上轮逐页 gate 会把前台留在末页,
-                    # 故每轮显式清文档全部既有页(含 P1 与超出本轮计划的孤儿页),
-                    # 否则 r≥2 叠上轮墨迹 → 文档级位号冲突(C8 类)确定性复发。
-                    existing = self._ensure_pages([p for p in pages if p != "P1"], round_no)
-                    # 清页保真(2026-08-21 决定性实验结论):sch clear --doc 本身不说谎
-                    # (连发六页全部真清空,remaining=0 如实),但其结果是三态——幸存时只往
-                    # result 塞 warning 仍 rc=0;且 r≥2 的清页紧跟上轮 apply,上游实证
-                    # 「block-apply 后立即 clear 可复现留 ~20 幸存者,数秒后手跑才能清空」。
-                    # rc 不可信:clear 后回读数器件才算数,幸存 → 重清一次(settle 电阻),
-                    # 两趟仍不清 → clear-fidelity 失败进审计(不静默;后续 apply 失败自会
-                    # 经 GATE_FAIL 归因,此处只负责把证据钉死)。
-                    clear_failed = [
-                        p for p in self._page_order(existing | set(pages))
-                        if not self._clear_page_verified(p, round_no)
-                    ]
-                    self.audit.event("page-clear", round_no=round_no, pages=pages, failures=clear_failed)
-                    if clear_failed:
-                        # P0-3 门禁(2026-08-26):未清空的页上照常落图 = 残件+位号静默
-                        # 改号+叠放的确定源(P1 184 件 freeze 残骸定性)。清页两趟失败
-                        # 即跳过本轮落图,apply_ok=False 走既有 GATE_FAIL→RELAYOUT 反馈
-                        # 重试路径;连败两轮由既有 code_streak→HALT 升级兜住。
-                        self._layout_warnings.append({
-                            "code": "PAGE_CLEAR_FAILED",
-                            "evidence": f"清页两趟仍有残件:{','.join(clear_failed)};本轮跳过落图防叠残件",
-                        })
-                        apply_ok, gate_report = False, None
-                    else:
-                        apply_ok, gate_report = self._apply(actions, round_no)
-                        # P0 net 存在性终检:gate 判"接得合不合法",这里判"规划里的网
-                        # 在不在页上"(req-07 P2 全页零 GND 形态 gate 漏报的补口)
-                        self._net_missing = self._net_presence(actions, round_no)
-                    # 插入点 C(增量修复轮):全量轮成功 → 写 stash(修复轮的原料);
-                    # apply 失败或 repack 回退流式(_last_repack_geometry=None,无可
-                    # 缓存试放几何)→ stash 失效,下一轮照旧全量。
-                    if apply_ok and self._last_repack_geometry is not None:
-                        self._write_stash(plan, actions)
-                    else:
-                        self._stash_valid = False
-                    rec.gate_verdict = gate_report.get("verdict", "unknown") if gate_report else "not-run"
+                            raise
+                        except Exception as exc:
+                            # 执行块抛错(页操作/gate 通道):楔死旗、楔死标记或探活死
+                            # 任一命中即按环境死亡处理——真代码错误(探活活着)原样上抛
+                            envish = (
+                                self._env_wedge_seen
+                                or self._connector_wedged(exc)
+                                or not self._connector_probe()
+                            )
+                            if not envish or self._env_revivals_left <= 0:
+                                raise
+                            self.audit.event("env-dead-detected", round_no=round_no,
+                                             error=str(exc)[-300:])
+                            if not self._wait_connector_revival(round_no):
+                                raise
+                            self._env_revivals_left -= 1
+                            continue
+                        if (self._env_wedge_seen and self._env_revivals_left > 0
+                                and not self._connector_probe()):
+                            # 执行块吞错走完(ensure_pages/manifest 形态):楔死旗+探活死
+                            self.audit.event("env-dead-detected", round_no=round_no)
+                            if self._wait_connector_revival(round_no):
+                                self._env_revivals_left -= 1
+                                continue
+                        break
             # P4-4① sizing 轮内化:make_plan 后 validate 段计算(轨输入走 IR,出处随建议入审计),
             # PARAM_OFF_SPEC 弱观察与 feedback 注入都消费它;PASS 后 deliver 复用末轮结果。
             sizing_advices = self._size_round(plan, round_no)
@@ -4619,7 +4682,7 @@ class LoopController:
             refresh = getattr(self.adapter, "refresh_window", None)
             if refresh:
                 refresh()
-            time.sleep(45)
+            time.sleep(self._WEDGE_LONG_SLEEP)
             try:
                 read = self._run_json_retry(["sch", "read", "--page", page], attempts=1)
             except Exception as e2:
@@ -8209,6 +8272,83 @@ class LoopController:
                 self.adapter.refresh_window()
                 self.audit.event("window-refresh", round_no=None)
 
+    # ---- 连接器环境死亡:嗅探 / 探活 / 等待复活(smoke#4 2026-10-10)----
+
+    def _install_env_sniffer(self) -> None:
+        """给适配器实例装楔死嗅探:rc!=0 或 run_json 抛错时扫 stderr/异常文本,
+        命中 _WEDGE_MARKERS 记 self._env_wedge_seen。包装挂实例属性并带幂等闸
+        ——同一适配器对象被多个 controller 复用(eval 续跑)不叠包。全部调用
+        路径(page/place/manifest/gate/页操作)一处覆盖,不改各 handler。"""
+        adapter = self.adapter
+        if getattr(adapter, "_env_sniff_installed", False):
+            return
+        adapter._env_sniff_installed = True
+
+        def _sniff(text: str) -> None:
+            if text and self._connector_wedged(text):
+                self._env_wedge_seen = True
+
+        # 只包实际存在的通道(部分测试 fake 只实现 run_json 或只实现 run)
+        orig_run = getattr(adapter, "run", None)
+        if callable(orig_run):
+            def _sniff_run(args):
+                rc, out, err = orig_run(args)
+                if rc != 0:
+                    _sniff(err or out or "")
+                return rc, out, err
+
+            adapter.run = _sniff_run
+        orig_json = getattr(adapter, "run_json", None)
+        if callable(orig_json):
+            def _sniff_json(args):
+                try:
+                    return orig_json(args)
+                except Exception as e:  # noqa: BLE001 - 只嗅探不改判,原样上抛
+                    _sniff(str(e))
+                    raise
+
+            adapter.run_json = _sniff_json
+
+    def _connector_probe(self) -> bool:
+        """连接器活性探测:sch pages 两连发,rc==0 即活。楔死标记命中后由
+        轮执行块调用——探测活着=真环境/逻辑错误按旧口径;死了=环境死亡,
+        可等复活。"""
+        for _ in range(2):
+            try:
+                rc, _out, _err = self.adapter.run(["sch", "pages"])
+                if rc == 0:
+                    return True
+            except Exception:  # noqa: BLE001 - 探测本身失败=不活
+                pass
+            time.sleep(self._ENV_PROBE_SLEEP)
+        return False
+
+    def _wait_connector_revival(self, round_no: int) -> bool:
+        """楔死原地等待复活:轮询探活至上限(EDALOOP_ENV_WAIT_MAX,默认 90min)。
+        复活后 refresh_window 重钉新窗口(楔死常伴 windowId churn),返回 True;
+        超时返回 False——调用方按旧口径烧轮(合成 GATE_FAIL→同 hash HALT,
+        断点机制在,进度不丢档)。审计 env-dead-wait 带操作指引。"""
+        poll = _env_num("EDALOOP_ENV_WAIT_POLL", self._ENV_WAIT_POLL)
+        max_s = _env_num("EDALOOP_ENV_WAIT_MAX", self._ENV_WAIT_MAX)
+        self.audit.event(
+            "env-dead-wait", round_no=round_no,
+            revivals_left=self._env_revivals_left, poll_s=poll, max_s=max_s,
+            hint="连接器楔死:请完全重启 EasyEDA Pro 并打开工程(半离线保持);"
+                 "恢复后本轮将以同计划自动重执行(页首清页,幂等)",
+        )
+        deadline = time.time() + max_s
+        while True:
+            if self._connector_probe():
+                refresh = getattr(self.adapter, "refresh_window", None)
+                if refresh:
+                    refresh()
+                self.audit.event("env-revived", round_no=round_no)
+                return True
+            if time.time() >= deadline:
+                self.audit.event("env-wait-timeout", round_no=round_no)
+                return False
+            time.sleep(poll)
+
     def _run_manifest_once(self, args) -> dict:
         """变更型命令(block-apply)只许执行一次,manifest 取该次 stdout。
 
@@ -8234,11 +8374,28 @@ class LoopController:
 
     # 连接器 wedge 特征(上游定性 2026-08-24):EFFECT 通道假死时 CLI stderr 带
     # 这些标记——与逻辑失败区分,值得 refresh 窗口钉扎 + 长等降载后再试。
-    _WEDGE_MARKERS = ("DEGRADED", "did not respond", "no connected window")
+    # 后两串为 smoke#4(2026-10-10)req-11 第 4 次楔死补充:windowId churn 形态
+    # 下 stderr 出现 "window … is not connected, but 1 connector win…" 与
+    # "no EasyEDA connector is available"(与既有三标记不同串)。
+    _WEDGE_MARKERS = (
+        "DEGRADED", "did not respond", "no connected window",
+        "is not connected", "no EasyEDA connector",
+    )
     # 落-量-清 的块间歇(秒):给上游 webview 保存/重绘风暴留排水口,单测置 0
     _MEASURE_PACE = 2.0
     # lib-search 限流型查空的补发间隔(秒),单测置 0(同 _MEASURE_PACE 惯例)
     _LIB_RETRY_PACE = 1.5
+    # wedge 长等(秒,run_json 重试通道 / 清页验证的耐心等待):单测置 0
+    # (同 _MEASURE_PACE 惯例)
+    _WEDGE_RETRY_SLEEP = 30.0
+    _WEDGE_LONG_SLEEP = 45.0
+    # 环境死亡等待节奏(秒):探活间隔 / 等待上限 / 每需求复活次数——操作员可
+    # 用 EDALOOP_ENV_WAIT_POLL / EDALOOP_ENV_WAIT_MAX / EDALOOP_ENV_REVIVALS
+    # 覆盖;探活两连发的间歇单测置 0。
+    _ENV_WAIT_POLL = 30.0
+    _ENV_WAIT_MAX = 5400.0
+    _ENV_PROBE_SLEEP = 0.5
+    _ENV_REVIVALS = 2
 
     def _connector_wedged(self, err: Exception | str) -> bool:
         return any(m in str(err) for m in self._WEDGE_MARKERS)
@@ -8259,7 +8416,7 @@ class LoopController:
                         refresh = getattr(self.adapter, "refresh_window", None)
                         if refresh:
                             refresh()
-                        time.sleep(30)
+                        time.sleep(self._WEDGE_RETRY_SLEEP)
                     else:
                         time.sleep(delay)
         raise last
